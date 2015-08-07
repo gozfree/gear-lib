@@ -20,8 +20,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <linux/unistd.h>
+#include <libgzf.h>
 
-#include "libutils.h"
 #include "liblog.h"
 
 #define LOG_IOVEC_MAX       (10)

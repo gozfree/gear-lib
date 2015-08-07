@@ -1,13 +1,4 @@
 
-LIBNAME		= liblog
-TGT_LIB_H	= ${LIBNAME}.h
-TGT_LIB_A	= ${LIBNAME}.a
-TGT_LIB_SO	= ${LIBNAME}.so
-TGT_UNIT_TEST	= test_${LIBNAME}
-
-OBJS_LIB	= ${LIBNAME}.o
-OBJS_UNIT_TEST	= test_${LIBNAME}.o
-
 OUTPUT		?= /usr/local
 
 ARCH		?=x86
@@ -27,6 +18,8 @@ CC_V	= $(CC_$(COLOR))
 CXX_V	= $(CXX_$(COLOR))
 LD_V	= $(LD_$(COLOR))
 AR_V	= $(AR_$(COLOR))
+CP_V	= $(CP_$(COLOR))
+RM_V	= $(RM_$(COLOR))
 CYAN	= "\033[36m"
 GREEN	= "\033[1;32m"
 NC	= "\033[0m"
@@ -39,6 +32,20 @@ LD_0	= $(LD)
 LD_1	= @printf '\t%b\t%b\n' $(GREEN)LD$(NC) $(GREEN)$@$(NC); $(LD)
 AR_0	= $(AR)
 AR_1	= @printf '\t%b\t%b\n' $(AA)AR$(NC) $(AA)$@$(NC); $(AR)
+CP_0	= cp
+CP_1	= @printf '\t%b\n' $(AA)install$(NC); cp
+RM_0	= rm
+RM_1	= @printf '\t%b\n' $(AA)clean$(NC); rm
+
+########
+LIBNAME		= liblog
+TGT_LIB_H	= ${LIBNAME}.h
+TGT_LIB_A	= ${LIBNAME}.a
+TGT_LIB_SO	= ${LIBNAME}.so
+TGT_UNIT_TEST	= test_${LIBNAME}
+
+OBJS_LIB	= ${LIBNAME}.o
+OBJS_UNIT_TEST	= test_${LIBNAME}.o
 
 CFLAGS	:= -g -Wall -fPIC
 CFLAGS	+= -Werror
@@ -68,9 +75,9 @@ $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
 
 install:
-	cp -r $(TGT_LIB_H)  ${OUTPUT}/include
-	cp -r $(TGT_LIB_A)  ${OUTPUT}/lib
-	cp -r $(TGT_LIB_SO) ${OUTPUT}/lib
+	$(CP_V) -r $(TGT_LIB_H)  ${OUTPUT}/include
+	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/lib
+	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/lib
 clean:
-	rm -f $(OBJS)
-	rm -f $(TGT)
+	$(RM_V) -f $(OBJS)
+	$(RM_V) -f $(TGT)
