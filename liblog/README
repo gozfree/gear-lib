@@ -1,0 +1,2 @@
+This is a simple log library.
+Support write log to stderr, file and rsyslog.
