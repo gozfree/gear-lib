@@ -212,7 +212,7 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
 {
     int i, ret;
     unsigned long long tmp_size = get_file_size_by_fp(_log_fp);
-    if (unlikely(tmp_size > _log_file_size)) {
+    if (UNLIKELY(tmp_size > _log_file_size)) {
         if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
             fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
                     _log_name, tmp_size, _log_file_size);
@@ -262,7 +262,7 @@ static int _log_close()
 static ssize_t _log_write(struct iovec *vec, int n)
 {
     unsigned long long tmp_size = get_file_size(_log_name);
-    if (unlikely(tmp_size > _log_file_size)) {
+    if (UNLIKELY(tmp_size > _log_file_size)) {
         fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
                 _log_name, tmp_size, _log_file_size);
         if (-1 == _log_close()) {
@@ -394,7 +394,7 @@ int log_print(int lvl, const char *tag, const char *file,
     char buf[LOG_BUF_SIZE] = {0};
     int n, ret;
 
-    if (unlikely(!_log_init)) {
+    if (UNLIKELY(!_log_init)) {
         log_init(0, NULL);
     }
 
@@ -404,11 +404,11 @@ int log_print(int lvl, const char *tag, const char *file,
 
     va_start(ap, fmt);
     n = vsnprintf(buf, sizeof(buf), fmt, ap);
-    if (unlikely(_log_syslog)) {
+    if (UNLIKELY(_log_syslog)) {
         vsyslog(lvl, fmt, ap);
     }
     va_end(ap);
-    if (unlikely(n < 0)) {
+    if (UNLIKELY(n < 0)) {
         fprintf(stderr, "vsnprintf errno:%d\n", errno);
         return -1;
     }
