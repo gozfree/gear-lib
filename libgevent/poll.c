@@ -15,9 +15,8 @@
 #include "libgzf.h"
 #include "libgevent.h"
 
-#define POLL_MAX_FD	1024
-#define MAX_SECONDS_IN_MSEC_LONG \
-	(((LONG_MAX) - 999) / 1000)
+#define POLL_MAX_FD                 (1024)
+#define MAX_SECONDS_IN_MSEC_LONG    (((LONG_MAX) - 999) / 1000)
 
 
 struct poll_ctx {
@@ -114,9 +113,9 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
 }
 
 const struct gevent_ops pollops = {
-	poll_init,
-	poll_deinit,
-	poll_add,
-	poll_del,
-	poll_dispatch,
+    poll_init,
+    poll_deinit,
+    poll_add,
+    poll_del,
+    poll_dispatch,
 };
