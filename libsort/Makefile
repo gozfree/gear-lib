@@ -38,14 +38,16 @@ RM_0	= rm
 RM_1	= @printf '\t%b\n' $(AA)clean$(NC); rm
 
 ########
-LIBNAME		= libgzf
+LIBNAME		= libsort
 TGT_LIB_H	= ${LIBNAME}.h
-TGT_LIB_H	+= kernel_list.h
-#TGT_LIB_A	= ${LIBNAME}.a
-#TGT_LIB_SO	= ${LIBNAME}.so
-#TGT_UNIT_TEST	= test_${LIBNAME}
+TGT_LIB_A	= ${LIBNAME}.a
+TGT_LIB_SO	= ${LIBNAME}.so
+TGT_UNIT_TEST	= test_${LIBNAME}
 
 OBJS_LIB	= ${LIBNAME}.o
+OBJS_LIB	+= bubble_sort.o
+OBJS_LIB	+= heap_sort.o
+
 OBJS_UNIT_TEST	= test_${LIBNAME}.o
 
 CFLAGS	:= -g -Wall -fPIC
@@ -77,6 +79,8 @@ $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
 
 install:
 	$(CP_V) -r $(TGT_LIB_H)  ${OUTPUT}/include
+	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/lib
+	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/lib
 clean:
 	$(RM_V) -f $(OBJS)
 	$(RM_V) -f $(TGT)
