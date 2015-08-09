@@ -1,0 +1,26 @@
+/*
+ * librpc.proto is the base of all proto files
+ */
+
+//base message
+enum req_cmd {
+    HELLO = 0;
+    CALC = 1;
+    //add here below...
+}
+
+enum rep_errno {
+    SUCCESS = 0;
+    ERROR = 1;
+    NOEXIST = 2;
+}
+
+//example
+message request {
+    required req_cmd id = 1;
+}
+
+message reply {
+    required rep_errno rpc_errno = 1;
+    required bytes rpc_strerr = 2;
+}
