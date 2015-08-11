@@ -225,13 +225,11 @@ static void ptcp_fifo_init(PseudoTcpFifo *b, size_t size)
 {
   b->buffer = (uint8_t *)calloc(1, size);
   b->buffer_length = size;
-  printf("%s:%d b->buffer=%p, size=%zd\n", __func__, __LINE__, b->buffer, size);
 }
 
 static void ptcp_fifo_clear(PseudoTcpFifo *b)
 {
   if (b->buffer) {
-    printf("%s:%d b->buffer=%p, size=%zd\n", __func__, __LINE__, b->buffer, b->buffer_length);
     free(b->buffer);
   }
   b->buffer = NULL;
@@ -399,14 +397,15 @@ typedef enum {
 
 
 struct _ptcp_socket {
+/*************************/
+/*extended paraments*/
   int on_read_fd;
   int on_write_fd;
-//=================
   int fd;
   struct sockaddr_in si;
   timer_t timer_id;
   sem_t sem;
-//=================
+/**************************/
   ptcp_callbacks_t callbacks;
 
   Shutdown shutdown;  /* only used if !support_fin_ack */

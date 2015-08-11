@@ -314,6 +314,7 @@ int file_recv(char *name, struct xfer_callback *cbs)
 
     flen = 0;
     while (1) {
+        usleep(10 * 1000);
         memset(buf, 0, sizeof(buf));
         rlen = cbs->xfer_recv(arg, buf, sizeof(buf));
         if (rlen <= 0) {

@@ -82,8 +82,9 @@ int client(const char *host, uint16_t port)
     while (1) {
         usleep(10 * 1000);
         memset(buf, 0, sizeof(buf));
-        snprintf(buf, sizeof(buf), "client %d", i);
-        len = 0;//ptcp_send(ps, buf, strlen(buf));
+        snprintf(buf, sizeof(buf), "client %d\n", i);
+        len = 0;
+        ptcp_send(ps, buf, strlen(buf));
         printf("ptcp_send i=%d, len=%d, buf=%s\n", i, len, buf);
     }
     sleep(1);
