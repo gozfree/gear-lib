@@ -49,11 +49,12 @@ OBJS_LIB	= ${LIBNAME}.o
 OBJS_UNIT_TEST	= test_${LIBNAME}.o
 OBJS_FILE_TEST	+= test_file_transfer.o
 
-CFLAGS	:= -g -Wall -fPIC
-CFLAGS	+= -Werror
+CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	+= -I$(OUTPUT)/include
 #CFLAGS	+= -D__STDC_FORMAT_MACROS #for printf PRId64
 SHARED	:= -shared
 LDFLAGS	:= -lrt -lpthread
+LDFLAGS	+= -L$(OUTPUT)/lib
 
 .PHONY : all clean
 
@@ -81,10 +82,16 @@ $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
 $(TGT_FILE_TEST) : $(OBJS_FILE_TEST)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
 
+clean:
+	$(RM_V) -f $(OBJS)
+	$(RM_V) -f $(TGT)
+
 install:
 	$(CP_V) -r $(TGT_LIB_H)  ${OUTPUT}/include
 	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/lib
 	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/lib
-clean:
-	$(RM_V) -f $(OBJS)
-	$(RM_V) -f $(TGT)
+
+uninstall:
+	$(RM_V) -f ${OUTPUT}/include/$(TGT_LIB_H)
+	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_A)
+	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_SO)

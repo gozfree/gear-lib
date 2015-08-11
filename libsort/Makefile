@@ -50,10 +50,11 @@ OBJS_LIB	+= heap_sort.o
 
 OBJS_UNIT_TEST	= test_${LIBNAME}.o
 
-CFLAGS	:= -g -Wall -fPIC
-CFLAGS	+= -Werror
+CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 LDFLAGS	:= -lpthread
+LDFLAGS	+= -L$(OUTPUT)/lib
 
 .PHONY : all clean
 
@@ -77,10 +78,16 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
 
+clean:
+	$(RM_V) -f $(OBJS)
+	$(RM_V) -f $(TGT)
+
 install:
 	$(CP_V) -r $(TGT_LIB_H)  ${OUTPUT}/include
 	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/lib
 	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/lib
-clean:
-	$(RM_V) -f $(OBJS)
-	$(RM_V) -f $(TGT)
+
+uninstall:
+	$(RM_V) -f ${OUTPUT}/include/$(TGT_LIB_H)
+	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_A)
+	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_SO)
