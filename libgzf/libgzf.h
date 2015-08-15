@@ -39,48 +39,6 @@ extern "C" {
 #define swap(a, b) \
     do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
-#ifdef __ARM__
-inline __attribute_const__ uint32_t swahb32(uint32_t x)
-{
-     __asm__ ("rev16 %0, %1" : "=r" (x) : "r" (x));
-     return x;
-}
-inline __attribute_const__ uint32_t swab32(uint32_t x)
-{
-     __asm__ ("rev %0, %1" : "=r" (x) : "r" (x));
-     return x;
-}
-#define SWAP_16BIT(x) ((uint16_t)swahb32(x))
-#else
-static inline __attribute_const__ uint32_t swab32(uint32_t val)
-{
-    asm("bswapl %0" : "=r" (val) : "0" (val));
-    return val;
-}
-static inline __attribute_const__ uint64_t swab64(uint64_t val)
-{
-#ifdef __i386__
-    union {
-        struct {
-            uint32_t a;
-            uint32_t b;
-	} s;
-        uint64_t u;
-    } v;
-    v.u = val;
-    asm("bswapl %0 ; bswapl %1 ; xchgl %0,%1"
-        : "=r" (v.s.a), "=r" (v.s.b)
-        : "0" (v.s.a), "1" (v.s.b));
-    return v.u;
-#else /* __i386__ */
-    asm("bswapq %0" : "=r" (val) : "0" (val));
-    return val;
-#endif
-}
-#define SWAP_64BIT swab64
-#endif
-#define SWAP_32BIT swab32
-
 /******************************************************************************
  * math
  *****************************************************************************/
