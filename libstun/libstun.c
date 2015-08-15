@@ -365,7 +365,7 @@ static int stunParseAtrChangeRequest(char *body,
                 unsigned int hdrLen, StunAtrChangeRequest *result)
 {
     if (hdrLen != 4) {
-        printf("hdr length = %u expecting %lu\n",  hdrLen, sizeof(*result));
+        printf("hdr length = %u expecting %zu\n",  hdrLen, sizeof(*result));
         printf("Incorrect size for ChangeRequest\n");
         return 0;
     } else {
