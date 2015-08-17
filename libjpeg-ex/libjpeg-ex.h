@@ -21,12 +21,21 @@ extern "C" {
 
 typedef enum yuv_format {
     YUV422 = 0,
-    YUV420
+    YUV420 = 1,
 } yuv_format_t;
+typedef enum yuv420_format {
+    YUV420_IYUV = 0,	// Pattern: YYYYYYYYUUVV
+    YUV420_YV12 = 1,	// Pattern: YYYYYYYYVVUU
+    YUV420_NV12 = 2,	// Pattern: YYYYYYYYUVUV
+    YUV422_YU16 = 3,	// Pattern: YYYYYYYYUUUUVVVV
+    YUV422_YV16 = 4,	// Pattern: YYYYYYYYVVVVUUUU
+} yuv420_format_t;
+
 
 typedef struct jpeg {
-    uint8_t *data;
-    int len;
+    struct iovec data;
+    int width;
+    int height;
 } jpeg_t;
 
 typedef struct yuv {
@@ -34,8 +43,6 @@ typedef struct yuv {
   int sub_format;
   struct iovec luma;
   struct iovec chroma;
-  int luma_len;
-  int chroma_len;
   int width;
   int height;
   int pitch;
@@ -44,8 +51,8 @@ typedef struct yuv {
 } yuv_t;
 
 
-struct yuv *yuv_new();
-void yuv_free(struct yuv *);
+struct yuv *yuv_new(int format, int width, int height);
+void yuv_free(struct yuv *yuv);
 
 struct jpeg *jpeg_new(int width, int height);
 void jpeg_free(struct jpeg *);

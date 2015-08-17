@@ -19,141 +19,129 @@
 #define NV12                (1)
 
 typedef struct image {
-  uint8_t *buffer;
-  int format;
-  int width;    /* Number of columns in image */
-  int height;   /* Number of rows in image */
+    struct iovec data;
+    int format;
+    int width;    /* Number of columns in image */
+    int height;   /* Number of rows in image */
 } image_t ;
 
-typedef struct jpeg_args{
-  struct jpeg_destination_mgr pub; /* public fields */
-  JOCTET * buffer;    /* start of buffer */
-  unsigned char *outbuffer;
-  int outbuffer_size;
-  unsigned char *outbuffer_cursor;
-  int *written;
+typedef struct jpeg_args {
+    struct jpeg_destination_mgr pub; /* public fields */
+    JOCTET * buffer;    /* start of buffer */
+    unsigned char *outbuffer;
+    int outbuffer_size;
+    unsigned char *outbuffer_cursor;
+    int *written;
 } jpeg_args_t;
 
 typedef struct yuv_neon_arg {
-  uint8_t *in;
-  uint8_t *u;
-  uint8_t *v;
-  int row;
-  int col;
-  int pitch;
+    uint8_t *in;
+    uint8_t *u;
+    uint8_t *v;
+    int row;
+    int col;
+    int pitch;
 } yuv_neon_arg;
-
-typedef enum {
-    YUV420_IYUV = 0,	// Pattern: YYYYYYYYUUVV
-    YUV420_YV12 = 1,	// Pattern: YYYYYYYYVVUU
-    YUV420_NV12 = 2,	// Pattern: YYYYYYYYUVUV
-    YUV422_YU16 = 3,	// Pattern: YYYYYYYYUUUUVVVV
-    YUV422_YV16 = 4,	// Pattern: YYYYYYYYVVVVUUUU
-    YUV_FORMAT_TOTAL_NUM,
-} YUV_FORMAT;
 
 //extern "C" void chrome_convert(struct yuv_neon_arg *);
 static void chrome_convert(struct yuv_neon_arg *yuv)
 {
-
+    printf("chrome_convert\n");
 }
 
-static struct image *image_new(uint8_t *input, int width, int height, int pitch)
+static struct image *image_new(struct yuv *yuv)
 {
-    uint32_t size_input = 0;
     uint8_t *image_chrome = NULL;
     int u_offset = 0;
     int size_u = 0,size_v = 0;
+    int width = yuv->width;
+    int height = yuv->height;
+    int pitch = yuv->pitch;
     yuv_neon_arg yuv_arg;
-    if ((width <= 0) ||(height <= 0) ||(pitch <= 0)) {
+    if (width <= 0 || height <= 0 || pitch <= 0) {
         printf("invalid yuv paraments, width=%d, height=%d, pitch=%d\n", width, height, pitch);
         return NULL;
     }
-    struct image *image_buf = CALLOC(1, struct image);
-    if (!image_buf) {
-        printf("malloc image_buf failed!\n");
+    struct image *img = CALLOC(1, struct image);
+    if (!img) {
+        printf("malloc img failed!\n");
         return NULL;
     }
 
-    size_input = width * height * 3/2;
-    image_buf->width = width;
-    image_buf->height = height;
+    img->width = width;
+    img->height = height;
 
     u_offset = width * height;
     size_u = width * height / 4;
     size_v = size_u;
 
-    do {
-        image_buf->buffer = (uint8_t *) malloc(size_input);
-        if (!image_buf->buffer) {
-            printf("Not enough memory for image buffer.\n");
-            break;
-        }
-        memcpy(image_buf->buffer, input, size_input);
+    img->data.iov_len = yuv->luma.iov_len + yuv->chroma.iov_len;
+    img->data.iov_base = calloc(1, img->data.iov_len);
+    if (!img->data.iov_base) {
+        printf("malloc image data failed\n");
+        return NULL;
+    }
+    memcpy(img->data.iov_base, yuv->luma.iov_base, yuv->luma.iov_len);
+    memcpy(img->data.iov_base + yuv->luma.iov_len, yuv->chroma.iov_base, yuv->chroma.iov_len);
 
-        if (image_buf->format == NV12) {
-            image_chrome = (uint8_t *)malloc(size_u + size_v);
-            if (image_chrome == NULL) {
-                printf("Not enough memory for image_u or image_v.\n");
-                return NULL;
-            }
-            yuv_arg.in = image_buf->buffer + u_offset;
-            yuv_arg.u = image_chrome;
-            yuv_arg.v = image_chrome + size_u;
-            yuv_arg.row = height / 2;
-            yuv_arg.col = width;
-            yuv_arg.pitch = width;
-            chrome_convert(&yuv_arg);
-            memcpy((image_buf->buffer + u_offset), yuv_arg.u, size_u + size_v);
+    if (img->format == NV12) {
+        image_chrome = (uint8_t *)malloc(size_u + size_v);
+        if (image_chrome == NULL) {
+            printf("malloc image_u or image_v failed\n");
+            return NULL;
         }
-    } while(0);
+        yuv_arg.in = img->data.iov_base + u_offset;
+        yuv_arg.u = image_chrome;
+        yuv_arg.v = image_chrome + size_u;
+        yuv_arg.row = height / 2;
+        yuv_arg.col = width;
+        yuv_arg.pitch = width;
+        chrome_convert(&yuv_arg);
+        memcpy((img->data.iov_base + u_offset), yuv_arg.u, size_u + size_v);
+    }
     if (image_chrome != NULL) {
         free(image_chrome);
         image_chrome = NULL;
     }
-    return image_buf;
+    return img;
 }
 
-static void image_free(struct image *image_buf)
+static void image_free(struct image *img)
 {
-    if (!image_buf) {
+    if (!img) {
         return;
     }
-    if (!image_buf->buffer) {
+    if (!img->data.iov_base) {
         return;
     }
-    free(image_buf->buffer);
-    free(image_buf);
+    free(img->data.iov_base);
+    free(img);
 }
 
 static void init_destination(j_compress_ptr cinfo)
 {
     struct jpeg_args *dest = (struct jpeg_args*) cinfo->dest;
-    dest->buffer = (JOCTET *)(*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE, OUTPUT_BUF_SIZE * sizeof(JOCTET));
+    dest->buffer = (JOCTET *)(*cinfo->mem->alloc_small)((j_common_ptr) cinfo, JPOOL_IMAGE, OUTPUT_BUF_SIZE * sizeof(JOCTET));
     *(dest->written) = 0;
     dest->pub.next_output_byte = dest->buffer;
     dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
 }
 
-boolean empty_output_buffer(j_compress_ptr cinfo)
+static boolean empty_output_buffer(j_compress_ptr cinfo)
 {
     struct jpeg_args *dest = (struct jpeg_args *) cinfo->dest;
-
     memcpy(dest->outbuffer_cursor, dest->buffer, OUTPUT_BUF_SIZE);
     dest->outbuffer_cursor += OUTPUT_BUF_SIZE;
     *(dest->written) += OUTPUT_BUF_SIZE;
-
     dest->pub.next_output_byte = dest->buffer;
     dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
-
     return TRUE;
 }
 
-void term_destination(j_compress_ptr cinfo)
+static void term_destination(j_compress_ptr cinfo)
 {
     struct jpeg_args * dest = (struct jpeg_args *) cinfo->dest;
     size_t datacount = OUTPUT_BUF_SIZE - dest->pub.free_in_buffer;
-
     memcpy(dest->outbuffer_cursor, dest->buffer, datacount);
     dest->outbuffer_cursor += datacount;
     *(dest->written) += datacount;
@@ -176,10 +164,10 @@ static void dest_buffer(j_compress_ptr cinfo, unsigned char *buffer, int size, i
     dest->written = written;
 }
 
-static int do_jpeg_encode(struct jpeg *jpeg, struct image *input)
+static int do_jpeg_encode(struct jpeg *jpeg, struct image *img)
 {
 #define DEFAULT_JPEG_QUALITY	(60)
-    uint8_t *output = jpeg->data;
+    uint8_t *output = jpeg->data.iov_base;
     int quality = DEFAULT_JPEG_QUALITY;
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -188,7 +176,7 @@ static int do_jpeg_encode(struct jpeg *jpeg, struct image *input)
     int j = 0;
     int written = 0;
 
-    uint32_t size = input->width * input->height;
+    uint32_t size = img->width * img->height;
     uint32_t quarter_size = size / 4;
     uint32_t row = 0;
 
@@ -203,10 +191,10 @@ static int do_jpeg_encode(struct jpeg *jpeg, struct image *input)
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
-    dest_buffer(&cinfo, output, input->width * input->height, &written);
+    dest_buffer(&cinfo, output, img->width * img->height, &written);
 
-    cinfo.image_width = input->width;	/* image width and height, in pixels */
-    cinfo.image_height = input->height;
+    cinfo.image_width = img->width;	/* image width and height, in pixels */
+    cinfo.image_height = img->height;
     cinfo.input_components = COLOR_COMPONENTS;	/* # of color components per pixel */
     cinfo.in_color_space = JCS_YCbCr;       /* colorspace of input image */
 
@@ -224,39 +212,39 @@ static int do_jpeg_encode(struct jpeg *jpeg, struct image *input)
     jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
     jpeg_start_compress(&cinfo, TRUE);
 
-    for (j = 0; j < input->height; j += 16) {
+    for (j = 0; j < img->height; j += 16) {
         for (i = 0; i < 16; i++) {
-            row = input->width * (i + j);
-            y[i] = input->buffer + row;
+            row = img->width * (i + j);
+            y[i] = img->data.iov_base + row;
             if (i % 2 == 0) {
-                cb[i/2] = input->buffer + size + row/4;
-                cr[i/2] = input->buffer + size + quarter_size + row/4;
+                cb[i/2] = img->data.iov_base + size + row/4;
+                cr[i/2] = img->data.iov_base + size + quarter_size + row/4;
             }
         }
         jpeg_write_raw_data(&cinfo, planes, 16);
     }
     jpeg_finish_compress(&cinfo);
     jpeg_destroy_compress(&cinfo);
-    jpeg->len = written;
-    return written;
+    jpeg->data.iov_len = written;
+    return 0;
 }
 
-int jpeg_encode(struct jpeg *jpeg_buf, struct yuv *yuv_buf)
+int jpeg_encode(struct jpeg *jpeg, struct yuv *yuv)
 {
-    int res = -1;
-    do {
-        struct image *image_buf = image_new(yuv_buf->luma_chroma, yuv_buf->width, yuv_buf->height, yuv_buf->pitch);
-        if (!image_buf) {
-            break;
-        }
-
-        res = do_jpeg_encode(jpeg_buf, image_buf);
-        if (res == 0) {
-            break;
-        }
-        image_free(image_buf);
-    } while (0);
-
+    int res = 0;
+    struct image *img = image_new(yuv);
+    if (!img) {
+        res = -1;
+        printf("image_new failed\n");
+        goto end;
+    }
+    if (0 != do_jpeg_encode(jpeg, img)) {
+        res = -1;
+        printf("image_new failed\n");
+        goto end;
+    }
+end:
+    image_free(img);
     return res;
 }
 
@@ -265,26 +253,34 @@ struct yuv *yuv_new(int format, int width, int height)
     struct yuv *yuv = CALLOC(1, struct yuv);
     if (!yuv) {
         printf("malloc yuv failed\n");
-        return NULL;
+        goto err;
     }
     yuv->format = format;
     yuv->width = width;
     yuv->height = height;
+    yuv->pitch = width;
     yuv->luma.iov_len = width * height;
-    if (yuv_desc->format == YUV_FORMAT_YUV420) {
+    if (format == YUV420) {
         yuv->chroma.iov_len = yuv->luma.iov_len / 2;
-    } else if (yuv_desc->format == IAV_YUV_FORMAT_YUV422) {
+    } else if (format == YUV422) {
         yuv->chroma.iov_len = yuv->luma.iov_len;
     } else {
-        printf("Error: invalid yuv data format!\n");
-        return NULL;
+        printf("invalid yuv data format!\n");
+        goto err;
     }
     yuv->luma.iov_base = calloc(1, yuv->luma.iov_len);
     yuv->chroma.iov_base = calloc(1, yuv->chroma.iov_len);
-    memset(yuv->luma.iov_base, 1, yuv->luma.iov_len);
-    memset(yuv->chroma.iov_base, 1, yuv->chroma.iov_len);
-
+    if (!yuv->luma.iov_base || !yuv->chroma.iov_base) {
+        printf("malloc luma chroma failed\n");
+        goto err;
+    }
     return yuv;
+
+err:
+    if (yuv) {
+        free(yuv);
+    }
+    return NULL;
 }
 
 void yuv_free(struct yuv *yuv)
@@ -292,21 +288,30 @@ void yuv_free(struct yuv *yuv)
     if (!yuv) {
         return;
     }
-    free(yuv->luma_chroma);
+    free(yuv->luma.iov_base);
+    free(yuv->chroma.iov_base);
     free(yuv);
 }
 
 struct jpeg *jpeg_new(int width, int height)
 {
     struct jpeg *jpeg = CALLOC(1, struct jpeg);
-    uint8_t *buf = (uint8_t *)calloc(1, width * height * COLOR_COMPONENTS);
-    if (!buf) {
-        printf("Not enough memory for jpeg buffer.\n");
-        return NULL;
+    if (!jpeg) {
+        printf("malloc jpeg failed!\n");
+        goto err;
     }
-    jpeg->data = buf;
-    jpeg->len = 0;
+    jpeg->data.iov_len = width * height * COLOR_COMPONENTS;
+    jpeg->data.iov_base = calloc(1, jpeg->data.iov_len);
+    if (!jpeg->data.iov_base) {
+        printf("malloc jpeg buffer failed!\n");
+        goto err;
+    }
     return jpeg;
+err:
+    if (jpeg) {
+        free(jpeg);
+    }
+    return NULL;
 }
 
 void jpeg_free(struct jpeg *jpeg)
@@ -314,6 +319,6 @@ void jpeg_free(struct jpeg *jpeg)
     if (!jpeg) {
         return;
     }
-    free(jpeg->data);
+    free(jpeg->data.iov_base);
     free(jpeg);
 }

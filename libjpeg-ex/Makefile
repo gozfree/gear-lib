@@ -56,6 +56,7 @@ SHARED	:= -shared
 LDFLAGS	:= -lpthread
 LDFLAGS	+= -ljpeg
 LDFLAGS	+= -L$(OUTPUT)/lib
+LDFLAGS	+= -llog
 
 .PHONY : all clean
 

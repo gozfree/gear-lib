@@ -6,12 +6,18 @@
  * updated: 2015-07-12 00:56
  ******************************************************************************/
 #include <stdio.h>
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <liblog.h>
 #include "libjpeg-ex.h"
 #define WIDTH 	720
 #define HEIGH	480
-void get_luma_buffer(void *buf, struct *yuv)
+
+void get_luma_buffer(void *buf, struct yuv *yuv)
 {
+#if 0
     void *in = NULL;
     void *out = NULL;
     if (yuv->pitch == yuv->width) {
@@ -25,31 +31,34 @@ void get_luma_buffer(void *buf, struct *yuv)
         out += yuv->width;
       }
     }
+#endif
 }
 
-void get_chroma_buffer(void *output, struct *yuv)
+void get_chroma_buffer(void *output, struct yuv *yuv)
 {
-  int width = 0;
-  int height = 0;
-  int pitch = 0;
+#if 0
+    int width = 0;
+    int height = 0;
+    int pitch = 0;
+    struct yuv_neon_arg yuv_neon;
     if (yuv->format == YUV_FORMAT_YUV420) {
       width = yuv->width / 2;
       height = yuv->height / 2;
       pitch = yuv->pitch / 2;
-      yuv.in = yuv->uv_addr_offset;
-      yuv.row = height;
-      yuv.col = yuv->width;
-      yuv.pitch = yuv->pitch;
+      yuv_neon.in = yuv->uv_addr_offset;
+      yuv_neon.row = height;
+      yuv_neon.col = yuv->width;
+      yuv_neon.pitch = yuv->pitch;
       if (yuv->sub_format == YUV420_YV12) {
         // YV12 format (YYYYYYYYVVUU)
-        yuv.u = output + width * height;
-        yuv.v = output;
-        chrome_convert(&yuv);
+        yuv_neon.u = output + width * height;
+        yuv_neon.v = output;
+        chrome_convert(&yuv_neon);
       } else if (yuv->sub_format == YUV420_IYUV) {
         // IYUV (I420) format (YYYYYYYYUUVV)
-        yuv.u = output;
-        yuv.v = output + width * height;
-        chrome_convert(&yuv);
+        yuv_neon.u = output;
+        yuv_neon.v = output + width * height;
+        chrome_convert(&yuv_neon);
       } else {
         if (yuv->sub_format != YUV420_NV12) {
           INFO("Change output format back to NV12 for encode!\n");
@@ -61,38 +70,36 @@ void get_chroma_buffer(void *output, struct *yuv)
           memcpy(output + i * width * 2, input + i * pitch * 2, width * 2);
         }
       }
-    } else if (yuv->format == YUV_FORMAT_YUV422) {
+    } else if (yuv->format == YUV422) {
       width = yuv->width / 2;
       height = yuv->height;
       pitch = yuv->pitch / 2;
-      yuv.in = yuv->uv_addr_offset;
-      yuv.row = height;
-      yuv.col = yuv->width;
-      yuv.pitch = yuv->pitch;
+      yuv_neon.in = yuv->uv_addr_offset;
+      yuv_neon.row = height;
+      yuv_neon.col = yuv->width;
+      yuv_neon.pitch = yuv->pitch;
       if (yuv->sub_format == YUV422_YU16) {
-        yuv.u = output;
-        yuv.v = output + width * height;
+        yuv_neon.u = output;
+        yuv_neon.v = output + width * height;
       } else {
         if (yuv->sub_format != YUV422_YV16) {
-          ERROR("Change output format back to YV16 for preview!\n");
+          printf("Change output format back to YV16 for preview!\n");
           yuv->sub_format = YUV422_YV16;
         }
-        yuv.u = output + width * height;
-        yuv.v = output;
+        yuv_neon.u = output + width * height;
+        yuv_neon.v = output;
       }
-      chrome_convert(&yuv);
+      chrome_convert(&yuv_neon);
     } else {
-      ERROR("Error: Unsupported YUV input format!\n");
-      res = AM_RESULT_ERR_INVALID;
-      break;
+      printf("Error: Unsupported YUV input format!\n");
     }
-
+#endif
 }
 
 void get_yuv_buffer(struct yuv *yuv)
 {
-    get_luma_buffer(luma, yuv);
-    get_chroma_buffer(chroma, yuv);
+    //get_luma_buffer(luma, yuv);
+    //get_chroma_buffer(chroma, yuv);
 
 }
 
@@ -112,6 +119,7 @@ int get_yuv_file(struct yuv *yuv, const char *name)
       return -1;
     }
     close(fd);
+    return 0;
 }
 
 int save_jpeg_file(char *filename, struct jpeg *jpeg)
@@ -121,7 +129,7 @@ int save_jpeg_file(char *filename, struct jpeg *jpeg)
       perror("Failed to open file\n");
       return -1;
     }
-    if (write(fd, data, size) < 0) {
+    if (write(fd, jpeg->data.iov_base, jpeg->data.iov_len) < 0) {
       perror("Failed to sava data into file\n");
       return -1;
     }
@@ -134,8 +142,10 @@ void foo()
     struct yuv *yuv = yuv_new(YUV420, WIDTH, HEIGH);
     get_yuv_file(yuv, "720x480.yuv");
     struct jpeg *jpeg = jpeg_new(WIDTH, HEIGH);
-    get_yuv_buffer(yuv);
+    //get_yuv_buffer(yuv);
+    logi("xxx\n");
     jpeg_encode(jpeg, yuv);
+    logi("xxx\n");
     save_jpeg_file("720x480.jpeg", jpeg);
     //use jpeg
     yuv_free(yuv);
