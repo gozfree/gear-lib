@@ -260,13 +260,30 @@ int jpeg_encode(struct jpeg *jpeg_buf, struct yuv *yuv_buf)
     return res;
 }
 
-struct yuv *yuv_new()
+struct yuv *yuv_new(int format, int width, int height)
 {
     struct yuv *yuv = CALLOC(1, struct yuv);
     if (!yuv) {
         printf("malloc yuv failed\n");
         return NULL;
     }
+    yuv->format = format;
+    yuv->width = width;
+    yuv->height = height;
+    yuv->luma.iov_len = width * height;
+    if (yuv_desc->format == YUV_FORMAT_YUV420) {
+        yuv->chroma.iov_len = yuv->luma.iov_len / 2;
+    } else if (yuv_desc->format == IAV_YUV_FORMAT_YUV422) {
+        yuv->chroma.iov_len = yuv->luma.iov_len;
+    } else {
+        printf("Error: invalid yuv data format!\n");
+        return NULL;
+    }
+    yuv->luma.iov_base = calloc(1, yuv->luma.iov_len);
+    yuv->chroma.iov_base = calloc(1, yuv->chroma.iov_len);
+    memset(yuv->luma.iov_base, 1, yuv->luma.iov_len);
+    memset(yuv->chroma.iov_base, 1, yuv->chroma.iov_len);
+
     return yuv;
 }
 

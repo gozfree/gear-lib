@@ -8,12 +8,135 @@
 #include <stdio.h>
 
 #include "libjpeg-ex.h"
+#define WIDTH 	720
+#define HEIGH	480
+void get_luma_buffer(void *buf, struct *yuv)
+{
+    void *in = NULL;
+    void *out = NULL;
+    if (yuv->pitch == yuv->width) {
+      memcpy(buf, yuv->y_addr_offset, yuv->width * yuv->height);
+    } else {
+      in = yuv->y_addr_offset;
+      out = output;
+      for (i = 0; i < yuv->height; i++) {
+        memcpy(out, in, yuv->width);
+        in += yuv->pitch;
+        out += yuv->width;
+      }
+    }
+}
+
+void get_chroma_buffer(void *output, struct *yuv)
+{
+  int width = 0;
+  int height = 0;
+  int pitch = 0;
+    if (yuv->format == YUV_FORMAT_YUV420) {
+      width = yuv->width / 2;
+      height = yuv->height / 2;
+      pitch = yuv->pitch / 2;
+      yuv.in = yuv->uv_addr_offset;
+      yuv.row = height;
+      yuv.col = yuv->width;
+      yuv.pitch = yuv->pitch;
+      if (yuv->sub_format == YUV420_YV12) {
+        // YV12 format (YYYYYYYYVVUU)
+        yuv.u = output + width * height;
+        yuv.v = output;
+        chrome_convert(&yuv);
+      } else if (yuv->sub_format == YUV420_IYUV) {
+        // IYUV (I420) format (YYYYYYYYUUVV)
+        yuv.u = output;
+        yuv.v = output + width * height;
+        chrome_convert(&yuv);
+      } else {
+        if (yuv->sub_format != YUV420_NV12) {
+          INFO("Change output format back to NV12 for encode!\n");
+          yuv->sub_format = YUV420_NV12;
+        }
+        // NV12 format (YYYYYYYYUVUV)
+        input = yuv->uv_addr_offset;
+        for (i = 0; i < height; ++i) {
+          memcpy(output + i * width * 2, input + i * pitch * 2, width * 2);
+        }
+      }
+    } else if (yuv->format == YUV_FORMAT_YUV422) {
+      width = yuv->width / 2;
+      height = yuv->height;
+      pitch = yuv->pitch / 2;
+      yuv.in = yuv->uv_addr_offset;
+      yuv.row = height;
+      yuv.col = yuv->width;
+      yuv.pitch = yuv->pitch;
+      if (yuv->sub_format == YUV422_YU16) {
+        yuv.u = output;
+        yuv.v = output + width * height;
+      } else {
+        if (yuv->sub_format != YUV422_YV16) {
+          ERROR("Change output format back to YV16 for preview!\n");
+          yuv->sub_format = YUV422_YV16;
+        }
+        yuv.u = output + width * height;
+        yuv.v = output;
+      }
+      chrome_convert(&yuv);
+    } else {
+      ERROR("Error: Unsupported YUV input format!\n");
+      res = AM_RESULT_ERR_INVALID;
+      break;
+    }
+
+}
+
+void get_yuv_buffer(struct yuv *yuv)
+{
+    get_luma_buffer(luma, yuv);
+    get_chroma_buffer(chroma, yuv);
+
+}
+
+int get_yuv_file(struct yuv *yuv, const char *name)
+{
+    int fd = -1;
+    if ((fd = open(name, O_RDWR, 0644)) < 0) {
+      perror("Failed to open file\n");
+      return -1;
+    }
+    if (read(fd, yuv->luma.iov_base, yuv->luma.iov_len) < 0) {
+      perror("Failed to sava ME y data into file\n");
+      return -1;
+    }
+    if (read(fd, yuv->chroma.iov_base, yuv->chroma.iov_len) < 0) {
+      perror("Failed to save ME uv data into file !\n");
+      return -1;
+    }
+    close(fd);
+}
+
+int save_jpeg_file(char *filename, struct jpeg *jpeg)
+{
+    int fd = -1;
+    if ((fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0777)) < 0) {
+      perror("Failed to open file\n");
+      return -1;
+    }
+    if (write(fd, data, size) < 0) {
+      perror("Failed to sava data into file\n");
+      return -1;
+    }
+    close(fd);
+    return 0;
+}
 
 void foo()
 {
-    struct yuv *yuv = yuv_new();
-    struct jpeg *jpeg = jpeg_new(640, 480);
+    struct yuv *yuv = yuv_new(YUV420, WIDTH, HEIGH);
+    get_yuv_file(yuv, "720x480.yuv");
+    struct jpeg *jpeg = jpeg_new(WIDTH, HEIGH);
+    get_yuv_buffer(yuv);
     jpeg_encode(jpeg, yuv);
+    save_jpeg_file("720x480.jpeg", jpeg);
     //use jpeg
     yuv_free(yuv);
     jpeg_free(jpeg);

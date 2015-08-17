@@ -12,11 +12,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <sys/uio.h>
 #include <jpeglib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum yuv_format {
+    YUV422 = 0,
+    YUV420
+} yuv_format_t;
 
 typedef struct jpeg {
     uint8_t *data;
@@ -24,12 +30,17 @@ typedef struct jpeg {
 } jpeg_t;
 
 typedef struct yuv {
-  uint8_t *luma_chroma;
+  int format;
+  int sub_format;
+  struct iovec luma;
+  struct iovec chroma;
   int luma_len;
   int chroma_len;
   int width;
   int height;
   int pitch;
+  uint32_t y_addr_offset;
+  uint32_t uv_addr_offset;
 } yuv_t;
 
 
