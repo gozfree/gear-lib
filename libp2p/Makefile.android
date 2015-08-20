@@ -1,12 +1,20 @@
 
-OUTPUT		?= /usr/local
+OUTPUT		?= `pwd`/../output/android/
 
-ARCH		?=x86
-CROSS_PREFIX	?=
+TOOLCHAINS_ROOT=$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86_64
+TOOLCHAINS_PREFIX=$(TOOLCHAINS_ROOT)/bin/arm-linux-androideabi
+TOOLCHAINS_INCLUDE=$(TOOLCHAINS_ROOT)/lib/gcc/arm-linux-androideabi/4.6/include
+TOOLCHAINS_INCLUDE_FIXED=$(TOOLCHAINS_ROOT)/lib/gcc/arm-linux-androideabi/4.6/include-fixed
+STL_PATH=$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a
+PLATFORM_ROOT=$(ANDROID_NDK)/platforms/android-9/arch-arm
+PLATFORM_INCLUDE=$(PLATFORM_ROOT)/usr/include
+PLATFORM_LIB=$(PLATFORM_ROOT)/usr/lib
+ANDROID_INC_PATH = -I$(TOOLCHAINS_INCLUDE) \
+		   -I$(TOOLCHAINS_INCLUDE_FIXED) \
+		   -I$(PLATFORM_INCLUDE)
 
-ifeq ($(ARCH), pi)
-	CROSS_PREFIX=arm-linux-gnueabihf-
-endif
+
+CROSS_PREFIX=arm-linux-androideabi-
 
 CC	= ${CROSS_PREFIX}gcc
 CXX	= ${CROSS_PREFIX}g++
@@ -42,29 +50,36 @@ LIBNAME		= libp2p
 TGT_LIB_H	= ${LIBNAME}.h
 TGT_LIB_A	= ${LIBNAME}.a
 TGT_LIB_SO	= ${LIBNAME}.so
-TGT_UNIT_TEST	= test_${LIBNAME}
+TGT_UNIT_TEST	= test_${LIBNAME}_android
 
 OBJS_LIB	= ${LIBNAME}.o
 OBJS_UNIT_TEST	= test_${LIBNAME}.o
 
 CFLAGS	:= -g -Wall -Werror -fPIC
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= $(ANDROID_INC_PATH) \
+	   -I${OUTPUT}/include -I./ \
+	   -D__ANDROID_APP__ \
+	   -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables
+
 SHARED	:= -shared
-LDFLAGS	:= -lpthread
-LDFLAGS	+= -lgcc_s
-LDFLAGS	+= -L$(OUTPUT)/lib -lrpc
-LDFLAGS	+= -L$(OUTPUT)/lib -llog
-LDFLAGS	+= -L$(OUTPUT)/lib -lskt
-LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-LDFLAGS	+= -L$(OUTPUT)/lib -lstun
-LDFLAGS	+= -L$(OUTPUT)/lib -lptcp
-LDFLAGS	+= -lrt
+LDFLAGS	:= -L$(PLATFORM_LIB) \
+	   -L$(STL_PATH)/thumb/ -lgnustl_static \
+	   -L${OUTPUT}/lib -lrpc \
+	   -L${OUTPUT}/lib -llog \
+	   -L${OUTPUT}/lib -lskt \
+	   -L${OUTPUT}/lib -lgevent \
+	   -L${OUTPUT}/lib -lstun \
+	   -L${OUTPUT}/lib -lptcp \
+	   -L$(STL_PATH) -lsupc++ -nostdlib -Bdynamic -lstdc++ -lc -lgcc
 
 .PHONY : all clean
 
 TGT	:= $(TGT_LIB_A)
 TGT	+= $(TGT_LIB_SO)
 TGT	+= $(TGT_UNIT_TEST)
+
+ANDROID_MAIN_OBJ = $(PLATFORM_LIB)/crtbegin_dynamic.o \
+	      $(PLATFORM_LIB)/crtend_android.o
 
 OBJS	:= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 
@@ -79,7 +94,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 $(TGT_LIB_SO): $(OBJS_LIB)
 	$(LD_V) -o $@ $^ $(SHARED)
 
-$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
+$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
 
 clean:

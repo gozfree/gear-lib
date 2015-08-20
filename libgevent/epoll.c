@@ -105,7 +105,7 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
     } else {
         timeout = -1;
     }
-    n = epoll_wait(epop->epfd, events, epop->nevents, timeout); 
+    n = epoll_wait(epop->epfd, events, epop->nevents, timeout);
     if (-1 == n) {
         printf("errno=%d %s\n", errno, strerror(errno));
         return -1;
@@ -124,8 +124,10 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
                 e->evcb->ev_in(e->evfd, (void *)e->evcb->args);
             if (what & EPOLLOUT)
                 e->evcb->ev_out(e->evfd, (void *)e->evcb->args);
+#ifndef __ANDROID__
             if (what & EPOLLRDHUP)
                 e->evcb->ev_err(e->evfd, (void *)e->evcb->args);
+#endif
         }
     }
     return 0;

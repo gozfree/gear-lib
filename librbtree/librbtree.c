@@ -89,7 +89,11 @@ __rb_rotate_set_parents(struct rb_node *old, struct rb_node *new,
     __rb_change_child(old, new, parent, root);
 }
 
+#ifdef __ANDROID__
+static void
+#else
 static __always_inline void
+#endif
 __rb_insert(struct rb_node *node, struct rb_root *root,
     void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
 {
@@ -218,7 +222,11 @@ __rb_insert(struct rb_node *node, struct rb_root *root,
  * Inline version for rb_erase() use - we want to be able to inline
  * and eliminate the dummy_rotate callback there
  */
+#ifdef __ANDROID__
+static void
+#else
 static __always_inline void
+#endif
 ____rb_erase_color(struct rb_node *parent, struct rb_root *root,
     void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
 {
@@ -406,7 +414,11 @@ void rb_insert_color(struct rb_node *node, struct rb_root *root)
     __rb_insert(node, root, dummy_rotate);
 }
 
+#ifdef __ANDROID__
+static struct rb_node *
+#else
 static __always_inline struct rb_node *
+#endif
 __rb_erase_augmented(struct rb_node *node, struct rb_root *root,
                 const struct rb_augment_callbacks *augment)
 {

@@ -136,7 +136,11 @@ static void wq_worker_destroy(struct worker *w)
 int wq_pool_init()
 {
     int i;
+#ifdef __ANDROID__
+    int cpus = 1;
+#else
     int cpus = get_nprocs_conf();
+#endif
     if (cpus <= 0) {
         printf("get_nprocs_conf failed!\n");
         return -1;

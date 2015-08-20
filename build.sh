@@ -14,11 +14,11 @@ case $# in
 esac
 
 #add supported platform to here
-PLATFORM="[x86|pi|android]"
+PLATFORM="[x86|pi|android|ios]"
 
 #basic libraries
 BASIC_LIBS="libgzf liblog libgevent libworkq libdict libsort librbtree"
-NETWORK_LIBS="libskt libstun libptcp libp2p librpc"
+NETWORK_LIBS="libskt libstun libptcp librpc libp2p"
 
 usage()
 {
@@ -58,22 +58,30 @@ config_android()
 	CROSS_PREFIX=arm-linux-androideabi-
 }
 
+config_ios()
+{
+	echo "need a mac computer, who can help me :-)"
+	exit 0;
+}
+
 config_common()
 {
 	STRIP=${CROSS_PREFIX}strip
 	LIBS_DIR=`pwd`
-	OUTPUT=${LIBS_DIR}/output
+	OUTPUT=${LIBS_DIR}/output/${ARCH}
 }
 
 config_arch()
 {
 	case $ARCH in
-		"pi")
+	"pi")
 		config_pi;;
 	"android")
 		config_android;;
 	"x86")
 		config_x86;;
+	"ios")
+		config_ios;;
 	*)
 		usage;;
 	esac
@@ -131,12 +139,16 @@ build_module()
 		else
 			make -f Makefile.${ARCH} > /dev/null
 		fi
-		${MAKE} install > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "==== build ${MODULE} failed"
 			return;
 		else
 			echo "==== build ${MODULE} ${ARCH} done."
+		fi
+		${MAKE} install > /dev/null
+		if [ $? -ne 0 ]; then
+			echo "==== install ${MODULE} failed"
+			return;
 		fi
 		;;
 	esac
@@ -154,7 +166,8 @@ build_all()
 do_build()
 {
 	case $MODULE in
-		"all")
+	"all")
+		build_all clean;
 		build_all;;
 	"clean")
 		build_all clean;;

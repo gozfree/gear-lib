@@ -239,7 +239,7 @@ void on_rpc_error(int fd, void *arg)
     printf("on_error fd= %d\n", fd);
 }
 
-int rand()
+static int __rand()
 {
     uint64_t tick;
     struct timeval tv;
@@ -256,7 +256,7 @@ int random_port()
     int min = 0x4000;
     int max = 0x7FFF;
 
-    int ret = rand();
+    int ret = __rand();
     ret = ret | min;
     ret = ret & max;
 

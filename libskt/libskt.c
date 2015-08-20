@@ -11,7 +11,9 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#endif
 #include <netdb.h>
 #include <fcntl.h>
 #include <net/if.h>
@@ -164,10 +166,13 @@ void skt_close(int fd)
 
 int skt_get_local_list(skt_addr_list_t **al, int loopback)
 {
+#ifdef __ANDROID__
+#else
     struct ifaddrs * ifs = NULL;
     struct ifaddrs * ifa = NULL;
     skt_addr_list_t *ap, *an;
 
+    return -1;
     if (-1 == getifaddrs(&ifs)) {
         printf("getifaddrs: %s\n", strerror(errno));
         return -1;
@@ -215,6 +220,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
         }
     }
     freeifaddrs(ifs);
+#endif
     return 0;
 }
 

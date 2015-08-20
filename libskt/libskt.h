@@ -11,7 +11,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#endif
+#include <netinet/in.h>
 #include <netdb.h>
 
 #ifdef __cplusplus

@@ -11,7 +11,9 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#endif
 #include <fcntl.h>
 #include <netdb.h>
 #include <resolv.h>

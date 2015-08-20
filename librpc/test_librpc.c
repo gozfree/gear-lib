@@ -25,7 +25,7 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
     //logi("on_get_connect_list, len = %d\n", len);
     num = len / MAX_UUID_LEN;
     for (ptr = arg; num > 0; --num) {
-        logi("uuid list: %s\n", ptr);
+        logi("uuid list: %s\n", (char *)ptr);
         len = MAX_UUID_LEN;
         ptr += len;
     }

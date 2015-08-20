@@ -14,7 +14,10 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#endif
+#include <sys/socket.h>
 #include <net/if.h>
 
 typedef struct _ptcp_socket ptcp_socket_t;
