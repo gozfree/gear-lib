@@ -15,7 +15,6 @@
 
 static void *thread(struct thread *t, void *arg)
 {
-    printf("into thread, thread_id = %ld\n", pthread_self());
     thread_mutex_lock(t);
     thread_cond_wait(t);
     thread_mutex_unlock(t);
@@ -24,10 +23,14 @@ static void *thread(struct thread *t, void *arg)
 
 void foo()
 {
-    struct thread *t1 = thread_create(thread, NULL);
-//    struct thread *t2 = thread_create(thread, NULL);
+    struct thread *t1 = thread_create("t1", thread, NULL);
+    struct thread *t2 = thread_create("t2", thread, NULL);
+    struct thread *t3 = thread_create(NULL, thread, NULL);
     printf("%s: t1->tid = %ld\n", __func__, t1->tid);
-//    printf("%s: t2->tid = %ld\n", __func__, t2->tid);
+    printf("%s: t2->tid = %ld\n", __func__, t2->tid);
+    thread_print_info(t1);
+    thread_print_info(t2);
+    thread_print_info(t3);
     
 }
 

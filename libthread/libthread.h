@@ -20,16 +20,22 @@ struct thread {
     pthread_t tid;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
+    char *name;  //only for debug, useless
+    int is_run;
     void *(*func)(struct thread *, void *);
     void *arg;
 } thread_t;
 
-struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg);
+struct thread *thread_create(const char *name, void *(*func)(struct thread *, void *), void *arg);
 void thread_destroy(struct thread *t);
 int thread_cond_wait(struct thread *t);
 int thread_cond_signal(struct thread *t);
 int thread_mutex_lock(struct thread *t);
 int thread_mutex_unlock(struct thread *t);
+int thread_sem_lock(struct thread *t);
+int thread_sem_unloock(struct thread *t);
+
+void thread_print_info(struct thread *t);
 
 
 #ifdef __cpulspuls

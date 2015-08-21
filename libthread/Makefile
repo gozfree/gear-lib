@@ -50,8 +50,9 @@ OBJS_UNIT_TEST	= test_${LIBNAME}.o
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
-LDFLAGS	:= -lpthread
+LDFLAGS	:= -pthread
 LDFLAGS	+= -L$(OUTPUT)/lib
+LDFLAGS	+= -llog
 
 .PHONY : all clean
 
