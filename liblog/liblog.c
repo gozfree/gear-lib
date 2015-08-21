@@ -134,11 +134,11 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
     return size;
 }
 
+#if defined (__ANDROID__)
+#define get_proc_name() (char *)(0)
+#else
 static char *get_proc_name()
 {
-#ifdef __ANDROID__
-    return NULL;
-#else
     int i, ret;
     char *proc_name = (char *)calloc(1, PROC_NAME_LEN);
     if (!proc_name) {
@@ -156,17 +156,17 @@ static char *get_proc_name()
         }
     }
     return proc_name;
-#endif
 }
+#endif
 
+#if defined (__ANDROID__)
+#define _gettid()	(0)
+#else
 static pid_t _gettid()
 {
-#ifdef __ANDROID__
-    return (pid_t)0;
-#else
     return syscall(__NR_gettid);
-#endif
 }
+#endif
 
 static void log_get_time(char *str, int len, int flag_name)
 {
