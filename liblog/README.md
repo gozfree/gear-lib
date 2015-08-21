@@ -33,3 +33,7 @@ For console usage, no need to rebuild for setting log level, only to set bash en
 
 * liblog is built on rasbarrypi for arm platform test.
 
+##Stability
+  $ `valgrind --leak-check=full ./test_liblog`
+  $ `valgrind --tool=helgrind ./test_liblog`
+

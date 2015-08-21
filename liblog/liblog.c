@@ -94,7 +94,7 @@ static const char *_log_level_str[] = {
     NULL
 };
 
-static int _log_init = 0;
+static int _is_log_init = 0;
 static int _log_fd = 0;
 static FILE *_log_fp = NULL;
 static int _log_level = LOG_LEVEL_DEFAULT;
@@ -109,6 +109,9 @@ static int _log_output = 0;
 static int _log_use_io = 0;
 static char _proc_name[LOG_PNAME_SIZE];
 static unsigned long long _log_file_size = FILESIZE_LEN;
+static int _log_type;
+static const char *_log_ident;
+static pthread_once_t _once = PTHREAD_ONCE_INIT;
 
 
 static unsigned long get_file_size(const char *path)
@@ -140,22 +143,30 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
 static char *get_proc_name()
 {
     int i, ret;
-    char *proc_name = (char *)calloc(1, PROC_NAME_LEN);
-    if (!proc_name) {
-        return NULL;
-    }
+    char proc_name[PROC_NAME_LEN];
+    char *proc = NULL;
+    char *ptr = NULL;
+    memset(proc_name, 0, PROC_NAME_LEN);
     ret = readlink("/proc/self/exe", proc_name, PROC_NAME_LEN);
     if (ret < 0 || ret >= PROC_NAME_LEN) {
         fprintf(stderr, "get proc path failed!\n");
         return NULL;
     }
-    for (i = ret; i > 0; i--) {
-        if (proc_name[i] == '/') {
-            proc_name += i+1;
+    for (i = ret, ptr = proc_name; i > 0; i--) {
+        if (ptr[i] == '/') {
+            ptr+= i+1;
             break;
         }
     }
-    return proc_name;
+    if (i == 0) {
+        return NULL;
+    }
+    proc = calloc(1, i);
+    if (proc) {
+        strncpy(proc, ptr, i);
+    }
+
+    return proc;
 }
 #endif
 
@@ -302,7 +313,7 @@ static int _log_print(int lvl, const char *tag,
                       const char *file, int line,
                       const char *func, const char *msg)
 {
-    int ret, i = 0;
+    int ret = 0, i = 0;
     struct iovec vec[LOG_IOVEC_MAX];
     char s_time[LOG_TIME_SIZE];
     char s_lvl[LOG_LEVEL_SIZE];
@@ -382,7 +393,9 @@ static int _log_print(int lvl, const char *tag,
     vec[++i].iov_base = (void *)msg;
     vec[i].iov_len = strlen(msg);
 
-    ret = _log_handle->write(vec, i+1);
+    if (UNLIKELY(!_log_syslog)) {
+        ret = _log_handle->write(vec, i+1);
+    }
     pthread_mutex_unlock(&_log_mutex);
     return ret;
 }
@@ -394,7 +407,7 @@ int log_print(int lvl, const char *tag, const char *file,
     char buf[LOG_BUF_SIZE] = {0};
     int n, ret;
 
-    if (UNLIKELY(!_log_init)) {
+    if (UNLIKELY(!_is_log_init)) {
         log_init(0, NULL);
     }
 
@@ -629,10 +642,12 @@ static struct log_driver log_rsys_driver = {
 
 static struct log_driver *_log_driver = NULL;
 
-int log_init(int type, const char *ident)
+static void __log_init(void)
 {
-    if (_log_init) {
-        return 0;
+    int type = _log_type;
+    const char *ident = _log_ident;
+    if (_is_log_init) {
+        return;
     }
     log_check_env();
 #ifdef LOG_VERBOSE_ENABLE
@@ -654,6 +669,7 @@ int log_init(int type, const char *ident)
         if (proc) {
             memset(_log_name, 0, sizeof(_log_name));
             strncpy(_proc_name, proc, strlen(proc));
+            free(proc);
         }
     }
     if (type == 0) {
@@ -675,14 +691,23 @@ int log_init(int type, const char *ident)
         break;
     }
     _log_driver->init(ident);
-    _log_init = 1;
+    _is_log_init = 1;
     pthread_mutex_init(&_log_mutex, NULL);
+    return;
+}
+
+int log_init(int type, const char *ident)
+{
+    _log_type = type;
+    _log_ident = ident;
+    pthread_once(&_once, __log_init);
     return 0;
 }
 
 void log_deinit()
 {
     _log_driver->deinit();
-    _log_init = 0;
+    _log_driver = NULL;
+    _is_log_init = 0;
     pthread_mutex_destroy(&_log_mutex);
 }

@@ -83,9 +83,7 @@ int main(int argc, char **argv)
     log_set_split_size(1*1024*1024);
     test_file_name();
     pthread_create(&pid, NULL, test2, NULL);
-    while (1) {
-        sleep(1);
-    }
+
 #if 0
     test_file_noname();
     test();
@@ -94,5 +92,6 @@ int main(int argc, char **argv)
     test_rsyslog();
 #endif
     log_deinit();
+    pthread_join(pid, NULL);
     return 0;
 }
