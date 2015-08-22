@@ -4,20 +4,20 @@ CMD=$0
 MODULE=$1
 ARCH=$2
 
-#default is x86
+#default is linux
 case $# in
 0)
 	MODULE=all;
-	ARCH=x86;;
+	ARCH=linux;;
 1)
-	ARCH=x86;;
+	ARCH=linux;;
 esac
 
 #add supported platform to here
-PLATFORM="[x86|pi|android|ios]"
+PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
-BASIC_LIBS="libgzf liblog libgevent libworkq libdict libsort librbtree"
+BASIC_LIBS="libgzf libglog libgevent libworkq libdict libsort librbtree"
 NETWORK_LIBS="libskt libstun libptcp librpc libp2p"
 
 usage()
@@ -25,7 +25,7 @@ usage()
 	echo "==== usage ===="
 	echo "$CMD <module> [platform]"
 	echo "<module>: library to compile or all library, must needed"
-	echo "[platform]: x86, raspberrypi or android, default is x86, optional"
+	echo "[platform]: linux, raspberrypi or android, default is linux, optional"
 	echo ""
 	echo "./build.sh all $PLATFORM"
 	echo "./build.sh basic_libs $PLATFORM"
@@ -43,7 +43,7 @@ usage()
 	exit
 }
 
-config_x86()
+config_linux()
 {
 	CROSS_PREFIX=
 }
@@ -78,8 +78,8 @@ config_arch()
 		config_pi;;
 	"android")
 		config_android;;
-	"x86")
-		config_x86;;
+	"linux")
+		config_linux;;
 	"ios")
 		config_ios;;
 	*)
@@ -100,7 +100,7 @@ build_module()
 	MODULE_DIR=${LIBS_DIR}/$1
 	ACTION=$2
 	if [ ! -d "${MODULE_DIR}" ]; then
-		echo "==== build ${MODULE} failed!"
+		echo "==== build ${ARCH} ${MODULE} failed!"
 		echo "     dir \"${MODULE_DIR}\" is not exist"
 		return
 	fi
@@ -109,45 +109,45 @@ build_module()
 	case $ACTION in
 	"clean")
 		make clean > /dev/null
-		echo "==== clean ${MODULE} done."
+		echo "==== clean ${ARCH} ${MODULE} done."
 		return
 		;;
 	"install")
 		MAKE="make ARCH=${ARCH}"
 		${MAKE} install > /dev/null
 		if [ $? -ne 0 ]; then
-			echo "==== install ${MODULE} failed"
+			echo "==== install ${ARCH} ${MODULE} failed"
 			return;
 		else
-			echo "==== install ${MODULE} ${ARCH} done."
+			echo "==== install ${ARCH} ${MODULE} done."
 		fi
 		;;
 	"uninstall")
 		MAKE="make ARCH=${ARCH}"
 		${MAKE} uninstall > /dev/null
 		if [ $? -ne 0 ]; then
-			echo "==== uninstall ${MODULE} failed"
+			echo "==== uninstall ${ARCH} ${MODULE} failed"
 			return;
 		else
-			echo "==== uninstall ${MODULE} ${ARCH} done."
+			echo "==== uninstall ${ARCH} ${MODULE} done."
 		fi
 		;;
 	*)
 		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT}"
-		if [[ ${ARCH} == "x86" || ${ARCH} == "pi" ]]; then
+		if [[ ${ARCH} == "linux" || ${ARCH} == "pi" || ${ARCH} == "android" ]]; then
 			${MAKE} > /dev/null
 		else
-			make -f Makefile.${ARCH} > /dev/null
+			echo "${ARCH} not support now" #make -f Makefile.${ARCH} > /dev/null
 		fi
 		if [ $? -ne 0 ]; then
-			echo "==== build ${MODULE} failed"
+			echo "==== build ${ARCH} ${MODULE} failed"
 			return;
 		else
-			echo "==== build ${MODULE} ${ARCH} done."
+			echo "==== build ${ARCH} ${MODULE} done."
 		fi
 		${MAKE} install > /dev/null
 		if [ $? -ne 0 ]; then
-			echo "==== install ${MODULE} failed"
+			echo "==== install ${ARCH} ${MODULE} failed"
 			return;
 		fi
 		;;

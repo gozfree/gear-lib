@@ -1,64 +1,66 @@
 
-OUTPUT		?= /usr/local
-
-ARCH		?=x86
+#ARCH: linux/pi/android/ios/
+ARCH		?= linux
 CROSS_PREFIX	?=
+OUTPUT		?= /usr/local
+BUILD_DIR	:= $(shell pwd)/../build/
+ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
+COLOR_INC	:= $(BUILD_DIR)/color.inc
 
-ifeq ($(ARCH), pi)
-	CROSS_PREFIX=arm-linux-gnueabihf-
+ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
+include $(ARCH_INC)
 endif
 
-CC	= ${CROSS_PREFIX}gcc
-CXX	= ${CROSS_PREFIX}g++
-LD	= ${CROSS_PREFIX}ld
-AR	= ${CROSS_PREFIX}ar
+CC	= $(CROSS_PREFIX)gcc
+CXX	= $(CROSS_PREFIX)g++
+LD	= $(CROSS_PREFIX)ld
+AR	= $(CROSS_PREFIX)ar
 
-COLOR	= 1
-CC_V	= $(CC_$(COLOR))
-CXX_V	= $(CXX_$(COLOR))
-LD_V	= $(LD_$(COLOR))
-AR_V	= $(AR_$(COLOR))
-CP_V	= $(CP_$(COLOR))
-RM_V	= $(RM_$(COLOR))
-CYAN	= "\033[36m"
-GREEN	= "\033[1;32m"
-NC	= "\033[0m"
-AA	= "\033[33m"
-CC_0	= $(CC)
-CC_1	= @printf '\t%b\t%b\n' $(CYAN)CC$(NC) $(CYAN)$@$(NC); $(CC)
-CXX_0	= $(CXX)
-CXX_1	= @printf '\t%b\t%b\n' $(CYAN)CXX$(NC) $(CYAN)$@$(NC); $(CXX)
-LD_0	= $(LD)
-LD_1	= @printf '\t%b\t%b\n' $(GREEN)LD$(NC) $(GREEN)$@$(NC); $(LD)
-AR_0	= $(AR)
-AR_1	= @printf '\t%b\t%b\n' $(AA)AR$(NC) $(AA)$@$(NC); $(AR)
-CP_0	= cp
-CP_1	= @printf '\t%b\n' $(AA)install$(NC); cp
-RM_0	= rm
-RM_1	= @printf '\t%b\n' $(AA)clean$(NC); rm
+ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
+include $(COLOR_INC)
+else
+CC_V	= $(CC)
+CXX_V	= $(CXX)
+LD_V	= $(LD)
+AR_V	= $(AR)
+CP_V	= $(CP)
+RM_V	= $(RM)
+endif
 
 ########
 LIBNAME		= libp2p
-TGT_LIB_H	= ${LIBNAME}.h
-TGT_LIB_A	= ${LIBNAME}.a
-TGT_LIB_SO	= ${LIBNAME}.so
-TGT_UNIT_TEST	= test_${LIBNAME}
+TGT_LIB_H	= $(LIBNAME).h
+TGT_LIB_A	= $(LIBNAME).a
+TGT_LIB_SO	= $(LIBNAME).so
+TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= ${LIBNAME}.o
-OBJS_UNIT_TEST	= test_${LIBNAME}.o
+OBJS_LIB	= $(LIBNAME).o
+OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
+
 SHARED	:= -shared
-LDFLAGS	:= -lpthread
+
+LDFLAGS	:= -L$(PLATFORM_LIB) -pthread
+ifeq ($(ARCH), pi)
 LDFLAGS	+= -lgcc_s
+endif
+LDFLAGS	+= $(ANDROID_PRE_LDFLAGS)
+LDFLAGS	+= -L$(OUTPUT)/lib -lglog
 LDFLAGS	+= -L$(OUTPUT)/lib -lrpc
-LDFLAGS	+= -L$(OUTPUT)/lib -llog
-LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
+LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 LDFLAGS	+= -L$(OUTPUT)/lib -lstun
 LDFLAGS	+= -L$(OUTPUT)/lib -lptcp
+LDFLAGS	+= $($(ARCH)_LDFLAGS)
+ifneq ($(ARCH), android)
 LDFLAGS	+= -lrt
+endif
+
+
+
 
 .PHONY : all clean
 
@@ -79,7 +81,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 $(TGT_LIB_SO): $(OBJS_LIB)
 	$(LD_V) -o $@ $^ $(SHARED)
 
-$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
+$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
 
 clean:
@@ -87,11 +89,12 @@ clean:
 	$(RM_V) -f $(TGT)
 
 install:
-	$(CP_V) -r $(TGT_LIB_H)  ${OUTPUT}/include
-	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/lib
-	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/lib
+	$(MAKEDIR_OUTPUT)
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
 
 uninstall:
-	$(RM_V) -f ${OUTPUT}/include/$(TGT_LIB_H)
-	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_A)
-	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)

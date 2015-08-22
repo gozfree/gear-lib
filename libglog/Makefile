@@ -1,12 +1,14 @@
 
-#ARCH: x86/pi/android/ios/
-ARCH		?=x86
+#ARCH: linux/pi/android/ios/
+ARCH		?= linux
 CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
-ARCH_CONF	:= $(ARCH).conf
+BUILD_DIR	:= $(shell pwd)/../build/
+ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
+COLOR_INC	:= $(BUILD_DIR)/color.inc
 
-ifeq ($(ARCH_CONF), $(wildcard $(ARCH_CONF)))
-include $(ARCH_CONF)
+ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
+include $(ARCH_INC)
 endif
 
 CC	= $(CROSS_PREFIX)gcc
@@ -14,30 +16,19 @@ CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
 
-include color.conf
-#COLOR	0: disable color; 1: enable color
-COLOR	= 1
-CC_V	= $(CC_$(COLOR))
-CXX_V	= $(CXX_$(COLOR))
-LD_V	= $(LD_$(COLOR))
-AR_V	= $(AR_$(COLOR))
-CP_V	= $(CP_$(COLOR))
-RM_V	= $(RM_$(COLOR))
-CC_0	= $(CC)
-CC_1	= @printf '%b\t%b\t%b\n' $(CYAN)$(ARCH) CC $@$(NC); $(CC)
-CXX_0	= $(CXX)
-CXX_1	= @printf '%b\t%b\t%b\n' $(CYAN)$(ARCH) CXX $@$(NC); $(CXX)
-LD_0	= $(LD)
-LD_1	= @printf '%b\t%b\t%b\n' $(BGREEN)$(ARCH) LD $@$(NC); $(LD)
-AR_0	= $(AR)
-AR_1	= @printf '%b\t%b\t%b\n' $(YELLOW)$(ARCH) AR $@$(NC); $(AR)
-CP_0	= cp
-CP_1	= @printf '%b\t%b\n' $(BGREEN)$(ARCH) install$(NC); cp
-RM_0	= rm
-RM_1	= @printf '%b\t%b\n' $(BGREEN)$(ARCH) clean$(NC); rm
+ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
+include $(COLOR_INC)
+else
+CC_V	= $(CC)
+CXX_V	= $(CXX)
+LD_V	= $(LD)
+AR_V	= $(AR)
+CP_V	= $(CP)
+RM_V	= $(RM)
+endif
 
 ########
-LIBNAME		= liblog
+LIBNAME		= libglog
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
@@ -49,9 +40,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
+
 SHARED	:= -shared
-LDFLAGS	:=  $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(PLATFORM_LIB) -llog
+
+LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 
 .PHONY : all clean

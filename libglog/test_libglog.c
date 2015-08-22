@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    test_liblog.c
+ * file:    test_libglog.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-05-31 19:42
  * updated: 2015-05-31 19:42
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "liblog.h"
+#include "libglog.h"
 
 void test_rsyslog()
 {

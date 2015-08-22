@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <libglog.h>
 #include "libp2p.h"
 #define CALLOC(type, value) \
     type *value = (type *)calloc(1, sizeof(type))
@@ -32,17 +33,17 @@ void *input_thread(void *arg)
         buf[i] = i;
     }
     p2p_get_peer_list(p2p);
-    printf("input peer id> ");
+    logi("input peer id> ");
     scanf("%s", uuid_dst);
     p2p_connect(p2p, uuid_dst);
     while (1) {
         memset(buf, 0, len);
-        printf("input message> ");
+        logi("input message> ");
         scanf("%s", buf);
         usleep(500*1000);
         //sprintf(buf, "%s", "abcd");
         ret = p2p_send(p2p, buf, strlen(buf));
-        printf("p2p_send ret = %d, errno=%d\n", ret, errno);
+        logi("p2p_send ret = %d, errno=%d\n", ret, errno);
     }
 
     return NULL;
@@ -54,10 +55,10 @@ int main()
     CALLOC(struct p2p, p2p);
     p2p = p2p_init(_rpc_ip, _stun_ip);
     if (!p2p) {
-        printf("p2p_init failed!\n");
+        logi("p2p_init failed!\n");
         return -1;
     }
-    printf("p2p id: %s\n", p2p->rpc->packet.header.uuid_src);
+    logi("p2p id: %s\n", p2p->rpc->packet.header.uuid_src);
     pthread_create(&tid, NULL, input_thread, p2p);
     p2p_dispatch(p2p);
     return 0;

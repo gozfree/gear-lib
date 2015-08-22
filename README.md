@@ -8,6 +8,12 @@ This is a collection of basic libraries.
   * Depend on none of open source third party libraries.
   * ...
 
+## About Build
+  * by default, build x86 on linux, and libxxx folder can be built independently
+  * if only "libxxx folder" is checkout without "build folder", you can only build x86 and no color set
+  * with "build folder", you can build x86, pi, android, ios and color is also set
+  * "sudo make install" is needed when build libxxx alone.
+
 ## How To Build
   $ `./build clean`
 
@@ -20,3 +26,7 @@ This is a collection of basic libraries.
   $ `./build install` (may need sudo)
 
   libxxx.h, libxxx.so or libxxx.a of libraries are in ./output/$(ARCH)
+
+## How To ndk-build
+  $ `cd android_jni_libs`
+  $ `ndk-build`

@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <liblog.h>
+#include <libglog.h>
 #include "libjpeg-ex.h"
 #define WIDTH 	720
 #define HEIGH	480

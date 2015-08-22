@@ -10,7 +10,7 @@
 #include <libskt.h>
 #include <libgzf.h>
 #include <libgevent.h>
-#include <liblog.h>
+#include <libglog.h>
 #include "librpc.h"
 
 static msg_handler_t message_map[MAX_MESSAGES_IN_MAP];

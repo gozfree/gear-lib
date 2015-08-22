@@ -17,6 +17,8 @@ ANDROID_INC_PATH	:= -I$(TOOLCHAINS_INCLUDE) \
 ANDROID_MAIN_OBJ	:= $(PLATFORM_LIB)/crtbegin_dynamic.o \
 			   $(PLATFORM_LIB)/crtend_android.o
 
+#__ANDROID_APP__ is binary file
+#__ANDROID_APK__ is apk file
 ANDROID_CFLAGS		:= $(ANDROID_INC_PATH) \
 			   -D__ANDROID_APP__ \
 			   -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables
@@ -25,6 +27,6 @@ ANDROID_LDFLAGS		:= -L$(PLATFORM_LIB) \
 			   -L$(STL_PATH)/thumb/ -lgnustl_static \
 			   -L$(STL_PATH) -lsupc++ -nostdlib -Bdynamic -lstdc++ -lc -lgcc
 
-MAKEDIR_OUTPUT		:= mkdir -p $(OUTPUT)
+MAKEDIR_OUTPUT		:= @mkdir -p $(OUTPUT)/include -p $(OUTPUT)/lib
 android_CFLAGS		:= $(ANDROID_CFLAGS)
 android_LDFLAGS		:= $(ANDROID_LDFLAGS)

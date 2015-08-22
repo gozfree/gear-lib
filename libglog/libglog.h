@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    liblog.h
+ * file:    libglog.h
  * author:  gozfree <gozfree@163.com>
  * created: 2015-04-20 01:47
  * updated: 2015-07-11 16:09
@@ -48,25 +48,28 @@ int log_print(int lvl, const char *tag, const char *file, int line,
 
 #define LOG_TAG "tag"
 
+#define loge(...) log_print(LOG_ERR, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define logw(...) log_print(LOG_WARNING, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define logi(...) log_print(LOG_INFO, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define logd(...) log_print(LOG_DEBUG, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define logv(...) log_print(LOG_VERB, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+
 #ifdef __ANDROID__
+#ifndef __ANDROID_APP__
+//only for android apk debug
 #include <jni.h>
 #include <android/log.h>
+#undef loge
 #define loge(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#undef logw
 #define logw(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#undef logi
 #define logi(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#undef logd
 #define logd(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#undef logv
 #define logv(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
-#else
-#define loge(...) \
-    log_print(LOG_ERR, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logw(...) \
-    log_print(LOG_WARNING, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logi(...) \
-    log_print(LOG_INFO, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logd(...) \
-    log_print(LOG_DEBUG, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logv(...) \
-    log_print(LOG_VERB, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#endif
 #endif
 
 #ifdef __cplusplus

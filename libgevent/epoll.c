@@ -15,6 +15,10 @@
 #include "libgzf.h"
 #include "libgevent.h"
 
+#ifdef __ANDROID__
+#define EPOLLRDHUP      (0x2000)
+#endif
+
 #define EPOLL_MAX_NEVENT    (4096)
 #define MAX_SECONDS_IN_MSEC_LONG \
         (((LONG_MAX) - 999) / 1000)
@@ -124,10 +128,8 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
                 e->evcb->ev_in(e->evfd, (void *)e->evcb->args);
             if (what & EPOLLOUT)
                 e->evcb->ev_out(e->evfd, (void *)e->evcb->args);
-#ifndef __ANDROID__
             if (what & EPOLLRDHUP)
                 e->evcb->ev_err(e->evfd, (void *)e->evcb->args);
-#endif
         }
     }
     return 0;

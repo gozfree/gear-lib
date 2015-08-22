@@ -9,7 +9,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
+#ifndef __ANDROID__
 #include <ifaddrs.h>
+#endif
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>

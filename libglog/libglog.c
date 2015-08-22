@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    liblog.c
+ * file:    libglog.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-04-20 01:08
  * updated: 2015-07-11 16:09
@@ -22,7 +22,7 @@
 #include <linux/unistd.h>
 #include <libgzf.h>
 
-#include "liblog.h"
+#include "libglog.h"
 
 #define LOG_IOVEC_MAX       (10)
 #define FILENAME_LEN        (256)
@@ -126,6 +126,10 @@ static unsigned long get_file_size(const char *path)
     return 0;
 #endif
 }
+
+#if defined (__ANDROID__)
+#define get_file_size_by_fp(...) (unsigned long long)(1024*1024)
+#else
 static unsigned long long get_file_size_by_fp(FILE *fp)
 {
     unsigned long long size;
@@ -136,6 +140,7 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
     size = ftell(fp);
     return size;
 }
+#endif
 
 #if defined (__ANDROID__)
 #define get_proc_name() (char *)(0)

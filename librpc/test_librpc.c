@@ -15,7 +15,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <libdict.h>
-#include <liblog.h>
+#include <libglog.h>
 #include "librpc.h"
 
 static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
