@@ -17,7 +17,7 @@ esac
 PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
-BASIC_LIBS="libgzf libglog libgevent libworkq libdict libsort librbtree"
+BASIC_LIBS="libgzf libglog libgevent libworkq libdict libsort librbtree libthread"
 NETWORK_LIBS="libskt libstun libptcp librpc libp2p"
 
 usage()
