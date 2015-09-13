@@ -27,7 +27,7 @@
 
 #define LISTEN_MAX_BACKLOG  (128)
 #define MTU                 (1500 - 42 - 200)
-#define MAX_RETRY_CNT       (10)
+#define MAX_RETRY_CNT       (3)
 
 static struct skt_connection *_skt_connect(int type, const char *host, uint16_t port)
 {
@@ -172,7 +172,6 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
     struct ifaddrs * ifa = NULL;
     skt_addr_list_t *ap, *an;
 
-    return -1;
     if (-1 == getifaddrs(&ifs)) {
         printf("getifaddrs: %s\n", strerror(errno));
         return -1;
@@ -476,15 +475,16 @@ int skt_send(int fd, const void *buf, size_t len)
             continue;
         } else if (n == 0) {
             perror("send");
-            break;
+            return -1;
         }
         if (errno == EINTR || errno == EAGAIN) {
-//            perror("send");
-            cnt++;
-            if (cnt > MAX_RETRY_CNT)
+            if (++cnt > MAX_RETRY_CNT) {
+                printf("reach max retry count\n");
                 break;
+            }
             continue;
         }
+        perror("send");
         return -1;
     }
     return (len - left);
@@ -517,15 +517,14 @@ int skt_sendto(int fd, const char *ip, uint16_t port, const void *buf, size_t le
             continue;
         } else if (n == 0) {
             perror("sendto");
-            break;
+            return -1;
         }
         if (errno == EINTR || errno == EAGAIN) {
-//            perror("sendto");
-            cnt++;
-            if (cnt > MAX_RETRY_CNT)
+            if (++cnt > MAX_RETRY_CNT)
                 break;
             continue;
         }
+        perror("sendto");
         return -1;
     }
     return (len - left);
@@ -551,12 +550,11 @@ int skt_recv(int fd, void *buf, size_t len)
             left -= n;
             continue;
         } else if (n == 0) {
-            break;
+            perror("recv");
+            return -1;
         }
         if (errno == EINTR || errno == EAGAIN) {
-            perror("recv");
-            cnt++;
-            if (cnt > MAX_RETRY_CNT)
+            if (++cnt > MAX_RETRY_CNT)
                 break;
             continue;
         }
@@ -596,15 +594,15 @@ int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
             left -= n;
             continue;
         } else if (n == 0) {
-            break;
+            perror("recvfrom");
+            return -1;
         }
         if (errno == EINTR || errno == EAGAIN) {
-//            perror("recvfrom");
-            cnt++;
-            if (cnt > MAX_RETRY_CNT)
+            if (++cnt > MAX_RETRY_CNT)
                 break;
             continue;
         }
+        perror("recvfrom");
         return -1;
     }
 
