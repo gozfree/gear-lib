@@ -13,11 +13,11 @@
 int main(int argc, char **argv)
 {
     //struct vector *ivec = vector_init();
-    VECTOR(int, ivec);
+    VECTOR(void *, a);
 
     int i;
     for (i = 0; i < 10; ++i) {
-        ivec->push_back((void *)&i);
+        vector_push_back(a, i);
     }
 
     return 0;
