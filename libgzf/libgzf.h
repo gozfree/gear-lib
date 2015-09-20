@@ -97,6 +97,22 @@ extern "C" {
     } while (0)
 
 
+#define CHECK_INVALID_PARAMENT(cond) \
+    do {\
+        if (cond) { \
+            printf("%s:%d invalid paraments!\n", __func__, __LINE__);\
+            return;\
+        } \
+    } while (0)
+
+#define CHECK_INVALID_PARAMENT_WITH_RETURN(cond, res) \
+    do {\
+        if (cond) { \
+            printf("%s:%d invalid paraments!\n", __func__, __LINE__);\
+            return res;\
+        } \
+    } while (0)
+
 /******************************************************************************
  * color
  *****************************************************************************/
