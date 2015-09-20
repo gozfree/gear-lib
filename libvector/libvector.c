@@ -15,22 +15,11 @@
 
 #define VECTOR_DEFAULT_BUF_LEN  (1024)
 
-#define CHECK_INVALID_PARAMENT(a) \
-    do {\
-        if (!a) { \
-            printf("%s:%d invalid paraments!\n", __func__, __LINE__);\
-            return NULL;\
-        } \
-    } while (0)
-
 void push_back(struct vector *v, void *e)
 {
     size_t resize;
     void *pnew;
-    if (!v || !e) {
-        printf("invalid paraments!\n");
-        return;
-    }
+    CHECK_INVALID_PARAMENT(!v || !e);
     v->size++;
     if (v->size * v->type_size >= v->capacity) {
         resize = v->capacity + VECTOR_DEFAULT_BUF_LEN;
@@ -49,34 +38,32 @@ void push_back(struct vector *v, void *e)
 
 void vector_pop_back(struct vector *v)
 {
-    if (!v) {
-        printf("invalid paraments!\n");
-        return;
-    }
+    CHECK_INVALID_PARAMENT(!v);
     v->size--;
     printf("v->size = %zu\n", v->size);
 }
 
 bool vector_empty(struct vector *v)
 {
+    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, true);
     return (v->size == 0);
 }
 
 void *begin(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT(v);
+    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
     return v->buf.iov_base;
 }
 
 void *end(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT(v);
+    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
     return v->buf.iov_base + v->size * v->type_size;
 }
 
 void *plusplus(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT(v);
+    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
     v->tmp_cursor++;
     return v->buf.iov_base + v->tmp_cursor * v->type_size;
 }
