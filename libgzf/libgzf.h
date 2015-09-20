@@ -13,11 +13,28 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdint.h>
+#include <sys/uio.h>
 #include <kernel_list.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/******************************************************************************
+ * c++ parament compatibility
+ *****************************************************************************/
+#ifndef bool
+#define bool int
+#endif
+
+#ifndef true
+#define true (1==1)
+#endif
+
+#ifndef false
+#define false (0==1)
+#endif
+
 
 /******************************************************************************
  * instructions
@@ -52,6 +69,11 @@ extern "C" {
     (type *)calloc(size, sizeof(type))
 #define SIZEOF(array)   \
     sizeof(array)/sizeof(array[0])
+#define IOVEC_INIT(buf, len)            \
+    do {                                \
+        buf.iov_len = len;              \
+        buf.iov_base = calloc(1, len);  \
+    } while (0)
 
 /******************************************************************************
  * debug
