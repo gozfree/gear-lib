@@ -27,7 +27,8 @@ typedef enum type_arg {
     _int32_t  = 29, _int32_tp , _uint32_t , _uint32_tp ,
     _int64_t  = 33, _int64_tp , _uint64_t , _uint64_tp ,
     _float    = 37, _floatp   , _double   , _doublep   ,
-    _end = -1
+
+    _unknown
 } type_arg_t;
 
 #define TYPE_ARG(t) \
@@ -35,7 +36,7 @@ typedef enum type_arg {
     :__builtin_types_compatible_p(t, char) ? _char \
     :__builtin_types_compatible_p(t, int) ? _int \
     :__builtin_types_compatible_p(t, long) ? _long \
-    : _end)
+    : _unknown)
 
 typedef struct vector {
     type_arg_t type;
@@ -52,9 +53,9 @@ typedef struct vector {
  */
 struct vector *init();
 void push_back(struct vector *v, void *e);
-void *begin(struct vector *v);
-void *end(struct vector *v);
-void *plusplus(struct vector *v);
+void *_vector_begin(struct vector *v);
+void *_vector_end(struct vector *v);
+void *_vector_plusplus(struct vector *v);
 
 /*
  * vector_new
@@ -74,15 +75,24 @@ void vector_pop_back(struct vector *v);
 #define vector_back(v, type_t) \
     ({ \
         type_t tmp; \
-        memcpy(&tmp, end(v), v->type_size); \
-        tmp; \
+        memcpy(&tmp, _vector_end(v), v->type_size); \
+        &tmp; \
     })
 #define vector_begin(v, type_t) \
-    *(type_t *)begin(v)
+    *(type_t *)_vector_begin(v)
 #define vector_end(v, type_t) \
-    *(type_t *)end(v)
+    *(type_t *)_vector_end(v)
 #define vector_plusplus(v, type_t) \
-    *(type_t *)plusplus(v)
+    *(type_t *)_vector_plusplus(v)
+
+#if 0
+#define vector_get_member(v, pos, type_t) \
+    (type_t *)get_member(v, pos)
+#else
+//XXX: need debug
+#define vector_get_member(v, pos, type_t) \
+    (type_t *)(v->buf.iov_base + pos * v->type_size)
+#endif
 
 
 #ifdef __cplusplus

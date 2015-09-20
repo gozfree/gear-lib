@@ -13,6 +13,7 @@
 int main(int argc, char **argv)
 {
     int sum = 0;
+    int *tmp;
     int i;
     int t1 = 100, t2 = 200, t3 = 300;
     vector_t *a = vector_new(int);
@@ -23,7 +24,8 @@ int main(int argc, char **argv)
         printf("vector member: %d\n", i);
     }
     while (!vector_empty(a)) {
-        sum += vector_back(a, int);
+        tmp = vector_back(a, int);
+        sum += *tmp;
         vector_pop_back(a);
     }
     printf("sum is %d\n", sum);

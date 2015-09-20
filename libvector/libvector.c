@@ -33,14 +33,12 @@ void push_back(struct vector *v, void *e)
     }
     void *ptop = v->buf.iov_base + v->size * v->type_size;
     memcpy(ptop, e, v->type_size);
-    printf("v->size = %zu, v->val = %d\n", v->size, *(int *)e);
 }
 
 void vector_pop_back(struct vector *v)
 {
     CHECK_INVALID_PARAMENT(!v);
     v->size--;
-    printf("v->size = %zu\n", v->size);
 }
 
 bool vector_empty(struct vector *v)
@@ -49,23 +47,31 @@ bool vector_empty(struct vector *v)
     return (v->size == 0);
 }
 
-void *begin(struct vector *v)
+void *_vector_begin(struct vector *v)
 {
     CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
     return v->buf.iov_base;
 }
 
-void *end(struct vector *v)
+void *_vector_end(struct vector *v)
 {
     CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
     return v->buf.iov_base + v->size * v->type_size;
 }
 
-void *plusplus(struct vector *v)
+void *_vector_plusplus(struct vector *v)
 {
     CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
     v->tmp_cursor++;
     return v->buf.iov_base + v->tmp_cursor * v->type_size;
+}
+
+void *get_member(struct vector *v, int pos)
+{
+    CHECK_INVALID_PARAMENT_WITH_RETURN(!v || pos < 0, NULL);
+    void *tmp = v->buf.iov_base + pos * v->type_size;
+    printf("tmp = %p\n", tmp);
+    return tmp;
 }
 
 struct vector *init(type_arg_t ta, size_t size)
