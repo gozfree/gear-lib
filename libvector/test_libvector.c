@@ -12,13 +12,25 @@
 
 int main(int argc, char **argv)
 {
-    //struct vector *ivec = vector_init();
-    VECTOR(void *, a);
-
+    int sum = 0;
     int i;
-    for (i = 0; i < 10; ++i) {
-        vector_push_back(a, i);
+    int t1 = 100, t2 = 200, t3 = 300;
+    vector_t *a = vector_new(int);
+    vector_push_back(a, t1);
+    vector_push_back(a, t2);
+    vector_push_back(a, t3);
+    for (i = vector_begin(a, int); i != vector_end(a, int); i = vector_plusplus(a, int)) {
+        printf("vector member: %d\n", i);
     }
-
+    while (!vector_empty(a)) {
+        sum += vector_back(a, int);
+        vector_pop_back(a);
+    }
+    printf("sum is %d\n", sum);
+    printf("type = %d\n", a->type);
+    printf("size = %zu\n", a->size);
+    printf("type_size = %zu\n", a->type_size);
+    printf("max_size = %zu\n", a->max_size);
+    printf("capacity = %zu\n", a->capacity);
     return 0;
 }

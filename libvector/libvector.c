@@ -13,44 +13,100 @@
 #include <libgzf.h>
 #include "libvector.h"
 
-
 #define VECTOR_DEFAULT_BUF_LEN  (1024)
 
-/*
-#define vector_push_back(v, e)	\
-    (__builtin_types_compatible_p(typeof(e), int) \
-    ? _push_back(v, (void *)&e) \
-    : __builtin_types_compatible_p(typeof(e), long) \
-    ? push_back_long(v, e) \
-    : __builtin_types_compatible_p(typeof(e), float) \
-    ? push_back_float(v, e)	\
-    : printf("not support type\n"))
-*/
-
-
+#define CHECK_INVALID_PARAMENT(a) \
+    do {\
+        if (!a) { \
+            printf("%s:%d invalid paraments!\n", __func__, __LINE__);\
+            return NULL;\
+        } \
+    } while (0)
 
 void push_back(struct vector *v, void *e)
 {
-    printf("%s:%d xxx\n", __func__, __LINE__);
+    size_t resize;
+    void *pnew;
+    if (!v || !e) {
+        printf("invalid paraments!\n");
+        return;
+    }
+    v->size++;
+    if (v->size * v->type_size >= v->capacity) {
+        resize = v->capacity + VECTOR_DEFAULT_BUF_LEN;
+        pnew = realloc(v->buf.iov_base, resize);
+        if (!pnew) {
+            printf("realloc failed!\n");
+            return;
+        }
+        v->buf.iov_base = pnew;
+        v->capacity += resize;
+    }
+    void *ptop = v->buf.iov_base + v->size * v->type_size;
+    memcpy(ptop, e, v->type_size);
+    printf("v->size = %zu, v->val = %d\n", v->size, *(int *)e);
 }
 
-void pop_back(struct vector *v)
+void vector_pop_back(struct vector *v)
 {
-    printf("%s:%d xxx\n", __func__, __LINE__);
+    if (!v) {
+        printf("invalid paraments!\n");
+        return;
+    }
+    v->size--;
+    printf("v->size = %zu\n", v->size);
 }
 
-int back_int(struct vector *v)
+bool vector_empty(struct vector *v)
 {
-    printf("%s:%d xxx\n", __func__, __LINE__);
-    return 0;
+    return (v->size == 0);
 }
 
+void *begin(struct vector *v)
+{
+    CHECK_INVALID_PARAMENT(v);
+    return v->buf.iov_base;
+}
 
-struct vector *vector_init(size_t size)
+void *end(struct vector *v)
+{
+    CHECK_INVALID_PARAMENT(v);
+    return v->buf.iov_base + v->size * v->type_size;
+}
+
+void *plusplus(struct vector *v)
+{
+    CHECK_INVALID_PARAMENT(v);
+    v->tmp_cursor++;
+    return v->buf.iov_base + v->tmp_cursor * v->type_size;
+}
+
+struct vector *init(type_arg_t ta, size_t size)
 {
     struct vector *v = CALLOC(1, struct vector);
-//    v->push_back = push_back;
+    v->type = ta;
+    v->size = 0;
+    v->tmp_cursor = 0;
     v->type_size = size;
+    v->max_size = (size_t)(-1/size);
+    v->capacity = VECTOR_DEFAULT_BUF_LEN;
     IOVEC_INIT(v->buf, VECTOR_DEFAULT_BUF_LEN);
+    switch (ta) {
+    case _int:
+        printf("init int\n");
+        break;
+    case _long:
+        printf("init long\n");
+        break;
+    default:
+        break;
+    }
+#if 0
+    printf("type = %d\n", v->type);
+    printf("size = %zu\n", v->size);
+    printf("type_size = %zu\n", v->type_size);
+    printf("max_size = %zu\n", v->max_size);
+    printf("capacity = %zu\n", v->capacity);
+#endif
     return v;
 }
