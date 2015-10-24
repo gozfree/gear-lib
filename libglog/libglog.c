@@ -34,7 +34,7 @@
 #define LOG_PNAME_SIZE      (32)
 #define LOG_TEXT_SIZE       (256)
 #define PROC_NAME_LEN	    (512)
-#define LOG_LEVEL_DEFAULT   LOG_DEBUG
+#define LOG_LEVEL_DEFAULT   LOG_INFO
 
 /*#define LOG_VERBOSE_ENABLE
 */
@@ -620,7 +620,7 @@ static void log_deinit_file()
 static int log_init_syslog(const char *ident)
 {
     _log_syslog = 1;
-    openlog(ident, LOG_CONS|LOG_NDELAY|LOG_PID, _log_level);
+    openlog(ident, LOG_NOWAIT | LOG_NDELAY | LOG_PID, LOG_LOCAL1);
     return 0;
 }
 
