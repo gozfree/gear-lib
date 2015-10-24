@@ -94,6 +94,22 @@ static const char *_log_level_str[] = {
     NULL
 };
 
+static struct {
+    const char     *name;
+    const int       value;
+} syslog_facilities[] = {
+    {"user",    LOG_USER},
+    {"local0",  LOG_LOCAL0},
+    {"local1",  LOG_LOCAL1},
+    {"local2",  LOG_LOCAL2},
+    {"local3",  LOG_LOCAL3},
+    {"local4",  LOG_LOCAL4},
+    {"local5",  LOG_LOCAL5},
+    {"local6",  LOG_LOCAL6},
+    {"local7",  LOG_LOCAL7},
+    {NULL, 0}
+};
+
 static int _is_log_init = 0;
 static int _log_fd = 0;
 static FILE *_log_fp = NULL;
@@ -617,10 +633,19 @@ static void log_deinit_file()
     _log_handle->close();
 }
 
-static int log_init_syslog(const char *ident)
+static int log_init_syslog(const char *facilitiy_str)
 {
+    const char *ident = NULL;
+    int i = 0;
+    int facilitiy = LOG_LOCAL0;
     _log_syslog = 1;
-    openlog(ident, LOG_NOWAIT | LOG_NDELAY | LOG_PID, LOG_LOCAL1);
+    for (i = 0; syslog_facilities[i].name; i++) {
+        if (!strcasecmp(syslog_facilities[i].name, facilitiy_str)) {
+            facilitiy = syslog_facilities[i].value;
+            break;
+        }
+    }
+    openlog(ident, LOG_NOWAIT | LOG_NDELAY | LOG_PID, facilitiy);
     return 0;
 }
 
