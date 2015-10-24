@@ -422,15 +422,14 @@ int log_print(int lvl, const char *tag, const char *file,
 
     va_start(ap, fmt);
     n = vsnprintf(buf, sizeof(buf), fmt, ap);
-    if (UNLIKELY(_log_syslog)) {
-        vsyslog(lvl, fmt, ap);
-    }
     va_end(ap);
     if (UNLIKELY(n < 0)) {
         fprintf(stderr, "vsnprintf errno:%d\n", errno);
         return -1;
     }
-
+    if (UNLIKELY(_log_syslog)) {
+        syslog(lvl, "%s", buf);
+    }
     ret = _log_print(lvl, tag, file, line, func, buf);
 
     return ret;
@@ -658,6 +657,7 @@ static void __log_init(void)
 #ifdef LOG_VERBOSE_ENABLE
     UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
 #endif
+    UPDATE_LOG_PREFIX(_log_prefix, LOG_FUNCLINE_BIT);
 
 #ifdef LOG_IO_OPS
     _log_use_io = 1;
