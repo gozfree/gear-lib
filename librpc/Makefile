@@ -30,6 +30,7 @@ endif
 ########
 LIBNAME		= librpc
 TGT_LIB_H	= $(LIBNAME).h
+TGT_LIB_H	+= librpc_stub.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_UNIT_TEST	= test_$(LIBNAME)
