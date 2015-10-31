@@ -114,6 +114,15 @@ extern "C" {
     } while (0)
 
 /******************************************************************************
+ * system call
+ *****************************************************************************/
+
+int system_noblock(char **argv);
+ssize_t system_with_result(const char *cmd, void *buf, size_t count);
+ssize_t system_noblock_with_result(char **argv, void *buf, size_t count);
+
+
+/******************************************************************************
  * color
  *****************************************************************************/
 #define FG_BLACK        30

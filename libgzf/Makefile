@@ -31,8 +31,8 @@ endif
 LIBNAME		= libgzf
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_H	+= kernel_list.h
-#TGT_LIB_A	= $(LIBNAME).a
-#TGT_LIB_SO	= $(LIBNAME).so
+TGT_LIB_A	= $(LIBNAME).a
+TGT_LIB_SO	= $(LIBNAME).so
 #TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
@@ -75,6 +75,10 @@ clean:
 install:
 	$(MAKEDIR_OUTPUT)
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
 
 uninstall:
 	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
