@@ -12,7 +12,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
-#include "libgzf.h"
+#include <libgzf.h>
+#include <liblog.h>
 #include "libgevent.h"
 
 #define POLL_MAX_FD                 (1024)
@@ -31,12 +32,12 @@ static void *poll_init()
     struct pollfd *fds;
     pc = (struct poll_ctx *)calloc(1, sizeof(struct poll_ctx));
     if (!pc) {
-        printf("malloc poll_ctx failed!\n");
+        loge("malloc poll_ctx failed!\n");
         return NULL;
     }
     fds = (struct pollfd *)calloc(POLL_MAX_FD, sizeof(struct pollfd));
     if (!fds) {
-        printf("malloc pollfd failed!\n");
+        loge("malloc pollfd failed!\n");
         return NULL;
     }
     pc->fds = fds;
@@ -93,11 +94,11 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
 
     n = poll(pc->fds, pc->nfds, timeout);
     if (-1 == n) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        loge("errno=%d %s\n", errno, strerror(errno));
         return -1;
     }
     if (0 == n) {
-        printf("poll timeout\n");
+        loge("poll timeout\n");
         return 0;
     }
     for (i = 0; i < n; i++) {

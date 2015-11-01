@@ -31,9 +31,9 @@ void dump_buffer(void *buf, int len)
 
 void dump_packet(struct rpc_packet *r)
 {
-    printf("packet header:");
+    logd("packet header:");
     dump_buffer(&r->header, (int)sizeof(struct rpc_header));
-    printf("packet data:");
+    logd("packet data:");
     dump_buffer(r->data, r->header.len);
 }
 
@@ -152,12 +152,12 @@ struct rpc *rpc_create(const char *host, uint16_t port)
         loge("rpc_recv failed: ret = %d\n", ret);
     }
 //    if (-1 == skt_set_noblk(sc->fd, 1)) {
-//        printf("no-block skt_recv failed!\n");
+//        loge("no-block skt_recv failed!\n");
 //    }
     skt_addr_ntop(str_ip, sc->local.ip);
     logi("local addr = %s:%d, uuid_src = %s\n", str_ip, sc->local.port, r->packet.header.uuid_src);
     skt_addr_ntop(str_ip, sc->remote.ip);
-    //printf("remote ip = %s, port = %d\n", str_ip, sc->remote.port);
+    //logd("remote ip = %s, port = %d\n", str_ip, sc->remote.port);
     r->evbase = gevent_base_create();
 
     return r;

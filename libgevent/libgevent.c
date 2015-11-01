@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <libgzf.h>
+#include <liblog.h>
 #include "libgevent.h"
 
 extern const struct gevent_ops selectops;
@@ -24,7 +25,7 @@ static const struct gevent_ops *eventops[] = {
 
 static void event_in(int fd, void *arg)
 {
-//    printf("fd = %d, event in\n", fd);
+//    logd("fd = %d, event in\n", fd);
 }
 
 struct gevent_base *gevent_base_create()
@@ -38,7 +39,7 @@ struct gevent_base *gevent_base_create()
     }
     eb = CALLOC(1, struct gevent_base);
     if (!eb) {
-        printf("malloc gevent_base failed!\n");
+        loge("malloc gevent_base failed!\n");
         close(fds[0]);
         close(fds[1]);
         return NULL;
@@ -76,7 +77,7 @@ int gevent_base_loop(struct gevent_base *eb)
     while (eb->loop) {
         ret = evop->dispatch(eb, NULL);
         if (ret == -1) {
-            printf("dispatch failed\n");
+            loge("dispatch failed\n");
 //            return -1;
         }
     }
@@ -118,12 +119,12 @@ struct gevent *gevent_create(int fd,
     int flags = 0;
     struct gevent *e = CALLOC(1, struct gevent);
     if (!e) {
-        printf("malloc gevent failed!\n");
+        loge("malloc gevent failed!\n");
         return NULL;
     }
     struct gevent_cbs *evcb = CALLOC(1, struct gevent_cbs);
     if (!evcb) {
-        printf("malloc gevent failed!\n");
+        loge("malloc gevent failed!\n");
         return NULL;
     }
     evcb->ev_in = ev_in;
@@ -159,7 +160,7 @@ void gevent_destroy(struct gevent *e)
 int gevent_add(struct gevent_base *eb, struct gevent *e)
 {
     if (!e || !eb) {
-        printf("paraments is NULL\n");
+        loge("%s:%d paraments is NULL\n", __func__, __LINE__);
         return -1;
     }
     return eb->evop->add(eb, e);
@@ -168,7 +169,7 @@ int gevent_add(struct gevent_base *eb, struct gevent *e)
 int gevent_del(struct gevent_base *eb, struct gevent *e)
 {
     if (!e || !eb) {
-        printf("paraments is NULL\n");
+        loge("%s:%d paraments is NULL\n", __func__, __LINE__);
         return -1;
     }
     return eb->evop->del(eb, e);

@@ -12,7 +12,8 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/epoll.h>
-#include "libgzf.h"
+#include <libgzf.h>
+#include <liblog.h>
 #include "libgevent.h"
 
 #ifdef __ANDROID__
@@ -35,19 +36,19 @@ static void *epoll_init()
     struct epoll_ctx *ec;
     fd = epoll_create(1);
     if (-1 == fd) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        loge("errno=%d %s\n", errno, strerror(errno));
         return NULL;
     }
     ec = (struct epoll_ctx *)calloc(1, sizeof(struct epoll_ctx));
     if (!ec) {
-        printf("malloc epoll_ctx failed!\n");
+        loge("malloc epoll_ctx failed!\n");
         return NULL;
     }
     ec->epfd = fd;
     ec->nevents = EPOLL_MAX_NEVENT;
     ec->events = (struct epoll_event *)calloc(EPOLL_MAX_NEVENT, sizeof(struct epoll_event));
     if (!ec->events) {
-        printf("malloc epoll_event failed!\n");
+        loge("malloc epoll_event failed!\n");
         return NULL;
     }
     return ec;
@@ -78,7 +79,7 @@ static int epoll_add(struct gevent_base *eb, struct gevent *e)
     epev.data.ptr = (void *)e;
 
     if (-1 == epoll_ctl(ec->epfd, EPOLL_CTL_ADD, e->evfd, &epev)) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        loge("errno=%d %s\n", errno, strerror(errno));
         return -1;
     }
     return 0;
@@ -111,11 +112,11 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
     }
     n = epoll_wait(epop->epfd, events, epop->nevents, timeout);
     if (-1 == n) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        loge("errno=%d %s\n", errno, strerror(errno));
         return -1;
     }
     if (0 == n) {
-        printf("epoll_wait timeout\n");
+        loge("epoll_wait timeout\n");
         return 0;
     }
     for (i = 0; i < n; i++) {

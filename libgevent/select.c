@@ -11,7 +11,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/select.h>
-#include "libgzf.h"
+#include <libgzf.h>
+#include <liblog.h>
 #include "libgevent.h"
 
 #define SELECT_MAX_FD	1024
@@ -27,14 +28,14 @@ static void *select_init()
 {
     struct select_ctx *sc = CALLOC(1, struct select_ctx);
     if (!sc) {
-        printf("malloc select_ctx failed!\n");
+        loge("malloc select_ctx failed!\n");
         return NULL;
     }
     fd_set *rfds = CALLOC(1, fd_set);
     fd_set *wfds = CALLOC(1, fd_set);
     fd_set *efds = CALLOC(1, fd_set);
     if (!rfds || !wfds || !efds) {
-        printf("malloc fd_set failed!\n");
+        loge("malloc fd_set failed!\n");
         return NULL;
     }
     sc->rfds = rfds;
@@ -97,11 +98,11 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
 
     n = select(nfds, sc->rfds, sc->wfds, sc->efds, tv);
     if (-1 == n) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        loge("errno=%d %s\n", errno, strerror(errno));
         return -1;
     }
     if (0 == n) {
-        printf("select timeout\n");
+        loge("select timeout\n");
         return 0;
     }
     for (i = 0; i < nfds; i++) {
