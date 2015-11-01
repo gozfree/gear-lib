@@ -10,7 +10,7 @@
 #include <libskt.h>
 #include <libgzf.h>
 #include <libgevent.h>
-#include <libglog.h>
+#include <liblog.h>
 #include "librpc.h"
 
 static msg_handler_t message_map[MAX_MESSAGES_IN_MAP];
@@ -144,15 +144,6 @@ struct rpc *rpc_create(const char *host, uint16_t port)
     }
     r->fd = sc->fd;
 
-#if 1
-    struct skt_addr tmpaddr;
-    char tmpip[INET_ADDRSTRLEN];
-    if (-1 == skt_getaddr_by_fd(sc->fd, &tmpaddr)) {
-    }
-    skt_addr_ntop(tmpip, tmpaddr.ip);
-    loge("addr = %s:%d\n", tmpip, tmpaddr.port);
-
-#endif
     if (-1 == skt_set_noblk(sc->fd, 0)) {
         loge("block skt_recv failed!\n");
     }
@@ -164,7 +155,7 @@ struct rpc *rpc_create(const char *host, uint16_t port)
 //        printf("no-block skt_recv failed!\n");
 //    }
     skt_addr_ntop(str_ip, sc->local.ip);
-    loge("local addr = %s:%d, uuid_src = %s\n", str_ip, sc->local.port, r->packet.header.uuid_src);
+    logi("local addr = %s:%d, uuid_src = %s\n", str_ip, sc->local.port, r->packet.header.uuid_src);
     skt_addr_ntop(str_ip, sc->remote.ip);
     //printf("remote ip = %s, port = %d\n", str_ip, sc->remote.port);
     r->evbase = gevent_base_create();
@@ -241,7 +232,7 @@ int rpc_packet_format(struct rpc *r, uint32_t type)
     //memset(h, 0, sizeof(rpc_packet_t));
     //strncpy(h->uuid_dst, r->uuid_dst, MAX_UUID_LEN);
     //strncpy(h->uuid_src, r->uuid_src, MAX_UUID_LEN);
-    logi("uuid_src=%s, uuid_dst=%s\n", h->uuid_src, h->uuid_dst);
+    logd("uuid_src=%s, uuid_dst=%s\n", h->uuid_src, h->uuid_dst);
     h->type = type;
     return 0;
 }

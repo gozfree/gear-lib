@@ -48,7 +48,7 @@ ifeq ($(ARCH), pi)
 LDFLAGS	+= -lgcc_s
 endif
 LDFLAGS	+= $(ANDROID_PRE_LDFLAGS)
-LDFLAGS	+= -L$(OUTPUT)/lib -lglog
+LDFLAGS	+= -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -L$(OUTPUT)/lib -lrpc
 LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 LDFLAGS	+= -L$(OUTPUT)/lib -lskt

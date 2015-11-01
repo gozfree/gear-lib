@@ -22,6 +22,7 @@
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <libgzf.h>
+#include <liblog.h>
 
 #include "libskt.h"
 
@@ -460,7 +461,7 @@ int skt_send(int fd, const void *buf, size_t len)
     size_t step = MTU;
     int cnt = 0;
 
-    if (buf == NULL || len == 0) {
+    if (buf == NULL || len == 0) {//0 length packet no need send
         fprintf(stderr, "%s paraments invalid!\n", __func__);
         return -1;
     }
@@ -550,8 +551,8 @@ int skt_recv(int fd, void *buf, size_t len)
             left -= n;
             continue;
         } else if (n == 0) {
-            perror("recv");
-            return -1;
+            //perror("recv");//peer connect closed, no need print
+            return 0;
         }
         if (errno == EINTR || errno == EAGAIN) {
             if (++cnt > MAX_RETRY_CNT)

@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    test_libglog.c
+ * file:    test_libconfig.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-05-31 19:42
  * updated: 2015-05-31 19:42
@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "libconfig.h"
 
 int ini_test()
@@ -24,6 +28,7 @@ int ini_test()
 
 int main(int argc, char **argv)
 {
+    kill(getpid(), SIGINT);
     ini_test();
 
     return 0;

@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <stdarg.h>
 #include <libgzf.h>
-#include <libglog.h>
+#include <liblog.h>
 #include "libthread.h"
 
 

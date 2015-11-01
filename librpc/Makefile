@@ -46,7 +46,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -L$(PLATFORM_LIB)
-LDFLAGS	+= -L$(OUTPUT)/lib -lglog
+LDFLAGS	+= -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 LDFLAGS	+= -pthread

@@ -48,7 +48,7 @@ LDFLAGS	+= -pthread
 LDFLAGS	+= -lreadline
 LDFLAGS	+= -lgzf
 LDFLAGS	+= -ldict
-LDFLAGS	+= -lglog
+LDFLAGS	+= -llog
 
 .PHONY : all clean
 

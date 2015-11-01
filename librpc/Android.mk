@@ -9,7 +9,7 @@ LIBRARIES_DIR	:= $(LOCAL_PATH)/../
 LIBGZF_INC := $(LIBRARIES_DIR)/libgzf/
 LIBSKT_INC := $(LIBRARIES_DIR)/libskt/
 LIBGEVENT_INC := $(LIBRARIES_DIR)/libgevent/
-LIBGLOG_INC := $(LIBRARIES_DIR)/libglog/
+LIBGLOG_INC := $(LIBRARIES_DIR)/liblog/
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH) \
                     $(LIBSKT_INC) \

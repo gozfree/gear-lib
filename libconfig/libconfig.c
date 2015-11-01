@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    libglog.c
+ * file:    libconfig.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-09-29 23:51
  * updated: 2015-09-29 23:51

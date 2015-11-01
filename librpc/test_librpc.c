@@ -25,6 +25,7 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
     int num = 0;
     //logi("on_get_connect_list, len = %d\n", len);
     num = len / MAX_UUID_LEN;
+    printf("\n");
     for (ptr = arg; num > 0; --num) {
         logi("uuid list: %s\n", (char *)ptr);
         len = MAX_UUID_LEN;
@@ -42,13 +43,12 @@ static int on_test_resp(struct rpc *r, void *arg, int len)
 static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
 {
     //logi("on_peer_post_msg_resp len = %d\n", len);
-    printf("msg from %s:\n%s\n", r->packet.header.uuid_src, (char *)arg);
+    logd("msg from %s:\n%s\n", r->packet.header.uuid_src, (char *)arg);
     return 0;
 }
 
 static int on_shell_help(struct rpc *r, void *arg, int len)
 {
-    //logi("on_peer_post_msg_resp len = %d\n", len);
     printf("msg from %s:\n%s\n", r->packet.header.uuid_src, (char *)arg);
     return 0;
 }
@@ -148,9 +148,8 @@ void *raw_data_thread(void *arg)
 
     while (loop) {
         memset(buf, 0, len);
-        cmd_usage();
         printf("input cmd> ");
-        scanf("%c", &ch);
+        ch = getchar();
         switch (ch) {
         case 'a':
             rpc_get_connect_list(r, NULL, NULL);
@@ -168,8 +167,13 @@ void *raw_data_thread(void *arg)
             break;
         case 's':
             printf("input shell cmd> ");
-            scanf("%s", cmd);
+            scanf("%c", &ch);
+            scanf("%[^\n]", cmd);
+            printf("cmd = %s\n", cmd);
             rpc_shell_help(r, cmd, sizeof(cmd));
+            break;
+        case 'h':
+            cmd_usage();
             break;
         default:
             break;
@@ -177,11 +181,13 @@ void *raw_data_thread(void *arg)
         //dump_buffer(buf, len);
     }
 
+    exit(0);
     return NULL;
 }
 
 int main(int argc, char **argv)
 {
+//116.228.149.106
     uint16_t port;
     char *ip;
     pthread_t tid;

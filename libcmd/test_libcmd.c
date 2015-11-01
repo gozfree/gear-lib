@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <libgzf.h>
-#include <libglog.h>
+#include <liblog.h>
 #include "libcmd.h"
 
 int do_ls(int argc, char **argv)

@@ -21,6 +21,7 @@
 extern "C" {
 #endif
 
+#define LIBNAME         "libskt"
 #define MAX_ADDR_STRING (65)
 
 //socket structs

@@ -12,7 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <libglog.h>
+#include <liblog.h>
 #include "libp2p.h"
 #define CALLOC(type, value) \
     type *value = (type *)calloc(1, sizeof(type))

@@ -45,7 +45,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
-LDFLAGS	+= -L$(OUTPUT)/lib -lglog
+LDFLAGS	+= -L$(OUTPUT)/lib -llog
 
 .PHONY : all clean
 
