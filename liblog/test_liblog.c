@@ -64,6 +64,7 @@ void test()
         logv("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
     }
 }
+#if 0
 static void *test2()
 {
     int i;
@@ -77,6 +78,7 @@ static void *test2()
     }
     return NULL;
 }
+#endif
 
 int main(int argc, char **argv)
 {

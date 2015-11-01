@@ -43,23 +43,22 @@ CFLAGS	+= -I$(OUTPUT)/include
 
 SHARED	:= -shared
 
-LDFLAGS	:= -L$(PLATFORM_LIB) -pthread
-ifeq ($(ARCH), pi)
-LDFLAGS	+= -lgcc_s
-endif
-LDFLAGS	+= $(ANDROID_PRE_LDFLAGS)
+LDFLAGS	:=
 LDFLAGS	+= -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -L$(OUTPUT)/lib -lrpc
 LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 LDFLAGS	+= -L$(OUTPUT)/lib -lstun
 LDFLAGS	+= -L$(OUTPUT)/lib -lptcp
+LDFLAGS	+= -L$(PLATFORM_LIB) -pthread
+ifeq ($(ARCH), pi)
+LDFLAGS	+= -lgcc_s
+endif
+LDFLAGS	+= $(ANDROID_PRE_LDFLAGS)
 LDFLAGS	+= $($(ARCH)_LDFLAGS)
 ifneq ($(ARCH), android)
 LDFLAGS	+= -lrt
 endif
-
-
 
 
 .PHONY : all clean

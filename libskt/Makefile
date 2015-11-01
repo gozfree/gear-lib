@@ -43,8 +43,11 @@ CFLAGS	+= -I$(OUTPUT)/include
 
 SHARED	:= -shared
 
-LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
+LDFLAGS	:=
+LDFLAGS += -L$(OUTPUT)/lib -llog
+LDFLAGS += -L$(OUTPUT)/lib -lgevent
+LDFLAGS	+= -pthread
+LDFLAGS	+= $($(ARCH)_LDFLAGS)
 
 .PHONY : all clean
 

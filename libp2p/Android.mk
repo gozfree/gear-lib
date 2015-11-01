@@ -25,7 +25,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH) \
 LOCAL_SRC_FILES := libp2p.c
 
 LOCAL_SHARED_LIBRARIES :=  \
-			   libglog \
 			   libskt \
 			   libstun \
 			   librpc \

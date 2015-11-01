@@ -15,7 +15,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <libdict.h>
-#include <libglog.h>
+#include <liblog.h>
 #include "librpc.h"
 #include "librpc_stub.h"
 
