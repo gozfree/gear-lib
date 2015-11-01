@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <sys/uio.h>
-#include <kernel_list.h>
+#include "kernel_list.h"
 
 #ifdef __cplusplus
 extern "C" {
