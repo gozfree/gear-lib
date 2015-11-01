@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    libglog.c
+ * file:    liblog.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-04-20 01:08
  * updated: 2015-07-11 16:09
@@ -22,7 +22,7 @@
 #include <linux/unistd.h>
 #include <libgzf.h>
 
-#include "libglog.h"
+#include "liblog.h"
 
 #define LOG_IOVEC_MAX       (10)
 #define FILENAME_LEN        (256)

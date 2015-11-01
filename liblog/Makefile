@@ -28,7 +28,7 @@ RM_V	= $(RM)
 endif
 
 ########
-LIBNAME		= libglog
+LIBNAME		= liblog
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
@@ -37,7 +37,7 @@ TGT_UNIT_TEST	= test_$(LIBNAME)
 OBJS_LIB	= $(LIBNAME).o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	:= -g -Wall -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 

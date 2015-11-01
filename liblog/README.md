@@ -1,7 +1,7 @@
-##libglog
+##liblog
 This is a simple log library.
 
-Call libglog is only because -llog is used in android :-(
+The name of android version is called libglog because -llog is used in original android :-(
 
 Support linux(x86, arm), android, ios, and support write log to stderr, file or rsyslog.
 
@@ -29,13 +29,14 @@ For console usage, no need to rebuild for setting log level, only to set bash en
 
   $ `sudo make install`
 
-* for x86 and arm libglog.a libglog.so libglog.h will be installed in /usr/local/ by default
+* for x86 and arm liblog.a liblog.so liblog.h will be installed in /usr/local/ by default
 
-  and for android the libglog will be installed in ../output/android/
+  and for android the liblog will be installed in ../output/android/
 
-* libglog is built on rasbarrypi for arm platform test.
+* liblog is built on rasbarrypi for arm platform test.
 
 ##Stability
-  $ `valgrind --leak-check=full ./test_libglog`
-  $ `valgrind --tool=helgrind ./test_libglog`
+  $ `valgrind --leak-check=full ./test_liblog`
+
+  $ `valgrind --tool=helgrind ./test_liblog`
 

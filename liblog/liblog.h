@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    libglog.h
+ * file:    liblog.h
  * author:  gozfree <gozfree@163.com>
  * created: 2015-04-20 01:47
  * updated: 2015-07-11 16:09

@@ -1,6 +1,6 @@
 /*****************************************************************************
  * Copyright (C) 2014-2015
- * file:    test_libglog.c
+ * file:    test_liblog.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-05-31 19:42
  * updated: 2015-05-31 19:42
@@ -9,19 +9,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "libglog.h"
+#include "liblog.h"
 
 void test_rsyslog()
 {
     int i;
-    log_init(LOG_RSYSLOG, NULL);
+    char tmp[32] = "abcd";
+    log_init(LOG_RSYSLOG, "test_log");
     for (i = 0; i < 10; i++) {
         loge("test rsyslog\n");
-        logw("debug msg\n");
-        logi("debug msg\n");
-        logd("debug msg\n");
-        logv("debug msg\n");
+        logw("debug msg %d, %s\n", i, tmp);
+        logd("debug msg %d, %s\n", i, tmp);
+        logi("debug msg %d, %s\n", i, tmp);
+        logv("debug msg %d, %s\n", i, tmp);
     }
+    log_deinit();
 }
 
 void test_file_name()
@@ -78,7 +80,9 @@ static void *test2()
 
 int main(int argc, char **argv)
 {
-    pthread_t pid;
+//    pthread_t pid;
+    test_rsyslog();
+#if 0
     log_init(LOG_STDERR, NULL);
     log_set_split_size(1*1024*1024);
     test_file_name();
@@ -93,5 +97,6 @@ int main(int argc, char **argv)
 #endif
     log_deinit();
     pthread_join(pid, NULL);
+#endif
     return 0;
 }
