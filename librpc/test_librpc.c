@@ -83,7 +83,6 @@ int rpc_shell_help(struct rpc *r, void *buf, size_t len)
     rpc_call(r, RPC_SHELL_HELP, buf, len, res, sizeof(res));
     //printf("func_id = %x\n", RPC_GET_CONNECT_LIST);
     //dump_packet(&r->packet);
-    printf("res = %s\n", res);
     return 0;
 }
 
@@ -120,6 +119,7 @@ void on_error(int fd, void *arg)
 void usage()
 {
     fprintf(stderr, "./test_libskt <ip> <port>\n");
+    fprintf(stderr, "e.g. ./test_libskt 116.228.149.106 12345\n");
 }
 
 void cmd_usage()
