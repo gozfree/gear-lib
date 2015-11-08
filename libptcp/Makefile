@@ -45,11 +45,13 @@ CFLAGS	+= -I$(OUTPUT)/include
 
 SHARED	:= -shared
 
-LDFLAGS	:= $($(ARCH)_LDFLAGS)
+LDFLAGS	:=
+LDFLAGS += -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -pthread
 ifneq ($(ARCH), android)
 LDFLAGS	+= -lrt
 endif
+LDFLAGS	+= $($(ARCH)_LDFLAGS)
 
 .PHONY : all clean
 

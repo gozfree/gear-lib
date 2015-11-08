@@ -21,6 +21,7 @@
 #include <sys/epoll.h>
 #include <libgzf.h>
 #include <kernel_list.h>
+#include <liblog.h>
 #include "queue.h"
 #include "libptcp.h"
 
@@ -593,7 +594,7 @@ ptcp_socket_t *ptcp_create(ptcp_callbacks_t *cbs)
 {
   ptcp_socket_t *ps = (ptcp_socket_t *)calloc(1, sizeof(ptcp_socket_t));
   if (ps == NULL) {
-    printf("malloc failed!\n");
+    loge("malloc failed!\n");
     return NULL;
   }
   ps->timer_id = timeout_add(0, notify_clock, ps);
@@ -997,7 +998,7 @@ ptcp_send(ptcp_socket_t *ps, const void * buffer, size_t len)
   if (!available_space) {
     ps->bWriteEnable = TRUE;
     ps->error = EWOULDBLOCK;
-    printf("%s:%d xxxx\n", __func__, __LINE__);
+    loge("%s:%d xxxx\n", __func__, __LINE__);
     return -1;
   }
 
@@ -1183,7 +1184,7 @@ packet(ptcp_socket_t *ps, uint32_t seq, TcpFlags flags,
         len, offset);
     //assert (bytes_read == len);
     if (bytes_read != len) {
-      printf("bytes_read=%zd, len=%u\n", bytes_read, len);
+      logd("bytes_read=%zd, len=%u\n", bytes_read, len);
     }
   }
 
@@ -2247,7 +2248,7 @@ set_state (ptcp_socket_t *ps, ptcp_state_t new_state)
   if (new_state == old_state)
     return;
 
-  printf("State %s → %s.\n",
+  logi("State %s → %s.\n",
       ptcp_state_get_name (old_state),
       ptcp_state_get_name (new_state));
 
@@ -2354,7 +2355,7 @@ static void clock_reset(ptcp_socket_t *p, uint64_t timeout)
     its.it_interval.tv_nsec = 0; 
     if (timer_settime(*timer_id, 0, &its, NULL) < 0) {
         perror("timer_settime");
-        printf("time = %ld s, %ld ns\n", 
+        loge("time = %ld s, %ld ns\n", 
                     its.it_value.tv_sec, its.it_value.tv_nsec );
     }
 }
@@ -2380,7 +2381,7 @@ static void adjust_clock(ptcp_socket_t *p)
 //            del_timer(p->timer_id);
 //        p->timer_id = timeout_add(timeout, notify_clock, p);
     } else {
-        printf("Socket %p should be destroyed, it's done\n", p);
+        loge("Socket %p should be destroyed, it's done\n", p);
     }
 }
 
@@ -2390,7 +2391,7 @@ static ptcp_write_result_t ptcp_write(ptcp_socket_t *p, const char *buf, uint32_
     ssize_t res;
     res = sendto(p->fd, buf, len, 0, (struct sockaddr *)&p->si, sizeof(struct sockaddr));
     if (-1 == res) {
-        printf("sendto error: %s\n", strerror(errno));
+        loge("sendto error: %s\n", strerror(errno));
     }
     adjust_clock(p);
     if (res < len) {
@@ -2408,7 +2409,7 @@ static ptcp_write_result_t ptcp_read(ptcp_socket_t *p, void *buf, size_t len)
     res = recvfrom(p->fd, rbuf, sizeof(rbuf), MSG_DONTWAIT,
                 (struct sockaddr *)&p->si, &addrlen);
     if (-1 == res) {
-        printf("recvfrom error: %s\n", strerror(errno));
+        loge("recvfrom error: %s\n", strerror(errno));
         return WR_FAIL;
     }
     if (TRUE == ptcp_notify_packet(p, rbuf, res)) {
@@ -2421,7 +2422,6 @@ void on_opened(ptcp_socket_t *p, void *data)
 {
 //    printf("%s:%d xxxx\n", __func__, __LINE__);
     sem_post(&p->sem);
-  
 }
 void on_readable(ptcp_socket_t *p, void *data)
 {
@@ -2455,7 +2455,7 @@ ptcp_socket_t *ptcp_socket()
     ptcp_notify_mtu(p, 1460);
 
     if (pipe(fds)) {
-        printf("create pipe failed: %s\n", strerror(errno));
+        loge("create pipe failed: %s\n", strerror(errno));
         return NULL;
     }
     p->on_read_fd = fds[0];
@@ -2483,7 +2483,7 @@ ptcp_socket_t *ptcp_socket_by_fd(int fd)
     ptcp_notify_mtu(p, 1460);
 
     if (pipe(fds)) {
-        printf("create pipe failed: %s\n", strerror(errno));
+        loge("create pipe failed: %s\n", strerror(errno));
         return NULL;
     }
     p->on_read_fd = fds[0];
@@ -2502,10 +2502,9 @@ static void event_read(void *arg)
     char buf[10240] = {0};
     if (WR_SUCCESS == ptcp_read(ps, buf, sizeof(buf))) {
         if (write(ps->on_write_fd, &notify, sizeof(notify)) != 1) {
-            printf("write pipe failed: %s\n", strerror(errno));
+            loge("write pipe failed: %s\n", strerror(errno));
         }
     }
-//    printf("%s:%d xxxx\n", __func__, __LINE__);
 }
 
 static void *event_loop(void *arg)
@@ -2522,7 +2521,7 @@ static void *event_loop(void *arg)
         perror("epoll_create");
         return NULL;
     }
-    
+
     memset(&event, 0, sizeof(event));
     event.data.ptr = ps;
     event.events = EPOLLIN | EPOLLET;
@@ -2561,14 +2560,14 @@ int ptcp_connect(ptcp_socket_t *p, const struct sockaddr *addr,
 {
     pthread_t tid;
     if (-1 == connect(p->fd, addr, addrlen)) {
-        printf("connect error: %s\n", strerror(errno));
+        loge("connect error: %s\n", strerror(errno));
         return -1;
     }
     memcpy(&p->si, (struct sockaddr_in *)addr, addrlen);
 
     pthread_create(&tid, NULL, event_loop, p);
     if (-1 == _ptcp_connect(p)) {
-        printf("ptcp_connect failed\n");
+        loge("ptcp_connect failed\n");
     }
     sem_wait(&p->sem);
     return 0;
@@ -2578,8 +2577,10 @@ int ptcp_bind(ptcp_socket_t *p, const struct sockaddr *addr,
                 socklen_t addrlen)
 {
     if (-1 == bind(p->fd, addr, addrlen)) {
-        printf("bind error: %s\n", strerror(errno));
-        return -1;
+        loge("bind error %d: %s\n", errno, strerror(errno));
+        struct sockaddr_in *si = (struct sockaddr_in *)addr;
+        loge("bind fd = %d, ip = %d: port = %d\n", p->fd, si->sin_addr.s_addr, ntohs(si->sin_port));
+        //return -1;
     }
     memcpy(&p->si, (struct sockaddr_in *)&addr, addrlen);
     return 0;
