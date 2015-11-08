@@ -12,16 +12,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <libgzf.h>
 #include <liblog.h>
 #include "libp2p.h"
-#define CALLOC(type, value) \
-    type *value = (type *)calloc(1, sizeof(type))
 
 
-//static char *_rpc_ip = "127.0.0.1";
-static char *_rpc_ip = "180.153.102.147";
-//static char *_stun_ip = "127.0.0.1";
-static char *_stun_ip = "180.153.102.147";
+//static char *_rpc_ip = "192.168.1.101";
+//static char *_rpc_ip = "180.153.102.147";
+static char *_rpc_ip = "116.228.149.106";
+
+//static char *_stun_ip = "192.168.1.101";
+//static char *_stun_ip = "180.153.102.147";
+static char *_stun_ip = "116.228.149.106";
 void *input_thread(void *arg)
 {
     struct p2p *p2p = (struct p2p *)arg;
@@ -33,7 +35,7 @@ void *input_thread(void *arg)
         buf[i] = i;
     }
     p2p_get_peer_list(p2p);
-    logi("input peer id> ");
+    printf("input peer id> ");
     scanf("%s", uuid_dst);
     p2p_connect(p2p, uuid_dst);
     while (1) {
@@ -52,8 +54,7 @@ void *input_thread(void *arg)
 int main()
 {
     pthread_t tid;
-    CALLOC(struct p2p, p2p);
-    p2p = p2p_init(_rpc_ip, _stun_ip);
+    struct p2p *p2p = p2p_init(_rpc_ip, _stun_ip);
     if (!p2p) {
         logi("p2p_init failed!\n");
         return -1;
