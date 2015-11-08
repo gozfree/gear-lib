@@ -10,20 +10,21 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 /** Keypair: holds a key/value pair. Key must be a hashable C string */
 typedef struct _keypair_ {
-    char    * key ;
-    char    * val ;
-    unsigned  hash ;
+    char *key;
+    char *val;
+    uint32_t hash;
 } keypair ;
 
 /** Dict is the only type needed for clients of the dict object */
 typedef struct _dict_ {
-    unsigned  fill ;
-    unsigned  used ;
-    unsigned  size ;
-    keypair * table ;
+    uint32_t fill;
+    uint32_t used;
+    uint32_t size;
+    keypair *table;
 } dict ;
 
 typedef struct _key_list_ {
