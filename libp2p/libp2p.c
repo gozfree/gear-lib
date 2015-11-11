@@ -75,8 +75,14 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
     if (p2p->rpc_state == P2P_RPC_SYN_SENT) {//client
         logi("as p2p client\n");
         sleep(1);
-        _p2p_connect(p2p, reflectip, nat->reflect.port);
-        return -1;
+        if (_p2p_connect(p2p, localip, nat->local.port)) {
+            loge("_p2p_connect nat.local failed, try nat.reflect\n");
+            if (_p2p_connect(p2p, reflectip, nat->reflect.port)) {
+                logi("_p2p_connect nat.reflect failed too\n");
+                return -1;
+            }
+        }
+        return 0;
     }
 //server
     logi("as p2p server\n");
@@ -143,6 +149,7 @@ int _p2p_connect(struct p2p *p2p, char *ip, uint16_t port)
     si.sin_port = htons(port);
     logi("ptcp_connect %s:%d\n", ip, port);
     if (0 != ptcp_connect(p2p->ps, (struct sockaddr*)&si, sizeof(si))) {
+        logi("ptcp_connect timeout\n");
         return -1;
     } else {
         logi("ptcp_connect success\n");
