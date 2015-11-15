@@ -40,31 +40,36 @@ TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_UNIT_TEST	= test_$(LIBNAME)
+KERNEL_MODULE	= ipc_netlink.so
+KERNEL_DIR	= /lib/modules/$(shell uname -r)/build
 
 OBJS_LIB	= $(LIBNAME).o
+OBJS_LIB	+= msgq.o netlink.o shm.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
-CFLAGS	:= -g -Wall -fPIC
-CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+EXTRA_CFLAGS	:= -g -Wall -Werror
+# -fPIC
+EXTRA_CFLAGS	+= $($(ARCH)_CFLAGS)
+EXTRA_CFLAGS	+= -I$(OUTPUT)/include
 
 SHARED	:= -shared
 
-LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread
+EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
+EXTRA_LDFLAGS	+= -pthread
 
 .PHONY : all clean
 
 TGT	:= $(TGT_LIB_A)
 TGT	+= $(TGT_LIB_SO)
 TGT	+= $(TGT_UNIT_TEST)
+TGT	+= $(KERNEL_MODULE)
 
 OBJS	:= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 
 all: $(TGT)
 
 %.o:%.c
-	$(CC_V) -c $(CFLAGS) $< -o $@
+	$(CC_V) -c $(EXTRA_CFLAGS) $< -o $@
 
 $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
@@ -73,7 +78,11 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	$(LD_V) -o $@ $^ $(SHARED)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(EXTRA_LDFLAGS)
+
+obj-m	:= netlink_kernel.o
+$(KERNEL_MODULE):
+	$(MAKE) -C $(KERNEL_DIR) M=$(shell pwd) modules
 
 clean:
 	$(RM_V) -f $(OBJS)

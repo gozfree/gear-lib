@@ -7,7 +7,7 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <libipc.h>
+#include "libipc.h"
 
 int main(int argc, char **argv)
 {
