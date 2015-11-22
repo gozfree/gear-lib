@@ -47,8 +47,7 @@ OBJS_LIB	= $(LIBNAME).o
 OBJS_LIB	+= msgq.o netlink.o shm.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
-EXTRA_CFLAGS	:= -g -Wall -Werror
-# -fPIC
+EXTRA_CFLAGS	:= -g -Wall -Werror -fPIC
 EXTRA_CFLAGS	+= $($(ARCH)_CFLAGS)
 EXTRA_CFLAGS	+= -I$(OUTPUT)/include
 
@@ -62,7 +61,7 @@ EXTRA_LDFLAGS	+= -pthread
 TGT	:= $(TGT_LIB_A)
 TGT	+= $(TGT_LIB_SO)
 TGT	+= $(TGT_UNIT_TEST)
-TGT	+= $(KERNEL_MODULE)
+#TGT	+= $(KERNEL_MODULE)
 
 OBJS	:= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 

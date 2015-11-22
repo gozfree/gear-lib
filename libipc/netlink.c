@@ -115,6 +115,7 @@ static void nl_deinit(struct ipc *ipc)
 const struct ipc_ops netlink_ops = {
     nl_init,
     nl_deinit,
+    NULL,
     nl_send,
     nl_recv,
 };
