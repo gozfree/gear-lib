@@ -12,5 +12,7 @@ Among processes
 * netlink
 
 * message queue
+**sudo mkdir /dev/mqueue
+**sudo mount -t mqueue none /dev/mqueue/
 
 * share memory

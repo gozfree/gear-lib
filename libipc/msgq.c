@@ -16,6 +16,9 @@
 #define MQ_MAXMSG       5
 #define MQ_MSGSIZE      1024
 #define MQ_MSG_PRIO     10
+
+#define MQ_NAME         "/ipc_mq"
+
 struct mq_ctx {
     mqd_t mq;
     void *parent;
@@ -58,6 +61,7 @@ static void *_mq_init(enum ipc_role role)
 {
     int oflag;
     struct mq_attr attr;
+    mqd_t mq;
 
     attr.mq_flags = 0;
     attr.mq_maxmsg = MQ_MAXMSG;
@@ -66,13 +70,14 @@ static void *_mq_init(enum ipc_role role)
 
     if (role == IPC_SENDER) {
         //send is  block send
-        oflag = O_RDWR | O_CREAT | O_EXCL;
+        oflag = O_RDWR | O_EXCL;
     } else {
         //receive is nonblock receive
         oflag = O_RDWR | O_CREAT | O_EXCL | O_NONBLOCK;
+        mq_unlink(MQ_NAME);
     }
     struct mq_ctx *mc = CALLOC(1, struct mq_ctx);
-    mqd_t mq = mq_open("/tmp/ipc.mq", oflag , S_IRWXU | S_IRWXG, &attr);
+    mq = mq_open(MQ_NAME, oflag , S_IRWXU | S_IRWXG, &attr);
     if (mq < 0) {
         loge("mq_open failed: %d:%s\n", errno, strerror(errno));
         return NULL;
@@ -97,13 +102,22 @@ static void _mq_deinit(struct ipc *ipc)
 static int _mq_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct mq_ctx *ctx = ipc->ctx;
-    return mq_send(ctx->mq, buf, len, MQ_MSG_PRIO);
+    if (0 != mq_send(ctx->mq, buf, len, MQ_MSG_PRIO)) {
+        loge("mq_send failed %d: %s\n", errno, strerror(errno));
+        return -1;
+    }
+    return len;
 }
 
 static int _mq_recv(struct ipc *ipc, void *buf, size_t len)
 {
     struct mq_ctx *ctx = ipc->ctx;
-    return mq_receive(ctx->mq, buf, len, NULL);
+    ssize_t ret = mq_receive(ctx->mq, buf, len, NULL);
+    if (-1 == ret) {
+        loge("mq_receive failed %d: %s\n", errno, strerror(errno));
+        return -1;
+    }
+    return ret;
 }
 
 

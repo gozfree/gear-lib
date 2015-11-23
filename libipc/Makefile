@@ -37,6 +37,7 @@ endif
 ########
 LIBNAME		= libipc
 TGT_LIB_H	= $(LIBNAME).h
+TGT_LIB_H	+= libipc_stub.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_UNIT_TEST	= test_$(LIBNAME)
@@ -55,6 +56,11 @@ SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
 EXTRA_LDFLAGS	+= -pthread
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llog
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lskt
+EXTRA_LDFLAGS	+= -lrt
+
 
 .PHONY : all clean
 

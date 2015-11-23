@@ -82,6 +82,8 @@ int ipc_call(struct ipc *i, uint32_t func_id,
 
 void ipc_destroy(struct ipc *i);
 
+int ipc_register_map(ipc_handler_t *map, int num_entry);
+
 #ifdef __cplusplus
 }
 #endif

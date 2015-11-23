@@ -8,8 +8,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "libipc.h"
+#include "libipc_stub.h"
+
+int foo()
+{
+    struct ipc *ipc = ipc_create(IPC_SENDER);
+    //ipc_call(ipc, IPC_TEST, NULL, 0, NULL, 0);
+    ipc_call(ipc, IPC_GET_CONNECT_LIST, NULL, 0, NULL, 0);
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
+    foo();
     return 0;
 }

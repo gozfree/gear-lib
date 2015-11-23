@@ -106,6 +106,70 @@ int ipc_call(struct ipc *ipc, uint32_t func_id,
     return ipc_recv(ipc, out_arg, out_len);
 }
 
+int register_msg_proc(ipc_handler_t *handler)
+{
+    int i;
+    int msg_id_registered  = 0;
+    int msg_slot = -1;
+    uint32_t func_id;
+
+    if (!handler) {
+        loge("Cannot register null msg proc \n");
+        return -1;
+    }
+
+    func_id = handler->func_id;
+
+    for (i=0; i < message_map_registered; i++) {
+        if (message_map[i].func_id == func_id) {
+            loge("overwrite existing msg proc for func_id %d \n", func_id);
+            msg_id_registered = 1;
+            msg_slot = i;
+            break;
+        }
+    }
+
+    if ((!msg_id_registered)) {
+        if ((message_map_registered == MAX_MESSAGES_IN_MAP)) {
+            loge("too many msg proc registered \n");
+            return -1;
+        }
+        //increase the count
+        msg_slot = message_map_registered;
+        message_map_registered++;
+    }
+
+    //if the handler registered is NULL, then just fill NULL handler
+    message_map[msg_slot] = *handler;
+
+    return 0;
+}
+
+int ipc_register_map(ipc_handler_t *map, int num_entry)
+{
+    int i;
+    int ret;
+
+    if (map == NULL) {
+        loge("register_msg_map: null map \n");
+        return -1;
+    }
+
+    if ((num_entry <= 0) || (num_entry > MAX_MESSAGES_IN_MAP)) {
+        loge("register_msg_map:invalid num_entry %d \n", num_entry);
+        return -1;
+    }
+
+    for (i = 0; i < num_entry; i++) {
+        ret = register_msg_proc(&map[i]);
+        if (ret < 0) {
+            loge("register_msg_map:register failed  at %d \n", i);
+            return -1;
+        }
+    }
+
+    return 0;
+}
 int find_ipc_handler(uint32_t func_id, ipc_handler_t *handler)
 {
     int i;
@@ -124,6 +188,7 @@ int process_msg(struct ipc *ipc, void *buf, size_t len)
 {
     ipc_handler_t handler;
     uint32_t func_id = ipc->packet.header.func_id;
+    logi("func_id = %d\n", func_id);
     if (find_ipc_handler(func_id, &handler) == 0 ) {
         handler.cb(ipc, buf, len, NULL, 0);//direct call cb is not good, will be change to workq
     } else {
@@ -150,7 +215,6 @@ struct ipc *ipc_create(enum ipc_role role)
     if (role == IPC_RECVER) {
         ipc->ops->register_recv_cb(ipc, on_recv);
     }
-
     return ipc;
 }
 
@@ -164,12 +228,12 @@ ssize_t ipc_send(struct ipc *ipc, const void *buf, size_t len)
     head_size = sizeof(ipc_header_t);
     ret = ipc->ops->send(ipc, (void *)&pkt->header, head_size);
     if (ret != head_size) {
-        loge("skt_send failed!\n");
+        loge("send failed ret = %d, head_size = %d\n", ret, head_size);
         return -1;
     }
     ret = ipc->ops->send(ipc, buf, len);
     if (ret != len) {
-        loge("skt_send failed!\n");
+        loge("send failed!\n");
         return -1;
     }
     return ret;
@@ -188,12 +252,12 @@ ssize_t ipc_recv(struct ipc *ipc, void *buf, size_t len)
         loge("peer connect closed\n");
         return -1;
     } else if (ret != head_size) {
-        loge("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
+        loge("recv failed, head_size = %d, ret = %d\n", head_size, ret);
         return -1;
     }
     //strncpy(ipc->uuid_dst, pkt.header.uuid_dst, MAX_UUID_LEN);
     if (len < pkt.header.len) {
-        loge("skt_recv pkt.header.len = %d\n", pkt.header.len);
+        loge("recv pkt.header.len = %d\n", pkt.header.len);
     }
     rlen = min(len, pkt.header.len);
     ret = ipc->ops->recv(ipc, buf, rlen);
@@ -201,7 +265,7 @@ ssize_t ipc_recv(struct ipc *ipc, void *buf, size_t len)
         loge("peer connect closed\n");
         return -1;
     } else if (ret != rlen) {
-        loge("skt_recv failed: rlen=%d, ret=%d\n", rlen, ret);
+        loge("recv failed: rlen=%d, ret=%d\n", rlen, ret);
         return -1;
     }
     //dump_packet(&pkt);
