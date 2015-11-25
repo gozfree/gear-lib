@@ -30,7 +30,7 @@ typedef enum ipc_role {
 struct ipc;
 typedef int (*ipc_callback)(struct ipc *ipc,
                 void *in_arg, size_t in_len,
-                void *out_arg, size_t out_len);
+                void *out_arg, size_t *out_len);
 
 typedef struct ipc_handler {
     uint32_t func_id;
@@ -47,7 +47,7 @@ typedef struct ipc_header {
 
 typedef struct ipc_packet {
     struct ipc_header header;
-    void *data;
+    uint8_t data[0];
 
 } ipc_packet_t;
 

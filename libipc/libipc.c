@@ -62,7 +62,6 @@ static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
     return 0;
 }
 
-#if 0
 static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
                 void *out_arg, size_t *out_len)
 {
@@ -75,33 +74,33 @@ static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
     *func_id = hdr->func_id;
     if (out_arg) {
         *out_len = min(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
-        memcpy(out_arg, hdr + hdr->len, *out_len);
+        memcpy(out_arg, pkt->data, *out_len);
     } else {
+        loge("eee\n");
         *out_len = 0;
     }
     return 0;
 }
-#endif
 
 int ipc_call_async(struct ipc *ipc, uint32_t func_id,
                 const void *in_arg, size_t in_len)
 {
     ipc_packet_format(ipc, func_id);
-    return ipc_send(ipc, in_arg, in_len);
+    return 0;
 }
 
+static struct ipc_packet *_pkt_sbuf = NULL;
+static void *_arg_buf = NULL;
 
 int ipc_call(struct ipc *ipc, uint32_t func_id,
                 const void *in_arg, size_t in_len,
                 void *out_arg, size_t out_len)
 {
-    struct ipc_packet pkt;
-    memset(&pkt, 0, sizeof(pkt));
-    if (0 > pack_msg(&pkt, func_id, in_arg, in_len)) {
+    if (0 > pack_msg(_pkt_sbuf, func_id, in_arg, in_len)) {
         loge("pack_msg failed!\n");
         return -1;
     }
-    ipc_send(ipc, &pkt, sizeof(pkt) + in_len);
+    ipc->ops->send(ipc, _pkt_sbuf, sizeof(ipc_packet_t) + in_len);
     //wait_response();
     return ipc_recv(ipc, out_arg, out_len);
 }
@@ -184,23 +183,43 @@ int find_ipc_handler(uint32_t func_id, ipc_handler_t *handler)
     return -1;
 }
 
-int process_msg(struct ipc *ipc, void *buf, size_t len)
+static int process_msg(struct ipc *ipc, void *buf, size_t len)
 {
     ipc_handler_t handler;
-    uint32_t func_id = ipc->packet.header.func_id;
-    logi("func_id = %d\n", func_id);
+    uint32_t func_id;
+    char out_arg[1024];
+    size_t out_len;
+    size_t ret_len;
+    struct ipc_packet *pkt = (struct ipc_packet *)buf;
+    unpack_msg(pkt, &func_id, &out_arg, &out_len);
     if (find_ipc_handler(func_id, &handler) == 0 ) {
-        handler.cb(ipc, buf, len, NULL, 0);//direct call cb is not good, will be change to workq
+        handler.cb(ipc, out_arg, out_len, _arg_buf, &ret_len);//direct call cb is not good, will be change to workq
     } else {
         loge("no callback for this MSG ID in process_msg\n");
+    }
+    if (ret_len > 0) {
+        if (0 > pack_msg(pkt, func_id, _arg_buf, ret_len)) {
+            loge("pack_msg failed!\n");
+            return -1;
+        }
+        //ipc->ops->send(ipc, pkt, sizeof(ipc_packet_t) + ret_len);
     }
     return 0;
 }
 
 static void on_recv(struct ipc *ipc, void *buf, size_t len)
 {
-    logi("recv buf\n");
     process_msg(ipc, buf, len);
+}
+
+static void on_return(struct ipc *ipc, void *buf, size_t len)
+{
+    uint32_t func_id;
+    char out_arg[1024];
+    size_t out_len;
+    struct ipc_packet *pkt = (struct ipc_packet *)buf;
+    unpack_msg(pkt, &func_id, &out_arg, &out_len);
+    logi("return len = %d\n", out_len);
 }
 
 struct ipc *ipc_create(enum ipc_role role)
@@ -213,31 +232,15 @@ struct ipc *ipc_create(enum ipc_role role)
     ipc->ops = ipc_ops[0];
     ipc->ctx = ipc->ops->init(role);
     if (role == IPC_RECVER) {
+        _arg_buf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
         ipc->ops->register_recv_cb(ipc, on_recv);
+    } else {
+        _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
+        ipc->ops->register_recv_cb(ipc, on_return);
     }
     return ipc;
 }
 
-
-ssize_t ipc_send(struct ipc *ipc, const void *buf, size_t len)
-{
-    int ret, head_size;
-    struct ipc_packet *pkt = &ipc->packet;
-    pkt->header.len = len;
-    pkt->data = (void *)buf;
-    head_size = sizeof(ipc_header_t);
-    ret = ipc->ops->send(ipc, (void *)&pkt->header, head_size);
-    if (ret != head_size) {
-        loge("send failed ret = %d, head_size = %d\n", ret, head_size);
-        return -1;
-    }
-    ret = ipc->ops->send(ipc, buf, len);
-    if (ret != len) {
-        loge("send failed!\n");
-        return -1;
-    }
-    return ret;
-}
 
 ssize_t ipc_recv(struct ipc *ipc, void *buf, size_t len)
 {
@@ -245,7 +248,7 @@ ssize_t ipc_recv(struct ipc *ipc, void *buf, size_t len)
     int ret, rlen;
     int head_size = sizeof(ipc_header_t);
     memset(&pkt, 0, sizeof(ipc_packet_t));
-    pkt.data = buf;
+    *pkt.data = *(uint8_t *)buf;
 
     ret = ipc->ops->recv(ipc, (void *)&pkt.header, head_size);
     if (ret == 0) {
