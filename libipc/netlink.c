@@ -23,7 +23,7 @@ struct nl_ctx {
 };
 
 
-static void *nl_init(enum ipc_role role)
+static void *nl_init(const char *name, enum ipc_role role)
 {
     struct sockaddr_nl saddr;
 	int fd = socket(AF_NETLINK, SOCK_RAW, NL_IPC_PROTOCOL);
@@ -115,6 +115,8 @@ static void nl_deinit(struct ipc *ipc)
 const struct ipc_ops netlink_ops = {
     nl_init,
     nl_deinit,
+    NULL,
+    NULL,
     NULL,
     nl_send,
     nl_recv,

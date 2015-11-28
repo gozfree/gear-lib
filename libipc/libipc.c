@@ -7,10 +7,14 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <libgzf.h>
 #include <liblog.h>
 #include "libipc.h"
+
+#define IPC_SERVER_NAME "/IPC_SREVER"
+#define IPC_CLIENT_NAME "/IPC_CLIENT"
 
 extern const struct ipc_ops msgq_ops;
 extern const struct ipc_ops nlk_ops;
@@ -18,18 +22,19 @@ extern const struct ipc_ops shm_ops;
 
 static ipc_handler_t message_map[MAX_MESSAGES_IN_MAP];
 static int           message_map_registered;
+static struct ipc_packet *_pkt_sbuf = NULL;
+static void *_arg_buf = NULL;
+
+typedef enum ipc_backend_type {
+    IPC_BACKEND_MQ,
+    IPC_BACKEND_NLK,
+    IPC_BACKEND_SHM,
+} ipc_backend_type;
 
 static const struct ipc_ops *ipc_ops[] = {
     &msgq_ops,
     NULL
 };
-
-int ipc_packet_format(struct ipc *ipc, uint32_t func_id)
-{
-    struct ipc_header *h = &ipc->packet.header;
-    h->func_id = func_id;
-    return 0;
-}
 
 static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
                 const void *in_arg, size_t in_len)
@@ -48,7 +53,6 @@ static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
     }
 
     hdr = &(pkt->header);
-
     hdr->func_id = func_id;
     hdr->time_stamp = curtime.tv_sec * 1000000L + curtime.tv_usec;
     hdr->len = sizeof(ipc_header_t);
@@ -66,43 +70,55 @@ static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
                 void *out_arg, size_t *out_len)
 {
     struct ipc_header *hdr;
-    if (!pkt) {
+    if (!pkt || !out_arg || !out_len) {
         loge("invalid paraments!\n");
         return -1;
     }
     hdr = &(pkt->header);
     *func_id = hdr->func_id;
-    if (out_arg) {
-        *out_len = min(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
-        memcpy(out_arg, pkt->data, *out_len);
-    } else {
-        loge("eee\n");
-        *out_len = 0;
-    }
+    *out_len = min(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
+    memcpy(out_arg, pkt->data, *out_len);
     return 0;
 }
-
-int ipc_call_async(struct ipc *ipc, uint32_t func_id,
-                const void *in_arg, size_t in_len)
-{
-    ipc_packet_format(ipc, func_id);
-    return 0;
-}
-
-static struct ipc_packet *_pkt_sbuf = NULL;
-static void *_arg_buf = NULL;
 
 int ipc_call(struct ipc *ipc, uint32_t func_id,
                 const void *in_arg, size_t in_len,
                 void *out_arg, size_t out_len)
 {
+    if (!ipc) {
+        loge("invalid parament!\n");
+        return -1;
+    }
     if (0 > pack_msg(_pkt_sbuf, func_id, in_arg, in_len)) {
         loge("pack_msg failed!\n");
         return -1;
     }
     ipc->ops->send(ipc, _pkt_sbuf, sizeof(ipc_packet_t) + in_len);
-    //wait_response();
-    return ipc_recv(ipc, out_arg, out_len);
+    if (IS_IPC_MSG_NEED_RETURN(func_id)) {
+        struct timeval now;
+        struct timespec abs_time;
+        uint32_t timeout = 2000;//msec
+        gettimeofday(&now, NULL);
+        /* Add our timeout to current time */
+        now.tv_usec += (timeout % 1000) * 1000;
+        now.tv_sec += timeout / 1000;
+        /* Wrap the second if needed */
+        if ( now.tv_usec >= 1000000 ) {
+            now.tv_usec -= 1000000;
+            now.tv_sec ++;
+        }
+        /* Convert to timespec */
+        abs_time.tv_sec = now.tv_sec;
+        abs_time.tv_nsec = now.tv_usec * 1000;
+        if (-1 == sem_timedwait(&ipc->sem, &abs_time)) {
+            loge("response failed %d:%s\n", errno, strerror(errno));
+            return -1;
+        }
+        memcpy(out_arg, ipc->resp_buf, out_len);
+    } else {
+
+    }
+    return 0;
 }
 
 int register_msg_proc(ipc_handler_t *handler)
@@ -140,7 +156,6 @@ int register_msg_proc(ipc_handler_t *handler)
 
     //if the handler registered is NULL, then just fill NULL handler
     message_map[msg_slot] = *handler;
-
     return 0;
 }
 
@@ -169,6 +184,7 @@ int ipc_register_map(ipc_handler_t *map, int num_entry)
 
     return 0;
 }
+
 int find_ipc_handler(uint32_t func_id, ipc_handler_t *handler)
 {
     int i;
@@ -202,7 +218,7 @@ static int process_msg(struct ipc *ipc, void *buf, size_t len)
             loge("pack_msg failed!\n");
             return -1;
         }
-        //ipc->ops->send(ipc, pkt, sizeof(ipc_packet_t) + ret_len);
+        ipc->ops->send(ipc, pkt, sizeof(ipc_packet_t) + ret_len);
     }
     return 0;
 }
@@ -215,62 +231,59 @@ static void on_recv(struct ipc *ipc, void *buf, size_t len)
 static void on_return(struct ipc *ipc, void *buf, size_t len)
 {
     uint32_t func_id;
-    char out_arg[1024];
     size_t out_len;
     struct ipc_packet *pkt = (struct ipc_packet *)buf;
-    unpack_msg(pkt, &func_id, &out_arg, &out_len);
-    logi("return len = %d\n", out_len);
+    unpack_msg(pkt, &func_id, ipc->resp_buf, &out_len);
+    ipc->resp_len = out_len;
+    sem_post(&ipc->sem);
 }
 
-struct ipc *ipc_create(enum ipc_role role)
+struct ipc *ipc_create(enum ipc_role role, uint16_t port)
 {
+    char ipc_srv_name[256];
+    char ipc_cli_name[256];
     struct ipc *ipc = CALLOC(1, struct ipc);
     if (!ipc) {
         loge("malloc failed!\n");
         return NULL;
     }
-    ipc->ops = ipc_ops[0];
-    ipc->ctx = ipc->ops->init(role);
-    if (role == IPC_RECVER) {
+    ipc->role = role;
+    ipc->ops = ipc_ops[IPC_BACKEND_MQ];
+    snprintf(ipc_srv_name, sizeof(ipc_srv_name), "%s.%d", IPC_SERVER_NAME, port);
+    snprintf(ipc_cli_name, sizeof(ipc_cli_name), "%s.%d", IPC_CLIENT_NAME, getpid());
+    if (role == IPC_SERVER) {
+        ipc->ctx = ipc->ops->init(ipc_srv_name, role);
+        if (!ipc->ctx) {
+            loge("init failed!\n");
+            return NULL;
+        }
         _arg_buf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
         ipc->ops->register_recv_cb(ipc, on_recv);
-    } else {
+        ipc->ops->accept(ipc);
+    } else {//IPC_CLIENT
+        ipc->ctx = ipc->ops->init(ipc_cli_name, role);
         _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
         ipc->ops->register_recv_cb(ipc, on_return);
+        if (-1 == ipc->ops->connect(ipc, ipc_srv_name)) {
+            loge("connect failed!\n");
+            return NULL;
+        }
+        sem_init(&ipc->sem, 0, 0);
+        ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
     }
     return ipc;
 }
 
-
-ssize_t ipc_recv(struct ipc *ipc, void *buf, size_t len)
+void ipc_destroy(struct ipc *ipc)
 {
-    struct ipc_packet pkt;
-    int ret, rlen;
-    int head_size = sizeof(ipc_header_t);
-    memset(&pkt, 0, sizeof(ipc_packet_t));
-    *pkt.data = *(uint8_t *)buf;
+    if (!ipc) {
+        return;
+    }
+    sem_destroy(&ipc->sem);
+    ipc->ops->deinit(ipc);
 
-    ret = ipc->ops->recv(ipc, (void *)&pkt.header, head_size);
-    if (ret == 0) {
-        loge("peer connect closed\n");
-        return -1;
-    } else if (ret != head_size) {
-        loge("recv failed, head_size = %d, ret = %d\n", head_size, ret);
-        return -1;
-    }
-    //strncpy(ipc->uuid_dst, pkt.header.uuid_dst, MAX_UUID_LEN);
-    if (len < pkt.header.len) {
-        loge("recv pkt.header.len = %d\n", pkt.header.len);
-    }
-    rlen = min(len, pkt.header.len);
-    ret = ipc->ops->recv(ipc, buf, rlen);
-    if (ret == 0) {
-        loge("peer connect closed\n");
-        return -1;
-    } else if (ret != rlen) {
-        loge("recv failed: rlen=%d, ret=%d\n", rlen, ret);
-        return -1;
-    }
-    //dump_packet(&pkt);
-    return ret;
+    if (_arg_buf) free(_arg_buf);
+    if (_pkt_sbuf) free(_pkt_sbuf);
+    if (ipc->resp_buf) free(ipc->resp_buf);
+    free(ipc);
 }

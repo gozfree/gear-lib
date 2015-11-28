@@ -1,6 +1,5 @@
 ##libipc
 This is a simple libipc library.
-Among processes 
 
 ###Frontend
 * Serialize/Deserialize message format
@@ -9,10 +8,20 @@ Among processes
 
 ###Backend
 
-* netlink
+* POSIX message queue (coding finished)
 
-* message queue
-**sudo mkdir /dev/mqueue
-**sudo mount -t mqueue none /dev/mqueue/
+  usage
+
+  `$ sudo mkdir /dev/mqueue`
+
+  `$ sudo mount -t mqueue none /dev/mqueue/`
+
+  if ipc connection setup, "/dev/mqueue/IPC_SERVER" and "/dev/mqueue/IPC_CLIENT" will be created
+
+  each ipc endpoint contain two message queue: mq_rd and mq_wr
 
 * share memory
+
+* netlink
+
+
