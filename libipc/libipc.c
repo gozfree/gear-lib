@@ -233,6 +233,7 @@ static void on_return(struct ipc *ipc, void *buf, size_t len)
     uint32_t func_id;
     size_t out_len;
     struct ipc_packet *pkt = (struct ipc_packet *)buf;
+    memset(ipc->resp_buf, 0, MAX_IPC_RESP_BUF_LEN);
     unpack_msg(pkt, &func_id, ipc->resp_buf, &out_len);
     ipc->resp_len = out_len;
     sem_post(&ipc->sem);

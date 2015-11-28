@@ -19,6 +19,7 @@
 extern "C" {
 #endif
 
+#define MAX_IPC_RESP_BUF_LEN        (1024)
 #define MAX_IPC_MESSAGE_SIZE        (1024)
 #define MAX_MESSAGES_IN_MAP         (256)
 
@@ -62,7 +63,6 @@ struct ipc_ops {
     int (*unicast)();//TODO
     int (*broadcast)();//TODO
 };
-#define MAX_IPC_RESP_BUF_LEN    1024
 
 typedef struct ipc {
     void *ctx;
@@ -95,7 +95,7 @@ int ipc_register_map(ipc_handler_t *map, int num_entry);
 
 #define BEGIN_IPC_MAP(map_name)  \
     static ipc_handler_t  __ipc_action_map##map_name[] = {
-#define IPC_ACTION(x, y) {x, y},
+#define IPC_MAP(x, y) {x, y},
 #define END_IPC_MAP() };
 
 
