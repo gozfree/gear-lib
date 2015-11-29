@@ -42,13 +42,12 @@ typedef struct ipc_handler {
 typedef struct ipc_header {
     uint32_t func_id;
     uint64_t time_stamp;
-    uint32_t len;
     uint32_t payload_len;
 } ipc_header_t;
 
 typedef struct ipc_packet {
     struct ipc_header header;
-    uint8_t data[0];
+    uint8_t payload[0];
 } ipc_packet_t;
 
 typedef void (ipc_recv_cb)(struct ipc *ipc, void *buf, size_t len);
@@ -100,8 +99,28 @@ int ipc_register_map(ipc_handler_t *map, int num_entry);
 
 
 /******************************************************************************
- *  IPC MESSAGE ID DEFINE
- *  [31......24.......16.......8.......0]
+ * ipc_packet define
+ * [ipc_header][ipc_payload]
+ *
+ * ipc_header define
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ * |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                           message_id=32                       |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                                                               |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+ time_stamp=64 +-+-+-+-+-+-+-+-+-+-+-+
+ * |                                                               |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                           payload_len=32                      |
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ *
+ * message_id define
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ * |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |  group_id=7 |unused=5 |R|D|P=2|         cmd_id=16             |
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
  *  [31~25]: group id
  *         - max support 128 group, can be used to service group
  *  [24~20]: unused

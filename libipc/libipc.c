@@ -55,11 +55,10 @@ static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
     hdr = &(pkt->header);
     hdr->func_id = func_id;
     hdr->time_stamp = curtime.tv_sec * 1000000L + curtime.tv_usec;
-    hdr->len = sizeof(ipc_header_t);
 
     if (in_arg) {
         hdr->payload_len = in_len;
-        memcpy(pkt->data, in_arg, in_len);
+        memcpy(pkt->payload, in_arg, in_len);
     } else {
         hdr->payload_len = 0;
     }
@@ -77,7 +76,7 @@ static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
     hdr = &(pkt->header);
     *func_id = hdr->func_id;
     *out_len = min(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
-    memcpy(out_arg, pkt->data, *out_len);
+    memcpy(out_arg, pkt->payload, *out_len);
     return 0;
 }
 
