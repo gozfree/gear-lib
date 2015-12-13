@@ -19,21 +19,24 @@ typedef struct config {
 
 typedef struct config_ops {
     struct config *(*load)(const char *name);
+    int (*set_string)(struct config *c, const char *key, const char *val);
     char *(*get_string)(struct config *c, const char *key);
     int (*get_int)(struct config *c, const char *key);
     double (*get_double)(struct config *c, const char *key);
     int (*get_boolean)(struct config *c, const char *key);
-    void (*dump)(struct config *c);
+    void (*dump)(struct config *c, FILE *f);
     void (*unload)(struct config *c);
 } config_ops_t;
 
 
 struct config *conf_load(const char *name);
+int conf_set(struct config *conf, const char *key, const char *val);
 int conf_get_int(struct config *conf, const char *key);
 char *conf_get_string(struct config *conf, const char *key);
 double conf_get_double(struct config *conf, const char *key);
 int conf_get_boolean(struct config *conf, const char *key);
 void conf_dump(struct config *conf);
+void conf_dump_to_file(FILE *f, struct config *conf);
 void conf_unload(struct config *conf);
 
 

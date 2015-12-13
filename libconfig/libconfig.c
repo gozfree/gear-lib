@@ -27,6 +27,11 @@ struct config *conf_load(const char *name)
     return conf_ops[0]->load(name);
 }
 
+int conf_set(struct config *conf, const char *key, const char *val)
+{
+    return conf_ops[0]->set_string(conf, key, val);
+}
+
 int conf_get_int(struct config *conf, const char *key)
 {
     return conf_ops[0]->get_int(conf, key);
@@ -49,8 +54,14 @@ int conf_get_boolean(struct config *conf, const char *key)
 
 void conf_dump(struct config *conf)
 {
-    return conf_ops[0]->dump(conf);
+    return conf_ops[0]->dump(conf, stderr);
 }
+
+void conf_dump_to_file(FILE *f, struct config *conf)
+{
+    return conf_ops[0]->dump(conf, f);
+}
+
 
 void conf_unload(struct config *conf)
 {

@@ -11,10 +11,19 @@
 
 static struct config *load(const char *name)
 {
-    struct config *c = CALLOC(1, struct config);
     dictionary *ini = iniparser_load(name);
+    if (!ini) {
+        return NULL;
+    }
+    struct config *c = CALLOC(1, struct config);
     c->instance = (void *)ini;
     return c;
+}
+
+static int set_string(struct config *conf, const char *key, const char *val)
+{
+    dictionary *ini = (dictionary *)conf->instance;
+    return iniparser_set(ini, key, val);
 }
 
 static char *get_string(struct config *conf, const char *key)
@@ -48,14 +57,15 @@ static void unload(struct config *conf)
     free(conf);
 }
 
-static void dump(struct config *conf)
+static void dump(struct config *conf, FILE *f)
 {
     dictionary *ini = (dictionary *)conf->instance;
-    iniparser_dump(ini, stderr);
+    iniparser_dump_ini(ini, f);
 }
 
 const struct config_ops ini_ops = {
     load,
+    set_string,
     get_string,
     get_int,
     get_double,

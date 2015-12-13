@@ -28,7 +28,6 @@ int ini_test()
 
 int main(int argc, char **argv)
 {
-    kill(getpid(), SIGINT);
     ini_test();
 
     return 0;
