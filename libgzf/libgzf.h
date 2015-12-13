@@ -62,12 +62,16 @@ extern "C" {
 #define min(a, b)    ((a) > (b) ? (b) : (a))
 #define max(a, b)    ((a) > (b) ? (a) : (b))
 
+
+uint32_t hash_murmur(char *key, size_t len);
 /******************************************************************************
  * memory
  *****************************************************************************/
 #define CALLOC(size, type) \
     (type *)calloc(size, sizeof(type))
 #define SIZEOF(array)   \
+    sizeof(array)/sizeof(array[0])
+#define sizeof_array(array)   \
     sizeof(array)/sizeof(array[0])
 #define IOVEC_INIT(buf, len)            \
     do {                                \
