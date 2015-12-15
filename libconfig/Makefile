@@ -1,4 +1,14 @@
+###############################################################################
+#  Copyright (C) 2014-2015
+#  file:    Makefile
+#  author:  gozfree <gozfree@163.com>
+#  created: 2015-12-16 00:18
+#  updated: 2015-12-16 00:18
+###############################################################################
 
+###############################################################################
+# common
+###############################################################################
 #ARCH: linux/pi/android/ios/
 ARCH		?= linux
 CROSS_PREFIX	?=
@@ -27,7 +37,9 @@ CP_V	= $(CP)
 RM_V	= $(RM)
 endif
 
-########
+###############################################################################
+# target and object
+###############################################################################
 LIBNAME		= libconfig
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
@@ -38,11 +50,18 @@ OBJS_INI	= ini/iniparser.o \
 		  ini/dictionary.o \
 		  ini/ini_config.o
 
+OBJS_JSON	= json/json_config.o
+
+
 OBJS_LIB	= $(LIBNAME).o \
-		  $(OBJS_INI)
+		  $(OBJS_INI) \
+		  $(OBJS_JSON)
 
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
+###############################################################################
+# cflags and ldflags
+###############################################################################
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
@@ -51,7 +70,11 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
+LDFLAGS	+= -ljansson
 
+###############################################################################
+# target
+###############################################################################
 .PHONY : all clean
 
 TGT	:= $(TGT_LIB_A)

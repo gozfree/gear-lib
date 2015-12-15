@@ -1,0 +1,62 @@
+{
+    "test":{
+        "rgn":[
+            {"id":"rgn_server_01", "ip":"127.0.0.1", "port":15001, "ext_port":16001}
+        ],
+        "gate":[
+            {"id":"gate_server_01", "ip":"127.0.0.1", "ext_port":16501}
+        ],
+        "lgn_service":[
+            {"id":"service_server_01", "ip":"127.0.0.1", "port":17001}
+        ],
+        "rpc_center":[
+            {"id":"rpc_center_01", "ip":"127.0.0.1", "port":18555}
+        ],
+        "dist":[
+            {"id":"dist_server_01", "ip":"127.0.0.1", "port":19001}
+        ],
+        "log":[
+            {"id":"log_server_01", "ip":"127.0.0.1", "port":514}
+        ],
+        "redis":[
+            {"id":"master", "ip":"127.0.0.1", "port":6379},
+            {"id":"salve_01", "ip":"127.0.0.1", "port":6380},
+            {"id":"salve_02", "ip":"127.0.0.1", "port":6381},
+            {"id":"salve_03", "ip":"127.0.0.1", "port":6382}
+        ]
+    },
+    "online":{
+        "rgn":[
+        {"id":"rgn_server_01", "ip":"127.0.0.1", "port":5001, "ext_port":6001},
+        {"id":"rgn_server_02", "ip":"127.0.0.1", "port":5002, "ext_port":6002},
+        {"id":"rgn_server_03", "ip":"127.0.0.1", "port":5003, "ext_port":6003}
+        ],
+            "gate":[
+            {"id":"gate_server_01", "ip":"127.0.0.1", "ext_port":6501}
+        ],
+            "lgn_service":[
+            {"id":"service_server_01", "ip":"127.0.0.1", "port":7001},
+            {"id":"service_server_02", "ip":"127.0.0.1", "port":7002},
+            {"id":"service_server_03", "ip":"127.0.0.1", "port":7003}
+        ],
+            "rpc_center":[
+            {"id":"rpc_center_01", "ip":"127.0.0.1", "port":8555},
+            {"id":"rpc_center_02", "ip":"127.0.0.1", "port":8666}
+        ],
+            "dist":[
+            {"id":"dist_server_01", "ip":"127.0.0.1", "port":9001},
+            {"id":"dist_server_02", "ip":"127.0.0.1", "port":9002},
+            {"id":"dist_server_03", "ip":"127.0.0.1", "port":9003}
+        ],
+        "log":[
+            {"id":"log_server_01", "ip":"127.0.0.1", "port":514}
+        ],
+        "redis":[
+            {"id":"master", "ip":"127.0.0.1", "port":6479},
+            {"id":"salve_01", "ip":"127.0.0.1", "port":6480},
+            {"id":"salve_02", "ip":"127.0.0.1", "port":6481},
+            {"id":"salve_03", "ip":"127.0.0.1", "port":6482}
+        ]
+ 
+    }
+}

@@ -16,9 +16,12 @@
 
 
 extern const struct config_ops ini_ops;
+extern const struct config_ops json_ops;
+
 
 static const struct config_ops *conf_ops[] = {
     &ini_ops,
+    &json_ops,
     NULL
 };
 

@@ -26,9 +26,21 @@ int ini_test()
     return 0;
 }
 
+int json_test()
+{
+    struct config *conf = conf_load("json/test.json");
+    printf("test1 = %s\n", conf_get_string(conf, "test1"));
+    printf("test2 = %d\n", conf_get_int(conf, "test2"));
+    printf("test3 = %f\n", conf_get_double(conf, "test3"));
+    conf_unload(conf);
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     ini_test();
+//    json_test();
 
     return 0;
 }
