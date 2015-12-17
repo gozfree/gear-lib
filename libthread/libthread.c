@@ -16,6 +16,24 @@
 #include "libthread.h"
 
 
+/*
+ * thread capability description must map to thread_cap
+ */
+const char *thread_cap_desc[] = {
+    "thread_capability",
+    "thread_create",
+    "thread_destroy",
+    "thread_cond_wait",
+    "thread_cond_signal",
+    "thread_mutex_lock",
+    "thread_mutex_unlock",
+    "thread_sem_lock",
+    "thread_sem_unlock",
+    "thread_sem_wait",
+    "thread_sem_signal",
+    "thread_print_info",
+};
+
 
 static void *__thread_func(void *arg)
 {
@@ -37,6 +55,10 @@ struct thread *thread_create(const char *name, void *(*func)(struct thread *, vo
     struct thread *t = CALLOC(1, struct thread);
     if (!t) {
         loge("malloc thread failed(%d): %s\n", errno, strerror(errno));
+        goto err;
+    }
+    if (-1 == sem_init(&t->sem, 0, 0)) {
+        loge("sem_init failed(%d): %s\n", errno, strerror(errno));
         goto err;
     }
     pthread_mutex_init(&t->mutex, NULL);
@@ -102,6 +124,28 @@ int thread_mutex_unlock(struct thread *t)
     return pthread_mutex_unlock(&t->mutex);
 }
 
+int thread_sem_wait(struct thread *t, int64_t ms)
+{
+    int ret;
+    if (ms < 0) {
+        ret = sem_wait(&t->sem);
+    } else {
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec += ms / 1000;
+        ts.tv_nsec += (ms % 1000) * 1000000;
+        ret = (sem_timedwait(&t->sem, &ts) == 0);
+    }
+    return ret;
+}
+
+int thread_sem_signal(struct thread *t)
+{
+    int ret;
+    ret = sem_trywait(&t->sem);
+    ret += sem_post(&t->sem);
+    return ret;
+}
 
 void thread_print_info(struct thread *t)
 {
@@ -112,5 +156,11 @@ void thread_print_info(struct thread *t)
     logi("thread status=%s\n", t->is_run?"running":"stopped");
     logi("========\n");
     pthread_mutex_unlock(&t->mutex);
+}
 
+int thread_capability(struct capability_desc *desc)
+{
+    desc->entry = sizeof(thread_cap_desc)/sizeof(thread_cap_desc[0]);
+    desc->cap = (char **)thread_cap_desc;
+    return desc->entry;
 }
