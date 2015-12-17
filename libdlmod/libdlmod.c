@@ -9,9 +9,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#include <libgzf.h>
 #include <liblog.h>
+#include "libdlmod.h"
 
-void *dl_load(const char *path)
+#define CAPABILITY  "capability"
+
+typedef int (*get_capability)(struct capability_desc *desc);
+
+
+struct dl_handle *dl_load(const char *path)
 {
     void *handle = dlopen(path, RTLD_NOW);
     if (!handle) {
@@ -19,12 +26,49 @@ void *dl_load(const char *path)
         dlclose(handle);
         return NULL;
     }
-    return handle;
+    struct dl_handle *dl = CALLOC(1, struct dl_handle);
+    dl->handle = handle;
+    return dl;
 }
 
-void dl_unload(void *handle)
+void dl_unload(struct dl_handle *dl)
 {
-    if (handle) {
-      dlclose(handle);
+    if (!dl) {
+        return;
     }
+    if (dl->handle) {
+      dlclose(dl->handle);
+    }
+}
+
+int dl_capability(struct dl_handle *dl, const char *mod_name,
+                struct capability_desc *desc)
+{
+    if (!dl) {
+        return -1;
+    }
+    char *err = NULL;
+    char symbol[512];
+    snprintf(symbol, sizeof(symbol), "%s_%s", mod_name, CAPABILITY);
+    get_capability get_cap = (get_capability)dlsym(dl->handle, symbol);
+    if (((err = dlerror()) != NULL)) {
+        loge("Failed to get symbol %s: %s", symbol, err);
+        return -1;
+    }
+    get_cap(desc);
+    return 0;
+}
+
+void *dl_get_func(struct dl_handle *dl, const char *name)
+{
+    if (!dl) {
+        return NULL;
+    }
+    char *err = NULL;
+    void *func = dlsym(dl->handle, name);
+    if (((err = dlerror()) != NULL)) {
+        loge("Failed to get symbol %s: %s", name, err);
+        return NULL;
+    }
+    return func;
 }
