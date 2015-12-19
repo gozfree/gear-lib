@@ -5,7 +5,7 @@
  * created: 2015-11-09 18:51
  * updated: 2015-11-09 18:51
  ******************************************************************************/
-
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -64,11 +64,19 @@ void *dl_get_func(struct dl_handle *dl, const char *name)
     if (!dl) {
         return NULL;
     }
-    char *err = NULL;
     void *func = dlsym(dl->handle, name);
-    if (((err = dlerror()) != NULL)) {
-        loge("Failed to get symbol %s: %s", name, err);
-        return NULL;
+    if (!func) {
+        loge("Failed to get symbol %s: %s\n", name, dlerror());
     }
     return func;
+}
+
+void *dl_override(const char *name)
+{
+    void *sym = dlsym(RTLD_NEXT, name);
+    if (!sym) {
+        loge("Failed override symbol %s: %s\n", name, dlerror());
+        abort();
+    }
+    return sym;
 }
