@@ -10,6 +10,37 @@
 #include "libdlmod.h"
 #include <libthread.h>
 
+typedef struct libthread {
+   int (*capability)(struct capability_desc *desc);
+   struct thread *(*create)(const char *name,
+                   void *(*func)(struct thread *, void *), void *arg);
+   void (*destroy)(struct thread *t);
+   int (*cond_wait)(struct thread *t);
+   int (*cond_signal)(struct thread *t);
+   int (*mutex_lock)(struct thread *t);
+   int (*mutex_unlock)(struct thread *t);
+   int (*sem_lock)(struct thread *t);
+   int (*sem_unloock)(struct thread *t);
+   int (*sem_wait)(struct thread *t, int64_t ms);
+   int (*sem_signal)(struct thread *t);
+   void (*print_info)(struct thread *t);
+} libthread_t;
+
+enum thread_cap {
+    THREAD_CAPABILITY = 0,
+    THREAD_CREATE,
+    THREAD_DESTROY,
+    THREAD_COND_WAIT,
+    THREAD_COND_SIGNAL,
+    THREAD_MUTEX_LOCK,
+    THREAD_MUTEX_UNLOCK,
+    THREAD_SEM_LOCK,
+    THREAD_SEM_UNLOCK,
+    THREAD_SEM_WAIT,
+    THREAD_SEM_SIGNAL,
+    THREAD_PRINT_INFO,
+};
+
 unsigned int sleep(unsigned int __seconds)
 {
     printf("sleep prev\n");
