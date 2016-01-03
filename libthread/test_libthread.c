@@ -3,7 +3,7 @@
  * file:    test_libthread.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-08-16 00:38
- * updated: 2015-08-16 00:38
+ * updated: 2016-01-03 15:38
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +23,7 @@ static void *thread(struct thread *t, void *arg)
 
 void foo()
 {
-    struct thread *t1 = thread_create("t1", thread, NULL);
+    struct thread *t1 = thread_create("123456789012345", thread, NULL);
     struct thread *t2 = thread_create("t2", thread, NULL);
     struct thread *t3 = thread_create(NULL, thread, NULL);
     printf("%s: t1->tid = %ld\n", __func__, t1->tid);
@@ -31,7 +31,6 @@ void foo()
     thread_print_info(t1);
     thread_print_info(t2);
     thread_print_info(t3);
-    
 }
 
 int main(int argc, char **argv)

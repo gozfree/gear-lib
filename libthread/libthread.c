@@ -3,7 +3,7 @@
  * file:    libthread.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-08-15 22:57
- * updated: 2015-08-15 22:57
+ * updated: 2016-01-03 15:38
  *****************************************************************************/
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -45,13 +45,19 @@ static void *__thread_func(void *arg)
         t->func(t, t->arg);
         t->is_run = 0;
         logd("thread %s exits\n", t->name);
+    } else {
+        logw("thread function is null\n");
     }
 
     return NULL;
 }
 
-struct thread *thread_create(const char *name, void *(*func)(struct thread *, void *), void *arg)
+#define PTHREAD_NAME_LEN    16
+
+struct thread *thread_create(const char *name,
+                void *(*func)(struct thread *, void *), void *arg)
 {
+    int ret;
     struct thread *t = CALLOC(1, struct thread);
     if (!t) {
         loge("malloc thread failed(%d): %s\n", errno, strerror(errno));
@@ -77,8 +83,14 @@ struct thread *thread_create(const char *name, void *(*func)(struct thread *, vo
         goto err;
     }
     if (name) {
-        if (0 != pthread_setname_np(t->tid, name)) {
-            loge("pthread_setname_np failed(%d): %s\n", errno, strerror(errno));
+        if (0 != (ret = pthread_setname_np(t->tid, name))) {
+            if (ret == ERANGE) {
+                loge("thread name is out of range, should be less than %d\n",
+                                PTHREAD_NAME_LEN);
+            } else {
+                loge("pthread_setname_np ret = %d, failed(%d): %s\n",
+                                ret, errno, strerror(errno));
+            }
             goto err;
         }
     }
