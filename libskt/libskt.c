@@ -30,7 +30,8 @@
 #define MTU                 (1500 - 42 - 200)
 #define MAX_RETRY_CNT       (3)
 
-static struct skt_connection *_skt_connect(int type, const char *host, uint16_t port)
+static struct skt_connection *_skt_connect(int type,
+                const char *host, uint16_t port)
 {
     int domain = AF_INET;
     int protocol = 0;
@@ -188,14 +189,18 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
         if (!(ifa->ifa_addr))
             continue;
         if (ifa ->ifa_addr->sa_family == AF_INET) {
-            if (!inet_ntop(AF_INET, &((struct sockaddr_in *) ifa->ifa_addr)->sin_addr, saddr, INET_ADDRSTRLEN))
+            if (!inet_ntop(AF_INET,
+                           &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr,
+                           saddr, INET_ADDRSTRLEN))
                 continue;
             if (strstr(saddr,"169.254.") == saddr)
                 continue;
             if (!strcmp(saddr,"0.0.0.0"))
                 continue;
         } else if (ifa->ifa_addr->sa_family == AF_INET6) {
-            if (!inet_ntop(AF_INET6, &((struct sockaddr_in6 *) ifa->ifa_addr)->sin6_addr, saddr, INET6_ADDRSTRLEN))
+            if (!inet_ntop(AF_INET6,
+                           &((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr,
+                           saddr, INET6_ADDRSTRLEN))
                 continue;
             if (strstr(saddr,"fe80") == saddr)
                 continue;
@@ -204,7 +209,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
         } else {
             continue;
         }
-        if ((ifa->ifa_flags & IFF_LOOPBACK) && !loopback) 
+        if ((ifa->ifa_flags & IFF_LOOPBACK) && !loopback)
             continue;
 
         an = (skt_addr_list_t *)calloc(sizeof(skt_addr_list_t), 1);
@@ -389,6 +394,37 @@ int skt_set_noblk(int fd, int enable)
     return 0;
 }
 
+int skt_set_block(int fd)
+{
+    int flag;
+    flag = fcntl(fd, F_GETFL);
+    if (flag == -1) {
+        loge("fcntl: %s\n", strerror(errno));
+        return -1;
+    }
+    flag &= ~O_NONBLOCK;
+    if (-1 == fcntl(fd, F_SETFL, flag)) {
+        loge("fcntl: %s\n", strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+int skt_set_nonblock(int fd)
+{
+    int flag;
+    flag = fcntl(fd, F_GETFL);
+    if (flag == -1) {
+        loge("fcntl: %s\n", strerror(errno));
+        return -1;
+    }
+    flag |= O_NONBLOCK;
+    if (-1 == fcntl(fd, F_SETFL, flag)) {
+        loge("fcntl: %s\n", strerror(errno));
+        return -1;
+    }
+    return 0;
+}
 int skt_set_reuse(int fd, int enable)
 {
     int on = !!enable;
@@ -413,7 +449,8 @@ int skt_set_tcp_keepalive(int fd, int enable)
     int on = !!enable;
 
 #ifdef SO_KEEPALIVE
-    if (-1 == setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const void*)&on, (socklen_t) sizeof(on))) {
+    if (-1 == setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE,
+                         (const void*)&on, (socklen_t) sizeof(on))) {
         loge("setsockopt SO_KEEPALIVE: %s\n", strerror(errno));
         return -1;
     }
@@ -427,7 +464,8 @@ int skt_set_buflen(int fd, int size)
 
     sz = size;
     while (sz > 0) {
-        if (-1 == setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (const void*) (&sz), (socklen_t) sizeof(sz))) {
+        if (-1 == setsockopt(fd, SOL_SOCKET, SO_RCVBUF,
+                             (const void*) (&sz), (socklen_t) sizeof(sz))) {
             sz = sz / 2;
         } else {
             break;
@@ -440,7 +478,8 @@ int skt_set_buflen(int fd, int size)
 
     sz = size;
     while (sz > 0) {
-        if (-1 == setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (const void*) (&sz), (socklen_t) sizeof(sz))) {
+        if (-1 == setsockopt(fd, SOL_SOCKET, SO_SNDBUF,
+                             (const void*) (&sz), (socklen_t) sizeof(sz))) {
             sz = sz / 2;
         } else {
             break;
@@ -491,7 +530,8 @@ int skt_send(int fd, const void *buf, size_t len)
     return (len - left);
 }
 
-int skt_sendto(int fd, const char *ip, uint16_t port, const void *buf, size_t len)
+int skt_sendto(int fd, const char *ip, uint16_t port,
+                const void *buf, size_t len)
 {
     ssize_t n;
     void *p = (void *)buf;
@@ -565,7 +605,8 @@ int skt_recv(int fd, void *buf, size_t len)
     return (len - left);
 }
 
-int skt_send_sync_recv(int fd, const void *sbuf, size_t slen, void *rbuf, size_t rlen, int timeout)
+int skt_send_sync_recv(int fd, const void *sbuf, size_t slen,
+                void *rbuf, size_t rlen, int timeout)
 {
     skt_send(fd, sbuf, slen);
     skt_set_noblk(fd, 0);

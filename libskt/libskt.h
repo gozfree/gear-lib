@@ -3,7 +3,7 @@
  * file:    libskt.h
  * author:  gozfree <gozfree@163.com>
  * created: 2015-05-03 18:27
- * updated: 2015-07-11 19:59
+ * updated: 2016-01-03 14:56
  *****************************************************************************/
 #ifndef _LIBSKT_H_
 #define _LIBSKT_H_
@@ -72,21 +72,26 @@ int skt_udp_bind(const char *host, uint16_t port, int reuse);
 void skt_close(int fd);
 
 int skt_send(int fd, const void *buf, size_t len);
-int skt_sendto(int fd, const char *ip, uint16_t port, const void *buf, size_t len);
+int skt_sendto(int fd, const char *ip, uint16_t port,
+                const void *buf, size_t len);
 int skt_recv(int fd, void *buf, size_t len);
-int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len);
+int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port,
+                void *buf, size_t len);
 
 uint32_t skt_addr_pton(const char *ip);
 int skt_addr_ntop(char *str, uint32_t ip);
 
 int skt_set_noblk(int fd, int enable);
+int skt_set_block(int fd);
+int skt_set_nonblock(int fd);
 int skt_set_reuse(int fd, int enable);
 int skt_set_tcp_keepalive(int fd, int enable);
 int skt_set_buflen(int fd, int len);
 
 int skt_get_local_list(struct skt_addr_list **list, int loopback);
 int skt_gethostbyname(struct skt_addr_list **list, const char *name);
-int skt_getaddrinfo(skt_addr_list_t **list, const char *domain, const char *port);
+int skt_getaddrinfo(skt_addr_list_t **list,
+                const char *domain, const char *port);
 int skt_getaddr_by_fd(int fd, struct skt_addr *addr);
 int skt_get_remote_addr(struct skt_addr *addr, int fd);
 
