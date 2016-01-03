@@ -48,6 +48,7 @@ LDFLAGS	:=
 LDFLAGS	+= -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 LDFLAGS	+= -L$(OUTPUT)/lib -lskt
+LDFLAGS	+= -L$(OUTPUT)/lib -lthread
 LDFLAGS	+= -pthread
 LDFLAGS	+= -L$(PLATFORM_LIB)
 LDFLAGS	+= $($(ARCH)_LDFLAGS)

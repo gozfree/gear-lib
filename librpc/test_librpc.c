@@ -19,6 +19,7 @@
 #include "librpc.h"
 #include "librpc_stub.h"
 
+#define MAX_UUID_LEN                (21)
 static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 {
     void *ptr;
@@ -49,19 +50,19 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
 
 static int on_shell_help(struct rpc *r, void *arg, int len)
 {
-    printf("msg from %s:\n%s\n", r->packet.header.uuid_src, (char *)arg);
+    printf("msg from %x:\n%s\n", r->packet.header.uuid_src, (char *)arg);
     return 0;
 }
 
-BEGIN_MSG_MAP(BASIC_RPC_API_RESP)
-MSG_ACTION(RPC_TEST, on_test_resp)
-MSG_ACTION(RPC_GET_CONNECT_LIST, on_get_connect_list_resp)
-MSG_ACTION(RPC_PEER_POST_MSG, on_peer_post_msg_resp)
-MSG_ACTION(RPC_SHELL_HELP, on_shell_help)
-END_MSG_MAP()
+BEGIN_RPC_MAP(BASIC_RPC_API_RESP)
+RPC_MAP(RPC_TEST, on_test_resp)
+RPC_MAP(RPC_GET_CONNECT_LIST, on_get_connect_list_resp)
+RPC_MAP(RPC_PEER_POST_MSG, on_peer_post_msg_resp)
+RPC_MAP(RPC_SHELL_HELP, on_shell_help)
+END_RPC_MAP()
 
 typedef struct rpc_connect {
-    char uuid[MAX_UUID_LEN];
+//    char uuid[MAX_UUID_LEN];
 
 } rpc_connect_t;
 
@@ -99,11 +100,11 @@ void on_read(int fd, void *arg)
 {
     //printf("on_read fd= %d\n", fd);
     struct rpc *r = (struct rpc *)arg;
-    struct iobuf *buf = rpc_recv_buf(r);
+    struct iovec *buf = rpc_recv_buf(r);
     if (!buf) {
         return;
     }
-    process_msg2(r, buf);
+    process_msg(r, buf);
 }
 
 void on_write(int fd, void *arg)
@@ -135,7 +136,7 @@ void cmd_usage()
 void *raw_data_thread(void *arg)
 {
     struct rpc *r = (struct rpc *)arg;
-    char uuid_dst[MAX_UUID_LEN];
+    uint32_t uuid_dst;
     char cmd[512];
     int loop = 1;
     int i;
@@ -156,8 +157,8 @@ void *raw_data_thread(void *arg)
             break;
         case 'p':
             printf("input uuid_dst> ");
-            scanf("%s", uuid_dst);
-            strncpy(r->packet.header.uuid_dst, uuid_dst, MAX_UUID_LEN);
+            scanf("%d", &uuid_dst);
+            r->packet.header.uuid_dst = uuid_dst;
             sprintf(buf, "%s", "hello world");
             rpc_peer_post_msg(r, buf, 12);
             break;
@@ -185,7 +186,7 @@ void *raw_data_thread(void *arg)
     return NULL;
 }
 
-int main(int argc, char **argv)
+int cmd_main(int argc, char **argv)
 {
 //116.228.149.106
     uint16_t port;
@@ -202,9 +203,37 @@ int main(int argc, char **argv)
         printf("rpc_create failed\n");
         return -1;
     }
-    REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
+    RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
     rpc_set_cb(r, on_read, on_write, on_error, r);
     pthread_create(&tid, NULL, raw_data_thread, r);
     rpc_dispatch(r);
+    return 0;
+}
+
+int main(int argc, char **argv)
+{
+//116.228.149.106
+    uint16_t port;
+    char *ip;
+    if (argc < 3) {
+        usage();
+        exit(0);
+    }
+    ip = argv[1];
+    port = atoi(argv[2]);
+    struct rpc *r = rpc_create(ip, port);
+    if (!r) {
+        printf("rpc_create failed\n");
+        return -1;
+    }
+    int len = 100;
+    char *buf = calloc(1, len);
+    memset(buf, 0xA5, len);
+    int olen = 100;
+    char *obuf = calloc(1, olen);
+    memset(obuf, 0xA5, olen);
+    rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, obuf, olen);
+
+    on_get_connect_list_resp(r, obuf, olen);
     return 0;
 }
