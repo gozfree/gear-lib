@@ -146,7 +146,7 @@ int thread_sem_wait(struct thread *t, int64_t ms)
         clock_gettime(CLOCK_REALTIME, &ts);
         ts.tv_sec += ms / 1000;
         ts.tv_nsec += (ms % 1000) * 1000000;
-        ret = (sem_timedwait(&t->sem, &ts) == 0);
+        ret = sem_timedwait(&t->sem, &ts);
     }
     return ret;
 }
