@@ -15,7 +15,6 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <semaphore.h>
 #include <libgevent.h>
 #include <libthread.h>
 
@@ -115,12 +114,11 @@ enum rpc_state {
 
 typedef struct rpc {
     int fd;
-    struct rpc_packet packet;
-    struct rpc_packet resp_pkt;
+    struct rpc_packet send_pkt;
+    struct rpc_packet recv_pkt;
     struct gevent_base *evbase;
     struct gevent *ev;
     struct thread *dispatch_thread;
-    sem_t sem;
     enum rpc_state state;
 } rpc_t;
 
@@ -146,6 +144,10 @@ int rpc_echo(struct rpc *r, const void *buf, size_t len);
 int rpc_call(struct rpc *r, uint32_t cmd_id,
             const void *in_arg, size_t in_len,
             void *out_arg, size_t out_len);
+int rpc_peer_call(struct rpc *r, uint32_t uuid, uint32_t cmd_id,
+            const void *in_arg, size_t in_len,
+            void *out_arg, size_t out_len);
+
 
 int rpc_send(struct rpc *r, const void *buf, size_t len);
 struct iovec *rpc_recv_buf(struct rpc *r);

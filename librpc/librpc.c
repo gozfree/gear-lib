@@ -16,7 +16,6 @@
 
 #define MAX_MESSAGES_IN_MAP         (256)
 #define MAX_RPC_PACKET_SIZE         (1024)
-#define MAX_UUID_LEN                (21)
 static msg_handler_t message_map[MAX_MESSAGES_IN_MAP];
 static int           message_map_registered;
 
@@ -52,16 +51,64 @@ void print_packet(struct rpc_packet *pkt)
     dump_buffer(pkt->payload, pkt->header.payload_len);
 }
 
+static size_t pack_msg(struct rpc_packet *pkt, uint32_t msg_id,
+                const void *in_arg, size_t in_len)
+{
+    struct rpc_header *hdr;
+    struct timeval curtime;
+    size_t pkt_len;
+    if (!pkt) {
+        loge("invalid paraments!\n");
+        return 0;
+    }
+    gettimeofday(&curtime, NULL);
+
+    hdr = &(pkt->header);
+    hdr->msg_id = msg_id;
+    hdr->time_stamp = curtime.tv_sec * 1000000L + curtime.tv_usec;
+
+    if (in_arg) {
+        hdr->payload_len = in_len;
+        pkt->payload = (void *)in_arg;
+    } else {
+        hdr->payload_len = 0;
+        pkt->payload = NULL;
+    }
+    pkt_len = sizeof(struct rpc_packet) + hdr->payload_len;
+    return pkt_len;
+}
+
+static size_t unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
+                void *out_arg, size_t *out_len)
+{
+    size_t pkt_len;
+    struct rpc_header *hdr;
+    if (!pkt || !out_arg || !out_len) {
+        loge("invalid paraments!\n");
+        return -1;
+    }
+    hdr = &(pkt->header);
+    *msg_id = hdr->msg_id;
+    *out_len = hdr->payload_len;
+    memcpy(out_arg, pkt->payload, *out_len);
+    pkt_len = sizeof(struct rpc_packet) + hdr->payload_len;
+    return pkt_len;
+}
+
+static void update_rpc_timestamp(struct rpc_packet *pkt)
+{
+    struct timeval cur;
+    gettimeofday(&cur, NULL);
+    pkt->header.time_stamp = cur.tv_sec * 1000000L + cur.tv_usec;
+}
+
 int rpc_send(struct rpc *r, const void *buf, size_t len)
 {
     int ret, head_size;
-    struct timeval cur;
-    struct rpc_packet *pkt = &r->packet;
+    struct rpc_packet *pkt = &r->send_pkt;
 
-    gettimeofday(&cur, NULL);
-    //update time_stamp and payload_len
+    update_rpc_timestamp(pkt);
     pkt->header.payload_len = len;
-    pkt->header.time_stamp = cur.tv_sec * 1000000L + cur.tv_usec;
     pkt->payload = (void *)buf;
     head_size = sizeof(rpc_header_t);
     ret = skt_send(r->fd, (void *)&pkt->header, head_size);
@@ -74,46 +121,45 @@ int rpc_send(struct rpc *r, const void *buf, size_t len)
         loge("skt_send failed!\n");
         return -1;
     }
-    //logi("xxx\n");
-    //dump_packet(pkt);
     return (head_size + ret);
 }
 
 struct iovec *rpc_recv_buf(struct rpc *r)
 {
     struct iovec *buf = CALLOC(1, struct iobuf);
-    struct rpc_packet *pkt = &r->resp_pkt;
-    int ret, rlen;
+    struct rpc_packet *recv_pkt = &r->recv_pkt;
+    uint32_t uuid_dst;
+    uint32_t uuid_src;
+    int ret;
     int head_size = sizeof(rpc_header_t);
 
-    ret = skt_recv(r->fd, (void *)&pkt->header, head_size);
+    ret = skt_recv(r->fd, (void *)&recv_pkt->header, head_size);
     if (ret == 0) {
-        loge("peer connect closed\n");
+        //loge("peer connect closed\n");
         goto err;
     } else if (ret != head_size) {
         loge("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
         goto err;
     }
-    if (r->packet.header.uuid_dst != pkt->header.uuid_dst) {
-        loge("uuid_dst is diff from recved packet.header.uuid_dst!\n");
+    uuid_src = r->recv_pkt.header.uuid_src;
+    uuid_dst = r->send_pkt.header.uuid_src;
+    if (uuid_src != 0 && uuid_dst != 0 && uuid_src != uuid_dst) {
+        logw("uuid_src(0x%08x) is diff from received uuid_dst(0x%08x)\n", uuid_src, uuid_dst);
+        logw("this maybe a peer call\n");
+    } else {
+        //loge("uuid match.\n");
     }
-    //strncpy(r->uuid_dst, pkt->header.uuid_dst, MAX_UUID_LEN);
-    rlen = pkt->header.payload_len;
-    buf->iov_base = calloc(1, rlen);
-    buf->iov_len = rlen;
-    pkt->payload = buf->iov_base;
-    ret = skt_recv(r->fd, buf->iov_base, rlen);
+    buf->iov_len = recv_pkt->header.payload_len;
+    buf->iov_base = calloc(1, buf->iov_len);
+    recv_pkt->payload = buf->iov_base;
+    ret = skt_recv(r->fd, buf->iov_base, buf->iov_len);
     if (ret == 0) {
         loge("peer connect closed\n");
         goto err;
-    } else if (ret != rlen) {
-        loge("skt_recv failed: rlen=%d, ret=%d\n", rlen, ret);
+    } else if (ret != buf->iov_len) {
+        loge("skt_recv failed: rlen=%d, ret=%d\n", buf->iov_len, ret);
         goto err;
     }
-    loge("xxx\n");
-    dump_buffer(buf->iov_base, ret);
-    //logi("xxx\n");
-    //dump_packet(pkt);
     return buf;
 err:
     if (buf->iov_base) {
@@ -126,12 +172,11 @@ err:
 int rpc_recv(struct rpc *r, void *buf, size_t len)
 {
     int ret, rlen;
-    struct rpc_packet *pkt = &r->resp_pkt;
+    struct rpc_packet *pkt = &r->recv_pkt;
     int head_size = sizeof(rpc_header_t);
     memset(pkt, 0, sizeof(rpc_packet_t));
     pkt->payload = buf;
 
-    //step.1 recv response packet
     ret = skt_recv(r->fd, (void *)&pkt->header, head_size);
     if (ret == 0) {
         loge("peer connect closed\n");
@@ -140,7 +185,7 @@ int rpc_recv(struct rpc *r, void *buf, size_t len)
         loge("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
         return -1;
     }
-    if (r->packet.header.uuid_dst != pkt->header.uuid_dst) {
+    if (r->send_pkt.header.uuid_dst != pkt->header.uuid_dst) {
         loge("uuid_dst is diff from recved packet.header.uuid_dst!\n");
     }
     if (len < pkt->header.payload_len) {
@@ -155,24 +200,7 @@ int rpc_recv(struct rpc *r, void *buf, size_t len)
         loge("skt_recv failed: rlen=%d, ret=%d\n", rlen, ret);
         return -1;
     }
-    //logi("xxx\n");
-    //dump_packet(pkt);
     return ret;
-}
-
-static int unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
-                void *out_arg, size_t *out_len)
-{
-    struct rpc_header *hdr;
-    if (!pkt || !out_arg || !out_len) {
-        loge("invalid paraments!\n");
-        return -1;
-    }
-    hdr = &(pkt->header);
-    *msg_id = hdr->msg_id;
-    *out_len = hdr->payload_len;
-    memcpy(out_arg, pkt->payload, *out_len);
-    return 0;
 }
 
 int process_msg(struct rpc *r, struct iovec *buf)
@@ -180,11 +208,10 @@ int process_msg(struct rpc *r, struct iovec *buf)
     msg_handler_t msg_handler;
 
     int msg_id = rpc_packet_parse(r);
-    logi("msg_id = 0x%08x\n", msg_id);
-    if (find_msg_handler(msg_id, &msg_handler) == 0 ) {
+    if (find_msg_handler(msg_id, &msg_handler) == 0) {
         msg_handler.cb(r, buf->iov_base, buf->iov_len);
     } else {
-        loge("no callback for this MSG ID(0x%08x) in process_msg\n", msg_id);
+        //loge("no callback for this MSG ID(0x%08x) in process_msg\n", msg_id);
     }
     return 0;
 }
@@ -196,54 +223,40 @@ static void on_read(int fd, void *arg)
     struct iovec *recv_buf;
     uint32_t msg_id;
     size_t out_len;
-    memset(&r->resp_pkt, 0, sizeof(struct rpc_packet));
+    memset(&r->recv_pkt, 0, sizeof(struct rpc_packet));
 
-    //step.1 recv response packet
-#if 0
-    int len = rpc_recv(r, &(r->resp_pkt), sizeof(struct rpc_packet));
-    if (len == -1) {
-        loge("rpc_recv failed!\n");
-        return;
-    }
-#endif
     recv_buf = rpc_recv_buf(r);
     if (!recv_buf) {
         loge("rpc_recv_buf failed!\n");
         return;
     }
-    print_packet(&r->resp_pkt);
 
-    struct rpc_packet *pkt = &r->resp_pkt;
-
-    //step.2 unpack packet
+    struct rpc_packet *pkt = &r->recv_pkt;
     unpack_msg(pkt, &msg_id, &out_arg, &out_len);
-    logi("msg_id = 0x%08x\n", msg_id);
+    logi("msg_id = %08x\n", msg_id);
 
     if (r->state == rpc_inited) {
-        logi("r->state is rpc_inited\n");
-        r->packet.header.uuid_src = *(uint32_t *)pkt->payload;
-        logi("r->packet.header.uuid_src = 0x%08x\n", r->packet.header.uuid_src);
-        sem_post(&r->sem);
+        r->send_pkt.header.uuid_src = *(uint32_t *)pkt->payload;
+        thread_sem_signal(r->dispatch_thread);
         r->state = rpc_connected;
     } else if (r->state == rpc_connected) {
-        logi("r->state is rpc_connected\n");
         struct iovec buf;
         buf.iov_len = pkt->header.payload_len;
         buf.iov_base = pkt->payload;
         process_msg(r, &buf);
         //free(pkt->payload);
-        sem_post(&r->sem);
+        thread_sem_signal(r->dispatch_thread);
     }
 }
 
 static void on_write(int fd, void *arg)
 {
-    loge("on_write fd= %d\n", fd);
+//    loge("on_write fd= %d\n", fd);
 }
 
 static void on_error(int fd, void *arg)
 {
-    loge("on_error fd= %d\n", fd);
+//    loge("on_error fd= %d\n", fd);
 }
 
 int rpc_dispatch(struct rpc *r)
@@ -260,20 +273,16 @@ static void *rpc_dispatch_thread(struct thread *t, void *arg)
     return NULL;
 }
 
-
 struct rpc *rpc_create(const char *host, uint16_t port)
 {
-    char str_ip[INET_ADDRSTRLEN];
+    char local_ip[INET_ADDRSTRLEN];
+    char remote_ip[INET_ADDRSTRLEN];
     struct rpc *r = CALLOC(1, struct rpc);
     if (!r) {
         loge("malloc failed!\n");
         return NULL;
     }
-    if (-1 == sem_init(&r->sem, 0, 0)) {
-        loge("sem_init failed %d: %s\n", errno, strerror(errno));
-        return NULL;
-    }
-    memset(&r->resp_pkt, 0, sizeof(struct rpc_packet));
+    memset(&r->recv_pkt, 0, sizeof(struct rpc_packet));
     struct skt_connection *connect;
     connect = skt_tcp_connect(host, port);
     if (!connect) {
@@ -285,12 +294,6 @@ struct rpc *rpc_create(const char *host, uint16_t port)
         loge("skt_set_block failed!\n");
     }
 
-    skt_addr_ntop(str_ip, connect->local.ip);
-    logi("local addr = %s:%d, uuid_src = %d\n", str_ip, connect->local.port, r->packet.header.uuid_src);
-    skt_addr_ntop(str_ip, connect->remote.ip);
-
-    //rpc_recv_buf(r);
-    //logd("remote ip = %s, port = %d\n", str_ip, sc->remote.port);
     r->evbase = gevent_base_create();
     if (!r->evbase) {
         loge("gevent_base_create failed!\n");
@@ -300,32 +303,36 @@ struct rpc *rpc_create(const char *host, uint16_t port)
     r->dispatch_thread = thread_create("rpc_dispatch", rpc_dispatch_thread, r);
 
     r->state = rpc_inited;
-    struct timeval now;
-    struct timespec abs_time;
-    uint32_t timeout = 20000;//msec
-    gettimeofday(&now, NULL);
-    /* Add our timeout to current time */
-    now.tv_usec += (timeout % 1000) * 1000;
-    now.tv_sec += timeout / 1000;
-    /* Wrap the second if needed */
-    if ( now.tv_usec >= 1000000 ) {
-        now.tv_usec -= 1000000;
-        now.tv_sec ++;
-    }
-    /* Convert to timespec */
-    abs_time.tv_sec = now.tv_sec;
-    abs_time.tv_nsec = now.tv_usec * 1000;
-    if (-1 == sem_timedwait(&r->sem, &abs_time)) {
-        loge("response failed %d:%s\n", errno, strerror(errno));
+    if (thread_sem_wait(r->dispatch_thread, 2000) == -1) {
+        loge("wait response failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }
-    logi("rpc_create success\n");
+    skt_addr_ntop(local_ip, connect->local.ip);
+    skt_addr_ntop(remote_ip, connect->remote.ip);
+    logi("rpc[%08x] connect information:\n", r->send_pkt.header.uuid_src);
+    logi("local addr = %s:%d\n", local_ip, connect->local.port);
+    logi("remote addr = %s:%d\n", remote_ip, connect->remote.port);
+
     return r;
 }
 
 void rpc_destroy(struct rpc *r)
 {
+    if (!r) {
+        return;
+    }
+    gevent_base_destroy(r->evbase);
+#if 0
+    if (r->send_pkt.payload) {
+        free(r->send_pkt.payload);
+    }
+    if (r->recv_pkt.payload) {
+        free(r->recv_pkt.payload);
+    }
+#endif
 
+    thread_destroy(r->dispatch_thread);
+    free(r);
 }
 
 int rpc_set_cb(struct rpc *r,
@@ -347,42 +354,10 @@ int rpc_set_cb(struct rpc *r,
     return 0;
 }
 
-static size_t pack_msg(struct rpc_packet *pkt, uint32_t msg_id,
-                const void *in_arg, size_t in_len)
-{
-    struct rpc_header *hdr;
-    struct timeval curtime;
-    size_t pkt_len;
-    if (!pkt) {
-        loge("invalid paraments!\n");
-        return 0;
-    }
-    gettimeofday(&curtime, NULL);
-
-    hdr = &(pkt->header);
-    hdr->msg_id = msg_id;
-    hdr->time_stamp = curtime.tv_sec * 1000000L + curtime.tv_usec;
-
-    if (in_arg) {
-        hdr->payload_len = in_len;
-        pkt->payload = (void *)in_arg;
-#if 0
-        if (!pkt->payload) {
-            loge("pky->payload is null!\n");
-        } else {
-            memcpy(pkt->payload, in_arg, in_len);
-        }
-#endif
-    } else {
-        hdr->payload_len = 0;
-    }
-    pkt_len = sizeof(struct rpc_packet) + hdr->payload_len;
-    return pkt_len;
-}
 
 int rpc_packet_parse(struct rpc *r)
 {
-    struct rpc_header *h = &r->resp_pkt.header;
+    struct rpc_header *h = &r->recv_pkt.header;
     return h->msg_id;
 }
 
@@ -473,8 +448,7 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
         loge("invalid parament!\n");
         return -1;
     }
-    logi("msg_id = 0x%08x\n", msg_id);
-    size_t pkt_len = pack_msg(&r->packet, msg_id, in_arg, in_len);
+    size_t pkt_len = pack_msg(&r->send_pkt, msg_id, in_arg, in_len);
     if (pkt_len == 0) {
         loge("pack_msg failed!\n");
         return -1;
@@ -484,28 +458,24 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
         return -1;
     }
     if (IS_RPC_MSG_NEED_RETURN(msg_id)) {
-        struct timeval now;
-        struct timespec abs_time;
-        uint32_t timeout = 2000;//msec
-        gettimeofday(&now, NULL);
-        /* Add our timeout to current time */
-        now.tv_usec += (timeout % 1000) * 1000;
-        now.tv_sec += timeout / 1000;
-        /* Wrap the second if needed */
-        if ( now.tv_usec >= 1000000 ) {
-            now.tv_usec -= 1000000;
-            now.tv_sec ++;
-        }
-        /* Convert to timespec */
-        abs_time.tv_sec = now.tv_sec;
-        abs_time.tv_nsec = now.tv_usec * 1000;
-        if (-1 == sem_timedwait(&r->sem, &abs_time)) {
-            loge("response failed %d:%s\n", errno, strerror(errno));
+        if (thread_sem_wait(r->dispatch_thread, 2000) == -1) {
+            loge("wait response failed %d:%s\n", errno, strerror(errno));
             return -1;
         }
-        memcpy(out_arg, r->resp_pkt.payload, out_len);
+        logi("recv_pkt.len = %d\n", r->recv_pkt.header.payload_len);
+        memcpy(out_arg, r->recv_pkt.payload, out_len);
     } else {
 
     }
     return 0;
 }
+
+int rpc_peer_call(struct rpc *r, uint32_t uuid, uint32_t cmd_id,
+            const void *in_arg, size_t in_len,
+            void *out_arg, size_t out_len)
+{
+    r->send_pkt.header.uuid_dst = uuid;
+    return rpc_call(r, cmd_id, in_arg, in_len, out_arg, out_len);
+}
+
+

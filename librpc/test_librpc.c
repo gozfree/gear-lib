@@ -24,7 +24,9 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 {
     void *ptr;
     int num = 0;
-    //logi("on_get_connect_list, len = %d\n", len);
+    len = r->recv_pkt.header.payload_len;
+    logi("strlen = %d, %s\n", strlen(arg), arg);
+    logi("on_get_connect_list, len = %d\n", r->recv_pkt.header.payload_len);
     num = len / MAX_UUID_LEN;
     printf("\n");
     for (ptr = arg; num > 0; --num) {
@@ -44,13 +46,13 @@ static int on_test_resp(struct rpc *r, void *arg, int len)
 static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
 {
     //logi("on_peer_post_msg_resp len = %d\n", len);
-    logd("msg from %s:\n%s\n", r->packet.header.uuid_src, (char *)arg);
+    logi("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
     return 0;
 }
 
 static int on_shell_help(struct rpc *r, void *arg, int len)
 {
-    printf("msg from %x:\n%s\n", r->packet.header.uuid_src, (char *)arg);
+    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
     return 0;
 }
 
@@ -82,7 +84,7 @@ int rpc_shell_help(struct rpc *r, void *buf, size_t len)
 {
     char res[1024] = {0};
     rpc_call(r, RPC_SHELL_HELP, buf, len, res, sizeof(res));
-    //printf("func_id = %x\n", RPC_GET_CONNECT_LIST);
+    printf("return buffer\n%s", res);
     //dump_packet(&r->packet);
     return 0;
 }
@@ -93,28 +95,6 @@ int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
     //printf("func_id = %x\n", RPC_PEER_POST_MSG);
     //dump_packet(&r->packet);
     return 0;
-}
-
-
-void on_read(int fd, void *arg)
-{
-    //printf("on_read fd= %d\n", fd);
-    struct rpc *r = (struct rpc *)arg;
-    struct iovec *buf = rpc_recv_buf(r);
-    if (!buf) {
-        return;
-    }
-    process_msg(r, buf);
-}
-
-void on_write(int fd, void *arg)
-{
-//    printf("on_write fd= %d\n", fd);
-}
-
-void on_error(int fd, void *arg)
-{
-    printf("on_error fd= %d\n", fd);
 }
 
 void usage()
@@ -157,8 +137,9 @@ void *raw_data_thread(void *arg)
             break;
         case 'p':
             printf("input uuid_dst> ");
-            scanf("%d", &uuid_dst);
-            r->packet.header.uuid_dst = uuid_dst;
+            scanf("%x", &uuid_dst);
+            printf("uuid_dst = %x\n", uuid_dst);
+            r->send_pkt.header.uuid_dst = uuid_dst;
             sprintf(buf, "%s", "hello world");
             rpc_peer_post_msg(r, buf, 12);
             break;
@@ -186,7 +167,7 @@ void *raw_data_thread(void *arg)
     return NULL;
 }
 
-int cmd_main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 //116.228.149.106
     uint16_t port;
@@ -204,13 +185,15 @@ int cmd_main(int argc, char **argv)
         return -1;
     }
     RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
-    rpc_set_cb(r, on_read, on_write, on_error, r);
     pthread_create(&tid, NULL, raw_data_thread, r);
-    rpc_dispatch(r);
+    //rpc_dispatch(r);
+    while (1) {
+        sleep(1);
+    }
     return 0;
 }
 
-int main(int argc, char **argv)
+int cmd_main(int argc, char **argv)
 {
 //116.228.149.106
     uint16_t port;
@@ -228,12 +211,13 @@ int main(int argc, char **argv)
     }
     int len = 100;
     char *buf = calloc(1, len);
-    memset(buf, 0xA5, len);
     int olen = 100;
     char *obuf = calloc(1, olen);
     memset(obuf, 0xA5, olen);
+    sprintf(buf, "%s", "I just want to get all connect list\n");
     rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, obuf, olen);
 
     on_get_connect_list_resp(r, obuf, olen);
+    rpc_destroy(r);
     return 0;
 }
