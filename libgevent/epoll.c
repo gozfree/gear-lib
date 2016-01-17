@@ -112,8 +112,11 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
     }
     n = epoll_wait(epop->epfd, events, epop->nevents, timeout);
     if (-1 == n) {
-        loge("errno=%d %s\n", errno, strerror(errno));
-        return -1;
+        if (errno != EINTR) {
+            loge("epoll_wait failed %d: %s\n", errno, strerror(errno));
+            return -1;
+        }
+        return 0;
     }
     if (0 == n) {
         loge("epoll_wait timeout\n");

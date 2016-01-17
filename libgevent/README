@@ -1,2 +1,0 @@
-Libgevent is a simple event library refered to libevent,
-now select/poll backend can't be used until the fd/event hash table achieved
