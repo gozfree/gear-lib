@@ -17,17 +17,17 @@
 #include "libp2p.h"
 
 
-//static char *_rpc_ip = "192.168.1.101";
+static char *_rpc_ip = "192.168.1.211";
 //static char *_rpc_ip = "180.153.102.147";
-static char *_rpc_ip = "116.228.149.106";
+//static char *_rpc_ip = "116.228.149.106";
 
-//static char *_stun_ip = "192.168.1.101";
+static char *_stun_ip = "192.168.1.211";
 //static char *_stun_ip = "180.153.102.147";
-static char *_stun_ip = "116.228.149.106";
+//static char *_stun_ip = "116.228.149.106";
 void *input_thread(void *arg)
 {
     struct p2p *p2p = (struct p2p *)arg;
-    char uuid_dst[MAX_UUID_LEN];
+    uint32_t uuid_dst;
     int ret, i;
     int len = 1024;
     char *buf = (char *)calloc(1, len);
@@ -36,7 +36,7 @@ void *input_thread(void *arg)
     }
     p2p_get_peer_list(p2p);
     printf("input peer id> ");
-    scanf("%s", uuid_dst);
+    scanf("%x", &uuid_dst);
     p2p_connect(p2p, uuid_dst);
     while (1) {
         memset(buf, 0, len);
@@ -59,7 +59,7 @@ int main()
         logi("p2p_init failed!\n");
         return -1;
     }
-    logi("p2p id: %s\n", p2p->rpc->packet.header.uuid_src);
+    logi("p2p id: %x\n", p2p->rpc->send_pkt.header.uuid_src);
     pthread_create(&tid, NULL, input_thread, p2p);
     p2p_dispatch(p2p);
     return 0;

@@ -20,6 +20,7 @@
 #include <libstun.h>
 #include <libskt.h>
 #include <librpc.h>
+#include <librpc_stub.h>
 #include <libptcp.h>
 #include "libp2p.h"
 
@@ -29,6 +30,8 @@ static uint16_t _local_port = 0;
 static struct p2p *_p2p = NULL;
 int _p2p_connect(struct p2p *p2p, char *ip, uint16_t port);
 void *tmp_thread(void *arg);
+
+#define MAX_UUID_LEN                (21)
 
 static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 {
@@ -54,14 +57,14 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
 {
     pthread_t tid;
     struct p2p *p2p = _p2p;
-    char *peer_id;
+    uint32_t peer_id;
     char localip[MAX_ADDR_STRING];
     char reflectip[MAX_ADDR_STRING];
     struct sockaddr_in si;
     logi("on_peer_post_msg_resp len = %d\n", len);
     struct nat_info *nat = (struct nat_info *)arg;
     logi("get nat info from peer\n");
-    logi("nat.uuid = %s\n", nat->uuid);
+    logi("nat.uuid = 0x%08x\n", nat->uuid);
     skt_addr_ntop(localip, nat->local.ip);
     skt_addr_ntop(reflectip, nat->reflect.ip);
     logi("nat.type = %d\n", nat->type);
@@ -100,11 +103,11 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
     return 0;
 }
 
-BEGIN_MSG_MAP(BASIC_RPC_API_RESP)
-MSG_ACTION(RPC_TEST, on_test_resp)
-MSG_ACTION(RPC_GET_CONNECT_LIST, on_get_connect_list_resp)
-MSG_ACTION(RPC_PEER_POST_MSG, on_peer_post_msg_resp)
-END_MSG_MAP()
+BEGIN_RPC_MAP(BASIC_RPC_API_RESP)
+RPC_MAP(RPC_TEST, on_test_resp)
+RPC_MAP(RPC_GET_CONNECT_LIST, on_get_connect_list_resp)
+RPC_MAP(RPC_PEER_POST_MSG, on_peer_post_msg_resp)
+END_RPC_MAP()
 
 int rpc_get_connect_list(struct rpc *r)
 {
@@ -181,12 +184,12 @@ void on_rpc_read(int fd, void *arg)
 {
     struct p2p *p2p = (struct p2p *)arg;
     struct rpc *r = p2p->rpc;
-    struct iobuf *buf = rpc_recv_buf(r);
+    struct iovec *buf = rpc_recv_buf(r);
     if (!buf) {
         logi("rpc_recv_buf failed!\n");
         return;
     }
-    process_msg2(r, buf);
+    process_msg(r, buf);
 }
 
 #if 0
@@ -287,7 +290,7 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
         loge("rpc_create failed\n");
         return NULL;
     }
-    REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
+    RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
     rpc_set_cb(p2p->rpc, on_rpc_read, on_rpc_write, on_rpc_error, p2p);
     skt_getaddr_by_fd(p2p->rpc->fd, &tmpaddr);
     skt_addr_ntop(_local_ip, tmpaddr.ip);
@@ -296,7 +299,7 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
 
     stun_init(stun_srv);
     p2p->nat.type = stun_nat_type();
-    strncpy(p2p->nat.uuid, p2p->rpc->packet.header.uuid_src, MAX_UUID_LEN);
+    p2p->nat.uuid = p2p->rpc->send_pkt.header.uuid_src;
     p2p->nat.local.ip = skt_addr_pton(_local_ip);
 
     _local_port = random_port();
@@ -315,10 +318,10 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
     return p2p;
 }
 
-int p2p_connect(struct p2p *p2p, char *peer_id)
+int p2p_connect(struct p2p *p2p, uint32_t peer_id)
 {
     int len = (int)sizeof(struct nat_info);
-    strncpy(p2p->rpc->packet.header.uuid_dst, peer_id, MAX_UUID_LEN);
+    p2p->rpc->send_pkt.header.uuid_dst = peer_id;
     //rpc_send(p2p->rpc, (void *)&p2p->nat, len);
     rpc_peer_post_msg(p2p->rpc, (void *)&p2p->nat, len);
     p2p->rpc_state = P2P_RPC_SYN_SENT;

@@ -21,7 +21,7 @@ typedef struct nat_info {
     int type;
     struct skt_addr local;
     struct skt_addr reflect;
-    char uuid[MAX_UUID_LEN];
+    uint32_t uuid;
 } nat_info_t;
 
 typedef enum p2p_rpc_state {
@@ -39,7 +39,7 @@ typedef struct p2p {
 
 struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv);
 void p2p_get_peer_list(struct p2p *p2p);
-int p2p_connect(struct p2p *p2p, char *peer_id);
+int p2p_connect(struct p2p *p2p, uint32_t peer_id);
 int p2p_dispatch(struct p2p *p2p);
 int p2p_send(struct p2p *p2p, void *buf, int len);
 int p2p_recv(struct p2p *p2p, void *buf, int len);
