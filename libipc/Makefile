@@ -1,11 +1,14 @@
 ###############################################################################
-## Copyright (C) 2014-2015
-## file:    Makefile
-## author:  gozfree <gozfree@163.com>
-## created: 2015-11-10 16:29:41
-## updated: 2015-11-10 16:29:41
+#  Copyright (C) 2014-2015
+#  file:    Makefile
+#  author:  gozfree <gozfree@163.com>
+#  created: 2015-11-10 16:29:41
+#  updated: 2015-11-10 16:29:41
 ###############################################################################
 
+##############################################################################
+# common
+###############################################################################
 #ARCH: linux/pi/android/ios/
 ARCH		?= linux
 CROSS_PREFIX	?=
@@ -34,12 +37,17 @@ CP_V	= $(CP)
 RM_V	= $(RM)
 endif
 
-########
+###############################################################################
+# target and object
+###############################################################################
 LIBNAME		= libipc
+VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
+VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_H	+= libipc_stub.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
+TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 KERNEL_MODULE	= ipc_netlink.so
 KERNEL_DIR	= /lib/modules/$(shell uname -r)/build
@@ -48,6 +56,9 @@ OBJS_LIB	= $(LIBNAME).o
 OBJS_LIB	+= msgq.o netlink.o shm.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
+###############################################################################
+# cflags and ldflags
+###############################################################################
 EXTRA_CFLAGS	:= -g -Wall -Werror -fPIC
 EXTRA_CFLAGS	+= $($(ARCH)_CFLAGS)
 EXTRA_CFLAGS	+= -I$(OUTPUT)/include
@@ -62,6 +73,9 @@ EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 EXTRA_LDFLAGS	+= -lrt
 
 
+###############################################################################
+# target
+###############################################################################
 .PHONY : all clean
 
 TGT	:= $(TGT_LIB_A)
@@ -81,6 +95,8 @@ $(TGT_LIB_A): $(OBJS_LIB)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
 	$(LD_V) -o $@ $^ $(SHARED)
+	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
+	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(EXTRA_LDFLAGS)
@@ -92,14 +108,19 @@ $(KERNEL_MODULE):
 clean:
 	$(RM_V) -f $(OBJS)
 	$(RM_V) -f $(TGT)
+	$(RM_V) -f version.h
+	$(RM_V) -f $(TGT_LIB_SO)*
+	$(RM_V) -f $(TGT_LIB_SO_VER)
 
 install:
 	$(MAKEDIR_OUTPUT)
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
 	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
 
 uninstall:
 	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO_VER)

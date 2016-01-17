@@ -1,5 +1,6 @@
 ##libipc
 This is a simple libipc library.
+ipc no need to transfer big data?
 
 ###Frontend
 * Serialize/Deserialize message format

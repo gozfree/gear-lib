@@ -77,9 +77,6 @@ typedef struct ipc {
 struct ipc *ipc_create(enum ipc_role role, uint16_t port);
 void ipc_destroy(struct ipc *ipc);
 
-ssize_t ipc_send(struct ipc *i, const void *buf, size_t len);
-ssize_t ipc_recv(struct ipc *i, void *buf, size_t len);
-
 int ipc_call(struct ipc *i, uint32_t func_id,
              const void *in_arg, size_t in_len,
              void *out_arg, size_t out_len);
@@ -99,7 +96,7 @@ int ipc_register_map(ipc_handler_t *map, int num_entry);
 
 
 /******************************************************************************
- * ipc_packet define
+ * ipc_packet define (little endian)
  * [ipc_header][ipc_payload]
  *
  * ipc_header define
