@@ -7,6 +7,7 @@
  *****************************************************************************/
 #include <string.h>
 #include <sys/time.h>
+#include <sys/uio.h>
 #include <libgzf.h>
 #include <liblog.h>
 #include <libgevent.h>
@@ -124,7 +125,7 @@ int rpc_send(struct rpc *r, const void *buf, size_t len)
 
 struct iovec *rpc_recv_buf(struct rpc *r)
 {
-    struct iovec *buf = CALLOC(1, struct iobuf);
+    struct iovec *buf = CALLOC(1, struct iovec);
     struct rpc_packet *recv_pkt = &r->recv_pkt;
     uint32_t uuid_dst;
     uint32_t uuid_src;

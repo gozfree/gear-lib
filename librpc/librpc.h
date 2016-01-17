@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/uio.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <libgevent.h>
@@ -121,12 +122,6 @@ typedef struct rpc {
     struct thread *dispatch_thread;
     enum rpc_state state;
 } rpc_t;
-
-typedef struct iobuf {
-    void *addr;
-    uint32_t len;
-} iobuf_t;
-
 
 typedef int (*rpc_callback)(struct rpc *r, void *arg, int len);
 
