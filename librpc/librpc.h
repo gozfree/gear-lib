@@ -154,7 +154,7 @@ struct iovec *rpc_recv_buf(struct rpc *r);
 int rpc_dispatch(struct rpc *r);
 void rpc_destroy(struct rpc *r);
 int rpc_packet_parse(struct rpc *r);
-int find_msg_handler(uint32_t msg_id, msg_handler_t *handler);
+msg_handler_t *find_msg_handler(uint32_t msg_id);
 int process_msg(struct rpc *r, struct iovec *buf);
 void dump_buffer(void *buf, int len);
 void dump_packet(struct rpc_packet *r);

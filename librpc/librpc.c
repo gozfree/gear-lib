@@ -10,14 +10,12 @@
 #include <libgzf.h>
 #include <liblog.h>
 #include <libgevent.h>
+#include <libdict.h>
 #include <libskt.h>
 #include <libthread.h>
 #include "librpc.h"
 
-#define MAX_MESSAGES_IN_MAP         (256)
-#define MAX_RPC_PACKET_SIZE         (1024)
-static msg_handler_t message_map[MAX_MESSAGES_IN_MAP];
-static int           message_map_registered;
+static dict *_msg_map_registered = NULL;
 
 void dump_buffer(void *buf, int len)
 {
@@ -205,11 +203,12 @@ int rpc_recv(struct rpc *r, void *buf, size_t len)
 
 int process_msg(struct rpc *r, struct iovec *buf)
 {
-    msg_handler_t msg_handler;
+    msg_handler_t *msg_handler;
 
     int msg_id = rpc_packet_parse(r);
-    if (find_msg_handler(msg_id, &msg_handler) == 0) {
-        msg_handler.cb(r, buf->iov_base, buf->iov_len);
+    msg_handler = find_msg_handler(msg_id);
+    if (msg_handler) {
+        msg_handler->cb(r, buf->iov_base, buf->iov_len);
     } else {
         //loge("no callback for this MSG ID(0x%08x) in process_msg\n", msg_id);
     }
@@ -307,6 +306,7 @@ struct rpc *rpc_create(const char *host, uint16_t port)
         loge("wait response failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }
+
     skt_addr_ntop(local_ip, connect->local.ip);
     skt_addr_ntop(remote_ip, connect->remote.ip);
     logi("rpc[%08x] connect information:\n", r->send_pkt.header.uuid_src);
@@ -363,40 +363,33 @@ int rpc_packet_parse(struct rpc *r)
 
 int register_msg_proc(msg_handler_t *handler)
 {
-    int i;
-    int msg_id_registered  = 0;
-    int msg_slot = -1;
     uint32_t msg_id;
+    char msg_id_str[11];
+    char *msg_proc;
 
     if (!handler) {
-        loge("Cannot register null msg proc \n");
+        loge("Cannot register null msg proc\n");
         return -1;
     }
-
     msg_id = handler->msg_id;
-
-    for (i=0; i < message_map_registered; i++) {
-        if (message_map[i].msg_id == msg_id) {
-            loge("overwrite existing msg proc for msg_id %d \n", msg_id);
-            msg_id_registered = 1;
-            msg_slot = i;
-            break;
+    snprintf(msg_id_str, sizeof(msg_id_str), "0x%08x", msg_id);
+    msg_id_str[10] = '\0';
+    if (!_msg_map_registered) {
+            _msg_map_registered = dict_new();
+            if (!_msg_map_registered) {
+                    loge("create message map table failed!\n");
+                    return -1;
+            }
+    }
+    msg_proc = dict_get(_msg_map_registered, msg_id_str, NULL);
+    if (msg_proc) {//force update
+        if (0 != dict_del(_msg_map_registered, msg_id_str)) {
+            loge("dict_del failed!\n");
         }
     }
-
-    if ((!msg_id_registered)) {
-        if ((message_map_registered == MAX_MESSAGES_IN_MAP)) {
-            loge("too many msg proc registered \n");
-            return -1;
-        }
-        //increase the count
-        msg_slot = message_map_registered;
-        message_map_registered++;
+    if (0 != dict_add(_msg_map_registered, msg_id_str, (char *)handler)) {
+        loge("dict_add failed!\n");
     }
-
-    //if the handler registered is NULL, then just fill NULL handler
-    message_map[msg_slot] = *handler;
-
     return 0;
 }
 
@@ -410,7 +403,7 @@ int register_msg_map(msg_handler_t *map, int num_entry)
         return -1;
     }
 
-    if ((num_entry <= 0) || (num_entry > MAX_MESSAGES_IN_MAP)) {
+    if (num_entry <= 0) {
         loge("register_msg_map:invalid num_entry %d \n", num_entry);
         return -1;
     }
@@ -426,18 +419,15 @@ int register_msg_map(msg_handler_t *map, int num_entry)
     return 0;
 }
 
-int find_msg_handler(uint32_t msg_id, msg_handler_t *handler)
+msg_handler_t *find_msg_handler(uint32_t msg_id)
 {
-    int i;
-    for (i=0; i< message_map_registered; i++) {
-        if (message_map[i].msg_id == msg_id) {
-            if (handler)  {
-                *handler = message_map[i];
-            }
-            return 0;
-        }
-    }
-    return -1;
+    char msg_id_str[11];
+    msg_handler_t *handler;
+    snprintf(msg_id_str, sizeof(msg_id_str), "0x%08x", msg_id);
+    msg_id_str[10] = '\0';
+    handler = (msg_handler_t *)dict_get(_msg_map_registered, msg_id_str, NULL);
+    return handler;
+
 }
 
 int rpc_call(struct rpc *r, uint32_t msg_id,
