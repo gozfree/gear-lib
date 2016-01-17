@@ -18,6 +18,7 @@ PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
 BASIC_LIBS="libgzf liblog libgevent libworkq libdict libsort librbtree libthread libconfig"
+FRAMEWORK_LIBS="libipc"
 NETWORK_LIBS="libskt libstun libptcp librpc libp2p"
 
 usage()
@@ -156,7 +157,7 @@ build_module()
 
 build_all()
 {
-	for item in $BASIC_LIBS $NETWORK_LIBS; do
+	for item in $BASIC_LIBS $NETWORK_LIBS $FRAMEWORK_LIBS; do
 		MODULE="$item"
 		ARG2=$1
 		build_module $MODULE $ARG2
