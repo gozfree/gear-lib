@@ -1,7 +1,5 @@
 ## libraries
 
-[![Build Status](https://travis-ci.org/meolu/walden.svg?branch=master)](https://travis-ci.org/meolu/walden)
-
   This is a collection of basic libraries.
   * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
   * Each of library is as soon as independently, and the APIs are easily to use.
