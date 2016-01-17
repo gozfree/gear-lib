@@ -64,7 +64,7 @@ void test()
         logv("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
     }
 }
-#if 0
+#if 1
 static void *test2()
 {
     int i;
@@ -82,9 +82,9 @@ static void *test2()
 
 int main(int argc, char **argv)
 {
-//    pthread_t pid;
-    test_rsyslog();
-#if 0
+    pthread_t pid;
+    //test_rsyslog();
+#if 1
     log_init(LOG_STDERR, NULL);
     log_set_split_size(1*1024*1024);
     test_file_name();
@@ -97,6 +97,7 @@ int main(int argc, char **argv)
 
     test_rsyslog();
 #endif
+    sleep(1);
     log_deinit();
     pthread_join(pid, NULL);
 #endif

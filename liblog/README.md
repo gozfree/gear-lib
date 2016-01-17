@@ -35,6 +35,9 @@ For console usage, no need to rebuild for setting log level, only to set bash en
 
 * liblog is built on rasbarrypi for arm platform test.
 
+##Dependency
+* [libgzf](../libgzf/README.md) the most basic of the libraries
+
 ##Stability
   $ `valgrind --leak-check=full ./test_liblog`
 
