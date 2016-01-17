@@ -39,8 +39,8 @@ typedef struct worker {
 
 typedef void (*worker_func_t)(void *);
 
-struct workq *wq_init();
-void wq_deinit(struct workq *wq);
+struct workq *wq_create();
+void wq_destroy(struct workq *wq);
 void wq_task_add(struct workq *wq, worker_func_t func, void *data, size_t len);
 
 /* high level */

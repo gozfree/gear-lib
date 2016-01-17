@@ -23,12 +23,12 @@ static struct workq *g_wq = NULL;
 int foo()
 {
     int i = 0;
-    g_wq = wq_init();
+    g_wq = wq_create();
     for (i = 0; i < 4; i++) {
         wq_task_add(g_wq, test, (void *)&i, sizeof(int));
     }
     sleep(1);
-    wq_deinit(g_wq);
+    wq_destroy(g_wq);
     return 0;
 }
 

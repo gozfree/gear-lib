@@ -62,7 +62,7 @@ static int _wq_init(struct workq *wq)
     return 0;
 }
 
-struct workq *wq_init()
+struct workq *wq_create()
 {
     struct workq *wq = CALLOC(1, struct workq);
     if (0 != _wq_init(wq)) {
@@ -92,7 +92,7 @@ static void _wq_deinit(struct workq *wq)
     pthread_mutex_destroy(&wq->mutex);
 }
 
-void wq_deinit(struct workq *wq)
+void wq_destroy(struct workq *wq)
 {
     _wq_deinit(wq);
     free(wq);
