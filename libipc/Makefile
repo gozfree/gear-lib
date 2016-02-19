@@ -49,7 +49,7 @@ TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
-KERNEL_MODULE	= ipc_netlink.so
+KERNEL_MODULE	= netlink_driver.ko
 KERNEL_DIR	= /lib/modules/$(shell uname -r)/build
 
 OBJS_LIB	= $(LIBNAME).o
@@ -59,7 +59,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-EXTRA_CFLAGS	:= -g -Wall -Werror -fPIC
+EXTRA_CFLAGS	:= -g -Wall -Werror
+ifneq ($(driver), y)
+EXTRA_CFLAGS	+= -fPIC
+endif
 EXTRA_CFLAGS	+= $($(ARCH)_CFLAGS)
 EXTRA_CFLAGS	+= -I$(OUTPUT)/include
 
@@ -78,10 +81,14 @@ EXTRA_LDFLAGS	+= -lrt
 ###############################################################################
 .PHONY : all clean
 
-TGT	:= $(TGT_LIB_A)
+TGT	:=
+ifneq ($(driver), y)
+TGT	+= $(TGT_LIB_A)
 TGT	+= $(TGT_LIB_SO)
 TGT	+= $(TGT_UNIT_TEST)
-#TGT	+= $(KERNEL_MODULE)
+else
+TGT	+= driver
+endif
 
 OBJS	:= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 
@@ -101,9 +108,14 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(EXTRA_LDFLAGS)
 
-obj-m	:= netlink_kernel.o
+driver: $(KERNEL_MODULE)
+
 $(KERNEL_MODULE):
 	$(MAKE) -C $(KERNEL_DIR) M=$(shell pwd) modules
+
+ifeq ($(driver), y)
+obj-m	:= netlink_driver.o
+endif
 
 clean:
 	$(RM_V) -f $(OBJS)
@@ -111,6 +123,7 @@ clean:
 	$(RM_V) -f version.h
 	$(RM_V) -f $(TGT_LIB_SO)*
 	$(RM_V) -f $(TGT_LIB_SO_VER)
+	$(RM_V) -f $(KERNEL_MODULE) *.mod.c *.mod.o *.order Module*
 
 install:
 	$(MAKEDIR_OUTPUT)
@@ -118,6 +131,10 @@ install:
 	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
+
+driver_install:
+	$(MAKE) -C $(KERNEL_DIR) M=$(shell pwd) modules_install
+
 
 uninstall:
 	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)

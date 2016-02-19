@@ -21,8 +21,14 @@ ipc no need to transfer big data?
 
   each ipc endpoint contain two message queue: mq_rd and mq_wr
 
-* share memory
 
 * netlink
 
+  usage
 
+  `$ make driver=y`
+
+  `$ sudo insmod netlink_driver.ko`
+
+
+* share memory
