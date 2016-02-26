@@ -110,6 +110,12 @@ $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 
 driver: $(KERNEL_MODULE)
 
+rmmod:
+	rmmod netlink_driver
+insmod:
+	insmod netlink_driver.ko
+
+
 $(KERNEL_MODULE):
 	$(MAKE) -C $(KERNEL_DIR) M=$(shell pwd) modules
 

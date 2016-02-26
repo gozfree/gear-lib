@@ -16,7 +16,6 @@
 #include <liblog.h>
 #include "libipc.h"
 
-#define NL_IPC_PROTOCOL         20
 
 struct nl_ctx {
     int fd;
@@ -26,14 +25,14 @@ struct nl_ctx {
 static void *nl_init(const char *name, enum ipc_role role)
 {
     struct sockaddr_nl saddr;
-	int fd = socket(AF_NETLINK, SOCK_RAW, NL_IPC_PROTOCOL);
-	memset(&saddr, 0, sizeof(saddr));
-	uint32_t pid = getpid();
-	saddr.nl_family = AF_NETLINK;
-	saddr.nl_pid = pid;
-	saddr.nl_groups = 0;
-	saddr.nl_pad = 0;
-	if (0 > bind(fd, (struct sockaddr *)&saddr, sizeof(saddr))) {
+    int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
+    memset(&saddr, 0, sizeof(saddr));
+    uint32_t pid = getpid();
+    saddr.nl_family = AF_NETLINK;
+    saddr.nl_pid = pid;
+    saddr.nl_groups = 0;
+    saddr.nl_pad = 0;
+    if (0 > bind(fd, (struct sockaddr *)&saddr, sizeof(saddr))) {
         loge("bind failed: %d:%s\n", errno, strerror(errno));
         return NULL;
     }
@@ -75,9 +74,11 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
+    printf("nlmsg_pid=%d, nlmsg_len=%d", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
+    //print_buffer(buf, len);
     sendmsg(ctx->fd, &msg, 0);
     free(nlhdr);
-	return 0;
+    return 0;
 }
 
 static int nl_recv(struct ipc *ipc, void *buf, size_t len)
@@ -102,6 +103,21 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     return recvmsg(ctx->fd, &msg, 0);
 }
 
+static int nl_accept(struct ipc *ipc)
+{
+    return 0;
+}
+
+static int nl_connect(struct ipc *ipc, const char *name)
+{
+    return 0;
+}
+
+static int nl_set_recv_cb(struct ipc *ipc, ipc_recv_cb *cb)
+{
+    return 0;
+}
+
 static void nl_deinit(struct ipc *ipc)
 {
     if (!ipc) {
@@ -112,12 +128,12 @@ static void nl_deinit(struct ipc *ipc)
 }
 
 
-const struct ipc_ops netlink_ops = {
+const struct ipc_ops nlk_ops = {
     nl_init,
     nl_deinit,
-    NULL,
-    NULL,
-    NULL,
+    nl_accept,
+    nl_connect,
+    nl_set_recv_cb,
     nl_send,
     nl_recv,
 };

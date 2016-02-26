@@ -22,7 +22,7 @@ ipc no need to transfer big data?
   each ipc endpoint contain two message queue: mq_rd and mq_wr
 
 
-* netlink
+* netlink (coding)
 
   usage
 
@@ -31,4 +31,4 @@ ipc no need to transfer big data?
   `$ sudo insmod netlink_driver.ko`
 
 
-* share memory
+* share memory (TODO)

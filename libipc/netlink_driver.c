@@ -20,6 +20,7 @@
 #include <linux/netlink.h>
 #include <linux/spinlock.h>
 #include <net/sock.h>
+#include "netlink_driver.h"
 
 
 #define IMP2_U_PID   0
@@ -42,7 +43,36 @@ struct
 	rwlock_t lock;
 }user_proc;
 
-DECLARE_MUTEX(receive_sem);
+struct iav_nl_request
+{
+	u32 request_id;
+	u32 responded;
+	wait_queue_head_t wq_request;
+};
+
+struct iav_nl_obj
+{
+	s32 nl_user_pid;
+	u32 nl_connected;
+	s32 nl_init;
+	s32 nl_port;
+	s32 nl_session_count;
+	s32 nl_request_count;
+	struct sock *nl_sock;
+};
+
+enum NL_MSG_TYPE {
+	NL_MSG_TYPE_SESSION = 0,
+	NL_MSG_TYPE_REQUEST,
+};
+
+enum NL_MSG_DIR {
+	NL_MSG_DIR_CMD = 0,
+	NL_MSG_DIR_STATUS,
+};
+
+#if 0
+DEFINE_SEMAPHORE(receive_sem);
 static void kernel_receive(struct sock *sk, int len)
 {
 	do
@@ -153,7 +183,9 @@ static struct nf_hook_ops imp2_ops =
 	.hooknum = NF_IP_PRE_ROUTING,
 	.priority = NF_IP_PRI_FILTER -1,
 };
+#endif
 
+#if 0
 static int nlk_probe(struct platform_device *pdev)
 {
 	printk("%s:%s:%d xxxx\n", __FILE__, __func__, __LINE__);
@@ -174,39 +206,176 @@ static struct platform_driver nlk_driver = {
 		.owner = THIS_MODULE,
 	},
 };
+#endif
+
+#define NETLINK_IPC_GROUP	0
+#define SCSI_NL_SHOST_VENDOR			0x0001
+
+struct scsi_nl_hdr {
+	uint8_t version;
+	uint8_t transport;
+	uint16_t magic;
+	uint16_t msgtype;
+	uint16_t msglen;
+} __attribute__((aligned(sizeof(uint64_t))));
+
+#define print_buffer(buf, len)                                  \
+    do {                                                        \
+        int _i;                                                 \
+        if (!buf || len <= 0) {                                 \
+            break;                                              \
+        }                                                       \
+        for (_i = 0; _i < len; _i++) {                          \
+            if (!(_i%16))                                       \
+                printk("\n%p: ", buf+_i);                       \
+            printk("%02x ", (*((char *)buf + _i)) & 0xff);      \
+        }                                                       \
+    } while (0)
+
+
+static int nl_send_msg(int pid, const u8 *data, int data_len)
+{
+    struct nlmsghdr *rep;
+    u8 *res;
+    struct sk_buff *skb;
+
+    skb = nlmsg_new(data_len, GFP_KERNEL);
+    if(!skb) {
+       printk("nlmsg_new failed!!!\n");
+       return -1;
+    }
+
+    rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
+    res = nlmsg_data(rep);
+    memcpy(res, data, data_len);
+    netlink_unicast(nlfd, skb, pid, 0);
+    printk("%s:%s:%d pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__, pid, data_len);
+    return 0;
+}
+
+static void nl_recv_msg_handler(struct sk_buff * skb)
+{
+	struct nlmsghdr * nlhdr = NULL;
+	int len;
+	int msg_len;
+
+	nlhdr = nlmsg_hdr(skb);
+	len = skb->len;
+
+	for(; NLMSG_OK(nlhdr, len); nlhdr = NLMSG_NEXT(nlhdr, len)) {
+		if (nlhdr->nlmsg_len < sizeof(struct nlmsghdr)) {
+			printk("NETLINK ERR: Corruptted msg!\n");
+			continue;
+		}
+		msg_len = nlhdr->nlmsg_len - NLMSG_LENGTH(0);
+		printk("%s:%s:%d nlhdr->nlmsg_pid=%d, nlmsg_len=%d\n", __FILE__, __func__, __LINE__, nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
+		//print_buffer(NLMSG_DATA(nlhdr), nlhdr->nlmsg_len);
+		nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), nlhdr->nlmsg_len);
+	}
+}
+
+static void nlk_recv_msg(struct sk_buff *skb)
+{
+	struct nlmsghdr *nlh;
+	struct scsi_nl_hdr *hdr;
+	u32 rlen;
+	int err, tport;
+
+	while (skb->len >= NLMSG_HDRLEN) {
+		err = 0;
+
+		nlh = nlmsg_hdr(skb);
+		if ((nlh->nlmsg_len < (sizeof(*nlh) + sizeof(*hdr))) ||
+		    (skb->len < nlh->nlmsg_len)) {
+			printk(KERN_WARNING "%s: discarding partial skb\n",
+				 __func__);
+			return;
+		}
+
+		rlen = NLMSG_ALIGN(nlh->nlmsg_len);
+		if (rlen > skb->len)
+			rlen = skb->len;
+
+#if 0
+		if (nlh->nlmsg_type != SCSI_TRANSPORT_MSG) {
+			err = -EBADMSG;
+			goto next_msg;
+		}
+#endif
+
+		hdr = nlmsg_data(nlh);
+#if 0
+		if ((hdr->version != SCSI_NL_VERSION) ||
+		    (hdr->magic != SCSI_NL_MAGIC)) {
+			err = -EPROTOTYPE;
+			goto next_msg;
+		}
+#endif
+
+		if (!netlink_capable(skb, CAP_SYS_ADMIN)) {
+			err = -EPERM;
+			goto next_msg;
+		}
+
+		if (nlh->nlmsg_len < (sizeof(*nlh) + hdr->msglen)) {
+			printk(KERN_WARNING "%s: discarding partial message\n",
+				 __func__);
+			goto next_msg;
+		}
+
+		/*
+		 * Deliver message to the appropriate transport
+		 */
+		tport = hdr->transport;
+		if (tport == NETLINK_IPC_PORT) {
+			switch (hdr->msgtype) {
+			case SCSI_NL_SHOST_VENDOR:
+				/* Locate the driver that corresponds to the message */
+				err = -ESRCH;
+				break;
+			default:
+				err = -EBADR;
+				break;
+			}
+			if (err)
+				printk(KERN_WARNING "%s: Msgtype %d failed - err %d\n",
+				       __func__, hdr->msgtype, err);
+		}
+		else
+			err = -ENOENT;
+
+next_msg:
+		if ((err) || (nlh->nlmsg_flags & NLM_F_ACK))
+			netlink_ack(skb, nlh, err);
+
+		skb_pull(skb, rlen);
+	}
+}
 
 static int __init nlk_init(void)
 {
-	int rval = 0;
-	printk("%s:%s:%d xxxx\n", __FILE__, __func__, __LINE__);
+	struct netlink_kernel_cfg cfg;
 
-	rval = platform_driver_register(&nlk_driver);
-	printk("%s:%s:%d xxxx\n", __FILE__, __func__, __LINE__);
+	cfg.groups = NETLINK_IPC_GROUP;
+	cfg.input = nlk_recv_msg;
+	cfg.input = nl_recv_msg_handler;
 
-	rwlock_init(&user_proc.lock);
-
-	nlfd = netlink_kernel_create(NL_IMP2, kernel_receive);
-	if(!nlfd)
-	{
+	nlfd = netlink_kernel_create(&init_net, NETLINK_IPC_PORT, &cfg);
+	if (!nlfd) {
 		printk("can not create a netlink socket\n");
 		return -1;
 	}
+	printk("netlink_driver init success.\n");
 
-	rval = nf_register_hook(&imp2_ops);
-	return rval;
+	return 0;
 }
 
 static void __exit nlk_exit(void)
 {
-	printk("%s:%s:%d xxxx\n", __FILE__, __func__, __LINE__);
-	platform_driver_unregister(&nlk_driver);
-
-	if(nlfd)
-	{
-		sock_release(nlfd->socket);
+	if (nlfd) {
+		netlink_kernel_release(nlfd);
 	}
-	nf_unregister_hook(&imp2_ops);
-	printk("%s:%s:%d xxxx\n", __FILE__, __func__, __LINE__);
+	printk("netlink_driver exit success.\n");
 }
 
 module_init(nlk_init);
