@@ -9,4 +9,5 @@ This is a simple RPC(Remote Procedure Call) library.
 * [libskt](../libskt/)
 * [libthread](../libthread/)
 
-
+##RPC server
+refer to [rpcd](https://github.com/gozfree/rpcd)

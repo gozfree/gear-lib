@@ -23,6 +23,11 @@
 
   * [libptcp](libptcp/README.md)
 
+  * [libosal](libosal/README.md)
+
+  * [libipc](libipc/README.md)
+
+  * [librpc](librpc/README.md)
 
 ### How To Build
   * linux platform (32/64 bit)

@@ -32,3 +32,6 @@ ipc no need to transfer big data?
 
 
 * share memory (TODO)
+
+##IPC server
+refer to [ipcd](https://github.com/gozfree/ipcd)
