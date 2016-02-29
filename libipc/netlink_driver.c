@@ -235,6 +235,7 @@ struct scsi_nl_hdr {
 
 static int nl_send_msg(int pid, const u8 *data, int data_len)
 {
+    int ret;
     struct nlmsghdr *rep;
     u8 *res;
     struct sk_buff *skb;
@@ -248,8 +249,9 @@ static int nl_send_msg(int pid, const u8 *data, int data_len)
     rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
     res = nlmsg_data(rep);
     memcpy(res, data, data_len);
-    netlink_unicast(nlfd, skb, pid, 0);
-    printk("%s:%s:%d pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__, pid, data_len);
+    ret = netlink_unicast(nlfd, skb, pid, 0);
+    printk("%s:%s:%d ret = %d, pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__,
+		    ret, pid, data_len);
     return 0;
 }
 

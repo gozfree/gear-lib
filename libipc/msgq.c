@@ -19,6 +19,20 @@
  * seems better than SysV message queue?
  */
 
+/*
+ * message queue IPC build flow:
+ *
+ *            client (test_libipc)           server (ipcd)
+ * step.1                                    create /dev/mqueue/IPC_SREVER.5555
+ *                                           create thread to wait message
+ * step.2 create /dev/mqueue/IPC_CLIENT.$pid
+ *        send "/IPC_CLIENT.$pid", and wait
+ * step.3                                    accept message and post sem,
+ *                                           send "/IPC_CLIENT.$pid"
+ * step.4 post sem and strcmp recv msg and sent msg, 
+ *        message queue IPC is built
+ */
+
 #define MQ_MAXMSG       5
 #define MQ_MSGSIZE      1024
 #define MQ_MSG_PRIO     10

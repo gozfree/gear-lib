@@ -12,13 +12,30 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <linux/netlink.h>
+#include <semaphore.h>
 #include <libgzf.h>
 #include <liblog.h>
 #include "libipc.h"
 
+/*
+ * netlink IPC build flow:
+ *
+ *            client (userspace)       proxy (kernel)                            server (userspace)
+ * step.1                              netlink_kernel_create (PORT)
+ * step.2 bind(PORT), send "/IPC_CLIENT.$pid", wait msg
+ * step.3                              recv msg, send "/IPC_CLIENT.$pid"
+ * step.4 recv msg
+ *
+ *
+ *
+ *
+ *
+ */
+
 
 struct nl_ctx {
     int fd;
+    sem_t sem;
 };
 
 
@@ -36,16 +53,21 @@ static void *nl_init(const char *name, enum ipc_role role)
         loge("bind failed: %d:%s\n", errno, strerror(errno));
         return NULL;
     }
-    struct nl_ctx *nc = CALLOC(1, struct nl_ctx);
-    if (!nc) {
+    struct nl_ctx *ctx = CALLOC(1, struct nl_ctx);
+    if (!ctx) {
         loge("malloc failed!\n");
         return NULL;
     }
-    nc->fd = fd;
-    return nc;
+    ctx->fd = fd;
+    if (-1 == sem_init(&ctx->sem, 0, 0)) {
+        loge("sem_init failed %d:%s\n", errno, strerror(errno));
+        return NULL;
+    }
+    return ctx;
 }
 
 
+static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct nl_ctx *ctx = ipc->ctx;
@@ -78,6 +100,24 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     //print_buffer(buf, len);
     sendmsg(ctx->fd, &msg, 0);
     free(nlhdr);
+#if 1
+    int ret;
+    int recv_len = 1024;
+    void *recv_buf = calloc(1, recv_len);
+    if (!recv_buf) {
+        loge("calloc failed!\n");
+    }
+    while (1) {
+        ret = nl_recv(ipc, recv_buf, recv_len);
+        if (ret <= 0) {
+            loge("nl_recv failed: %d\n", ret);
+        } else {
+            break;
+        }
+    }
+    loge("nl_recv ok: len=%d\n", ret);
+
+#endif
     return 0;
 }
 
@@ -100,6 +140,7 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
+    loge("nl_recv fd=%d\n", ctx->fd);
     return recvmsg(ctx->fd, &msg, 0);
 }
 
@@ -113,8 +154,11 @@ static int nl_connect(struct ipc *ipc, const char *name)
     return 0;
 }
 
+static ipc_recv_cb *_nl_recv_cb = NULL;
+
 static int nl_set_recv_cb(struct ipc *ipc, ipc_recv_cb *cb)
 {
+    _nl_recv_cb = cb;
     return 0;
 }
 
