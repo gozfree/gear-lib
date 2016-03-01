@@ -251,8 +251,8 @@ struct ipc *ipc_create(enum ipc_role role, uint16_t port)
         return NULL;
     }
     ipc->role = role;
-//    ipc->ops = ipc_ops[IPC_BACKEND_NLK];
-    ipc->ops = ipc_ops[IPC_BACKEND_MQ];
+    ipc->ops = ipc_ops[IPC_BACKEND_NLK];
+//    ipc->ops = ipc_ops[IPC_BACKEND_MQ];
     snprintf(ipc_srv_name, sizeof(ipc_srv_name), "%s.%d", IPC_SERVER_NAME, port);
     snprintf(ipc_cli_name, sizeof(ipc_cli_name), "%s.%d", IPC_CLIENT_NAME, getpid());
     if (role == IPC_SERVER) {

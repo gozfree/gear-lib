@@ -73,6 +73,7 @@ EXTRA_LDFLAGS	+= -pthread
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llog
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lskt
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lthread
 EXTRA_LDFLAGS	+= -lrt
 
 

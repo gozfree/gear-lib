@@ -11,10 +11,13 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <linux/netlink.h>
 #include <semaphore.h>
 #include <libgzf.h>
 #include <liblog.h>
+#include <libgevent.h>
+#include <libthread.h>
 #include "libipc.h"
 
 /*
@@ -32,10 +35,13 @@
  *
  */
 
+#define MAX_NAME    256
 
 struct nl_ctx {
     int fd;
     sem_t sem;
+    char rd_name[MAX_NAME];
+    struct gevent_base *evbase;
 };
 
 
@@ -59,10 +65,12 @@ static void *nl_init(const char *name, enum ipc_role role)
         return NULL;
     }
     ctx->fd = fd;
+    strncpy(ctx->rd_name, name, sizeof(ctx->rd_name));
     if (-1 == sem_init(&ctx->sem, 0, 0)) {
         loge("sem_init failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }
+    ctx->evbase = gevent_base_create();
     return ctx;
 }
 
@@ -100,24 +108,6 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     //print_buffer(buf, len);
     sendmsg(ctx->fd, &msg, 0);
     free(nlhdr);
-#if 1
-    int ret;
-    int recv_len = 1024;
-    void *recv_buf = calloc(1, recv_len);
-    if (!recv_buf) {
-        loge("calloc failed!\n");
-    }
-    while (1) {
-        ret = nl_recv(ipc, recv_buf, recv_len);
-        if (ret <= 0) {
-            loge("nl_recv failed: %d\n", ret);
-        } else {
-            break;
-        }
-    }
-    loge("nl_recv ok: len=%d\n", ret);
-
-#endif
     return 0;
 }
 
@@ -149,8 +139,37 @@ static int nl_accept(struct ipc *ipc)
     return 0;
 }
 
+static void *wait_connect(struct thread *thd, void *arg)
+{
+//wait connect response
+
+    return NULL;
+}
+
 static int nl_connect(struct ipc *ipc, const char *name)
 {
+    struct nl_ctx *ctx = ipc->ctx;
+    nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
+    thread_create("netlink_connecting", wait_connect, ipc);
+    struct timeval now;
+    struct timespec abs_time;
+    uint32_t timeout = 5000;//msec
+    gettimeofday(&now, NULL);
+    /* Add our timeout to current time */
+    now.tv_usec += (timeout % 1000) * 1000;
+    now.tv_sec += timeout / 1000;
+    /* Wrap the second if needed */
+    if ( now.tv_usec >= 1000000 ) {
+        now.tv_usec -= 1000000;
+        now.tv_sec ++;
+    }
+    /* Convert to timespec */
+    abs_time.tv_sec = now.tv_sec;
+    abs_time.tv_nsec = now.tv_usec * 1000;
+    if (-1 == sem_timedwait(&ctx->sem, &abs_time)) {
+        loge("connect %s failed %d: %s\n", name, errno, strerror(errno));
+        return -1;
+    }
     return 0;
 }
 
