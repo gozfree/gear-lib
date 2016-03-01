@@ -225,7 +225,6 @@ static int process_msg(struct ipc *ipc, void *buf, size_t len)
 
 static void on_recv(struct ipc *ipc, void *buf, size_t len)
 {
-    logi("xxx\n");
     process_msg(ipc, buf, len);
 }
 
@@ -234,7 +233,6 @@ static void on_return(struct ipc *ipc, void *buf, size_t len)
     uint32_t func_id;
     size_t out_len;
     struct ipc_packet *pkt = (struct ipc_packet *)buf;
-    logi("xxx\n");
     memset(ipc->resp_buf, 0, MAX_IPC_RESP_BUF_LEN);
     unpack_msg(pkt, &func_id, ipc->resp_buf, &out_len);
     ipc->resp_len = out_len;
@@ -266,6 +264,11 @@ struct ipc *ipc_create(enum ipc_role role, uint16_t port)
         ipc->ops->accept(ipc);
     } else {//IPC_CLIENT
         ipc->ctx = ipc->ops->init(ipc_cli_name, role);
+        if (!ipc->ctx) {
+            loge("init failed!\n");
+            return NULL;
+        }
+        ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
         _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
         ipc->ops->register_recv_cb(ipc, on_return);
         if (-1 == ipc->ops->connect(ipc, ipc_srv_name)) {
@@ -273,7 +276,6 @@ struct ipc *ipc_create(enum ipc_role role, uint16_t port)
             return NULL;
         }
         sem_init(&ipc->sem, 0, 0);
-        ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
     }
     return ipc;
 }

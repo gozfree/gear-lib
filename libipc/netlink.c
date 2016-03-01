@@ -19,6 +19,7 @@
 #include <libgevent.h>
 #include <libthread.h>
 #include "libipc.h"
+#include "netlink_driver.h"
 
 /*
  * netlink IPC build flow:
@@ -44,6 +45,10 @@ struct nl_ctx {
     struct gevent_base *evbase;
 };
 
+static char *_nl_recv_buf = NULL;
+static ipc_recv_cb *_nl_recv_cb = NULL;
+
+static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 
 static void *nl_init(const char *name, enum ipc_role role)
 {
@@ -53,7 +58,7 @@ static void *nl_init(const char *name, enum ipc_role role)
     uint32_t pid = getpid();
     saddr.nl_family = AF_NETLINK;
     saddr.nl_pid = pid;
-    saddr.nl_groups = 0;
+    saddr.nl_groups = NETLINK_IPC_GROUP;
     saddr.nl_pad = 0;
     if (0 > bind(fd, (struct sockaddr *)&saddr, sizeof(saddr))) {
         loge("bind failed: %d:%s\n", errno, strerror(errno));
@@ -68,14 +73,25 @@ static void *nl_init(const char *name, enum ipc_role role)
     strncpy(ctx->rd_name, name, sizeof(ctx->rd_name));
     if (-1 == sem_init(&ctx->sem, 0, 0)) {
         loge("sem_init failed %d:%s\n", errno, strerror(errno));
+        free(ctx);
         return NULL;
     }
     ctx->evbase = gevent_base_create();
+    if (!ctx->evbase) {
+        loge("gevent_base_create failed!\n");
+        free(ctx);
+        return NULL;
+    }
+    _nl_recv_buf = calloc(1, MAX_IPC_MESSAGE_SIZE);
+    if (!_nl_recv_buf) {
+        loge("malloc failed!\n");
+        free(ctx);
+        return NULL;
+    }
     return ctx;
 }
 
 
-static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct nl_ctx *ctx = ipc->ctx;
@@ -88,6 +104,7 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     daddr.nl_family = AF_NETLINK;
     daddr.nl_pid = 0;
     daddr.nl_groups = 0;
+    //daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
     daddr.nl_pad = 0;
 
     nlhdr = (struct nlmsghdr *)CALLOC(len, struct nlmsghdr);
@@ -104,8 +121,8 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
-    printf("nlmsg_pid=%d, nlmsg_len=%d", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
-    //print_buffer(buf, len);
+    logi("nlmsg_pid=%d, nlmsg_len=%d\n", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
+    logi("sendmsg len=%d\n", sizeof(msg))
     sendmsg(ctx->fd, &msg, 0);
     free(nlhdr);
     return 0;
@@ -118,10 +135,12 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     struct nlmsghdr *nlhdr = NULL;
     struct msghdr msg;
     struct iovec iov;
+    int ret;
+    char nlhdr_buf[MAX_IPC_MESSAGE_SIZE];
 
-    nlhdr = (struct nlmsghdr *)buf;
+    nlhdr = (struct nlmsghdr *)nlhdr_buf;
     iov.iov_base = (void *)nlhdr;
-    iov.iov_len = len;
+    iov.iov_len = MAX_IPC_MESSAGE_SIZE;
 
     memset(&sa, 0, sizeof(sa));
     memset(&msg, 0, sizeof(msg));
@@ -130,8 +149,14 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
-    loge("nl_recv fd=%d\n", ctx->fd);
-    return recvmsg(ctx->fd, &msg, 0);
+    ret = recvmsg(ctx->fd, &msg, 0);
+    if (ret == -1) {
+        loge("recvmsg failed %d:%s\n", errno, strerror(errno));
+        return ret;
+    }
+    len = nlhdr->nlmsg_len - NLMSG_HDRLEN;
+    memcpy(buf, NLMSG_DATA(nlhdr), len);
+    return ret;
 }
 
 static int nl_accept(struct ipc *ipc)
@@ -139,9 +164,43 @@ static int nl_accept(struct ipc *ipc)
     return 0;
 }
 
-static void *wait_connect(struct thread *thd, void *arg)
+
+static void on_conn_resp(int fd, void *arg)
+{
+    struct ipc *ipc = (struct ipc *)arg;
+    struct nl_ctx *ctx = ipc->ctx;
+    int len;
+    len = nl_recv(ipc, _nl_recv_buf, MAX_IPC_MESSAGE_SIZE);
+    if (len == -1) {
+        loge("nl_recv failed!\n");
+        return;
+    }
+    logi("recv len=%d, buf=%s\n", len, _nl_recv_buf);
+    if (_nl_recv_cb) {
+        _nl_recv_cb(ipc, _nl_recv_buf, len);
+    }
+    if (strncmp(_nl_recv_buf, ctx->rd_name, len)) {
+        loge("connect response check failed!\n");
+    }
+    sem_post(&ctx->sem);
+}
+
+static void on_error(int fd, void *arg)
+{
+    logi("error: %d\n", errno);
+}
+
+static void *connecting_thread(struct thread *thd, void *arg)
 {
 //wait connect response
+    struct ipc *ipc = (struct ipc *)arg;
+    struct nl_ctx *ctx = ipc->ctx;
+    struct gevent *e = gevent_create(ctx->fd, on_conn_resp, NULL, on_error, ipc);
+    if (-1 == gevent_add(ctx->evbase, e)) {
+        loge("gevent_add failed!\n");
+        return NULL;
+    }
+    gevent_base_loop(ctx->evbase);
 
     return NULL;
 }
@@ -149,8 +208,9 @@ static void *wait_connect(struct thread *thd, void *arg)
 static int nl_connect(struct ipc *ipc, const char *name)
 {
     struct nl_ctx *ctx = ipc->ctx;
+    logi("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
-    thread_create("netlink_connecting", wait_connect, ipc);
+    thread_create("connecting", connecting_thread, ipc);
     struct timeval now;
     struct timespec abs_time;
     uint32_t timeout = 5000;//msec
@@ -173,7 +233,6 @@ static int nl_connect(struct ipc *ipc, const char *name)
     return 0;
 }
 
-static ipc_recv_cb *_nl_recv_cb = NULL;
 
 static int nl_set_recv_cb(struct ipc *ipc, ipc_recv_cb *cb)
 {
@@ -188,6 +247,11 @@ static void nl_deinit(struct ipc *ipc)
     }
     struct nl_ctx *ctx = ipc->ctx;
     close(ctx->fd);
+    sem_destroy(&ctx->sem);
+    if (_nl_recv_buf) {
+        free(_nl_recv_buf);
+    }
+    free(ctx);
 }
 
 

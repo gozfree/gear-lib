@@ -208,7 +208,6 @@ static struct platform_driver nlk_driver = {
 };
 #endif
 
-#define NETLINK_IPC_GROUP	0
 #define SCSI_NL_SHOST_VENDOR			0x0001
 
 struct scsi_nl_hdr {
@@ -235,24 +234,26 @@ struct scsi_nl_hdr {
 
 static int nl_send_msg(int pid, const u8 *data, int data_len)
 {
-    int ret;
-    struct nlmsghdr *rep;
-    u8 *res;
-    struct sk_buff *skb;
+	int ret;
+	struct nlmsghdr *rep;
+	u8 *res;
+	struct sk_buff *skb;
 
-    skb = nlmsg_new(data_len, GFP_KERNEL);
-    if(!skb) {
-       printk("nlmsg_new failed!!!\n");
-       return -1;
-    }
+	skb = nlmsg_new(data_len, GFP_KERNEL);
+	if(!skb) {
+		printk("nlmsg_new failed!!!\n");
+		return -ENOMEM;
+	}
 
-    rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
-    res = nlmsg_data(rep);
-    memcpy(res, data, data_len);
-    ret = netlink_unicast(nlfd, skb, pid, 0);
-    printk("%s:%s:%d ret = %d, pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__,
-		    ret, pid, data_len);
-    return 0;
+	rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
+	res = nlmsg_data(rep);
+	memcpy(res, data, data_len);
+	//NETLINK_CB(skb).dst_group = NETLINK_IPC_GROUP_SERVER;
+	ret = netlink_unicast(nlfd, skb, pid, 0);
+	printk("%s:%s:%d ret = %d, pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__,
+			ret, pid, data_len);
+	//nlmsg_free(skb);
+	return 0;
 }
 
 static void nl_recv_msg_handler(struct sk_buff * skb)
@@ -270,9 +271,10 @@ static void nl_recv_msg_handler(struct sk_buff * skb)
 			continue;
 		}
 		msg_len = nlhdr->nlmsg_len - NLMSG_LENGTH(0);
-		printk("%s:%s:%d nlhdr->nlmsg_pid=%d, nlmsg_len=%d\n", __FILE__, __func__, __LINE__, nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
+		printk("%s:%s:%d buf=%s\n", __FILE__, __func__, __LINE__, (char *)NLMSG_DATA(nlhdr));
+		printk("%s:%s:%d skb->len=%d,nlmsg_len=%d,msg_len=%d\n", __FILE__, __func__, __LINE__, skb->len, nlhdr->nlmsg_len, msg_len);
 		//print_buffer(NLMSG_DATA(nlhdr), nlhdr->nlmsg_len);
-		nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), nlhdr->nlmsg_len);
+		nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
 	}
 }
 
@@ -358,7 +360,7 @@ static int __init nlk_init(void)
 {
 	struct netlink_kernel_cfg cfg;
 
-	cfg.groups = NETLINK_IPC_GROUP;
+	cfg.groups = NETLINK_IPC_GROUP_CLIENT;
 	cfg.input = nlk_recv_msg;
 	cfg.input = nl_recv_msg_handler;
 

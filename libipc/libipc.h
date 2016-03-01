@@ -19,9 +19,6 @@
 extern "C" {
 #endif
 
-//netlink
-#define NETLINK_IPC_PORT	20
-
 #define MAX_IPC_RESP_BUF_LEN        (1024)
 #define MAX_IPC_MESSAGE_SIZE        (1024)
 #define MAX_MESSAGES_IN_MAP         (256)

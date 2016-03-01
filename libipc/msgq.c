@@ -81,6 +81,10 @@ static void on_recv(union sigval sv)
     }
     //recv len must greater than mq_msgsize;
     len = _mq_recv(ipc, _mq_recv_buf, MAX_IPC_MESSAGE_SIZE);
+    if (len == -1) {
+        loge("_mq_recv failed!\n");
+        return;
+    }
     if (_mq_recv_cb) {
         _mq_recv_cb(ipc, _mq_recv_buf, len);
     }
