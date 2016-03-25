@@ -38,6 +38,10 @@
 
 #define MAX_NAME    256
 
+//enum nl_state {
+//
+//};
+
 struct nl_ctx {
     int fd;
     sem_t sem;
@@ -47,18 +51,23 @@ struct nl_ctx {
 
 static char *_nl_recv_buf = NULL;
 static ipc_recv_cb *_nl_recv_cb = NULL;
+static struct gevent *ev_on_conn_resp;
+static struct gevent *ev_on_recv;
 
 static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 
 static void *nl_init(const char *name, enum ipc_role role)
 {
     struct sockaddr_nl saddr;
-    int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
+    //int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
+    int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
     memset(&saddr, 0, sizeof(saddr));
     uint32_t pid = getpid();
     saddr.nl_family = AF_NETLINK;
+    //pid = 0;
     saddr.nl_pid = pid;
-    saddr.nl_groups = NETLINK_IPC_GROUP;
+    //saddr.nl_groups = 0;
+    saddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
     saddr.nl_pad = 0;
     if (0 > bind(fd, (struct sockaddr *)&saddr, sizeof(saddr))) {
         loge("bind failed: %d:%s\n", errno, strerror(errno));
@@ -91,7 +100,6 @@ static void *nl_init(const char *name, enum ipc_role role)
     return ctx;
 }
 
-
 static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct nl_ctx *ctx = ipc->ctx;
@@ -101,15 +109,16 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     struct iovec iov;
 
     memset(&daddr, 0, sizeof(daddr));
+    //kernel sockadr_nl must be zero
     daddr.nl_family = AF_NETLINK;
     daddr.nl_pid = 0;
     daddr.nl_groups = 0;
     //daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
     daddr.nl_pad = 0;
 
-    nlhdr = (struct nlmsghdr *)CALLOC(len, struct nlmsghdr);
+    nlhdr = (struct nlmsghdr *)calloc(1, NLMSG_LENGTH(len+1));
     nlhdr->nlmsg_pid = getpid();
-    nlhdr->nlmsg_len = NLMSG_LENGTH(len);
+    nlhdr->nlmsg_len = NLMSG_LENGTH(len+1);
     nlhdr->nlmsg_flags = 0;
     memcpy(NLMSG_DATA(nlhdr), buf, len);
 
@@ -158,12 +167,27 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     memcpy(buf, NLMSG_DATA(nlhdr), len);
     return ret;
 }
-
-static int nl_accept(struct ipc *ipc)
+static void on_error(int fd, void *arg)
 {
-    return 0;
+    logi("error: %d\n", errno);
 }
 
+
+
+static void on_recv(int fd, void *arg)
+{
+    struct ipc *ipc = (struct ipc *)arg;
+    int len;
+    len = nl_recv(ipc, _nl_recv_buf, MAX_IPC_MESSAGE_SIZE);
+    if (len == -1) {
+        loge("nl_recv failed!\n");
+        return;
+    }
+    logi("recv len=%d, buf=%s\n", len, _nl_recv_buf);
+    if (_nl_recv_cb) {
+        _nl_recv_cb(ipc, _nl_recv_buf, len);
+    }
+}
 
 static void on_conn_resp(int fd, void *arg)
 {
@@ -182,12 +206,13 @@ static void on_conn_resp(int fd, void *arg)
     if (strncmp(_nl_recv_buf, ctx->rd_name, len)) {
         loge("connect response check failed!\n");
     }
+    gevent_del(ctx->evbase, ev_on_conn_resp);
+    ev_on_recv = gevent_create(ctx->fd, on_recv, NULL, on_error, ipc);
+    if (-1 == gevent_add(ctx->evbase, ev_on_recv)) {
+        loge("gevent_add failed!\n");
+        return;
+    }
     sem_post(&ctx->sem);
-}
-
-static void on_error(int fd, void *arg)
-{
-    logi("error: %d\n", errno);
 }
 
 static void *connecting_thread(struct thread *thd, void *arg)
@@ -195,8 +220,8 @@ static void *connecting_thread(struct thread *thd, void *arg)
 //wait connect response
     struct ipc *ipc = (struct ipc *)arg;
     struct nl_ctx *ctx = ipc->ctx;
-    struct gevent *e = gevent_create(ctx->fd, on_conn_resp, NULL, on_error, ipc);
-    if (-1 == gevent_add(ctx->evbase, e)) {
+    ev_on_conn_resp = gevent_create(ctx->fd, on_conn_resp, NULL, on_error, ipc);
+    if (-1 == gevent_add(ctx->evbase, ev_on_conn_resp)) {
         loge("gevent_add failed!\n");
         return NULL;
     }
@@ -204,6 +229,37 @@ static void *connecting_thread(struct thread *thd, void *arg)
 
     return NULL;
 }
+
+
+static int nl_accept(struct ipc *ipc)
+{
+    struct nl_ctx *ctx = ipc->ctx;
+    logi("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
+    nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
+    thread_create("connecting", connecting_thread, ipc);
+    struct timeval now;
+    struct timespec abs_time;
+    uint32_t timeout = 5000;//msec
+    gettimeofday(&now, NULL);
+    /* Add our timeout to current time */
+    now.tv_usec += (timeout % 1000) * 1000;
+    now.tv_sec += timeout / 1000;
+    /* Wrap the second if needed */
+    if ( now.tv_usec >= 1000000 ) {
+        now.tv_usec -= 1000000;
+        now.tv_sec ++;
+    }
+    /* Convert to timespec */
+    abs_time.tv_sec = now.tv_sec;
+    abs_time.tv_nsec = now.tv_usec * 1000;
+    logw("nl_accept\n");
+    if (-1 == sem_timedwait(&ctx->sem, &abs_time)) {
+        loge("accept failed %d: %s\n", errno, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
 
 static int nl_connect(struct ipc *ipc, const char *name)
 {

@@ -248,8 +248,13 @@ static int nl_send_msg(int pid, const u8 *data, int data_len)
 	rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
 	res = nlmsg_data(rep);
 	memcpy(res, data, data_len);
-	//NETLINK_CB(skb).dst_group = NETLINK_IPC_GROUP_SERVER;
+#if 0
 	ret = netlink_unicast(nlfd, skb, pid, 0);
+#else
+	NETLINK_CB(skb).portid = 0;
+	NETLINK_CB(skb).dst_group = NETLINK_IPC_GROUP_CLIENT;
+	ret = netlink_broadcast(nlfd, skb, 0, NETLINK_IPC_GROUP_CLIENT, GFP_USER);
+#endif
 	printk("%s:%s:%d ret = %d, pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__,
 			ret, pid, data_len);
 	//nlmsg_free(skb);
@@ -271,8 +276,7 @@ static void nl_recv_msg_handler(struct sk_buff * skb)
 			continue;
 		}
 		msg_len = nlhdr->nlmsg_len - NLMSG_LENGTH(0);
-		printk("%s:%s:%d buf=%s\n", __FILE__, __func__, __LINE__, (char *)NLMSG_DATA(nlhdr));
-		printk("%s:%s:%d skb->len=%d,nlmsg_len=%d,msg_len=%d\n", __FILE__, __func__, __LINE__, skb->len, nlhdr->nlmsg_len, msg_len);
+		printk("%s:%s:%d skb->len=%d,nlmsg_len=%d,msg_len=%d, buf=%s\n", __FILE__, __func__, __LINE__, skb->len, nlhdr->nlmsg_len, msg_len, (char *)NLMSG_DATA(nlhdr));
 		//print_buffer(NLMSG_DATA(nlhdr), nlhdr->nlmsg_len);
 		nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
 	}
@@ -331,7 +335,8 @@ static void nlk_recv_msg(struct sk_buff *skb)
 		 * Deliver message to the appropriate transport
 		 */
 		tport = hdr->transport;
-		if (tport == NETLINK_IPC_PORT) {
+		//if (tport == NETLINK_IPC_PORT) {
+		if (tport == NETLINK_USERSOCK) {
 			switch (hdr->msgtype) {
 			case SCSI_NL_SHOST_VENDOR:
 				/* Locate the driver that corresponds to the message */
@@ -360,11 +365,12 @@ static int __init nlk_init(void)
 {
 	struct netlink_kernel_cfg cfg;
 
-	cfg.groups = NETLINK_IPC_GROUP_CLIENT;
+	cfg.groups = 0;
 	cfg.input = nlk_recv_msg;
 	cfg.input = nl_recv_msg_handler;
 
-	nlfd = netlink_kernel_create(&init_net, NETLINK_IPC_PORT, &cfg);
+	//nlfd = netlink_kernel_create(&init_net, NETLINK_IPC_PORT, &cfg);
+	nlfd = netlink_kernel_create(&init_net, NETLINK_USERSOCK, &cfg);
 	if (!nlfd) {
 		printk("can not create a netlink socket\n");
 		return -1;

@@ -10,7 +10,7 @@
 
 
 #define NETLINK_IPC_PORT	20
-#define NETLINK_IPC_GROUP	0
+#define NETLINK_IPC_GROUP	0	//must be zero
 #define NETLINK_IPC_GROUP_CLIENT 1
 #define NETLINK_IPC_GROUP_SERVER 2
 
