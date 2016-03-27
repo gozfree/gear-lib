@@ -46,6 +46,8 @@ struct nl_ctx {
     int fd;
     sem_t sem;
     char rd_name[MAX_NAME];
+    ipc_role role;
+    int connected;
     struct gevent_base *evbase;
 };
 
@@ -58,6 +60,7 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 
 static void *nl_init(const char *name, enum ipc_role role)
 {
+    int ret;
     struct sockaddr_nl saddr;
     //int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
     int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
@@ -66,11 +69,19 @@ static void *nl_init(const char *name, enum ipc_role role)
     saddr.nl_family = AF_NETLINK;
     //pid = 0;
     saddr.nl_pid = pid;
+    if (role == IPC_SERVER) {
+        saddr.nl_groups = NETLINK_IPC_GROUP_SERVER;
+    } else {
+        saddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
+    }
     //saddr.nl_groups = 0;
-    saddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
     saddr.nl_pad = 0;
-    if (0 > bind(fd, (struct sockaddr *)&saddr, sizeof(saddr))) {
+    ret = bind(fd, (struct sockaddr *)&saddr, sizeof(saddr));
+    if (ret < 0) {
         loge("bind failed: %d:%s\n", errno, strerror(errno));
+        if (errno == EPERM) {
+            loge("using sudo to root\n");
+        }
         return NULL;
     }
     struct nl_ctx *ctx = CALLOC(1, struct nl_ctx);
@@ -79,6 +90,8 @@ static void *nl_init(const char *name, enum ipc_role role)
         return NULL;
     }
     ctx->fd = fd;
+    ctx->role = role;
+    ctx->connected = 0;
     strncpy(ctx->rd_name, name, sizeof(ctx->rd_name));
     if (-1 == sem_init(&ctx->sem, 0, 0)) {
         loge("sem_init failed %d:%s\n", errno, strerror(errno));
@@ -112,14 +125,36 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     //kernel sockadr_nl must be zero
     daddr.nl_family = AF_NETLINK;
     daddr.nl_pid = 0;
-    daddr.nl_groups = 0;
-    //daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
+    //daddr.nl_groups = 0;
+    if (ctx->role == IPC_SERVER) {
+        daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
+    } else if (ctx->role == IPC_CLIENT) {
+        daddr.nl_groups = NETLINK_IPC_GROUP_SERVER;
+    } else {
+    }
     daddr.nl_pad = 0;
 
     nlhdr = (struct nlmsghdr *)calloc(1, NLMSG_LENGTH(len+1));
     nlhdr->nlmsg_pid = getpid();
     nlhdr->nlmsg_len = NLMSG_LENGTH(len+1);
     nlhdr->nlmsg_flags = 0;
+    logi("connected = %d\n", ctx->connected);
+    if (ctx->role == IPC_SERVER) {
+        daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
+        if (ctx->connected) {
+            nlhdr->nlmsg_type = SERVER_TO_CLIENT;
+        } else {
+            nlhdr->nlmsg_type = SERVER_TO_SERVER;
+        }
+    } else if (ctx->role == IPC_CLIENT) {
+        daddr.nl_groups = NETLINK_IPC_GROUP_SERVER;
+        if (ctx->connected) {
+            nlhdr->nlmsg_type = CLIENT_TO_SERVER;
+        } else {
+            nlhdr->nlmsg_type = CLIENT_TO_CLIENT;
+        }
+    } else {
+    }
     memcpy(NLMSG_DATA(nlhdr), buf, len);
 
     memset(&msg, 0, sizeof(struct msghdr));
@@ -171,8 +206,6 @@ static void on_error(int fd, void *arg)
 {
     logi("error: %d\n", errno);
 }
-
-
 
 static void on_recv(int fd, void *arg)
 {
@@ -257,6 +290,7 @@ static int nl_accept(struct ipc *ipc)
         loge("accept failed %d: %s\n", errno, strerror(errno));
         return -1;
     }
+    ctx->connected = 1;
     return 0;
 }
 
@@ -286,6 +320,7 @@ static int nl_connect(struct ipc *ipc, const char *name)
         loge("connect %s failed %d: %s\n", name, errno, strerror(errno));
         return -1;
     }
+    ctx->connected = 1;
     return 0;
 }
 

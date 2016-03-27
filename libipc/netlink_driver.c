@@ -231,7 +231,6 @@ struct scsi_nl_hdr {
         }                                                       \
     } while (0)
 
-
 static int nl_send_msg(int pid, const u8 *data, int data_len)
 {
 	int ret;
@@ -248,17 +247,54 @@ static int nl_send_msg(int pid, const u8 *data, int data_len)
 	rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
 	res = nlmsg_data(rep);
 	memcpy(res, data, data_len);
-#if 0
 	ret = netlink_unicast(nlfd, skb, pid, 0);
-#else
-	NETLINK_CB(skb).portid = 0;
-	NETLINK_CB(skb).dst_group = NETLINK_IPC_GROUP_CLIENT;
-	ret = netlink_broadcast(nlfd, skb, 0, NETLINK_IPC_GROUP_CLIENT, GFP_USER);
-#endif
 	printk("%s:%s:%d ret = %d, pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__,
 			ret, pid, data_len);
 	//nlmsg_free(skb);
 	return 0;
+}
+
+static int nl_broadcast_msg(int pid, int group, const u8 *data, int data_len)
+{
+	int ret;
+	struct nlmsghdr *rep;
+	u8 *res;
+	struct sk_buff *skb;
+
+	skb = nlmsg_new(data_len, GFP_KERNEL);
+	if(!skb) {
+		printk("nlmsg_new failed!!!\n");
+		return -ENOMEM;
+	}
+
+	rep = __nlmsg_put(skb, pid, 0, NLMSG_NOOP, data_len, 0);
+	res = nlmsg_data(rep);
+	memcpy(res, data, data_len);
+	NETLINK_CB(skb).portid = 0;
+	NETLINK_CB(skb).dst_group = group;
+	ret = netlink_broadcast(nlfd, skb, 0, NETLINK_IPC_GROUP_CLIENT, GFP_KERNEL);
+	printk("%s:%s:%d ret = %d, pid = %d, data_len = %d\n", __FILE__, __func__, __LINE__,
+			ret, pid, data_len);
+	//nlmsg_free(skb);
+	return 0;
+}
+
+#define IPC_SERVER_PREFIX   "/IPC_SERVER."
+#define IPC_CLIENT_PREFIX   "/IPC_CLIENT."
+
+static int parse_msg(int type, char *msg, int len)
+{
+    int dir;
+    printk("%s:%d msg = %s\n", __func__, __LINE__, msg);
+    if (!strncmp(msg, IPC_SERVER_PREFIX, strlen(IPC_SERVER_PREFIX))) {
+        dir = SERVER_TO_SERVER;
+    } else if (!strncmp(msg, IPC_CLIENT_PREFIX, strlen(IPC_CLIENT_PREFIX))) {
+        dir = CLIENT_TO_CLIENT;
+    } else {
+        dir = type;
+        printk("%s:%d nlmsg_type %d\n", __func__, __LINE__, dir);
+    }
+    return dir;
 }
 
 static void nl_recv_msg_handler(struct sk_buff * skb)
@@ -266,6 +302,8 @@ static void nl_recv_msg_handler(struct sk_buff * skb)
 	struct nlmsghdr * nlhdr = NULL;
 	int len;
 	int msg_len;
+    char *msg;
+    int towards;
 
 	nlhdr = nlmsg_hdr(skb);
 	len = skb->len;
@@ -277,8 +315,30 @@ static void nl_recv_msg_handler(struct sk_buff * skb)
 		}
 		msg_len = nlhdr->nlmsg_len - NLMSG_LENGTH(0);
 		printk("%s:%s:%d skb->len=%d,nlmsg_len=%d,msg_len=%d, buf=%s\n", __FILE__, __func__, __LINE__, skb->len, nlhdr->nlmsg_len, msg_len, (char *)NLMSG_DATA(nlhdr));
+        msg = NLMSG_DATA(nlhdr);
+        towards = parse_msg(nlhdr->nlmsg_type, msg, msg_len);
+        switch (towards) {
+        case SERVER_TO_SERVER:
+            printk("%s:%d to server\n", __func__, __LINE__);
+		    nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
+            break;
+        case CLIENT_TO_CLIENT:
+            printk("%s:%d to client\n", __func__, __LINE__);
+		    nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
+            break;
+        case SERVER_TO_CLIENT:
+		    nl_broadcast_msg(NETLINK_CB(skb).portid, NETLINK_IPC_GROUP_CLIENT, NLMSG_DATA(nlhdr), msg_len);
+            break;
+        case CLIENT_TO_SERVER:
+		    nl_broadcast_msg(NETLINK_CB(skb).portid, NETLINK_IPC_GROUP_SERVER, NLMSG_DATA(nlhdr), msg_len);
+            break;
+        default:
+            printk("%s:%d to unknown\n", __func__, __LINE__);
+		    //nl_broadcast_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
+            break;
+        }
 		//print_buffer(NLMSG_DATA(nlhdr), nlhdr->nlmsg_len);
-		nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
+		//nl_send_msg(NETLINK_CB(skb).portid, NLMSG_DATA(nlhdr), msg_len);
 	}
 }
 

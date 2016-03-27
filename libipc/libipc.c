@@ -13,7 +13,7 @@
 #include <liblog.h>
 #include "libipc.h"
 
-#define IPC_SERVER_NAME "/IPC_SREVER"
+#define IPC_SERVER_NAME "/IPC_SERVER"
 #define IPC_CLIENT_NAME "/IPC_CLIENT"
 
 extern const struct ipc_ops msgq_ops;

@@ -14,5 +14,20 @@
 #define NETLINK_IPC_GROUP_CLIENT 1
 #define NETLINK_IPC_GROUP_SERVER 2
 
+struct nl_msg_wrap {
+    int dir;
+    void *msg;
+};
+
+typedef enum msg_towards {
+    SERVER_TO_SERVER = 0,
+    SERVER_TO_CLIENT = 1,
+    CLIENT_TO_SERVER = 2,
+    CLIENT_TO_CLIENT = 3,
+
+    UNKNOWN_TO_UNKNOWN = 4,
+} msg_towards;
+
+
 
 #endif

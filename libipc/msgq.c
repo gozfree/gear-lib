@@ -23,7 +23,7 @@
  * message queue IPC build flow:
  *
  *            client (test_libipc)           server (ipcd)
- * step.1                                    create /dev/mqueue/IPC_SREVER.5555
+ * step.1                                    create /dev/mqueue/IPC_SERVER.5555
  *                                           create thread to wait message
  * step.2 create /dev/mqueue/IPC_CLIENT.$pid
  *        send "/IPC_CLIENT.$pid", and wait
