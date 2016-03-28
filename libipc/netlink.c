@@ -62,7 +62,7 @@ static void *nl_init(const char *name, enum ipc_role role)
 {
     int ret;
     struct sockaddr_nl saddr;
-    //int fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
+    //int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
     int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
     memset(&saddr, 0, sizeof(saddr));
     uint32_t pid = getpid();
@@ -113,6 +113,19 @@ static void *nl_init(const char *name, enum ipc_role role)
     return ctx;
 }
 
+static int nlmsg_seq = 0;
+static char *nl_dir[] = {"SERVER_TO_SERVER", "SERVER_TO_CLIENT",
+			"CLIENT_TO_SERVER", "CLIENT_TO_CLIENT"};
+
+#define nl_debug(ctx, nlhdr) \
+	do { \
+		logi("========\n"); \
+		logi("netlink status connected[%d]\n", ctx->connected); \
+		logi("nl_msg direction: %s\n", nl_dir[nlhdr->nlmsg_type]); \
+		logi("nl_msg sequence number: %d\n", nlhdr->nlmsg_seq); \
+		logi("========\n"); \
+	} while (0);
+
 static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct nl_ctx *ctx = ipc->ctx;
@@ -138,20 +151,25 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     nlhdr->nlmsg_pid = getpid();
     nlhdr->nlmsg_len = NLMSG_LENGTH(len+1);
     nlhdr->nlmsg_flags = 0;
-    logi("connected = %d\n", ctx->connected);
+    nlhdr->nlmsg_seq = nlmsg_seq++;
+    logd("connected = %d\n", ctx->connected);
     if (ctx->role == IPC_SERVER) {
         daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
         if (ctx->connected) {
             nlhdr->nlmsg_type = SERVER_TO_CLIENT;
+            logd("SERVER_TO_CLIENT\n");
         } else {
             nlhdr->nlmsg_type = SERVER_TO_SERVER;
+            logd("SERVER_TO_SERVER\n");
         }
     } else if (ctx->role == IPC_CLIENT) {
         daddr.nl_groups = NETLINK_IPC_GROUP_SERVER;
         if (ctx->connected) {
             nlhdr->nlmsg_type = CLIENT_TO_SERVER;
+            logd("CLIENT_TO_SERVER\n");
         } else {
             nlhdr->nlmsg_type = CLIENT_TO_CLIENT;
+            logd("CLIENT_TO_CLIENT\n");
         }
     } else {
     }
@@ -165,9 +183,11 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
-    logi("nlmsg_pid=%d, nlmsg_len=%d\n", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
-    logi("sendmsg len=%d\n", sizeof(msg))
+    nl_debug(ctx, nlhdr);
+    logd("nlmsg_pid=%d, nlmsg_len=%d\n", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
+    logd("sendmsg len=%d\n", sizeof(msg))
     sendmsg(ctx->fd, &msg, 0);
+    //print_buffer(nlhdr, nlhdr->nlmsg_len);
     free(nlhdr);
     return 0;
 }
@@ -182,6 +202,7 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     int ret;
     char nlhdr_buf[MAX_IPC_MESSAGE_SIZE];
 
+    memset(nlhdr_buf, 0, sizeof(nlhdr_buf));
     nlhdr = (struct nlmsghdr *)nlhdr_buf;
     iov.iov_base = (void *)nlhdr;
     iov.iov_len = MAX_IPC_MESSAGE_SIZE;
@@ -200,6 +221,22 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     }
     len = nlhdr->nlmsg_len - NLMSG_HDRLEN;
     memcpy(buf, NLMSG_DATA(nlhdr), len);
+    nl_debug(ctx, nlhdr);
+    if (ctx->role == IPC_SERVER) {
+        if (nlhdr->nlmsg_type == SERVER_TO_CLIENT ||
+            nlhdr->nlmsg_type == CLIENT_TO_CLIENT) {
+            logw("ingore msg\n");
+            return -1;
+        }
+    }
+    if (ctx->role == IPC_CLIENT) {
+        if (nlhdr->nlmsg_type == CLIENT_TO_SERVER ||
+            nlhdr->nlmsg_type == SERVER_TO_SERVER) {
+            logw("ingore msg\n");
+            return -1;
+        }
+    }
+    //print_buffer(nlhdr, nlhdr->nlmsg_len);
     return ret;
 }
 static void on_error(int fd, void *arg)
@@ -216,7 +253,8 @@ static void on_recv(int fd, void *arg)
         loge("nl_recv failed!\n");
         return;
     }
-    logi("recv len=%d, buf=%s\n", len, _nl_recv_buf);
+    logd("recv len=%d, buf=%s\n", len, _nl_recv_buf);
+    //print_buffer(_nl_recv_buf, len);
     if (_nl_recv_cb) {
         _nl_recv_cb(ipc, _nl_recv_buf, len);
     }

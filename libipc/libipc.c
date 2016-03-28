@@ -78,6 +78,7 @@ static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
     *func_id = hdr->func_id;
     *out_len = min(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
     memcpy(out_arg, pkt->payload, *out_len);
+    logi("payload = %s\n", pkt->payload);
     return 0;
 }
 
