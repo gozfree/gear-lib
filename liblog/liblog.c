@@ -343,6 +343,7 @@ static int _log_print(int lvl, const char *tag,
     char s_pid[LOG_PNAME_SIZE];
     char s_tid[LOG_PNAME_SIZE];
     char s_file[LOG_TEXT_SIZE];
+    char s_msg[LOG_BUF_SIZE];
 
     pthread_mutex_lock(&_log_mutex);
     log_get_time(s_time, sizeof(s_time), 0);
@@ -354,23 +355,28 @@ static int _log_print(int lvl, const char *tag,
         case LOG_CRIT:
         case LOG_ERR:
             snprintf(s_lvl, sizeof(s_lvl),
-                    RED("[%7s]"), _log_level_str[lvl]);
+                    B_RED("[%7s]"), _log_level_str[lvl]);
+            snprintf(s_msg, sizeof(s_msg), RED("%s"), msg);
             break;
         case LOG_WARNING:
             snprintf(s_lvl, sizeof(s_lvl),
-                    YELLOW("[%7s]"), _log_level_str[lvl]);
+                    B_YELLOW("[%7s]"), _log_level_str[lvl]);
+            snprintf(s_msg, sizeof(s_msg), YELLOW("%s"), msg);
             break;
         case LOG_INFO:
             snprintf(s_lvl, sizeof(s_lvl),
-                    GREEN("[%7s]"), _log_level_str[lvl]);
+                    B_GREEN("[%7s]"), _log_level_str[lvl]);
+            snprintf(s_msg, sizeof(s_msg), GREEN("%s"), msg);
             break;
         case LOG_DEBUG:
             snprintf(s_lvl, sizeof(s_lvl),
-                    "[%7s]", _log_level_str[lvl]);
+                    B_WHITE("[%7s]"), _log_level_str[lvl]);
+            snprintf(s_msg, sizeof(s_msg), WHITE("%s"), msg);
             break;
         default:
             snprintf(s_lvl, sizeof(s_lvl),
                     "[%7s]", _log_level_str[lvl]);
+            snprintf(s_msg, sizeof(s_msg), "%s", msg);
             break;
         }
     } else {
@@ -411,8 +417,8 @@ static int _log_print(int lvl, const char *tag,
         vec[++i].iov_base = (void *)s_file;
         vec[i].iov_len = strlen(s_file);
     }
-    vec[++i].iov_base = (void *)msg;
-    vec[i].iov_len = strlen(msg);
+    vec[++i].iov_base = (void *)s_msg;
+    vec[i].iov_len = strlen(s_msg);
 
     if (UNLIKELY(!_log_syslog)) {
         ret = _log_handle->write(vec, i+1);
