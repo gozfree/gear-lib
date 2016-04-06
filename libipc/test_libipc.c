@@ -24,7 +24,7 @@ int shell_test()
     char buf[1024];
     char cmd[512];
     int loop = 1;
-    struct ipc *ipc = ipc_create(IPC_CLIENT, 5555);
+    struct ipc *ipc = ipc_create(IPC_CLIENT, IPC_SERVER_PORT);
     if (!ipc) {
         loge("ipc_create failed!\n");
         return -1;
@@ -33,9 +33,8 @@ int shell_test()
         memset(buf, 0, sizeof(buf));
         printf("hack shell$ ");
         scanf("%s", cmd);
-        printf("cmd = %s\n", cmd);
         ipc_call(ipc, IPC_SHELL_HELP, cmd, sizeof(cmd), buf, sizeof(buf));
-        printf("ret = %s\n", buf);
+        printf("%s\n", buf);
     }
     ipc_destroy(ipc);
     return 0;
@@ -50,7 +49,7 @@ int foo()
     calc.opcode = '+';
     int ret;
     logi("calc string=\"%d %c %d\"\n", calc.left, calc.opcode, calc.right);
-    struct ipc *ipc = ipc_create(IPC_CLIENT, 5555);
+    struct ipc *ipc = ipc_create(IPC_CLIENT, IPC_SERVER_PORT);
     logi("before ipc_call\n");
     if (0 != ipc_call(ipc, IPC_CALC, &calc, sizeof(calc), &ret, sizeof(ret))) {
         loge("ipc_call %d failed!\n", IPC_CALC);

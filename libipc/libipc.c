@@ -76,10 +76,43 @@ static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
     }
     hdr = &(pkt->header);
     *func_id = hdr->func_id;
+    if (!IS_IPC_MSG_VALID(*func_id)) {
+        logd("func_id is invalid!\n");
+        return -1;
+    }
     *out_len = min(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
     memcpy(out_arg, pkt->payload, *out_len);
-    logi("payload = %s\n", pkt->payload);
+    logd("payload = %s\n", pkt->payload);
     return 0;
+}
+
+static int push_async_cmd(struct ipc *ipc, uint32_t func_id)
+{
+    char cmd_str[11];//0xFFFFFFFF
+    snprintf(cmd_str, sizeof(cmd_str), "0x%08X", func_id);
+    if (-1 == dict_add(ipc->async_cmd_list, cmd_str, cmd_str)) {
+        return -1;
+    }
+    return 0;
+}
+
+static int pop_async_cmd(struct ipc *ipc, uint32_t func_id)
+{
+    int ret = 0;
+    char *pair = NULL;
+    char cmd_str[11];//0xFFFFFFFF
+    snprintf(cmd_str, sizeof(cmd_str), "0x%08X", func_id);
+    pair = dict_get(ipc->async_cmd_list, cmd_str, cmd_str);
+    if (pair) {
+        if (-1 == dict_del(ipc->async_cmd_list, cmd_str)) {
+            ret = -1;
+        } else {
+            ret = 0;
+        }
+    } else {
+        ret = -1;
+    }
+    return ret;
 }
 
 int ipc_call(struct ipc *ipc, uint32_t func_id,
@@ -111,6 +144,9 @@ int ipc_call(struct ipc *ipc, uint32_t func_id,
         /* Convert to timespec */
         abs_time.tv_sec = now.tv_sec;
         abs_time.tv_nsec = now.tv_usec * 1000;
+        if (-1 == push_async_cmd(ipc, func_id)) {
+            loge("push_async_cmd failed!\n");
+        }
         if (-1 == sem_timedwait(&ipc->sem, &abs_time)) {
             loge("response failed %d:%s\n", errno, strerror(errno));
             return -1;
@@ -203,16 +239,19 @@ int find_ipc_handler(uint32_t func_id, ipc_handler_t *handler)
 static int process_msg(struct ipc *ipc, void *buf, size_t len)
 {
     ipc_handler_t handler;
-    uint32_t func_id;
+    uint32_t func_id = 0;
     char out_arg[1024];
     size_t out_len;
     size_t ret_len;
     struct ipc_packet *pkt = (struct ipc_packet *)buf;
-    unpack_msg(pkt, &func_id, &out_arg, &out_len);
+    if (-1 == unpack_msg(pkt, &func_id, &out_arg, &out_len)) {
+        logd("unpack_msg failed!\n");
+        return -1;
+    }
     if (find_ipc_handler(func_id, &handler) == 0 ) {
         handler.cb(ipc, out_arg, out_len, _arg_buf, &ret_len);//direct call cb is not good, will be change to workq
     } else {
-        loge("no callback for this MSG ID in process_msg\n");
+        logi("no callback for this MSG ID in process_msg\n");
     }
     if (ret_len > 0) {
         if (0 > pack_msg(pkt, func_id, _arg_buf, ret_len)) {
@@ -226,7 +265,9 @@ static int process_msg(struct ipc *ipc, void *buf, size_t len)
 
 static void on_recv(struct ipc *ipc, void *buf, size_t len)
 {
-    process_msg(ipc, buf, len);
+    if (buf != NULL && len > 0) {
+        process_msg(ipc, buf, len);
+    }
 }
 
 static void on_return(struct ipc *ipc, void *buf, size_t len)
@@ -235,7 +276,16 @@ static void on_return(struct ipc *ipc, void *buf, size_t len)
     size_t out_len;
     struct ipc_packet *pkt = (struct ipc_packet *)buf;
     memset(ipc->resp_buf, 0, MAX_IPC_RESP_BUF_LEN);
-    unpack_msg(pkt, &func_id, ipc->resp_buf, &out_len);
+    if (-1 == unpack_msg(pkt, &func_id, ipc->resp_buf, &out_len)) {
+        logd("unpack_msg failed!\n");
+        return;
+    }
+    if (-1 == pop_async_cmd(ipc, func_id)) {
+        logd("msg received is not the response of cmd_id!\n");
+        return;
+    }
+
+    logd("buf=%s\n", ipc->resp_buf);
     ipc->resp_len = out_len;
     sem_post(&ipc->sem);
 }
@@ -269,6 +319,11 @@ struct ipc *ipc_create(enum ipc_role role, uint16_t port)
             loge("init failed!\n");
             return NULL;
         }
+        ipc->async_cmd_list = dict_new();
+        if (!ipc->async_cmd_list) {
+            loge("create async_cmd_list failed!\n");
+            return NULL;
+        }
         ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
         _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
         ipc->ops->register_recv_cb(ipc, on_return);
@@ -292,5 +347,6 @@ void ipc_destroy(struct ipc *ipc)
     if (_arg_buf) free(_arg_buf);
     if (_pkt_sbuf) free(_pkt_sbuf);
     if (ipc->resp_buf) free(ipc->resp_buf);
+    if (ipc->async_cmd_list) dict_free(ipc->async_cmd_list);
     free(ipc);
 }

@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <semaphore.h>
+#include <libdict.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +24,7 @@ extern "C" {
 #define MAX_IPC_MESSAGE_SIZE        (1024)
 #define MAX_MESSAGES_IN_MAP         (256)
 
+#define IPC_SERVER_PORT             (5555)
 typedef enum ipc_role {
     IPC_SERVER = 0,
     IPC_CLIENT = 1,
@@ -72,6 +74,7 @@ typedef struct ipc {
     sem_t sem;
     void *resp_buf;//async response buffer;
     int resp_len;
+    dict *async_cmd_list;
 } ipc_t;
 
 struct ipc *ipc_create(enum ipc_role role, uint16_t port);
@@ -145,8 +148,13 @@ int ipc_register_map(ipc_handler_t *map, int num_entry);
 
 #define IPC_MSG_ID_MASK             0xFFFFFFFF
 
+
 #define IPC_GROUP_BIT               (25)
 #define IPC_GROUP_MASK              0x07
+
+#define IPC_MAGIC_BIT               (20)
+#define IPC_MAGIC_MASK              0x1F
+#define IPC_MAGIC_ID                (0x1B) //11011b
 
 #define IPC_RET_BIT                 (19)
 #define IPC_RET_MASK                0x01
@@ -160,8 +168,10 @@ int ipc_register_map(ipc_handler_t *map, int num_entry);
 #define IPC_CMD_BIT                 (0)
 #define IPC_CMD_MASK                0xFF
 
+
 #define BUILD_IPC_MSG_ID(group, ret, dir, parse, cmd) \
     (((((uint32_t)group) & IPC_GROUP_MASK) << IPC_GROUP_BIT) | \
+     ((((uint32_t)IPC_MAGIC_ID) & IPC_MAGIC_MASK) << IPC_MAGIC_BIT) | \
      ((((uint32_t)ret) & IPC_RET_MASK) << IPC_RET_BIT) | \
      ((((uint32_t)dir) & IPC_DIR_MASK) << IPC_DIR_BIT) | \
      ((((uint32_t)parse) & IPC_PARSE_MASK) << IPC_PARSE_BIT) | \
@@ -178,6 +188,9 @@ int ipc_register_map(ipc_handler_t *map, int num_entry);
 
 #define GET_IPC_MSG_PARSE(cmd) \
         (((cmd & IPC_MSG_ID_MASK)>>IPC_PARSE_BIT) & IPC_PARSE_MASK)
+
+#define IS_IPC_MSG_VALID(cmd) \
+        ((((cmd & IPC_MSG_ID_MASK)>>IPC_MAGIC_BIT) & IPC_MAGIC_MASK)==IPC_MAGIC_ID)
 
 
 enum ipc_direction {

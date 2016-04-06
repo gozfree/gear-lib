@@ -38,9 +38,6 @@
 
 #define MAX_NAME    256
 
-//enum nl_state {
-//
-//};
 
 struct nl_ctx {
     int fd;
@@ -58,23 +55,39 @@ static struct gevent *ev_on_recv;
 
 static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 
+static int nlmsg_seq = 0;
+static char *nl_dir[] = {"SERVER_TO_SERVER",
+                         "SERVER_TO_CLIENT",
+                         "CLIENT_TO_SERVER",
+                         "CLIENT_TO_CLIENT"};
+
+#define nl_debug(ctx, nlhdr) \
+    do { \
+        logd("============================\n"); \
+        logd("netlink status connected[%d]\n", ctx->connected); \
+        logd("nl_msg direction: %s\n", nl_dir[nlhdr->nlmsg_type]); \
+        logd("nl_msg sequence number: %d\n", nlhdr->nlmsg_seq); \
+        logd("============================\n"); \
+    } while (0);
+
+
 static void *nl_init(const char *name, enum ipc_role role)
 {
     int ret;
     struct sockaddr_nl saddr;
-    //int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_IPC_PORT);
     int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
+    if (fd == -1) {
+        loge("socket failed: %d:%s\n", errno, strerror(errno));
+        return NULL;
+    }
     memset(&saddr, 0, sizeof(saddr));
-    uint32_t pid = getpid();
     saddr.nl_family = AF_NETLINK;
-    //pid = 0;
-    saddr.nl_pid = pid;
+    saddr.nl_pid = getpid();
     if (role == IPC_SERVER) {
         saddr.nl_groups = NETLINK_IPC_GROUP_SERVER;
     } else {
         saddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
     }
-    //saddr.nl_groups = 0;
     saddr.nl_pad = 0;
     ret = bind(fd, (struct sockaddr *)&saddr, sizeof(saddr));
     if (ret < 0) {
@@ -113,19 +126,6 @@ static void *nl_init(const char *name, enum ipc_role role)
     return ctx;
 }
 
-static int nlmsg_seq = 0;
-static char *nl_dir[] = {"SERVER_TO_SERVER", "SERVER_TO_CLIENT",
-			"CLIENT_TO_SERVER", "CLIENT_TO_CLIENT"};
-
-#define nl_debug(ctx, nlhdr) \
-	do { \
-		logi("========\n"); \
-		logi("netlink status connected[%d]\n", ctx->connected); \
-		logi("nl_msg direction: %s\n", nl_dir[nlhdr->nlmsg_type]); \
-		logi("nl_msg sequence number: %d\n", nlhdr->nlmsg_seq); \
-		logi("========\n"); \
-	} while (0);
-
 static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct nl_ctx *ctx = ipc->ctx;
@@ -133,12 +133,11 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     struct msghdr msg;
     struct nlmsghdr *nlhdr = NULL;
     struct iovec iov;
+    int ret;
 
     memset(&daddr, 0, sizeof(daddr));
-    //kernel sockadr_nl must be zero
     daddr.nl_family = AF_NETLINK;
     daddr.nl_pid = 0;
-    //daddr.nl_groups = 0;
     if (ctx->role == IPC_SERVER) {
         daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
     } else if (ctx->role == IPC_CLIENT) {
@@ -152,7 +151,6 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     nlhdr->nlmsg_len = NLMSG_LENGTH(len+1);
     nlhdr->nlmsg_flags = 0;
     nlhdr->nlmsg_seq = nlmsg_seq++;
-    logd("connected = %d\n", ctx->connected);
     if (ctx->role == IPC_SERVER) {
         daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
         if (ctx->connected) {
@@ -185,11 +183,12 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 
     nl_debug(ctx, nlhdr);
     logd("nlmsg_pid=%d, nlmsg_len=%d\n", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
-    logd("sendmsg len=%d\n", sizeof(msg))
-    sendmsg(ctx->fd, &msg, 0);
-    //print_buffer(nlhdr, nlhdr->nlmsg_len);
+    ret = sendmsg(ctx->fd, &msg, 0);
+    if (ret == -1) {
+        loge("sendmsg failed: %d:%s\n", errno, strerror(errno));
+    }
     free(nlhdr);
-    return 0;
+    return ret;
 }
 
 static int nl_recv(struct ipc *ipc, void *buf, size_t len)
@@ -225,20 +224,20 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     if (ctx->role == IPC_SERVER) {
         if (nlhdr->nlmsg_type == SERVER_TO_CLIENT ||
             nlhdr->nlmsg_type == CLIENT_TO_CLIENT) {
-            logw("ingore msg\n");
-            return -1;
+            logd("ingore msg\n");
+            return 0;
         }
     }
     if (ctx->role == IPC_CLIENT) {
         if (nlhdr->nlmsg_type == CLIENT_TO_SERVER ||
             nlhdr->nlmsg_type == SERVER_TO_SERVER) {
-            logw("ingore msg\n");
-            return -1;
+            logd("ingore msg\n");
+            return 0;
         }
     }
-    //print_buffer(nlhdr, nlhdr->nlmsg_len);
     return ret;
 }
+
 static void on_error(int fd, void *arg)
 {
     logi("error: %d\n", errno);
@@ -252,9 +251,10 @@ static void on_recv(int fd, void *arg)
     if (len == -1) {
         loge("nl_recv failed!\n");
         return;
+    } else if (len == 0) {
+        logd("nl_recv null msg!\n");
+        return;
     }
-    logd("recv len=%d, buf=%s\n", len, _nl_recv_buf);
-    //print_buffer(_nl_recv_buf, len);
     if (_nl_recv_cb) {
         _nl_recv_cb(ipc, _nl_recv_buf, len);
     }
@@ -269,8 +269,11 @@ static void on_conn_resp(int fd, void *arg)
     if (len == -1) {
         loge("nl_recv failed!\n");
         return;
+    } else if (len == 0) {
+        logd("nl_recv null msg!\n");
+        return;
     }
-    logi("recv len=%d, buf=%s\n", len, _nl_recv_buf);
+    logd("recv len=%d, buf=%s\n", len, _nl_recv_buf);
     if (_nl_recv_cb) {
         _nl_recv_cb(ipc, _nl_recv_buf, len);
     }
@@ -301,29 +304,29 @@ static void *connecting_thread(struct thread *thd, void *arg)
     return NULL;
 }
 
-
 static int nl_accept(struct ipc *ipc)
 {
     struct nl_ctx *ctx = ipc->ctx;
-    logi("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
-    nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
+    logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
+    if (-1 == nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name))) {
+        loge("nl_send failed!\n");
+        return -1;
+    }
     thread_create("connecting", connecting_thread, ipc);
     struct timeval now;
     struct timespec abs_time;
     uint32_t timeout = 5000;//msec
     gettimeofday(&now, NULL);
-    /* Add our timeout to current time */
     now.tv_usec += (timeout % 1000) * 1000;
     now.tv_sec += timeout / 1000;
-    /* Wrap the second if needed */
-    if ( now.tv_usec >= 1000000 ) {
+    if (now.tv_usec >= 1000000) {
         now.tv_usec -= 1000000;
-        now.tv_sec ++;
+        now.tv_sec++;
     }
     /* Convert to timespec */
     abs_time.tv_sec = now.tv_sec;
     abs_time.tv_nsec = now.tv_usec * 1000;
-    logw("nl_accept\n");
+    logd("nl_accept\n");
     if (-1 == sem_timedwait(&ctx->sem, &abs_time)) {
         loge("accept failed %d: %s\n", errno, strerror(errno));
         return -1;
@@ -332,11 +335,10 @@ static int nl_accept(struct ipc *ipc)
     return 0;
 }
 
-
 static int nl_connect(struct ipc *ipc, const char *name)
 {
     struct nl_ctx *ctx = ipc->ctx;
-    logi("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
+    logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
     thread_create("connecting", connecting_thread, ipc);
     struct timeval now;
@@ -382,7 +384,6 @@ static void nl_deinit(struct ipc *ipc)
     }
     free(ctx);
 }
-
 
 const struct ipc_ops nlk_ops = {
     nl_init,
