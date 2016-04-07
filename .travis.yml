@@ -1,2 +1,6 @@
 language: c
+before_install:
+	- sudo apt-get update -qq
+	- sudo apt-get install -qq [libjansson-dev]
+	- sudo apt-get install -qq [protobuf-compile]
 script: ./build.sh
