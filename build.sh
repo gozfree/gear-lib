@@ -96,6 +96,11 @@ check_output()
 	fi
 }
 
+install_dep()
+{
+	sudo apt-get install libjansson-dev
+}
+
 build_module()
 {
 	MODULE_DIR=${LIBS_DIR}/$1
@@ -186,4 +191,5 @@ do_build()
 config_arch
 config_common
 check_output
+install_dep
 do_build
