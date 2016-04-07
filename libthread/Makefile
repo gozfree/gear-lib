@@ -62,7 +62,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lrt
+LDFLAGS	+= -pthread
 LDFLAGS	+= -L$(OUTPUT)/lib -llog
 
 ###############################################################################

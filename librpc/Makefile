@@ -68,7 +68,7 @@ LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 LDFLAGS	+= -L$(OUTPUT)/lib -ldict
 LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 LDFLAGS	+= -L$(OUTPUT)/lib -lthread
-LDFLAGS	+= -pthread
+LDFLAGS	+= -pthread -lrt
 LDFLAGS	+= -L$(PLATFORM_LIB)
 LDFLAGS	+= $($(ARCH)_LDFLAGS)
 
