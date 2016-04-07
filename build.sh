@@ -177,6 +177,8 @@ do_build()
 		build_all;;
 	"clean")
 		build_all clean;;
+	"dep")
+		install_dep;;
 	"install")
 		build_all install;;
 	"uninstall")
@@ -191,5 +193,4 @@ do_build()
 config_arch
 config_common
 check_output
-install_dep
 do_build
