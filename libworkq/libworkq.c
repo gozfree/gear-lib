@@ -106,7 +106,7 @@ static void wq_worker_create(struct workq *wq, worker_func_t func, void *data, s
     }
     w->wq = wq;
     w->func = func;
-    w->data = CALLOC(len, void);
+    w->data = calloc(1, len);
     memcpy(w->data, data, len);
     pthread_mutex_lock(&wq->mutex);
     list_add_tail(&w->entry, &wq->wq_list);

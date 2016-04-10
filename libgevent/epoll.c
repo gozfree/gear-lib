@@ -66,7 +66,7 @@ static void epoll_deinit(void *ctx)
 
 static int epoll_add(struct gevent_base *eb, struct gevent *e)
 {
-    struct epoll_ctx *ec = eb->ctx;
+    struct epoll_ctx *ec = (struct epoll_ctx *)eb->ctx;
     struct epoll_event epev;
     memset(&epev, 0, sizeof(epev));
     if (e->flags & EVENT_READ)
@@ -87,7 +87,7 @@ static int epoll_add(struct gevent_base *eb, struct gevent *e)
 
 static int epoll_del(struct gevent_base *eb, struct gevent *e)
 {
-    struct epoll_ctx *ec = eb->ctx;
+    struct epoll_ctx *ec = (struct epoll_ctx *)eb->ctx;
     if (-1 == epoll_ctl(ec->epfd, EPOLL_CTL_DEL, e->evfd, NULL)) {
         perror("epoll_ctl");
         return -1;
@@ -97,7 +97,7 @@ static int epoll_del(struct gevent_base *eb, struct gevent *e)
 
 static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
 {
-    struct epoll_ctx *epop = eb->ctx;
+    struct epoll_ctx *epop = (struct epoll_ctx *)eb->ctx;
     struct epoll_event *events = epop->events;
     int i, n;
     int timeout = -1;
@@ -139,7 +139,7 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
     return 0;
 }
 
-const struct gevent_ops epollops = {
+struct gevent_ops epollops = {
     epoll_init,
     epoll_deinit,
     epoll_add,

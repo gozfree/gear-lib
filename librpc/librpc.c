@@ -23,7 +23,7 @@ void dump_buffer(void *buf, int len)
     int i;
     for (i = 0; i < len; i++) {
         if (!(i%16))
-           printf("\n%p: ", buf+i);
+           printf("\n%p: ", (char *)buf+i);
         printf("%02x ", (*((char *)buf + i)) & 0xff);
     }
     printf("\n");
@@ -116,7 +116,7 @@ int rpc_send(struct rpc *r, const void *buf, size_t len)
         return -1;
     }
     ret = skt_send(r->fd, pkt->payload, pkt->header.payload_len);
-    if (ret != pkt->header.payload_len) {
+    if (ret != (int)pkt->header.payload_len) {
         loge("skt_send failed!\n");
         return -1;
     }
@@ -155,7 +155,7 @@ struct iovec *rpc_recv_buf(struct rpc *r)
     if (ret == 0) {
         loge("peer connect closed\n");
         goto err;
-    } else if (ret != buf->iov_len) {
+    } else if (ret != (int)buf->iov_len) {
         loge("skt_recv failed: rlen=%d, ret=%d\n", buf->iov_len, ret);
         goto err;
     }
@@ -190,7 +190,7 @@ int rpc_recv(struct rpc *r, void *buf, size_t len)
     if (len < pkt->header.payload_len) {
         loge("skt_recv pkt.header.len = %d\n", pkt->header.payload_len);
     }
-    rlen = min(len, pkt->header.payload_len);
+    rlen = MIN(len, pkt->header.payload_len);
     ret = skt_recv(r->fd, buf, rlen);
     if (ret == 0) {
         loge("peer connect closed\n");

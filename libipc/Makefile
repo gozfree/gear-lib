@@ -69,13 +69,11 @@ EXTRA_CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
-EXTRA_LDFLAGS	+= -pthread
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llog
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lthread
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -ldict
-EXTRA_LDFLAGS	+= -lrt
+EXTRA_LDFLAGS	+= -pthread -lrt
 
 
 ###############################################################################

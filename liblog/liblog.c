@@ -182,7 +182,7 @@ static char *get_proc_name()
     if (i == 0) {
         return NULL;
     }
-    proc = calloc(1, i);
+    proc = (char *)calloc(1, i);
     if (proc) {
         strncpy(proc, ptr, i);
     }
@@ -262,7 +262,7 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
     }
     for (i = 0; i < n; i++) {
         ret = fprintf(_log_fp, "%s", (char *)vec[i].iov_base);
-        if (ret != vec[i].iov_len) {
+        if (ret != (int)vec[i].iov_len) {
             fprintf(stderr, "fprintf failed: %s\n", strerror(errno));
             return -1;
         }
@@ -548,7 +548,7 @@ void log_check_env()
 
 int log_set_split_size(int size)
 {
-    if (size > FILESIZE_LEN || size < 0) {
+    if ((uint32_t)size > FILESIZE_LEN || size < 0) {
         _log_file_size = FILESIZE_LEN;
     } else {
         _log_file_size = size;
@@ -597,8 +597,8 @@ static void log_filename_parse(const char *ident)
 
     memset(_log_path, 0, sizeof(_log_path));
     memset(_log_name_prefix, 0, sizeof(_log_name_prefix));
-    p = strchr(ident, '/');
-    q = strrchr(ident, '/');
+    p = (char *)strchr(ident, '/');
+    q = (char *)strrchr(ident, '/');
     if (p == q || p == NULL) {
         p = (char *)ident;
     } else {
@@ -606,7 +606,7 @@ static void log_filename_parse(const char *ident)
             _log_path[i] = *p;
         }
     }
-    dot = strrchr(ident, '.');
+    dot = (char *)strrchr(ident, '.');
     if (dot) {
         for(i = 0; p < dot; p++, i++) {
             _log_name_prefix[i] = *p;

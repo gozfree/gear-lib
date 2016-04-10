@@ -58,7 +58,7 @@ static void select_deinit(void *ctx)
 
 static int select_add(struct gevent_base *eb, struct gevent *e)
 {
-    struct select_ctx *sc = eb->ctx;
+    struct select_ctx *sc = (struct select_ctx *)eb->ctx;
 
     FD_ZERO(sc->rfds);
     FD_ZERO(sc->wfds);
@@ -79,7 +79,7 @@ static int select_add(struct gevent_base *eb, struct gevent *e)
 
 static int select_del(struct gevent_base *eb, struct gevent *e)
 {
-    struct select_ctx *sc = eb->ctx;
+    struct select_ctx *sc = (struct select_ctx *)eb->ctx;
     if (sc->rfds)
         FD_CLR(e->evfd, sc->rfds);
     if (sc->wfds)
@@ -93,7 +93,7 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
 {
     int i, n;
     int flags;
-    struct select_ctx *sc = eb->ctx;
+    struct select_ctx *sc = (struct select_ctx *)eb->ctx;
     int nfds = sc->nfds + 1;
 
     n = select(nfds, sc->rfds, sc->wfds, sc->efds, tv);
@@ -117,7 +117,7 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
     return 0;
 }
 
-const struct gevent_ops selectops = {
+struct gevent_ops selectops = {
     select_init,
     select_deinit,
     select_add,

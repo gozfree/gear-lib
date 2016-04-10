@@ -47,7 +47,7 @@ static char *xstrdup(char *s)
     char * t;
     if (!s)
         return NULL;
-    t = malloc(strlen(s) + 1);
+    t = (char *)malloc(strlen(s) + 1);
     if (t) {
         strcpy(t, s);
     }
@@ -271,7 +271,7 @@ static int dict_resize(dict *d)
 #endif
     /* Shuffle pointers, re-allocate new table, re-insert data */
     oldtable = d->table;
-    d->table = calloc(newsize, sizeof(keypair));
+    d->table = (keypair *)calloc(newsize, sizeof(keypair));
     if (!(d->table)) {
         /* Memory allocation failure */
         printf("%s: malloc failed %s\n", __func__, strerror(errno));
@@ -293,7 +293,7 @@ static int dict_resize(dict *d)
 /** Public: allocate a new dict */
 dict *dict_new(void)
 {
-    dict * d = calloc(1, sizeof(dict));
+    dict * d = (dict *)calloc(1, sizeof(dict));
     if (!d) {
         printf("%s: malloc failed %s\n", __func__, strerror(errno));
         return NULL;
@@ -301,7 +301,7 @@ dict *dict_new(void)
     d->size = DICT_MIN_SZ;
     d->used = 0;
     d->fill = 0;
-    d->table = calloc(DICT_MIN_SZ, sizeof(keypair));
+    d->table = (keypair *)calloc(DICT_MIN_SZ, sizeof(keypair));
     if (!d->table) {
         printf("%s: malloc failed %s\n", __func__, strerror(errno));
         free(d);
@@ -317,7 +317,7 @@ void dict_free(dict *d)
     if (!d)
         return;
 
-    for (i = 0; i < d->size; i++) {
+    for (i = 0; i < (int)d->size; i++) {
         if (d->table[i].key && d->table[i].key != DUMMY_PTR) {
             free(d->table[i].key);
 #if 0
@@ -368,7 +368,7 @@ int dict_del(dict *d, char *key)
         return -1;
     if (kp->key && kp->key != DUMMY_PTR)
         free(kp->key);
-    kp->key = DUMMY_PTR;
+    kp->key = (char *)DUMMY_PTR;
 #if 0
     if (kp->val)
         free(kp->val);
@@ -386,12 +386,11 @@ int dict_enumerate(dict * d, int rank, char ** key, char ** val)
         return -1 ;
     }
 
-    while ((d->table[rank].key == NULL
-            || d->table[rank].key == DUMMY_PTR)
-            && (rank<d->size))
+    while ((d->table[rank].key == NULL || d->table[rank].key == DUMMY_PTR)
+            && (rank < (int)d->size))
         rank++;
 
-    if (rank>=d->size) {
+    if (rank >= (int)d->size) {
         *key = NULL;
         *val = NULL;
         rank = -1;

@@ -23,6 +23,8 @@ extern "C" {
 /******************************************************************************
  * c++ parament compatibility
  *****************************************************************************/
+#if 0
+conflict with c++ (protobuf)
 #ifndef bool
 #define bool int
 #endif
@@ -33,6 +35,7 @@ extern "C" {
 
 #ifndef false
 #define false (0==1)
+#endif
 #endif
 
 
@@ -51,16 +54,16 @@ extern "C" {
  * instructions
  *****************************************************************************/
 /*
- * swap - swap value of @a and @b
+ * SWAP - SWAP value of @a and @b
  */
-#define swap(a, b) \
+#define SWAP(a, b) \
     do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
 /******************************************************************************
  * math
  *****************************************************************************/
-#define min(a, b)    ((a) > (b) ? (b) : (a))
-#define max(a, b)    ((a) > (b) ? (a) : (b))
+#define MIN(a, b)    ((a) > (b) ? (b) : (a))
+#define MAX(a, b)    ((a) > (b) ? (a) : (b))
 
 
 uint32_t hash_murmur(char *key, size_t len);

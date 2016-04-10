@@ -22,14 +22,14 @@
 #define MAX_UUID_LEN                (21)
 static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 {
-    void *ptr;
+    char *ptr;
     int num = 0;
     len = r->recv_pkt.header.payload_len;
-    logi("strlen = %d, %s\n", strlen(arg), arg);
+    logi("strlen = %d, %s\n", strlen((const char *)arg), arg);
     logi("on_get_connect_list, len = %d\n", r->recv_pkt.header.payload_len);
     num = len / MAX_UUID_LEN;
     printf("\n");
-    for (ptr = arg; num > 0; --num) {
+    for (ptr = (char *)arg; num > 0; --num) {
         logi("uuid list: %s\n", (char *)ptr);
         len = MAX_UUID_LEN;
         ptr += len;
@@ -72,7 +72,7 @@ typedef struct rpc_connect {
 int rpc_get_connect_list(struct rpc *r, struct rpc_connect *list, int *num)
 {
     int len = 100;
-    char *buf = calloc(1, len);
+    char *buf = (char *)calloc(1, len);
     memset(buf, 0xA5, len);
     rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, NULL, 0);
     //printf("func_id = %x\n", RPC_GET_CONNECT_LIST);
@@ -122,7 +122,7 @@ void *raw_data_thread(void *arg)
     int i;
     int len = 1024;
     char ch;
-    char *buf = calloc(1, len);
+    char *buf = (char *)calloc(1, len);
     for (i = 0; i < len; i++) {
         buf[i] = i;
     }
@@ -210,9 +210,9 @@ int cmd_main(int argc, char **argv)
         return -1;
     }
     int len = 100;
-    char *buf = calloc(1, len);
+    char *buf = (char *)calloc(1, len);
     int olen = 100;
-    char *obuf = calloc(1, olen);
+    char *obuf = (char *)calloc(1, olen);
     memset(obuf, 0xA5, olen);
     sprintf(buf, "%s", "I just want to get all connect list\n");
     rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, obuf, olen);

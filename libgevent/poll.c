@@ -57,7 +57,7 @@ static void poll_deinit(void *ctx)
 
 static int poll_add(struct gevent_base *eb, struct gevent *e)
 {
-    struct poll_ctx *pc = eb->ctx;
+    struct poll_ctx *pc = (struct poll_ctx *)eb->ctx;
 
     pc->fds[0].fd = e->evfd;
 
@@ -78,7 +78,7 @@ static int poll_del(struct gevent_base *eb, struct gevent *e)
 }
 static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
 {
-    struct poll_ctx *pc = eb->ctx;
+    struct poll_ctx *pc = (struct poll_ctx *)eb->ctx;
     int i, n;
     int flags;
     int timeout = -1;
@@ -113,7 +113,7 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
     return 0;
 }
 
-const struct gevent_ops pollops = {
+struct gevent_ops pollops = {
     poll_init,
     poll_deinit,
     poll_add,

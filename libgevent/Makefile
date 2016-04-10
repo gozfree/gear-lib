@@ -47,7 +47,7 @@ TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
-#TGT_UNIT_TEST	= test_$(LIBNAME)
+TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
 OBJS_LIB	+= epoll.o poll.o select.o

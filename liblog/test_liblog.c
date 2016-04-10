@@ -65,7 +65,7 @@ void test()
     }
 }
 #if 1
-static void *test2()
+static void *test2(void *arg)
 {
     int i;
     log_init(LOG_STDERR, NULL);

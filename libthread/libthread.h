@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-struct thread {
+typedef struct thread {
     pthread_t tid;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
@@ -43,7 +43,7 @@ int thread_sem_wait(struct thread *t, int64_t ms);
 int thread_sem_signal(struct thread *t);
 void thread_print_info(struct thread *t);
 
-#ifdef __cpulspuls
+#ifdef __cplusplus
 }
 #endif
 #endif

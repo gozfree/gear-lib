@@ -32,7 +32,7 @@ int main(int argc, char * argv[])
 
     nkeys = (argc>1) ? (int)atoi(argv[1]) : NKEYS;
     printf("%15s: %d\n", "values", nkeys);
-    buffer = malloc(9 * nkeys);
+    buffer = (char *)malloc(9 * nkeys);
     if (!buffer) {
         printf("malloc failed!\n");
         return -1;
@@ -57,7 +57,7 @@ int main(int argc, char * argv[])
 
     t1 = epoch_double();
     for(i = 0; i < nkeys; i++) {
-        val = dict_get(d, buffer + i*9, "UNDEF");
+        val = dict_get(d, buffer + i*9, (char *)"UNDEF");
         if (0) {
         printf("hash_get: key=%p, val=%p\n", buffer + i*9, val);
         }

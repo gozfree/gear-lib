@@ -74,7 +74,7 @@ static void on_recv(union sigval sv)
 {
     int len;
     struct mq_ctx *ctx = (struct mq_ctx *)sv.sival_ptr;
-    struct ipc *ipc = ctx->parent;
+    struct ipc *ipc = (struct ipc *)ctx->parent;
     if (-1 == _mq_notify_update(ctx, on_recv)) {
         loge("_mq_notify_update failed!\n");
         return;
@@ -95,7 +95,7 @@ static void on_connect(union sigval sv)
     char buf[MAX_IPC_MESSAGE_SIZE];
     int len;
     struct mq_ctx *ctx = (struct mq_ctx *)sv.sival_ptr;
-    struct ipc *ipc = ctx->parent;
+    struct ipc *ipc = (struct ipc *)ctx->parent;
     if (-1 == _mq_notify_update(ctx, on_recv)) {
         loge("_mq_notify_update failed!\n");
         return;
@@ -164,7 +164,7 @@ static int _mq_set_recv_cb(struct ipc *ipc, ipc_recv_cb *cb)
 
 static int _mq_accept(struct ipc *ipc)
 {//for server
-    struct mq_ctx *ctx = ipc->ctx;
+    struct mq_ctx *ctx = (struct mq_ctx *)ipc->ctx;
     ctx->parent = ipc;
     struct mq_attr attr;
     attr.mq_flags = 0;
@@ -188,7 +188,7 @@ static int _mq_accept(struct ipc *ipc)
 
 static int _mq_connect(struct ipc *ipc, const char *name)
 {//for client
-    struct mq_ctx *ctx = ipc->ctx;
+    struct mq_ctx *ctx = (struct mq_ctx *)ipc->ctx;
     struct mq_attr attr;
     ctx->parent = ipc;
     attr.mq_flags = 0;
@@ -234,7 +234,7 @@ static void _mq_deinit(struct ipc *ipc)
     if (!ipc) {
         return;
     }
-    struct mq_ctx *ctx = ipc->ctx;
+    struct mq_ctx *ctx = (struct mq_ctx *)ipc->ctx;
     mq_close(ctx->mq_rd);
     mq_close(ctx->mq_wr);
     mq_unlink(ctx->mq_rd_name);
@@ -248,8 +248,8 @@ static void _mq_deinit(struct ipc *ipc)
 
 static int _mq_send(struct ipc *ipc, const void *buf, size_t len)
 {
-    struct mq_ctx *ctx = ipc->ctx;
-    if (0 != mq_send(ctx->mq_wr, buf, len, MQ_MSG_PRIO)) {
+    struct mq_ctx *ctx = (struct mq_ctx *)ipc->ctx;
+    if (0 != mq_send(ctx->mq_wr, (const char *)buf, len, MQ_MSG_PRIO)) {
         loge("mq_send failed %d: %s\n", errno, strerror(errno));
         return -1;
     }
@@ -258,8 +258,8 @@ static int _mq_send(struct ipc *ipc, const void *buf, size_t len)
 
 static int _mq_recv(struct ipc *ipc, void *buf, size_t len)
 {
-    struct mq_ctx *ctx = ipc->ctx;
-    ssize_t ret = mq_receive(ctx->mq_rd, buf, len, NULL);
+    struct mq_ctx *ctx = (struct mq_ctx *)ipc->ctx;
+    ssize_t ret = mq_receive(ctx->mq_rd, (char *)buf, len, NULL);
     if (-1 == ret) {
         loge("mq_receive failed %d: %s\n", errno, strerror(errno));
         return -1;
@@ -267,7 +267,7 @@ static int _mq_recv(struct ipc *ipc, void *buf, size_t len)
     return ret;
 }
 
-const struct ipc_ops msgq_ops = {
+struct ipc_ops msgq_ops = {
     _mq_init,
     _mq_deinit,
     _mq_accept,

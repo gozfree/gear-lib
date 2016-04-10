@@ -56,10 +56,11 @@ static struct gevent *ev_on_recv;
 static int nl_recv(struct ipc *ipc, void *buf, size_t len);
 
 static int nlmsg_seq = 0;
-static char *nl_dir[] = {"SERVER_TO_SERVER",
-                         "SERVER_TO_CLIENT",
-                         "CLIENT_TO_SERVER",
-                         "CLIENT_TO_CLIENT"};
+static const char *nl_dir[] = {
+        "SERVER_TO_SERVER",
+        "SERVER_TO_CLIENT",
+        "CLIENT_TO_SERVER",
+        "CLIENT_TO_CLIENT"};
 
 #define nl_debug(ctx, nlhdr) \
     do { \
@@ -117,7 +118,7 @@ static void *nl_init(const char *name, enum ipc_role role)
         free(ctx);
         return NULL;
     }
-    _nl_recv_buf = calloc(1, MAX_IPC_MESSAGE_SIZE);
+    _nl_recv_buf = (char *)calloc(1, MAX_IPC_MESSAGE_SIZE);
     if (!_nl_recv_buf) {
         loge("malloc failed!\n");
         free(ctx);
@@ -128,7 +129,7 @@ static void *nl_init(const char *name, enum ipc_role role)
 
 static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 {
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     struct sockaddr_nl daddr;
     struct msghdr msg;
     struct nlmsghdr *nlhdr = NULL;
@@ -193,7 +194,7 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
 
 static int nl_recv(struct ipc *ipc, void *buf, size_t len)
 {
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     struct sockaddr_nl sa;
     struct nlmsghdr *nlhdr = NULL;
     struct msghdr msg;
@@ -263,7 +264,7 @@ static void on_recv(int fd, void *arg)
 static void on_conn_resp(int fd, void *arg)
 {
     struct ipc *ipc = (struct ipc *)arg;
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     int len;
     len = nl_recv(ipc, _nl_recv_buf, MAX_IPC_MESSAGE_SIZE);
     if (len == -1) {
@@ -293,7 +294,7 @@ static void *connecting_thread(struct thread *thd, void *arg)
 {
 //wait connect response
     struct ipc *ipc = (struct ipc *)arg;
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     ev_on_conn_resp = gevent_create(ctx->fd, on_conn_resp, NULL, on_error, ipc);
     if (-1 == gevent_add(ctx->evbase, ev_on_conn_resp)) {
         loge("gevent_add failed!\n");
@@ -306,7 +307,7 @@ static void *connecting_thread(struct thread *thd, void *arg)
 
 static int nl_accept(struct ipc *ipc)
 {
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     if (-1 == nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name))) {
         loge("nl_send failed!\n");
@@ -337,7 +338,7 @@ static int nl_accept(struct ipc *ipc)
 
 static int nl_connect(struct ipc *ipc, const char *name)
 {
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
     thread_create("connecting", connecting_thread, ipc);
@@ -376,7 +377,7 @@ static void nl_deinit(struct ipc *ipc)
     if (!ipc) {
         return;
     }
-    struct nl_ctx *ctx = ipc->ctx;
+    struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     close(ctx->fd);
     sem_destroy(&ctx->sem);
     if (_nl_recv_buf) {
@@ -385,7 +386,7 @@ static void nl_deinit(struct ipc *ipc)
     free(ctx);
 }
 
-const struct ipc_ops nlk_ops = {
+struct ipc_ops nlk_ops = {
     nl_init,
     nl_deinit,
     nl_accept,

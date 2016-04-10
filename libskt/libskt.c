@@ -3,7 +3,7 @@
  * file:    libskt.c
  * author:  gozfree <gozfree@163.com>
  * created: 2015-05-03 18:27
- * updated: 2015-07-11 20:00
+ * updated: 2016-01-03 14:59
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -495,7 +495,7 @@ int skt_set_buflen(int fd, int size)
 int skt_send(int fd, const void *buf, size_t len)
 {
     ssize_t n;
-    void *p = (void *)buf;
+    char *p = (char *)buf;
     size_t left = len;
     size_t step = MTU;
     int cnt = 0;
@@ -524,7 +524,7 @@ int skt_send(int fd, const void *buf, size_t len)
             }
             continue;
         }
-        perror("send");
+        loge("send failed(%d): %s\n", errno, strerror(errno));
         return -1;
     }
     return (len - left);
@@ -534,7 +534,7 @@ int skt_sendto(int fd, const char *ip, uint16_t port,
                 const void *buf, size_t len)
 {
     ssize_t n;
-    void *p = (void *)buf;
+    char *p = (char *)buf;
     size_t left = len;
     size_t step = MTU;
     struct sockaddr_in sa;
@@ -574,7 +574,7 @@ int skt_sendto(int fd, const char *ip, uint16_t port,
 int skt_recv(int fd, void *buf, size_t len)
 {
     int n;
-    void *p = buf;
+    char *p = (char *)buf;
     size_t left = len;
     size_t step = MTU;
     int cnt = 0;
@@ -618,7 +618,7 @@ int skt_send_sync_recv(int fd, const void *sbuf, size_t slen,
 int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
 {
     int n;
-    void *p = buf;
+    char *p = (char *)buf;
     int cnt = 0;
     size_t left = len;
     size_t step = MTU;

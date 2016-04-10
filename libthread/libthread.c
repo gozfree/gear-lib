@@ -5,7 +5,9 @@
  * created: 2015-08-15 22:57
  * updated: 2016-01-03 15:38
  *****************************************************************************/
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

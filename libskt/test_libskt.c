@@ -158,7 +158,7 @@ void domain_test()
 int main(int argc, char **argv)
 {
     uint16_t port;
-    char *ip;
+    const char *ip;
     if (argc < 2) {
         usage();
         exit(0);
