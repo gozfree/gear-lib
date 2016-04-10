@@ -15,34 +15,15 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <iostream>
-#include "../librpc.h"
+#include "../librpc_stub.h"
 #include "librpc.pb.h"
 #include "hello.pb.h"
 
 using namespace std;
 
-#if 0
-void dump_buffer(void *buf, int len)
+static int on_calc_resp(struct rpc *r, void *arg, int len)
 {
-    int i;
-    for (i = 0; i < len; i++) {
-        if (!(i%16))
-           printf("\n%p: ", buf+i);
-        printf("%02x ", (*((char *)buf + i)) & 0xff);
-    }
-    printf("\n");
-}
-#endif
-
-
-void on_read(int fd, void *arg)
-{
-    struct rpc *r = (struct rpc *)arg;
-    struct iobuf *buf = rpc_recv_buf(r);
-    if (!buf) {
-        return;
-    }
-    string reqbuf((const char *)buf->addr, buf->len);
+    string reqbuf((const char *)arg, len);
     hello::request req;
     if (!req.ParseFromString(reqbuf)) {
         fprintf(stderr, "parse message failed!\n");
@@ -50,6 +31,21 @@ void on_read(int fd, void *arg)
     cout << "request:>>>>>>>>\n" << req.DebugString() << ">>>>>>>>>>>>>>>\n" << endl;
     //printf("recv len = %d, buf = %s\n", buf->len, buf->addr);
     //dump_buffer(buf->addr, buf->len);
+    return 0;
+}
+
+
+static int on_hello_resp(struct rpc *r, void *arg, int len)
+{
+    string reqbuf((const char *)arg, len);
+    hello::request req;
+    if (!req.ParseFromString(reqbuf)) {
+        fprintf(stderr, "parse message failed!\n");
+    }
+    cout << "request:>>>>>>>>\n" << req.DebugString() << ">>>>>>>>>>>>>>>\n" << endl;
+    //printf("recv len = %d, buf = %s\n", buf->len, buf->addr);
+    //dump_buffer(buf->addr, buf->len);
+    return 0;
 }
 
 void on_write(int fd, void *arg)
@@ -67,35 +63,9 @@ void usage()
     fprintf(stderr, "./test_libskt <ip> <port>\n");
 }
 
-void *input_thread(void *arg)
+int rpc_hello(struct rpc *r)
 {
-    struct rpc *r = (struct rpc *)arg;
-    char buf[640];
-    char uuid_dst[MAX_UUID_LEN];
-    int ret;
-    while (1) {
-        memset(buf, 0, sizeof(buf));
-        printf("input uuid_dst> ");
-        scanf("%s", uuid_dst);
-        strncpy(r->uuid_dst, uuid_dst, MAX_UUID_LEN);
-        printf("input strbuf[64]> ");
-        scanf("%s", buf);
-        ret = rpc_send(r, buf, strlen(buf));
-        printf("rpc_send ret = %d, errno=%d\n", ret, errno);
-    }
 
-}
-
-void *raw_data_thread(void *arg)
-{
-    struct rpc *r = (struct rpc *)arg;
-    char uuid_dst[MAX_UUID_LEN];
-    int ret, i;
-    int len = 1024;
-    char *buf = (char *)calloc(1, len);
-    for (i = 0; i < len; i++) {
-        buf[i] = i;
-    }
     hello::request req;
     string wbuf;
     req.set_id(HELLO);
@@ -104,22 +74,27 @@ void *raw_data_thread(void *arg)
 
     if (!req.SerializeToString(&wbuf)) {
         fprintf(stderr, "serialize to string failed!\n");
-        return NULL;
+        return -1;
     }
 
     cout << "request:>>>>>>>>\n" << req.DebugString() << ">>>>>>>>>>>>>>>\n" << endl;
 
-    while (1) {
-        memset(buf, 0, sizeof(buf));
-        printf("input uuid_dst> ");
-        scanf("%s", uuid_dst);
-        strncpy(r->uuid_dst, uuid_dst, MAX_UUID_LEN);
-        ret = rpc_send(r, wbuf.data(), wbuf.length());
-        printf("rpc_send ret = %d, errno=%d\n", ret, errno);
-        //dump_buffer(buf, len);
-    }
-
+    rpc_call(r, RPC_HELLO, wbuf.data(), wbuf.length(), NULL, 0);
+    return 0;
 }
+
+void *raw_data_thread(void *arg)
+{
+    struct rpc *r = (struct rpc *)arg;
+    rpc_hello(r);
+    return NULL;
+}
+
+BEGIN_RPC_MAP(BASIC_RPC_API_RESP)
+RPC_MAP(RPC_HELLO, on_hello_resp)
+RPC_MAP(RPC_CALC, on_calc_resp)
+END_RPC_MAP()
+
 
 int main(int argc, char **argv)
 {
@@ -137,9 +112,11 @@ int main(int argc, char **argv)
         printf("rpc_create failed\n");
         return -1;
     }
-    rpc_set_cb(r, on_read, on_write, on_error, r);
-    //pthread_create(&tid, NULL, input_thread, r);
+    RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
     pthread_create(&tid, NULL, raw_data_thread, r);
-    rpc_dispatch(r);
+    while (1) {
+        sleep(1);
+    }
     return 0;
 }
+
