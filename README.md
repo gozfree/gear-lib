@@ -9,6 +9,7 @@ This is a collection of basic libraries.
 ## Include
 
   * [libgzf](https://github.com/gozfree/libraries/tree/master/libgzf) The most basically header file of all libraries.
+  * [libatomic](https://github.com/gozfree/libraries/tree/master/libatomic) Atomic operation library.
   * [libcmd](https://github.com/gozfree/libraries/tree/master/libcmd) Based on readline, a bash like library.
   * [libconfig](https://github.com/gozfree/libraries/tree/master/libconfig) Configure library, support ini, json.
   * [libdict](https://github.com/gozfree/libraries/tree/master/libdict) Hash key-value dictonary library.
