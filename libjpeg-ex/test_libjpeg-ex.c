@@ -10,11 +10,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <libglog.h>
 #include "libjpeg-ex.h"
-#define WIDTH 	720
-#define HEIGH	480
+#define WIDTH 	1920
+#define HEIGH	1080
 
+#if 0
 void get_luma_buffer(void *buf, struct yuv *yuv)
 {
 #if 0
@@ -121,8 +121,9 @@ int get_yuv_file(struct yuv *yuv, const char *name)
     close(fd);
     return 0;
 }
+#endif
 
-int save_jpeg_file(char *filename, struct jpeg *jpeg)
+int save_jpeg_file(char *filename, struct je_jpeg *jpeg)
 {
     int fd = -1;
     if ((fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0777)) < 0) {
@@ -137,23 +138,42 @@ int save_jpeg_file(char *filename, struct jpeg *jpeg)
     return 0;
 }
 
+#if 0
 void foo()
 {
-    struct yuv *yuv = yuv_new(YUV420, WIDTH, HEIGH);
-    get_yuv_file(yuv, "720x480.yuv");
-    struct jpeg *jpeg = jpeg_new(WIDTH, HEIGH);
+    logi("xxx\n");
+    struct yuv *yuv = je_yuv_new(YUV420, WIDTH, HEIGH);
+    get_yuv_file(yuv, "test_1920x1080.yuv");
+    struct jpeg *jpeg = je_jpeg_new(WIDTH, HEIGH);
     //get_yuv_buffer(yuv);
     logi("xxx\n");
-    jpeg_encode(jpeg, yuv);
+    je_encode_yuv_to_jpeg(yuv, jpeg, 60);
     logi("xxx\n");
     save_jpeg_file("720x480.jpeg", jpeg);
     //use jpeg
-    yuv_free(yuv);
-    jpeg_free(jpeg);
+    je_yuv_free(yuv);
+    je_jpeg_free(jpeg);
+    logi("xxx\n");
+}
+#endif
+
+void foo2()
+{
+    struct je_yuv *yuv = NULL;
+    yuv = je_get_yuv_from_file("720x480.yuv",
+                               YUV420, 720, 480, 480);
+    struct je_jpeg *jpeg = je_jpeg_new(720, 480);
+    struct je_codec *codec = je_codec_create();
+    je_encode_yuv_to_jpeg(codec, yuv, jpeg);
+    save_jpeg_file("720x480.jpeg", jpeg);
+    je_yuv_free(yuv);
+    je_jpeg_free(jpeg);
+    je_codec_destroy(codec);
+
 }
 
 int main(int argc, char **argv)
 {
-    foo();
+    foo2();
     return 0;
 }
