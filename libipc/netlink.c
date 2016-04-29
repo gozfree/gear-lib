@@ -387,11 +387,11 @@ static void nl_deinit(struct ipc *ipc)
 }
 
 struct ipc_ops nlk_ops = {
-    nl_init,
-    nl_deinit,
-    nl_accept,
-    nl_connect,
-    nl_set_recv_cb,
-    nl_send,
-    nl_recv,
+    .init             = nl_init,
+    .deinit           = nl_deinit,
+    .accept           = nl_accept,
+    .connect          = nl_connect,
+    .register_recv_cb = nl_set_recv_cb,
+    .send             = nl_send,
+    .recv             = nl_recv,
 };

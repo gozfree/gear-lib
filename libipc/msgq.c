@@ -268,11 +268,11 @@ static int _mq_recv(struct ipc *ipc, void *buf, size_t len)
 }
 
 struct ipc_ops msgq_ops = {
-    _mq_init,
-    _mq_deinit,
-    _mq_accept,
-    _mq_connect,
-    _mq_set_recv_cb,
-    _mq_send,
-    _mq_recv,
+     .init             = _mq_init,
+     .deinit           = _mq_deinit,
+     .accept           = _mq_accept,
+     .connect          = _mq_connect,
+     .register_recv_cb = _mq_set_recv_cb,
+     .send             = _mq_send,
+     .recv             = _mq_recv,
 };
