@@ -50,6 +50,30 @@ static inline int atomic_int_add_and_fetch_gcc(volatile int *ptr, int inc)
 #endif
 }
 
+#define atomic_int_sub_and_fetch atomic_int_sub_and_fetch_gcc
+static inline int atomic_int_sub_and_fetch_gcc(volatile int *ptr, int inc)
+{
+#if HAVE_ATOMIC_COMPARE_EXCHANGE
+    return __atomic_sub_fetch(ptr, inc, __ATOMIC_SEQ_CST);
+#else
+    return __sync_sub_and_fetch(ptr, inc);
+#endif
+}
+
+#define atomic_int_inc atomic_int_inc_gcc
+static inline int atomic_int_inc_gcc(volatile int *ptr)
+{
+    return atomic_int_add_and_fetch(ptr, 1);
+}
+
+#define atomic_int_dec atomic_int_dec_gcc
+static inline int atomic_int_dec_gcc(volatile int *ptr)
+{
+    return atomic_int_add_and_fetch(ptr, -1);
+}
+
+
+
 #define atomic_ptr_cas atomic_ptr_cas_gcc
 static inline void *atomic_ptr_cas_gcc(void * volatile *ptr,
                                        void *oldval, void *newval)

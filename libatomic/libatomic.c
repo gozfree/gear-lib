@@ -58,6 +58,8 @@ void *atomic_ptr_cas(void * volatile *ptr, void *oldval, void *newval)
     return ret;
 }
 
+
+
 #elif !HAVE_THREADS
 
 int atomic_int_get(volatile int *ptr)
@@ -94,5 +96,15 @@ void *atomic_ptr_cas(void * volatile *ptr, void *oldval, void *newval)
 
 #endif /* HAVE_PTHREADS */
 
+int atomic_int_inc(volatile int *ptr)
+{
+    return atomic_int_add_and_fetch(ptr, 1);
+}
+
+int atomic_int_dec(volatile int *ptr)
+{
+    return atomic_int_add_and_fetch(ptr, -1);
+}
 #endif /* !HAVE_ATOMICS_NATIVE */
+
 

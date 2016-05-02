@@ -55,6 +55,11 @@ void atomic_int_set(volatile int *ptr, int val);
  *       intended for reference counting.
  */
 int atomic_int_add_and_fetch(volatile int *ptr, int inc);
+int atomic_int_sub_and_fetch(volatile int *ptr, int inc);
+
+int atomic_int_inc(volatile int *ptr);
+
+int atomic_int_dec(volatile int *ptr);
 
 /**
  * Atomic pointer compare and swap.
