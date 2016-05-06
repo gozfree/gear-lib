@@ -76,10 +76,12 @@ inline std::ostream& operator<<(std::ostream& output, const LuaKey &key) {
 		output << key.string_value << "(string)";
 	return output;
 }
-struct LuaTable;
-struct LuaTableNode;
+class LuaTable;
+class LuaTableNode;
 
-struct LuaTableNode {
+class LuaTableNode {
+    friend class LuaTable;
+  public:
 	LuaTableNode() :
 		parent (NULL),
 		luaTable (NULL),
@@ -177,8 +179,14 @@ template<> void LuaTableNode::set<float>(const float &value);
 template<> void LuaTableNode::set<double>(const double &value);
 template<> void LuaTableNode::set<std::string>(const std::string &value);
 
+class LuaTable;
+class LuaTableNode;
 /// Reference counting Lua state
-struct LuaStateRef {
+class LuaStateRef {
+
+    friend class LuaTable;
+    friend class LuaTableNode;
+  public:
 	LuaStateRef () :
 		L (NULL),
 		count (0),
@@ -200,7 +208,9 @@ struct LuaStateRef {
 	bool freeOnZeroRefs;
 };
 
-struct LuaTable {
+class LuaTable {
+    friend class LuaTableNode;
+  public:
 	LuaTable () :
 		filename (""),
 		luaStateRef (NULL),

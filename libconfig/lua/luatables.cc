@@ -354,6 +354,18 @@ std::vector<LuaKey> LuaTableNode::keys() {
 }
 
 
+template<> int LuaTableNode::getDefault<int>(const int &default_value) {
+	int result = default_value;
+
+	if (stackQueryValue()) {
+		result = lua_tointeger(luaTable->L, -1);
+	}
+
+	stackRestore();
+
+	return result;
+}
+
 template<> bool LuaTableNode::getDefault<bool>(const bool &default_value) {
 	bool result = default_value;
 
@@ -365,6 +377,7 @@ template<> bool LuaTableNode::getDefault<bool>(const bool &default_value) {
 
 	return result;
 }
+
 
 template<> float LuaTableNode::getDefault<float>(const float &default_value) {
 	float result = default_value;
