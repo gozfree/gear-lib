@@ -37,10 +37,22 @@ int json_test()
     return 0;
 }
 
+int lua_test()
+{
+    struct config *conf = conf_load("lua/config.lua");
+    printf("md_enable = %d\n", conf_get_boolean(conf, "md_enable"));
+    printf("md_source_type= %s\n", conf_get_string(conf, "md_source_type"));
+    printf("fps= %f\n", conf_get_double(conf, "fps"));
+    conf_unload(conf);
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
-    ini_test();
+//    ini_test();
 //    json_test();
+    lua_test();
 
     return 0;
 }

@@ -21,7 +21,7 @@ ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
 endif
 
-CC	= $(CROSS_PREFIX)gcc
+CC	= $(CROSS_PREFIX)g++
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
@@ -41,9 +41,12 @@ endif
 # target and object
 ###############################################################################
 LIBNAME		= libconfig
+VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
+VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
+TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_INI	= ini/iniparser.o \
@@ -52,25 +55,33 @@ OBJS_INI	= ini/iniparser.o \
 
 OBJS_JSON	= json/json_config.o
 
+OBJS_LUA	= lua/luatables.o \
+		  lua/lua_config.o
 
 OBJS_LIB	= $(LIBNAME).o \
 		  $(OBJS_INI) \
-		  $(OBJS_JSON)
+		  $(OBJS_JSON) \
+		  $(OBJS_LUA)
 
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
+CFLAGS_LUA	= -I/usr/include/lua5.2/
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= $(CFLAGS_LUA)
 
 SHARED	:= -shared
 
+LDFLAGS_LUA	= -llua5.2
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
+LDFLAGS	+= -lc
 LDFLAGS	+= -pthread
 LDFLAGS	+= -ljansson
+LDFLAGS	+= $(LDFLAGS_LUA)
 
 ###############################################################################
 # target
@@ -88,11 +99,17 @@ all: $(TGT)
 %.o:%.c
 	$(CC_V) -c $(CFLAGS) $< -o $@
 
+%.o:%.cc
+	$(CC_V) -c $(CFLAGS) $< -o $@
+
+
 $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED)
+	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
+	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
@@ -100,14 +117,19 @@ $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 clean:
 	$(RM_V) -f $(OBJS)
 	$(RM_V) -f $(TGT)
+	$(RM_V) -f version.h
+	$(RM_V) -f $(TGT_LIB_SO)*
+	$(RM_V) -f $(TGT_LIB_SO_VER)
 
 install:
 	$(MAKEDIR_OUTPUT)
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
 	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
 
 uninstall:
 	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO_VER)

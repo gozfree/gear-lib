@@ -240,7 +240,7 @@ void iniparser_dumpsection_ini(dictionary * d, char * s, FILE * f)
 
     fprintf(f, "\n[%s]\n", s);
     secsize = (int)strlen(s) + 2;
-    keym = malloc(secsize);
+    keym = (char *)malloc(secsize);
     snprintf(keym, secsize, "%s:", s);
     for (j=0 ; j<d->size ; j++) {
         if (d->key[j]==NULL)
@@ -277,7 +277,7 @@ int iniparser_getsecnkeys(dictionary * d, char * s)
     if (! iniparser_find_entry(d, s)) return nkeys;
 
     secsize  = (int)strlen(s)+2;
-    keym = malloc(secsize);
+    keym = (char *)malloc(secsize);
     snprintf(keym, secsize, "%s:", s);
 
     for (j=0 ; j<d->size ; j++) {
@@ -324,7 +324,7 @@ char ** iniparser_getseckeys(dictionary * d, char * s)
     keys = (char**) malloc(nkeys*sizeof(char*));
 
     secsize  = (int)strlen(s) + 2;
-    keym = malloc(secsize);
+    keym = (char *)malloc(secsize);
     snprintf(keym, secsize, "%s:", s);
 
     i = 0;
@@ -563,7 +563,7 @@ static line_status iniparser_line(
 {
     line_status sta ;
     int len = line_size-1;
-    char * line = malloc(line_size);
+    char * line = (char *)malloc(line_size);
     char * key = NULL;
     char * value = NULL;
     char * equals = NULL;
@@ -583,11 +583,11 @@ static line_status iniparser_line(
     /* only allocate necessary space for key & val */
     equals = strchr(line, '=');
     if (equals) {
-        value = malloc((len + line) - equals + 1);
-        key = malloc(equals - line + 1);
+        value = (char *)malloc((len + line) - equals + 1);
+        key = (char *)malloc(equals - line + 1);
        *value = 0;
     } else {
-        key = malloc(line_size + 1);
+        key = (char *)malloc(line_size + 1);
     }
 
     if (!key || (equals && !value)) {
@@ -781,7 +781,7 @@ dictionary * iniparser_load(const char * ininame)
         /* len is not strlen(line) but strlen(line) -1 */
         total_size = (len+1) + prev_line_len + 1;
 
-        full_line = malloc(total_size);
+        full_line = (char *)malloc(total_size);
         if (!full_line) {
             fprintf(stderr,
                     "iniparser: out of mem\n");
@@ -822,7 +822,7 @@ dictionary * iniparser_load(const char * ininame)
                 char *seckey;
                 /* section + ':' + key + eos */
                 seckey_size = strlen(section) + strlen(key) +2;
-                seckey = malloc(seckey_size);
+                seckey = (char *)malloc(seckey_size);
                 if (!seckey) {
                     errs++;
                     fprintf(stderr,

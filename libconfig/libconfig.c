@@ -17,11 +17,13 @@
 
 extern const struct config_ops ini_ops;
 extern const struct config_ops json_ops;
+extern const struct config_ops lua_ops;
 
 
 static const struct config_ops *conf_ops[] = {
-    &ini_ops,
+    &lua_ops,
     &json_ops,
+    &ini_ops,
     NULL
 };
 

@@ -67,13 +67,13 @@ static void dump(struct config *conf, FILE *f)
 
 }
 
-const struct config_ops json_ops = {
-    load,
-    set_string,
-    get_string,
-    get_int,
-    get_double,
-    get_boolean,
-    dump,
-    unload,
+struct config_ops json_ops = {
+    .load = load,
+    .set_string = set_string,
+    .get_string = get_string,
+    .get_int = get_int,
+    .get_double = get_double,
+    .get_boolean = get_boolean,
+    .dump = dump,
+    .unload = unload,
 };
