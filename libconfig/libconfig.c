@@ -12,63 +12,67 @@
 #include <unistd.h>
 #include <errno.h>
 #include <libgzf.h>
+#include <liblog.h>
 #include "libconfig.h"
 
 
-extern const struct config_ops ini_ops;
-extern const struct config_ops json_ops;
-extern const struct config_ops lua_ops;
+extern struct config_ops ini_ops;
+extern struct config_ops json_ops;
+extern struct config_ops lua_ops;
 
+struct config *g_config = NULL;
 
-static const struct config_ops *conf_ops[] = {
-    &lua_ops,
-    &json_ops,
-    &ini_ops,
-    NULL
+struct config_ops_list {
+    int index;
+    struct config_ops *ops;
 };
 
-struct config *conf_load(const char *name)
+static struct config_ops_list conf_ops_list[] = {
+    {CONFIG_LUA, &lua_ops},
+    {CONFIG_JSON, &json_ops},
+    {CONFIG_INI, &ini_ops}
+};
+
+struct config *conf_load(enum config_backend backend, const char *name)
 {
-    return conf_ops[0]->load(name);
+    struct config *c = CALLOC(1, struct config);
+    if (!c) {
+        loge("malloc failed!\n");
+        return NULL;
+    }
+    c->ops = conf_ops_list[backend].ops;
+    if (c->ops->load) {
+        c->ops->load(c, name);
+    }
+    g_config = c;
+    return c;
 }
 
-int conf_set(struct config *conf, const char *key, const char *val)
+int conf_set(struct config *c, const char *key, const char *val)
 {
-    return conf_ops[0]->set_string(conf, key, val);
+    if (!c->ops->set_string)
+        return -1;
+    return c->ops->set_string(c, key, val);
 }
 
-int conf_get_int(struct config *conf, const char *key)
+void conf_dump(struct config *c)
 {
-    return conf_ops[0]->get_int(conf, key);
+    if (!c->ops->dump)
+        return;
+    return c->ops->dump(c, stderr);
 }
 
-char *conf_get_string(struct config *conf, const char *key)
+void conf_dump_to_file(FILE *f, struct config *c)
 {
-    return conf_ops[0]->get_string(conf, key);
+    if (!c->ops->dump)
+        return;
+    return c->ops->dump(c, f);
 }
 
-double conf_get_double(struct config *conf, const char *key)
+void conf_unload(struct config *c)
 {
-    return conf_ops[0]->get_double(conf, key);
-}
-
-int conf_get_boolean(struct config *conf, const char *key)
-{
-    return conf_ops[0]->get_boolean(conf, key);
-}
-
-void conf_dump(struct config *conf)
-{
-    return conf_ops[0]->dump(conf, stderr);
-}
-
-void conf_dump_to_file(FILE *f, struct config *conf)
-{
-    return conf_ops[0]->dump(conf, f);
-}
-
-
-void conf_unload(struct config *conf)
-{
-    return conf_ops[0]->unload(conf);
+    if (c->ops->unload) {
+        c->ops->unload(c);
+    }
+    free(c);
 }

@@ -5,72 +5,167 @@
  * created: 2015-09-30 00:42
  * updated: 2015-09-30 00:42
  ******************************************************************************/
+#include <stdarg.h>
 #include <libgzf.h>
+#include <liblog.h>
 #include "../libconfig.h"
 #include "iniparser.h"
 
-static struct config *load(const char *name)
+static int ini_load(struct config *c, const char *name)
 {
     dictionary *ini = iniparser_load(name);
     if (!ini) {
-        printf("iniparser_load %s failed!\n", name);
-        return NULL;
+        loge("iniparser_load %s failed!\n", name);
+        return -1;
     }
-    struct config *c = CALLOC(1, struct config);
-    c->instance = (void *)ini;
-    return c;
+    c->priv = (void *)ini;
+    return 0;
 }
 
-static int set_string(struct config *conf, const char *key, const char *val)
+static int ini_set_string(struct config *c, const char *key, const char *val)
 {
-    dictionary *ini = (dictionary *)conf->instance;
+    dictionary *ini = (dictionary *)c->priv;
     return iniparser_set(ini, key, val);
 }
 
-static char *get_string(struct config *conf, const char *key)
+static char *ini_get_string(struct config *c, ...)
 {
-    dictionary *ini = (dictionary *)conf->instance;
-    return iniparser_getstring(ini, key, NULL);
+    dictionary *ini = (dictionary *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    char *ret = NULL;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = iniparser_getstring(ini, key[0], NULL);
+        break;
+    case 2:
+        break;
+    case 3:
+        break;
+    case 4:
+        break;
+    case 0:
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static int get_int(struct config *conf, const char *key)
+static int ini_get_int(struct config *c, ...)
 {
-    dictionary *ini = (dictionary *)conf->instance;
-    return iniparser_getint(ini, key, -1);
+    dictionary *ini = (dictionary *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    int ret = 0;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = iniparser_getint(ini, key[0], -1);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static double get_double(struct config *conf, const char *key)
+static double ini_get_double(struct config *c, ...)
 {
-    dictionary *ini = (dictionary *)conf->instance;
-    return iniparser_getdouble(ini, key, -1.0);
+    dictionary *ini = (dictionary *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    double ret;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = iniparser_getdouble(ini, key[0], -1.0);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static int get_boolean(struct config *conf, const char *key)
+static int ini_get_boolean(struct config *c, ...)
 {
-    dictionary *ini = (dictionary *)conf->instance;
-    return iniparser_getboolean(ini, key, -1);
+    dictionary *ini = (dictionary *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    int ret;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = iniparser_getboolean(ini, key[0], -1);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static void unload(struct config *conf)
+static void ini_unload(struct config *c)
 {
-    dictionary *ini = (dictionary *)conf->instance;
+    dictionary *ini = (dictionary *)c->priv;
     iniparser_freedict(ini);
-    free(conf);
 }
 
-static void dump(struct config *conf, FILE *f)
+static void ini_dump(struct config *c, FILE *f)
 {
-    dictionary *ini = (dictionary *)conf->instance;
+    dictionary *ini = (dictionary *)c->priv;
     iniparser_dump_ini(ini, f);
 }
 
 struct config_ops ini_ops = {
-    .load = load,
-    .set_string = set_string,
-    .get_string = get_string,
-    .get_int = get_int,
-    .get_double = get_double,
-    .get_boolean = get_boolean,
-    .dump = dump,
-    .unload = unload,
+    .load        = ini_load,
+    .set_string  = ini_set_string,
+    .get_string  = ini_get_string,
+    .get_int     = ini_get_int,
+    .get_double  = ini_get_double,
+    .get_boolean = ini_get_boolean,
+    .dump        = ini_dump,
+    .unload      = ini_unload,
 };

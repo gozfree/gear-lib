@@ -7,73 +7,155 @@
  ******************************************************************************/
 #include <jansson.h>
 #include <libgzf.h>
+#include <liblog.h>
 #include "../libconfig.h"
 
-static struct config *load(const char *name)
+static int js_load(struct config *c, const char *name)
 {
     json_error_t error;
     json_t *json = json_load_file(name, 0, &error);
     if (!json) {
-        printf("json_load_file %s failed!\n", name);
-        return NULL;
+        loge("json_load_file %s failed!\n", name);
+        return -1;
     }
-    struct config *c = CALLOC(1, struct config);
-    c->instance = (void *)json;
-    return c;
-}
-
-static int set_string(struct config *conf, const char *key, const char *val)
-{
+    c->priv = (void *)json;
     return 0;
 }
 
-static char *get_string(struct config *conf, const char *key)
+static char *js_get_string(struct config *c, ...)
 {
-    json_t *json = (json_t *)conf->instance;
-    json_t *jstring = json_object_get(json, key);
-    return (char *)json_string_value(jstring);
+    json_t *json = (json_t *)c->priv;
+    json_t *jstring;
+
+    char **key = NULL;
+    char *tmp = NULL;
+    char *ret = NULL;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        jstring = json_object_get(json, key[0]);
+        ret = (char *)json_string_value(jstring);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static int get_int(struct config *conf, const char *key)
+static int js_get_int(struct config *c, ...)
 {
-    json_t *json = (json_t *)conf->instance;
-    json_t *jint = json_object_get(json, key);
-    return (int)json_integer_value(jint);
+    json_t *json = (json_t *)c->priv;
+    json_t *jint;
+    char **key = NULL;
+    char *tmp = NULL;
+    int ret = 0;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        jint = json_object_get(json, key[0]);
+        ret = (int)json_integer_value(jint);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static double get_double(struct config *conf, const char *key)
+static double js_get_double(struct config *c, ...)
 {
-    json_t *json = (json_t *)conf->instance;
-    json_t *jdouble = json_object_get(json, key);
-    return (double)json_real_value(jdouble);
+    json_t *json = (json_t *)c->priv;
+    json_t *jdouble;
+    char **key = NULL;
+    char *tmp = NULL;
+    double ret;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        jdouble = json_object_get(json, key[0]);
+        ret = (double)json_real_value(jdouble);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static int get_boolean(struct config *conf, const char *key)
+static int js_get_boolean(struct config *c, ...)
 {
-    json_t *json = (json_t *)conf->instance;
-    json_t *jbool = json_object_get(json, key);
-    return (int)json_integer_value(jbool);
+    json_t *json = (json_t *)c->priv;
+    json_t *jbool;
+    char **key = NULL;
+    char *tmp = NULL;
+    int ret;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        jbool = json_object_get(json, key[0]);
+        ret = (int)json_integer_value(jbool);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static void unload(struct config *conf)
+static void js_unload(struct config *c)
 {
-    json_t *json = (json_t *)conf->instance;
+    json_t *json = (json_t *)c->priv;
     json_decref(json);
-    free(conf);
-}
-
-static void dump(struct config *conf, FILE *f)
-{
-
 }
 
 struct config_ops json_ops = {
-    .load = load,
-    .set_string = set_string,
-    .get_string = get_string,
-    .get_int = get_int,
-    .get_double = get_double,
-    .get_boolean = get_boolean,
-    .dump = dump,
-    .unload = unload,
+    .load        = js_load,
+    .set_string  = NULL,
+    .get_string  = js_get_string,
+    .get_int     = js_get_int,
+    .get_double  = js_get_double,
+    .get_boolean = js_get_boolean,
+    .dump        = NULL,
+    .unload      = js_unload,
 };

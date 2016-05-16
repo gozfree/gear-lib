@@ -78,6 +78,7 @@ SHARED	:= -shared
 
 LDFLAGS_LUA	= -llua5.2
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
+LDFLAGS	+= -llog
 LDFLAGS	+= -lc
 LDFLAGS	+= -pthread
 LDFLAGS	+= -ljansson

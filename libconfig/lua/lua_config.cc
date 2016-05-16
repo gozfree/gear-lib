@@ -9,7 +9,9 @@
 #include <cstdlib>
 #include <vector>
 #include <sstream>
+#include <stdarg.h>
 #include <libgzf.h>
+#include <liblog.h>
 
 #include "../libconfig.h"
 #include "luatables.h"
@@ -47,63 +49,181 @@ class LuaConfig: public LuaTable
 };
 
 
-static struct config *load(const char *name)
+static int lua_load(struct config *c, const char *name)
 {
     LuaConfig *lt = LuaConfig::create(name);
-    struct config *c = CALLOC(1, struct config);
-    c->instance = (void *)lt;
-    return c;
-}
-
-static int set_string(struct config *c, const char *key, const char *val)
-{
+    if (!lt) {
+        loge("LuaConfig %s failed!\n", name);
+        return -1;
+    }
+    c->priv = (void *)lt;
     return 0;
 }
 
-static char *get_string(struct config *c, const char *key)
+static int lua_get_int(struct config *c, ...)
 {
-    LuaConfig *lt = (LuaConfig *)c->instance;
-    return (char *)(*lt)[key].getDefault<string>("").c_str();
-}
-
-static int get_int(struct config *c, const char *key)
-{
-    LuaConfig *lt = (LuaConfig *)c->instance;
-    return (*lt)[key].getDefault<int>(0);
-}
-
-static double get_double(struct config *c, const char *key)
-{
-    LuaConfig *lt = (LuaConfig *)c->instance;
-    return (*lt)[key].getDefault<double>(0);
-}
-
-static int get_boolean(struct config *c, const char *key)
-{
-    LuaConfig *lt = (LuaConfig *)c->instance;
-    return (*lt)[key].getDefault<bool>(false);
-}
-
-static void unload(struct config *c)
-{
-    if (c) {
-        free(c);
+    LuaConfig *lt = (LuaConfig *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    int ret = 0;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
     }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = (*lt)[key[0]].getDefault<int>(0);
+        break;
+    case 2:
+        ret = (*lt)[key[0]][key[1]].getDefault<int>(0);
+        break;
+    case 3:
+        ret = (*lt)[key[0]][key[1]][key[2]].getDefault<int>(0);
+        break;
+    case 4:
+        ret = (*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<int>(0);
+        break;
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
-static void dump(struct config *c, FILE *f)
+static char *lua_get_string(struct config *c, ...)
 {
-
+    LuaConfig *lt = (LuaConfig *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    char *ret = NULL;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = (char *)(*lt)[key[0]].getDefault<string>("").c_str();
+        break;
+    case 2:
+        ret = (char *)(*lt)[key[0]][key[1]].getDefault<string>("").c_str();
+        break;
+    case 3:
+        ret = (char *)(*lt)[key[0]][key[1]][key[2]].getDefault<string>("").c_str();
+        break;
+    case 4:
+        ret = (char *)(*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<string>("").c_str();
+        break;
+    case 0:
+    default:
+        break;
+    }
+    free(key);
+    return ret;
 }
 
+static double lua_get_double(struct config *c, ...)
+{
+    LuaConfig *lt = (LuaConfig *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    double ret;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = (*lt)[key[0]].getDefault<double>(0);
+        break;
+    case 2:
+        ret = (*lt)[key[0]][key[1]].getDefault<double>(0);
+        break;
+    case 3:
+        ret = (*lt)[key[0]][key[1]][key[2]].getDefault<double>(0);
+        break;
+    case 4:
+        ret = (*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<double>(0);
+        break;
+    case 0:
+    default:
+        break;
+    }
+    free(key);
+    return ret;
+}
+
+static int lua_get_boolean(struct config *c, ...)
+{
+    LuaConfig *lt = (LuaConfig *)c->priv;
+    char **key = NULL;
+    char *tmp = NULL;
+    int ret;
+    int cnt = 0;
+    va_list ap;
+    va_start(ap, c);
+    tmp = va_arg(ap, char *);
+    while (tmp) {//last argument must be NULL
+        cnt++;
+        key = (char **)realloc(key, cnt*sizeof(char**));
+        key[cnt-1] = tmp;
+        tmp = va_arg(ap, char *);
+    }
+    va_end(ap);
+    switch (cnt) {
+    case 1:
+        ret = (*lt)[key[0]].getDefault<bool>(false);
+        break;
+    case 2:
+        ret = (*lt)[key[0]][key[1]].getDefault<bool>(false);
+        break;
+    case 3:
+        ret = (*lt)[key[0]][key[1]][key[2]].getDefault<bool>(false);
+        break;
+    case 4:
+        ret = (*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<bool>(false);
+        break;
+    case 0:
+    default:
+        break;
+    }
+    free(key);
+    return ret;
+}
+
+static void lua_unload(struct config *c)
+{
+    LuaConfig *lt = (LuaConfig *)c->priv;
+    lt->destroy();
+}
 
 struct config_ops lua_ops = {
-    .load = load,
-    .set_string = set_string,
-    .get_string = get_string,
-    .get_int = get_int,
-    .get_double = get_double,
-    .get_boolean = get_boolean,
-    .dump = dump,
-    .unload = unload,
+    .load        = lua_load,
+    .set_string  = NULL,
+    .get_string  = lua_get_string,
+    .get_int     = lua_get_int,
+    .get_double  = lua_get_double,
+    .get_boolean = lua_get_boolean,
+    .dump        = NULL,
+    .unload      = lua_unload,
 };

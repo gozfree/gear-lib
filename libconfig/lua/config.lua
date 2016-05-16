@@ -11,6 +11,14 @@
 -- max_files (int):         max jpeg files saved
 
 jpeg_encode = {
+  type_1 = {
+    type = "422",
+    index = 1,
+  },
+  type_2 = {
+    type = "420",
+    index = 2,
+  },
   md_enable       = false,
   md_source_type  = "yuv",
   source_buffer   = 1,
