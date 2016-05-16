@@ -8,26 +8,27 @@ This is a collection of basic libraries.
 
 ## Include
 
-  * [libgzf](https://github.com/gozfree/libraries/tree/master/libgzf) The most basically header file of all libraries.
-  * [libatomic](https://github.com/gozfree/libraries/tree/master/libatomic) Atomic operation library.
-  * [libcmd](https://github.com/gozfree/libraries/tree/master/libcmd) Based on readline, a bash like library.
-  * [libconfig](https://github.com/gozfree/libraries/tree/master/libconfig) Configure library, support ini, json.
-  * [libdict](https://github.com/gozfree/libraries/tree/master/libdict) Hash key-value dictonary library.
-  * [libdlmod](https://github.com/gozfree/libraries/tree/master/libdlmod) Dynamic linking loader wrapper library.
-  * [libgevent](https://github.com/gozfree/libraries/tree/master/libgevent) Reactor event library, like
-   [libevent](https://github.com/libevent/libevent).
-  * [libhash](https://github.com/gozfree/libraries/tree/master/libhash) Hash key-value library based on hlist from kernel.
-  * [libipc](https://github.com/gozfree/libraries/tree/master/libipc) Inter-Process Communication library, support mqueue/netlink/shm.
-  * [liblog](https://github.com/gozfree/libraries/tree/master/liblog) Log library, support console/file/rsyslog.
-  * [libosal](https://github.com/gozfree/libraries/tree/master/libosal) OSAL(Operating System Abstraction Layer) library.
-  * [libp2p](https://github.com/gozfree/libraries/tree/master/libp2p) High level p2p punch hole library, easy API to use.
-  * [libptcp](https://github.com/gozfree/libraries/tree/master/libptcp) Pseudo Tcp Socket over UDP, rewrite with C from libjingle.
-  * [librbtree](https://github.com/gozfree/libraries/tree/master/librbtree) Librbtree comes from linux kernel rbtree.c
-  * [librpc](https://github.com/gozfree/libraries/tree/master/librpc) Remote Procedure Call library.
-  * [libskt](https://github.com/gozfree/libraries/tree/master/libskt) Socket wrapper library for easy use.
-  * [libstun](https://github.com/gozfree/libraries/tree/master/libstun) STUN protocol wrapper library.
-  * [libthread](https://github.com/gozfree/libraries/tree/master/libthread) Thread wrapper library for easy use.
-  * [libworkq](https://github.com/gozfree/libraries/tree/master/libworkq) Work queue in userspace like work-queue/tasklet in kernel.
+| Library                 | Note                                                       |
+|-------------------------|------------------------------------------------------------|
+|  [libgzf](libgzf)       | The most basically header file of all libraries.           |
+|  [libatomic](libatomic) | Atomic operation library.                                  |
+|  [libcmd](libcmd)       | Based on readline, a bash like library.                    |
+|  [libconfig](libconfig) | Configure library, support ini, json.                      |
+|  [libdict](libdict)     | Hash key-value dictonary library.                          |
+|  [libdlmod](libdlmod)   | Dynamic linking loader wrapper library.                    |
+|  [libgevent](libgevent) | Reactor event library, like libevent                       |
+|  [libhash](libhash)     | Hash key-value library based on hlist from kernel.         |
+|  [libipc](libipc)       | Inter-Process Communication, support mqueue/netlink/shm.   |
+|  [liblog](liblog)       | Log library, support console/file/rsyslog.                 |
+|  [libosal](libosal)     | OSAL(Operating System Abstraction Layer) library.          |
+|  [libp2p](libp2p)       | High level p2p punch hole library, easy API to use.        |
+|  [libptcp](libptcp)     | Pseudo Tcp Socket over UDP, rewrite with C from libjingle. |
+|  [librbtree](librbtree) | Librbtree comes from linux kernel rbtree.                  |
+|  [librpc](librpc)       | Remote Procedure Call library.                             |
+|  [libskt](libskt)       | Socket wrapper library for easy use.                       |
+|  [libstun](libstun)     | STUN protocol wrapper library.                             |
+|  [libthread](libthread) | Thread wrapper library for easy use.                       |
+|  [libworkq](libworkq)   | Work queue in userspace like work-queue/tasklet in kernel. |
 
 ## How To Build
 Recommend Ubuntu14.04 gcc-4.8.4+
