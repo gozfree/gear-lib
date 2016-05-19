@@ -137,3 +137,14 @@ ssize_t system_with_result(const char *cmd, void *buf, size_t count)
     }
     return len;
 }
+
+int is_little_endian(void)
+{
+    unsigned int probe = 0xff;
+    size_t sz = sizeof(unsigned int);
+    unsigned char * probe_byte = (unsigned char *)&probe;
+    if (!(probe_byte[0] == 0xff || probe_byte[sz - 1] == 0xff)) {
+        printf("%s: something wrong!\n", __func__);
+    }
+    return probe_byte[0] == 0xff;
+}

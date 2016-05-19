@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+int is_little_endian(void);
 int system_noblock(char **argv);
 ssize_t system_with_result(const char *cmd, void *buf, size_t count);
 ssize_t system_noblock_with_result(char **argv, void *buf, size_t count);
