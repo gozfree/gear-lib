@@ -27,6 +27,7 @@ This is a collection of basic libraries.
 |  [librpc](librpc)       | Remote Procedure Call library.                             |
 |  [libskt](libskt)       | Socket wrapper library for easy use.                       |
 |  [libstun](libstun)     | STUN protocol wrapper library.                             |
+|  [libtime](libtime)     | Time wrapper library for easy use.                         |
 |  [libthread](libthread) | Thread wrapper library for easy use.                       |
 |  [libworkq](libworkq)   | Work queue in userspace like work-queue/tasklet in kernel. |
 
