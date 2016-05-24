@@ -69,7 +69,7 @@ void *_vector_plusplus(struct vector *v);
 */
 #define vector_new(t) \
     ({struct vector *v = init(TYPE_ARG(t), sizeof(t)); v;})
-bool vector_empty(struct vector *v);
+int vector_empty(struct vector *v);
 #define vector_push_back(v, e) push_back(v, (void *)&e)
 void vector_pop_back(struct vector *v);
 #define vector_back(v, type_t) \
