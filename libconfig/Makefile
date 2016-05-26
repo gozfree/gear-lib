@@ -68,7 +68,7 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS_LUA	= -I/usr/include/lua5.2/
+CFLAGS_LUA	= `pkg-config --cflags lua5.2`
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
@@ -76,9 +76,9 @@ CFLAGS	+= $(CFLAGS_LUA)
 
 SHARED	:= -shared
 
-LDFLAGS_LUA	= -llua5.2
+LDFLAGS_LUA	= `pkg-config --libs lua5.2`
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -llog
+LDFLAGS += -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -lc
 LDFLAGS	+= -pthread
 LDFLAGS	+= -ljansson
