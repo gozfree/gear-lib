@@ -39,6 +39,7 @@ typedef struct vector {
  * vector_end
  * vector_size
  * vector_iter_valuep
+ * vector_at
  * vector_next
  * vector_prev
 */
@@ -53,6 +54,7 @@ vector_iter vector_end(struct vector *v);
 vector_iter vector_next(struct vector *v);
 vector_iter vector_prev(struct vector *v);
 void *_vector_iter_value(struct vector *v, vector_iter iter);
+void *_vector_at(struct vector *v, int pos);
 
 
 #define vector_create(type_t) \
@@ -71,16 +73,8 @@ void vector_pop_back(struct vector *v);
 #define vector_iter_valuep(vector, iter, type_t) \
     (type_t *)_vector_iter_value(vector, iter)
 
-
-
-#if 0
-#define vector_get_member(v, pos, type_t) \
-    (type_t *)get_member(v, pos)
-#else
-//XXX: need debug
-#define vector_get_member(v, pos, type_t) \
-    (type_t *)(v->buf.iov_base + pos * v->type_size)
-#endif
+#define vector_at(v, pos, type_t) \
+    (type_t *)_vector_at(v, pos)
 
 
 #ifdef __cplusplus

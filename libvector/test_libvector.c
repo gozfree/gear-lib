@@ -42,6 +42,7 @@ void mix_struct()
 
 void default_struct()
 {
+    int i;
     int sum = 0;
     int *tmp;
     int t1 = 100, t2 = 200, t3 = 300;
@@ -52,6 +53,9 @@ void default_struct()
     vector_push_back(a, t3);
     for (iter = vector_begin(a); iter != vector_end(a); iter = vector_next(a)) {
         printf("vector member: %d\n", *vector_iter_valuep(a, iter, int));
+    }
+    for (i = 0; i < a->size; i++) {
+        printf("vector member: %d\n", *vector_at(a, i, int));
     }
 
     while (!vector_empty(a)) {

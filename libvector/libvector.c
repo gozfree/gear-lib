@@ -106,15 +106,13 @@ void *_vector_iter_value(struct vector *v, vector_iter iter)
     return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
 }
 
-void *get_member(struct vector *v, int pos)
+void *_vector_at(struct vector *v, int pos)
 {
     if (!v || pos < 0) {
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
-    void *tmp = (uint8_t *)v->buf.iov_base + pos * v->type_size;
-    printf("tmp = %p\n", tmp);
-    return tmp;
+    return (void *)((uint8_t *)v->buf.iov_base + pos * v->type_size);
 }
 
 struct vector *_vector_create(size_t size)
