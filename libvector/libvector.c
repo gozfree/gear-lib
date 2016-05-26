@@ -10,17 +10,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <libgzf.h>
 #include "libvector.h"
 
 #define VECTOR_DEFAULT_BUF_LEN  (1024)
 
-void push_back(struct vector *v, void *e)
+void _vector_push_back(struct vector *v, void *e, size_t type_size)
 {
     size_t resize;
     void *pnew;
-    CHECK_INVALID_PARAMENT(!v || !e);
-    v->size++;
+    if (!v || !e || type_size != v->type_size) {
+        printf("%s: paraments invalid!\n", __func__);
+        return;
+    }
     if (v->size * v->type_size >= v->capacity) {
         resize = v->capacity + VECTOR_DEFAULT_BUF_LEN;
         pnew = realloc(v->buf.iov_base, resize);
@@ -33,73 +34,122 @@ void push_back(struct vector *v, void *e)
     }
     void *ptop = (uint8_t *)v->buf.iov_base + v->size * v->type_size;
     memcpy(ptop, e, v->type_size);
+    v->size++;
 }
 
 void vector_pop_back(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT(!v);
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return;
+    }
+    if (v->size <= 0) {
+        printf("vector is empty already, cannot pop!\n");
+        return;
+    }
     v->size--;
 }
 
 int vector_empty(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, 1);
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return -1;
+    }
     return (v->size == 0);
 }
 
-void *_vector_begin(struct vector *v)
+vector_iter vector_begin(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
     return v->buf.iov_base;
 }
 
-void *_vector_end(struct vector *v)
+vector_iter vector_end(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
     return (void *)((uint8_t *)v->buf.iov_base + v->size * v->type_size);
 }
 
-void *_vector_plusplus(struct vector *v)
+vector_iter vector_next(struct vector *v)
 {
-    CHECK_INVALID_PARAMENT_WITH_RETURN(!v, NULL);
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
     v->tmp_cursor++;
+    return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
+}
+
+vector_iter vector_prev(struct vector *v)
+{
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
+    v->tmp_cursor--;
+    return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
+}
+
+void *_vector_iter_value(struct vector *v, vector_iter iter)
+{
+    if (!v || !iter) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
     return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
 }
 
 void *get_member(struct vector *v, int pos)
 {
-    CHECK_INVALID_PARAMENT_WITH_RETURN(!v || pos < 0, NULL);
+    if (!v || pos < 0) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
     void *tmp = (uint8_t *)v->buf.iov_base + pos * v->type_size;
     printf("tmp = %p\n", tmp);
     return tmp;
 }
 
-struct vector *init(type_arg_t ta, size_t size)
+struct vector *_vector_create(size_t size)
 {
-    struct vector *v = CALLOC(1, struct vector);
-    v->type = ta;
+    struct vector *v = (struct vector *)calloc(1, sizeof(struct vector));
+    if (!v) {
+        printf("malloc vector failed!\n");
+        return NULL;
+    }
     v->size = 0;
     v->tmp_cursor = 0;
     v->type_size = size;
     v->max_size = (size_t)(-1/size);
     v->capacity = VECTOR_DEFAULT_BUF_LEN;
-    IOVEC_INIT(v->buf, VECTOR_DEFAULT_BUF_LEN);
-    switch (ta) {
-    case _int:
-        printf("init int\n");
-        break;
-    case _long:
-        printf("init long\n");
-        break;
-    default:
-        break;
+    v->buf.iov_len = VECTOR_DEFAULT_BUF_LEN;
+    v->buf.iov_base = calloc(1, v->buf.iov_len);
+    if (!v->buf.iov_base) {
+        printf("malloc vector buf failed!\n");
+        goto failed;
     }
-#if 0
-    printf("type = %d\n", v->type);
-    printf("size = %zu\n", v->size);
-    printf("type_size = %zu\n", v->type_size);
-    printf("max_size = %zu\n", v->max_size);
-    printf("capacity = %zu\n", v->capacity);
-#endif
     return v;
+failed:
+    if (v) {
+        free(v);
+    }
+    return NULL;
+}
+
+void vector_destroy(struct vector *v)
+{
+    if (!v) {
+        return;
+    }
+    if (v->buf.iov_base) {
+        free(v->buf.iov_base);
+    }
+    free(v);
 }
