@@ -8,12 +8,36 @@
 #ifndef _LIBTIME_H_
 #define _LIBTIME_H_
 
+#include <stdint.h>
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/*
+ * accuracy second
+ */
+uint32_t time_get_sec();
+char *time_get_sec_str();
 
-int time_get_string(char *str, int len);
+/*
+ * accuracy milli second
+ */
+uint64_t time_get_msec();
+char *time_get_msec_str(char *str, int len);
+int time_sleep_ms(uint64_t ms);
+
+/*
+ * accuracy micro second
+ */
+uint64_t time_get_usec();
+
+/*
+ * accuracy nano second
+ */
+uint64_t time_get_nsec();
+uint64_t time_get_nsec_bootup();
 
 
 #ifdef __cplusplus

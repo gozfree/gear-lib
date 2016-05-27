@@ -9,10 +9,23 @@
 #include <stdlib.h>
 #include "libtime.h"
 
-int main(int argc, char **argv)
+void foo()
 {
     char time[32];
-    time_get_string(time, sizeof(time));
-    printf("time = %s\n", time);
+    printf("time_get_sec_str:     %s", time_get_sec_str());
+    printf("time_get_msec_str:    %s\n", time_get_msec_str(time, sizeof(time)));
+    printf("time_get_sec:         %d\n", time_get_sec());
+    printf("time_get_msec:        %ld\n", time_get_msec());
+    printf("time_get_msec:        %ld\n", time_get_usec()/1000);
+    printf("time_get_usec:        %ld\n", time_get_usec());
+    printf("time_get_nsec:        %ld\n", time_get_nsec());
+    printf("time_get_nsec_bootup: %ld\n", time_get_nsec_bootup());
+}
+
+int main(int argc, char **argv)
+{
+    foo();
+    time_sleep_ms(1000);
+    foo();
     return 0;
 }
