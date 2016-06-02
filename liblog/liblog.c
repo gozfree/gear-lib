@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -20,9 +21,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <linux/unistd.h>
-#include <libgzf.h>
 
 #include "liblog.h"
+#include "color.h"
 
 #define LOG_IOVEC_MAX       (10)
 #define FILENAME_LEN        (256)
@@ -35,6 +36,7 @@
 #define LOG_TEXT_SIZE       (256)
 #define PROC_NAME_LEN	    (512)
 #define LOG_LEVEL_DEFAULT   LOG_INFO
+#define LOG_IO_OPS
 
 /*#define LOG_VERBOSE_ENABLE
 */
@@ -68,6 +70,15 @@
 
 #define is_str_equal(a,b) \
     ((strlen(a) == strlen(b)) && (0 == strcasecmp(a,b)))
+
+#ifdef __GNUC__
+#define LIKELY(x)       (__builtin_expect(!!(x), 1))
+#define UNLIKELY(x)     (__builtin_expect(!!(x), 0))
+#else
+#define LIKELY(x)       (x)
+#define UNLIKELY(x)     (x)
+#endif
+
 
 typedef struct log_ops {
     int (*open)(const char *path);
@@ -127,20 +138,15 @@ static char _proc_name[LOG_PNAME_SIZE];
 static unsigned long long _log_file_size = FILESIZE_LEN;
 static int _log_type;
 static const char *_log_ident;
-static pthread_once_t _once = PTHREAD_ONCE_INIT;
 
 
 static unsigned long get_file_size(const char *path)
 {
-#if 0
     struct stat buf;
     if (stat(path, &buf) < 0) {
         return 0;
     }
     return (unsigned long)buf.st_size;
-#else
-    return 0;
-#endif
 }
 
 #if defined (__ANDROID__)
@@ -224,8 +230,37 @@ static void log_get_time(char *str, int len, int flag_name)
     }
 }
 
+static const char *get_dir(const char *path)
+{
+    char *p = (char *)path + strlen(path);
+    for (; p != path; p--) {
+       if (*p == '/') {
+           *(p + 1) = '\0';
+       }
+    }
+    return path;
+}
+
+static void check_dir(const char *path)
+{
+    char *path_org = NULL;
+    const char *dir = NULL;
+    if (strstr(path, "/")) {//file with dir
+        path_org = strdup(path);
+        dir = get_dir(path_org);
+        if (-1 == access(dir, F_OK|W_OK|R_OK)) {
+            if (-1 == mkdir(dir, 0775)) {
+                fprintf(stderr, "mkdir %s failed: %s\n",
+                        path_org, strerror(errno));
+            }
+        }
+        free(path_org);
+    }
+}
+
 static int _log_fopen(const char *path)
 {
+    check_dir(path);
     _log_fp = fopen(path, "a+");
     if (!_log_fp) {
         fprintf(stderr, "fopen %s failed: %s\n", path, strerror(errno));
@@ -277,6 +312,7 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
 
 static int _log_open(const char *path)
 {
+    check_dir(path);
     _log_fd = open(path, O_RDWR|O_CREAT|O_APPEND, 0644);
     if (_log_fd == -1) {
         fprintf(stderr, "open %s failed: %s\n", path, strerror(errno));
@@ -382,6 +418,7 @@ static int _log_print(int lvl, const char *tag,
     } else {
         snprintf(s_lvl, sizeof(s_lvl),
                 "[%7s]", _log_level_str[lvl]);
+        snprintf(s_msg, sizeof(s_msg), "%s", msg);
     }
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_PIDTID_BIT)) {
         snprintf(s_pname, sizeof(s_pname), "[%s ", _proc_name);
@@ -736,12 +773,15 @@ int log_init(int type, const char *ident)
 {
     _log_type = type;
     _log_ident = ident;
-    pthread_once(&_once, __log_init);
+    __log_init();
     return 0;
 }
 
 void log_deinit()
 {
+    if (!_log_driver) {
+        return;
+    }
     _log_driver->deinit();
     _log_driver = NULL;
     _is_log_init = 0;

@@ -1,3 +1,0 @@
-1. fix rsyslog seg fault
-2. singleton mode for thread-safe
-3. need test on ios
