@@ -9,7 +9,19 @@
 #include <stdlib.h>
 #include "libdebug.h"
 
+void foo()
+{
+    char *tmp = NULL;
+    debug_register_backtrace();
+    *tmp = 0;
+    printf("xxx=%s\n", tmp);
+    free(tmp);
+    free(tmp);
+}
+
 int main(int argc, char **argv)
 {
+    foo();
+
     return 0;
 }

@@ -5,15 +5,14 @@
  * created: 2016-06-17 16:53:13
  * updated: 2016-06-17 16:53:13
  *****************************************************************************/
-#define __USE_GNU
 #define _GNU_SOURCE
+#include <ucontext.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <execinfo.h>
-#include <ucontext.h>
 #include <stdint.h>
+#include <execinfo.h>
 
 #include "libdebug.h"
 
@@ -31,25 +30,33 @@ static uint32_t signum[] =
 
 static void critical_error_handler(int sig_num, siginfo_t *info, void *ucontext)
 {
-  void *array[64];
-  ucontext_t *uc    = (ucontext_t*)ucontext;
-  void *caller_addr = (void*)uc->uc_mcontext.gregs[REG_EIP];
-  size_t size       = 0;
-  char **strings    = NULL;
+#define BT_SIZE 100
+    void *array[BT_SIZE];
+    ucontext_t *uc    = (ucontext_t*)ucontext;
+    void *caller_addr = NULL;
+#ifdef __x86_64__
+    caller_addr = (void*)uc->uc_mcontext.gregs[REG_RIP];
+#else
+    caller_addr = (void*)uc->uc_mcontext.gregs[REG_EIP];
+#endif
+    size_t size       = 0;
+    char **strings    = NULL;
 
-  fprintf(stderr, "Caught signal %s(%d), address(%p) from %p!",
-        strsignal(sig_num),
-        sig_num,
-        info->si_addr,
-        caller_addr);
+    fprintf(stderr, "Program received signal %s.\n", strsignal(sig_num));
+    fprintf(stderr, "%p %s:%d, address(%p)\n",
+                    caller_addr,
+                    strerror(sig_num),
+                    sig_num,
+                    info->si_addr);
 
-  size = backtrace(array, 64);
-  array[1] = caller_addr; /* overwrite sigaction with caller's address */
-  strings = backtrace_symbols(array, size);
-  for (size_t i = 1; i < size && (NULL != strings); ++ i) {
-    fprintf(stderr, "[bt]: (%zu) %s", i, strings[i]);
-  }
-  exit(EXIT_FAILURE);
+    size = backtrace(array, BT_SIZE);
+
+    //array[0] = caller_addr; /* overwrite sigaction with caller's address */
+    strings = backtrace_symbols(array, size);
+    for (size_t i = 0; i < size && (NULL != strings); ++ i) {
+        fprintf(stderr, "#%zu %s\n", i, strings[i]);
+    }
+    exit(EXIT_FAILURE);
 }
 
 int debug_register_backtrace()
