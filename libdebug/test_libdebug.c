@@ -12,16 +12,26 @@
 void foo()
 {
     char *tmp = NULL;
-    debug_register_backtrace();
     *tmp = 0;
     printf("xxx=%s\n", tmp);
     free(tmp);
     free(tmp);
 }
 
-int main(int argc, char **argv)
+void foo2()
 {
     foo();
+}
+
+void foo3()
+{
+    foo2();
+}
+
+int main(int argc, char **argv)
+{
+    debug_backtrace_init();
+    foo3();
 
     return 0;
 }

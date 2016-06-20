@@ -12,7 +12,18 @@
 extern "C" {
 #endif
 
-int debug_register_backtrace();
+
+/*! Initialize backtrace handler, once "Segmentation fault" occured,
+ * the backtrace info will be show like "(gdb) bt"
+ *
+ */
+int debug_backtrace_init();
+
+
+/*! backtrace dump, can be called everywhere in your code
+ *
+ */
+void debug_backtrace_dump();
 
 
 #ifdef __cplusplus
