@@ -11,36 +11,48 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <semaphore.h>
-#include <libgzf.h>
+#include <liblock.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define PTHREAD_NAME_LEN    16
 typedef struct thread {
     pthread_t tid;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    sem_t sem;
-    char *name;  //only for debug, useless
-    int is_run;
+    spin_lock_t *spin;
+    mutex_lock_t *mutex;
+    mutex_cond_t *cond;
+    sem_lock_t *sem;
+    char name[PTHREAD_NAME_LEN];
     void *(*func)(struct thread *, void *);
+    void *(*func_std)(struct thread *, const char *fmt, ...);
+    char *fmt;
     void *arg;
 } thread_t;
 
-int thread_capability(struct capability_desc *desc);
 struct thread *thread_create(const char *name,
                 void *(*func)(struct thread *, void *), void *arg);
+
+struct thread *thread_create_std(const char *name,
+                void *(*func)(struct thread *, const char *fmt, ...),
+                const char *fmt, ...);
+
 void thread_destroy(struct thread *t);
-int thread_cond_wait(struct thread *t);
-int thread_cond_signal(struct thread *t);
-int thread_mutex_lock(struct thread *t);
-int thread_mutex_unlock(struct thread *t);
-int thread_sem_lock(struct thread *t);
-int thread_sem_unlock(struct thread *t);
+
+int thread_spin_lock(struct thread *t);
+int thread_spin_unlock(struct thread *t);
+
 int thread_sem_wait(struct thread *t, int64_t ms);
 int thread_sem_signal(struct thread *t);
+
+int thread_mutex_lock(struct thread *t);
+int thread_mutex_unlock(struct thread *t);
+int thread_cond_wait(struct thread *t, int64_t ms);
+int thread_cond_signal(struct thread *t);
+int thread_cond_signal_all(struct thread *t);
+
+
 void thread_print_info(struct thread *t);
 
 #ifdef __cplusplus

@@ -13,84 +13,166 @@
 #include <errno.h>
 #include <pthread.h>
 #include <stdarg.h>
-#include <libgzf.h>
-#include <liblog.h>
 #include "libthread.h"
 
-
-/*
- * thread capability description must map to thread_cap
- */
-const char *thread_cap_desc[] = {
-    "thread_capability",
-    "thread_create",
-    "thread_destroy",
-    "thread_cond_wait",
-    "thread_cond_signal",
-    "thread_mutex_lock",
-    "thread_mutex_unlock",
-    "thread_sem_lock",
-    "thread_sem_unlock",
-    "thread_sem_wait",
-    "thread_sem_signal",
-    "thread_print_info",
-};
+#define CALLOC(size, type) \
+    (type *)calloc(size, sizeof(type))
 
 
 static void *__thread_func(void *arg)
 {
     struct thread *t = (struct thread *)arg;
-    if (t->func) {
-        logd("thread %s is created, thread_id = %ld, thread_self = %ld\n",
-             t->name, t->tid, pthread_self());
-        t->is_run = 1;
-        t->func(t, t->arg);
-        t->is_run = 0;
-        logd("thread %s exits\n", t->name);
-    } else {
-        logw("thread function is null\n");
+    if (!t->func) {
+        printf("thread function is null\n");
+        return NULL;
     }
+    printf("thread %s is created, thread_id = %ld, thread_self = %ld\n",
+             t->name, t->tid, pthread_self());
+    t->func(t, t->arg);
+    printf("thread %s exits\n", t->name);
 
     return NULL;
 }
 
-#define PTHREAD_NAME_LEN    16
+static void *__thread_func_std(void *arg)
+{
+#if 0
+    struct thread *t = (struct thread *)arg;
+    if (!t->func) {
+        printf("thread function is null\n");
+        return NULL;
+    }
+    printf("thread %s is created, thread_id = %ld, thread_self = %ld\n",
+           t->name, t->tid, pthread_self());
+    void *p = t->arg;
+    va_list list;
+    va_start(ap, t->fmt);
+    va_copy(list, ap);
+    va_end(ap);
+    
+    t->func_std(t, t->fmt, t->arg);
+    printf("thread %s exits\n", t->name);
+#endif
 
-struct thread *thread_create(const char *name,
-                void *(*func)(struct thread *, void *), void *arg)
+    return NULL;
+}
+
+
+struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg)
 {
     int ret;
     struct thread *t = CALLOC(1, struct thread);
     if (!t) {
-        loge("malloc thread failed(%d): %s\n", errno, strerror(errno));
+        printf("malloc thread failed(%d): %s\n", errno, strerror(errno));
         goto err;
     }
-    if (-1 == sem_init(&t->sem, 0, 0)) {
-        loge("sem_init failed(%d): %s\n", errno, strerror(errno));
+    if (!(t->spin = spin_lock_init())) {
+        printf("spin_lock_init failed\n");
         goto err;
     }
-    pthread_mutex_init(&t->mutex, NULL);
-    if (0 != pthread_cond_init(&t->cond, NULL)) {
-        loge("pthread_cond_init failed(%d): %s\n", errno, strerror(errno));
+    if (!(t->mutex = mutex_lock_init())) {
+        printf("mutex_lock_init failed\n");
         goto err;
     }
+    if (!(t->cond = mutex_cond_init())) {
+        printf("mutex_cond_init failed\n");
+        goto err;
+    }
+    if (!(t->sem = sem_lock_init())) {
+        printf("sem_lock_init failed\n");
+        goto err;
+    }
+
     t->arg = arg;
     t->func = func;
-    t->is_run = 0;
-    if (name) {
-        t->name = strdup(name);
-    }
     if (0 != pthread_create(&t->tid, NULL, __thread_func, t)) {
-        loge("pthread_create failed(%d): %s\n", errno, strerror(errno));
+        printf("pthread_create failed(%d): %s\n", errno, strerror(errno));
         goto err;
     }
-    if (name) {
-        if (0 != (ret = pthread_setname_np(t->tid, name))) {
+    return t;
+
+err:
+    if (t->spin) spin_deinit(t->spin);
+    if (t->sem) sem_lock_deinit(t->sem);
+    if (t->mutex) mutex_lock_deinit(t->mutex);
+    if (t->cond) mutex_cond_deinit(t->cond);
+    if (t) {
+        free(t);
+    }
+    return NULL;
+}
+
+struct thread *thread_create_std(const char *name,
+                void *(*func)(struct thread *, const char *fmt, ...),
+                const char *fmt, ...)
+{
+    int ret;
+    struct thread *t = CALLOC(1, struct thread);
+    if (!t) {
+        printf("malloc thread failed(%d): %s\n", errno, strerror(errno));
+        goto err;
+    }
+    if (!(t->spin = spin_lock_init())) {
+        printf("spin_lock_init failed\n");
+        goto err;
+    }
+    if (!(t->mutex = mutex_lock_init())) {
+        printf("mutex_lock_init failed\n");
+        goto err;
+    }
+    if (!(t->cond = mutex_cond_init())) {
+        printf("mutex_cond_init failed\n");
+        goto err;
+    }
+    if (!(t->sem = sem_lock_init())) {
+        printf("sem_lock_init failed\n");
+        goto err;
+    }
+
+    char *p = NULL;
+    int size = 0;
+    va_start(ap, fmt);
+    size = vsnprintf(p, size, fmt, ap);
+    va_end(ap);
+    if (size < 0) {
+        printf("get args failed:%s\n", strerror(errno));
+        goto err;
+    }
+
+    size++;/* For '\0' */
+    p = calloc(1, size);
+    if (!p) {
+        goto err;
+    }
+
+    va_start(ap, fmt);
+    size = vsnprintf(p, size, fmt, ap);
+    va_end(ap);
+    if (size < 0) {
+        printf("get args failed:%s\n", strerror(errno));
+        goto err;
+    }
+
+    t->arg = (void *)p;
+    t->fmt = strdup(fmt);
+    t->func_std = func;
+
+    if (0 != pthread_create(&t->tid, NULL, __thread_func_std, t)) {
+        printf("pthread_create failed(%d): %s\n", errno, strerror(errno));
+        goto err;
+    }
+    if (name && strlen(name) > 0) {
+        if (strlen(name) > PTHREAD_NAME_LEN) {
+            printf("thread name is out of range, should be less than %d\n",
+                   PTHREAD_NAME_LEN);
+        }
+        strncpy(t->name, name, PTHREAD_NAME_LEN);
+        if (0 != (ret = pthread_setname_np(t->tid, t->name))) {
             if (ret == ERANGE) {
-                loge("thread name is out of range, should be less than %d\n",
+                printf("thread name is out of range, should be less than %d\n",
                                 PTHREAD_NAME_LEN);
             } else {
-                loge("pthread_setname_np ret = %d, failed(%d): %s\n",
+                printf("pthread_setname_np ret = %d, failed(%d): %s\n",
                                 ret, errno, strerror(errno));
             }
             goto err;
@@ -100,6 +182,16 @@ struct thread *thread_create(const char *name,
     return t;
 
 err:
+    if (t->spin) spin_deinit(t->spin);
+    if (t->sem) sem_lock_deinit(t->sem);
+    if (t->mutex) mutex_lock_deinit(t->mutex);
+    if (t->cond) mutex_cond_deinit(t->cond);
+    if (t->arg) {
+        free(t->arg);
+    }
+    if (t->fmt) {
+        free(t->fmt);
+    }
     if (t) {
         free(t);
     }
@@ -111,70 +203,88 @@ void thread_destroy(struct thread *t)
     if (!t) {
         return;
     }
-    pthread_mutex_destroy(&t->mutex);
-    if (t->name) {
-        free(t->name);
-    }
+    if (t->spin) spin_deinit(t->spin);
+    if (t->sem) sem_lock_deinit(t->sem);
+    if (t->mutex) mutex_lock_deinit(t->mutex);
+    if (t->cond) mutex_cond_deinit(t->cond);
     free(t);
 }
 
-int thread_cond_wait(struct thread *t)
+int thread_spin_lock(struct thread *t)
 {
-    return pthread_cond_wait(&t->cond, &t->mutex);
+    if (!t || !t->spin) {
+        return -1;
+    }
+    return spin_lock(t->spin);
 }
-
-int thread_cond_signal(struct thread *t)
+int thread_spin_unlock(struct thread *t)
 {
-    return pthread_cond_signal(&t->cond);
+    if (!t || !t->spin) {
+        return -1;
+    }
+    return spin_unlock(t->spin);
 }
 
 int thread_mutex_lock(struct thread *t)
 {
-    return pthread_mutex_lock(&t->mutex);
+    if (!t || !t->mutex) {
+        return -1;
+    }
+    return mutex_lock(t->mutex);
 }
-
 int thread_mutex_unlock(struct thread *t)
 {
-    return pthread_mutex_unlock(&t->mutex);
+    if (!t || !t->mutex) {
+        return -1;
+    }
+    return mutex_unlock(t->mutex);
 }
+
+int thread_cond_wait(struct thread *t, int64_t ms)
+{
+    if (!t || !t->mutex || !t->cond) {
+        return -1;
+    }
+    return mutex_cond_wait(t->mutex, t->cond, ms);
+}
+int thread_cond_signal(struct thread *t)
+{
+    if (!t || !t->cond) {
+        return -1;
+    }
+    return mutex_cond_signal(t->cond);
+}
+int thread_cond_signal_all(struct thread *t)
+{
+    if (!t || !t->cond) {
+        return -1;
+    }
+    return mutex_cond_signal_all(t->cond);
+}
+
 
 int thread_sem_wait(struct thread *t, int64_t ms)
 {
-    int ret;
-    if (ms < 0) {
-        ret = sem_wait(&t->sem);
-    } else {
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec += ms / 1000;
-        ts.tv_nsec += (ms % 1000) * 1000000;
-        ret = sem_timedwait(&t->sem, &ts);
+    if (!t || !t->sem) {
+        return -1;
     }
-    return ret;
+    return sem_lock_wait(t->sem, ms);
 }
-
 int thread_sem_signal(struct thread *t)
 {
-    int ret;
-    ret = sem_trywait(&t->sem);
-    ret += sem_post(&t->sem);
-    return ret;
+    if (!t || !t->sem) {
+        return -1;
+    }
+    return sem_lock_signal(t->sem);
 }
 
 void thread_print_info(struct thread *t)
 {
     pthread_mutex_lock(&t->mutex);
-    logi("========\n");
-    logi("thread name = %s\n", t->name);
-    logi("thread id = %ld\n", t->tid);
-    logi("thread status=%s\n", t->is_run?"running":"stopped");
-    logi("========\n");
+    printf("========\n");
+    printf("thread name = %s\n", t->name);
+    printf("thread id = %ld\n", t->tid);
+    printf("========\n");
     pthread_mutex_unlock(&t->mutex);
 }
 
-int thread_capability(struct capability_desc *desc)
-{
-    desc->entry = sizeof(thread_cap_desc)/sizeof(thread_cap_desc[0]);
-    desc->cap = (char **)thread_cap_desc;
-    return desc->entry;
-}
