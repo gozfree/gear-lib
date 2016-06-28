@@ -300,7 +300,7 @@ struct rpc *rpc_create(const char *host, uint16_t port)
         return NULL;
     }
     rpc_set_cb(r, on_read, on_write, on_error, r);
-    r->dispatch_thread = thread_create("rpc_dispatch", rpc_dispatch_thread, r);
+    r->dispatch_thread = thread_create(rpc_dispatch_thread, r);
 
     r->state = rpc_inited;
     if (thread_sem_wait(r->dispatch_thread, 2000) == -1) {

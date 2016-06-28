@@ -70,6 +70,7 @@ LDFLAGS	+= -L$(OUTPUT)/lib -lstun
 LDFLAGS	+= -L$(OUTPUT)/lib -lptcp
 LDFLAGS	+= -L$(OUTPUT)/lib -ldict
 LDFLAGS	+= -L$(OUTPUT)/lib -lthread
+LDFLAGS	+= -L$(OUTPUT)/lib -llock
 LDFLAGS	+= -L$(PLATFORM_LIB) -pthread
 ifeq ($(ARCH), pi)
 LDFLAGS	+= -lgcc_s

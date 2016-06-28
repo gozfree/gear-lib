@@ -72,6 +72,7 @@ EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llog
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lthread
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llock
 EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -ldict
 EXTRA_LDFLAGS	+= -pthread -lrt
 

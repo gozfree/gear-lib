@@ -313,7 +313,7 @@ static int nl_accept(struct ipc *ipc)
         loge("nl_send failed!\n");
         return -1;
     }
-    thread_create("connecting", connecting_thread, ipc);
+    thread_create(connecting_thread, ipc);
     struct timeval now;
     struct timespec abs_time;
     uint32_t timeout = 5000;//msec
@@ -341,7 +341,7 @@ static int nl_connect(struct ipc *ipc, const char *name)
     struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
-    thread_create("connecting", connecting_thread, ipc);
+    thread_create(connecting_thread, ipc);
     struct timeval now;
     struct timespec abs_time;
     uint32_t timeout = 5000;//msec
