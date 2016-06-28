@@ -130,7 +130,7 @@ int main(int argc, char **argv)
         mutex_lock_deinit(mutex);
     }
     if (spin) {
-        spin_deinit(spin);
+        spin_lock_deinit(spin);
     }
 
     return 0;

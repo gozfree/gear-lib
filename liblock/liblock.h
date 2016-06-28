@@ -23,7 +23,7 @@ spin_lock_t *spin_lock_init();
 int spin_lock(spin_lock_t *lock);
 int spin_unlock(spin_lock_t *lock);
 int spin_trylock(spin_lock_t *lock);
-void spin_deinit(spin_lock_t *lock);
+void spin_lock_deinit(spin_lock_t *lock);
 
 
 /*

@@ -71,7 +71,7 @@ int spin_trylock(spin_lock_t *lock)
     return (*(lock) == 0 && atomic_cmp_set(lock, 0, 1));
 }
 
-void spin_deinit(spin_lock_t *lock)
+void spin_lock_deinit(spin_lock_t *lock)
 {
     if (!lock) {
         return;
@@ -228,7 +228,7 @@ int mutex_cond_wait(mutex_lock_t *mutexp, mutex_cond_t *condp, int64_t ms)
     int retry = 3;
     pthread_mutex_t *mutex = (pthread_mutex_t *)mutexp;
     pthread_cond_t *cond = (pthread_cond_t *)condp;
-    if (ms < 0) {
+    if (ms <= 0) {
         //never return an error code
         pthread_cond_wait(cond, mutex);
     } else {
