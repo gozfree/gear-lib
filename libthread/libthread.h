@@ -26,17 +26,11 @@ typedef struct thread {
     sem_lock_t *sem;
     char name[PTHREAD_NAME_LEN];
     void *(*func)(struct thread *, void *);
-    void *(*func_std)(struct thread *, const char *fmt, ...);
     char *fmt;
     void *arg;
 } thread_t;
 
-struct thread *thread_create(const char *name,
-                void *(*func)(struct thread *, void *), void *arg);
-
-struct thread *thread_create_std(const char *name,
-                void *(*func)(struct thread *, const char *fmt, ...),
-                const char *fmt, ...);
+struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg);
 
 void thread_destroy(struct thread *t);
 
@@ -52,8 +46,6 @@ int thread_cond_wait(struct thread *t, int64_t ms);
 int thread_cond_signal(struct thread *t);
 int thread_cond_signal_all(struct thread *t);
 
-
-void thread_print_info(struct thread *t);
 
 #ifdef __cplusplus
 }
