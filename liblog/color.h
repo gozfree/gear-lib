@@ -24,20 +24,20 @@
 #define BG_MAGENTA      45
 #define BG_CYAN         46
 #define BG_WHITE        47
-#define B_RED(str)      "\033[1;31m"str"\033[0m"
-#define B_GREEN(str)    "\033[1;32m"str"\033[0m"
-#define B_YELLOW(str)   "\033[1;33m"str"\033[0m"
-#define B_BLUE(str)     "\033[1;34m"str"\033[0m"
-#define B_MAGENTA(str)  "\033[1;35m"str"\033[0m"
-#define B_CYAN(str)     "\033[1;36m"str"\033[0m"
-#define B_WHITE(str)    "\033[1;37m"str"\033[0m"
-#define RED(str)        "\033[31m"str"\033[0m"
-#define GREEN(str)      "\033[32m"str"\033[0m"
-#define YELLOW(str)     "\033[33m"str"\033[0m"
-#define BLUE(str)       "\033[34m"str"\033[0m"
-#define MAGENTA(str)    "\033[35m"str"\033[0m"
-#define CYAN(str)       "\033[36m"str"\033[0m"
-#define WHITE(str)      "\033[37m"str"\033[0m"
+#define B_RED(str)      "\033[1;31m" str "\033[0m"
+#define B_GREEN(str)    "\033[1;32m" str "\033[0m"
+#define B_YELLOW(str)   "\033[1;33m" str "\033[0m"
+#define B_BLUE(str)     "\033[1;34m" str "\033[0m"
+#define B_MAGENTA(str)  "\033[1;35m" str "\033[0m"
+#define B_CYAN(str)     "\033[1;36m" str "\033[0m"
+#define B_WHITE(str)    "\033[1;37m" str "\033[0m"
+#define RED(str)        "\033[31m" str "\033[0m"
+#define GREEN(str)      "\033[32m" str "\033[0m"
+#define YELLOW(str)     "\033[33m" str "\033[0m"
+#define BLUE(str)       "\033[34m" str "\033[0m"
+#define MAGENTA(str)    "\033[35m" str "\033[0m"
+#define CYAN(str)       "\033[36m" str "\033[0m"
+#define WHITE(str)      "\033[37m" str "\033[0m"
 
 
 #endif

@@ -236,11 +236,55 @@ static const char *get_dir(const char *path)
     for (; p != path; p--) {
        if (*p == '/') {
            *(p + 1) = '\0';
+           break;
        }
     }
     return path;
 }
 
+static int mkdir_r(const char *path, mode_t mode)
+{
+    if (!path) {
+        return -1;
+    }
+    char *temp = strdup(path);
+    char *pos = temp;
+    int ret = 0;
+
+    if (strncmp(temp, "/", 1) == 0) {
+        pos += 1;
+    } else if (strncmp(temp, "./", 2) == 0) {
+        pos += 2;
+    }
+    for ( ; *pos != '\0'; ++ pos) {
+        if (*pos == '/') {
+            *pos = '\0';
+            if (-1 == (ret = mkdir(temp, mode))) {
+                if (errno == EEXIST) {
+                    ret = 0;
+                } else {
+                    fprintf(stderr, "failed to mkdir %s: %d:%s\n",
+                                    temp, errno, strerror(errno));
+                    break;
+                }
+            }
+            *pos = '/';
+        }
+    }
+    if (*(pos - 1) != '/') {
+        printf("if %s\n", temp);
+        if (-1 == (ret = mkdir(temp, mode))) {
+            if (errno == EEXIST) {
+                ret = 0;
+            } else {
+                fprintf(stderr, "failed to mkdir %s: %d:%s\n",
+                                temp, errno, strerror(errno));
+            }
+        }
+    }
+    free(temp);
+    return ret;
+}
 static void check_dir(const char *path)
 {
     char *path_org = NULL;
@@ -249,9 +293,8 @@ static void check_dir(const char *path)
         path_org = strdup(path);
         dir = get_dir(path_org);
         if (-1 == access(dir, F_OK|W_OK|R_OK)) {
-            if (-1 == mkdir(dir, 0775)) {
-                fprintf(stderr, "mkdir %s failed: %s\n",
-                        path_org, strerror(errno));
+            if (-1 == mkdir_r(dir, 0775)) {
+                fprintf(stderr, "mkdir %s failed\n", path_org);
             }
         }
         free(path_org);
