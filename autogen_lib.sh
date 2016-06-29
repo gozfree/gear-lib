@@ -219,15 +219,11 @@ LOCAL_PATH := ${S}(call my-dir)
 
 include ${S}(CLEAR_VARS)
 
-# because liblog is used by android default, so change to libglog
 LOCAL_MODULE := ${MODULE}
 
 LIBRARIES_DIR	:= ${S}(LOCAL_PATH)/../
 
-LIBGZF_INC := ${S}(LIBRARIES_DIR)/libgzf/
-
-LOCAL_C_INCLUDES := ${S}(LOCAL_PATH) \
-                    ${S}(LIBGZF_INC)
+LOCAL_C_INCLUDES := ${S}(LOCAL_PATH)
 
 # Add your application source files here...
 LOCAL_SRC_FILES := ${LIBFOO_C}
