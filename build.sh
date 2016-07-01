@@ -18,7 +18,7 @@ PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
 BASIC_LIBS="libgzf libatomic libtime liblog libgevent libworkq libdict libsort \
-	    librbtree liblock libthread libconfig libosal"
+	    librbtree libringbuffer liblock libthread libconfig libosal libvector"
 FRAMEWORK_LIBS="libipc"
 NETWORK_LIBS="libskt libstun libptcp librpc libp2p"
 
