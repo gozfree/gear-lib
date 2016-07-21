@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/epoll.h>
-#include <libgzf.h>
 #include <liblog.h>
 #include "libgevent.h"
 

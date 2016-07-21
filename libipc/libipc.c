@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "libipc.h"
 
@@ -158,7 +158,7 @@ int ipc_call(struct ipc *ipc, uint32_t func_id,
     return 0;
 }
 
-int register_msg_proc(ipc_handler_t *handler)
+static int register_msg_proc(ipc_handler_t *handler)
 {
     int i;
     int msg_id_registered  = 0;

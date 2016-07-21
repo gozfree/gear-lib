@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <mqueue.h>
 #include <semaphore.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "libipc.h"
 

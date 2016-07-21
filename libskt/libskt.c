@@ -21,7 +21,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 
 #include "libskt.h"

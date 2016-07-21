@@ -12,7 +12,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/sysinfo.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include "libworkq.h"
 
 static void wq_worker_destroy(struct worker *w);

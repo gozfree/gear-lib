@@ -8,7 +8,9 @@
 #ifndef _LIBSORT_H_
 #define _LIBSORT_H_
 
-#include <libgzf.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

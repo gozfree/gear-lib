@@ -14,7 +14,7 @@
 #include <sys/time.h>
 #include <linux/netlink.h>
 #include <semaphore.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include <libgevent.h>
 #include <libthread.h>

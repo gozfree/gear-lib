@@ -8,7 +8,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/uio.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include <libgevent.h>
 #include <libdict.h>
@@ -362,7 +362,7 @@ int rpc_packet_parse(struct rpc *r)
     return h->msg_id;
 }
 
-int register_msg_proc(msg_handler_t *handler)
+static int register_msg_proc(msg_handler_t *handler)
 {
     uint32_t msg_id;
     char msg_id_str[11];

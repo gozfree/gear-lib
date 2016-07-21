@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
-#include <libgzf.h>
 #include <liblog.h>
 #include "libgevent.h"
 

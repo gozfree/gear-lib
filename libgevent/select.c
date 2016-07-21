@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/select.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "libgevent.h"
 

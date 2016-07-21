@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "libgevent.h"
 

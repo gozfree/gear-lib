@@ -9,7 +9,7 @@
 #ifndef _LIBHASH_H_
 #define _LIBHASH_H_
 
-#include <libgzf.h>
+#include <libmacro.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
