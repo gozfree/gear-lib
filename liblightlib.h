@@ -10,6 +10,7 @@
 
 #include <libatomic.h>
 #include <libdebug.h>
+#include <libfile.h>
 #include <libgevent.h>
 #include <libhash.h>
 #include <libipc.h>

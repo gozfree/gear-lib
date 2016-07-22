@@ -53,6 +53,7 @@ TGT_LIB_H	= $(LIBNAME).h \
 		  libatomic/libatomic_gcc.h \
 		  libdebug/libdebug.h \
 		  libdict/libdict.h \
+		  libfile/libfile.h \
 		  libgevent/libgevent.h \
 		  libhash/libhash.h \
 		  libipc/libipc.h \
@@ -74,6 +75,9 @@ TGT_LIB_H	= $(LIBNAME).h \
 LIBATOMIC_O	= libatomic/libatomic.o
 LIBDEBUG_O	= libdebug/libdebug.o
 LIBDICT_O	= libdict/libdict.o
+LIBFILE_O	= libfile/libfile.o \
+		  libfile/io.o \
+		  libfile/fio.o
 LIBGEVENT_O	= libgevent/libgevent.o \
 		  libgevent/epoll.o \
 		  libgevent/poll.o \
@@ -101,6 +105,7 @@ LIBWORKQ_O	= libworkq/libworkq.o
 OBJS_LIB	= $(LIBATOMIC_O) \
 		  $(LIBDEBUG_O) \
 		  $(LIBDICT_O) \
+		  $(LIBFILE_O) \
 		  $(LIBGEVENT_O) \
 		  $(LIBHASH_O) \
 		  $(LIBIPC_O) \
@@ -129,6 +134,7 @@ CFLAGS	+= -I./ \
 	   -I./libatomic \
 	   -I./libdebug \
 	   -I./libdict \
+	   -I./libfile \
 	   -I./libgevent \
 	   -I./libhash \
 	   -I./libipc \

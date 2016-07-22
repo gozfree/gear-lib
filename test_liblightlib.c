@@ -23,9 +23,19 @@ void test_file_name()
     }
     log_deinit();
 }
+void foo()
+{
+   char buf[128] = {0};
+   struct file *f = file_open("/tmp/lsusb", F_RDONLY);
+   file_read(f, buf, sizeof(buf));
+   printf("buf =%s", buf);
+   printf("len=%zu\n", file_size("/tmp/lsusb"));
+}
+
 
 int main(int argc, char **argv)
 {
     test_file_name();
+    foo();
     return 0;
 }
