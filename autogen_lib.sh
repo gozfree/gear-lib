@@ -15,6 +15,7 @@ LIBFOO_MACRO=`echo ${MODULE} | tr 'a-z' 'A-Z'`
 
 DATE=$(date '+%Y-%m-%d %H:%M:%S')
 S='$'
+exclamation='!'
 
 usage()
 {
@@ -267,7 +268,7 @@ cat > version.h <<!
 
 #endif
 
-\!
+${exclamation}
 }
 
 autogen_version_h

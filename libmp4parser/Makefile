@@ -2,8 +2,8 @@
 #  Copyright (C) 2014-2015
 #  file:    Makefile
 #  author:  gozfree <gozfree@163.com>
-#  created: 2016-07-22 14:17:17
-#  updated: 2016-07-22 14:17:17
+#  created: 2016-07-27 15:03:36
+#  updated: 2016-07-27 15:03:36
 ###############################################################################
 
 ###############################################################################
@@ -40,7 +40,7 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libfile
+LIBNAME		= libmp4parser
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
@@ -49,21 +49,22 @@ TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o
-OBJS_LIB	+= io.o fio.o
+OBJS_LIB	= $(LIBNAME).o mp4.o stream.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	:= -g -Wall -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I../libfile/
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread
+LDFLAGS	+= -I$(OUTPUT)/lib -lfile
+LDFLAGS	+= -pthread -lm
 
 ###############################################################################
 # target
@@ -85,7 +86,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(CC_V) -o $@ $^ $(SHARED)
+	$(LD_V) -o $@ $^ $(SHARED)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 

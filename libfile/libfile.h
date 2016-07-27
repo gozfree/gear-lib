@@ -9,6 +9,7 @@
 #define _LIBFILE_H_
 
 #include <stdint.h>
+#include <sys/uio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +50,7 @@ void file_close(struct file *file);
 ssize_t file_read(struct file *file, void *data, size_t size);
 ssize_t file_write(struct file *file, const void *data, size_t size);
 ssize_t file_size(const char *path);
+struct iovec *file_dump(const char *path);
 
 
 #ifdef __cplusplus
