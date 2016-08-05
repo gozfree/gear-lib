@@ -5,43 +5,41 @@
  * created: 2016-07-27 15:03:36
  * updated: 2016-07-27 15:03:36
  *****************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include "mp4.h"
-#include "malloc.h"
-#include "string.h"
-#include "libmp4parser.h"
-#include "libfile.h"
+#include "stdio.h"
+#include "patch.h"
+#include "libmp4.h"
 
 int main(int argc, char* argv[])
 {
-    mp4_box_t *root,*SearchResult = NULL;
-    stream_t* s = NULL;
-    unsigned long filesize = 0;
-    BUFFER_t *buffer = NULL;
-    struct file *f = file_open("test.mp4", F_RDONLY);
-    filesize = file_size("test.mp4");
-    buffer = (BUFFER_t *)malloc(sizeof(BUFFER_t));
-    buffer->begin_addr = (unsigned char *)malloc(filesize);
-    buffer->buf = (unsigned char *)malloc(filesize);
+   MP4_Box_t *root, *SearchResult;
+   stream_t* s;
 
-    file_read(f, buffer->begin_addr, filesize);
-    file_close(f);
+   if(argc < 2){
+       printf("Invalid argument, useage: \n mp4parser /path/to/mp4file \n");
+       return -1;
+   }
 
-    memcpy(buffer->buf,buffer->begin_addr,filesize);
+   s = create_file_stream();
+   if (stream_open(s, argv[1], MODE_READ) == 0){
+        printf("Can not open file\n");
+      return -1;
+   }
 
-    (*buffer).offset = 0;
-    (*buffer).filesize = filesize;
-    s = create_buffer_stream();
-    if (buffer_open(s, buffer) == 0)
-        return -1;
-    root = MP4_BoxGetRootFromBuffer(s,filesize);
-    SearchResult = MP4_BoxSearchBox(root,ATOM_mmth);
-    //printf("search result box is %c%c%c%c\n",SearchResult->i_type&0x000000ff,(SearchResult->i_type&0x0000ff00)>>8,(SearchResult->i_type&0x00ff0000)>>16,(SearchResult->i_type&0xff000000)>>24);
-    MP4_BoxFreeFromBuffer( root );
+   SearchResult = MP4_BoxGetRoot(s);
+#if 0
+   MP4_Box_t *p_ftyp = MP4_BoxGet(SearchResult, "ftyp" );
 
-    buffer_close(s);
-    destory_buffer_stream(s);
-    return 0;
+   printf("search result box is %c%c%c%c\n",SearchResult->i_type&0x000000ff,(SearchResult->i_type&0x0000ff00)>>8,(SearchResult->i_type&0x00ff0000)>>16,(SearchResult->i_type&0xff000000)>>24);
+   printf("ftyp.major_brand is %s\n",(char *)&p_ftyp->data.p_ftyp->i_major_brand);
+
+   MP4_BoxFree(s, root);
+#endif
+   MP4_BoxFree(s, SearchResult);
+
+   stream_close(s);
+   destory_file_stream(s);
+
+	return 0;
 }
+
 

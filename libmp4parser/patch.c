@@ -1,19 +1,85 @@
 /******************************************************************************
  * Copyright (C) 2014-2015
- * file:    stream.c
+ * file:    patch.c
  * author:  gozfree <gozfree@163.com>
- * created: 2016-07-27 18:22
- * updated: 2016-07-27 18:22
+ * created: 2016-07-29 14:25
+ * updated: 2016-07-29 14:25
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <memory.h>
 #include <assert.h>
-#include "stream.h"
-#define max(a,b) a>b?a:b
-#define min(a,b) a>b?b:a
-void* sfile_open(stream_t *stream_s, const char* filename, int mode)
+#include "patch.h"
+
+bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
+                                  bool *b_mactables )
+{
+    static const char * psz_qt_to_iso639_2T_lower =
+            "eng"    "fra"    "deu"    "ita"    "nld"
+            "swe"    "spa"    "dan"    "por"    "nor" /* 5-9 */
+            "heb"    "jpn"    "ara"    "fin"    "gre"
+            "isl"    "mlt"    "tur"    "hrv"    "zho" /* 15-19 */
+            "urd"    "hin"    "tha"    "kor"    "lit"
+            "pol"    "hun"    "est"    "lav"    "sme" /* 25-29 */
+            "fao"    "fas"    "rus"    "zho"    "nld" /* nld==flemish */
+            "gle"    "sqi"    "ron"    "ces"    "slk" /* 35-39 */
+            "slv"    "yid"    "srp"    "mkd"    "bul"
+            "ukr"    "bel"    "uzb"    "kaz"    "aze" /* 45-49 */
+            "aze"    "hye"    "kat"    "mol"    "kir"
+            "tgk"    "tuk"    "mon"    "mon"    "pus" /* 55-59 */
+            "kur"    "kas"    "snd"    "bod"    "nep"
+            "san"    "mar"    "ben"    "asm"    "guj" /* 65-69 */
+            "pan"    "ori"    "mal"    "kan"    "tam"
+            "tel"    "sin"    "mya"    "khm"    "lao" /* 75-79 */
+            "vie"    "ind"    "tgl"    "msa"    "msa"
+            "amh"    "tir"    "orm"    "som"    "swa" /* 85-89 */
+            "kin"    "run"    "nya"    "mlg"    "epo" /* 90-94 */
+            ;
+
+    static const char * psz_qt_to_iso639_2T_upper =
+            "cym"    "eus"    "cat"    "lat"    "que" /* 128-132 */
+            "grn"    "aym"    "tat"    "uig"    "dzo"
+            "jaw"    "sun"    "glg"    "afr"    "bre" /* 138-142 */
+            "iku"    "gla"    "glv"    "gle"    "ton"
+            "gre"                                     /* 148 */
+            ;
+
+    if ( i_language_code < 0x400 || i_language_code == 0x7FFF )
+    {
+        const void *p_data;
+        *b_mactables = true;
+        if ( i_language_code <= 94 )
+        {
+            p_data = psz_qt_to_iso639_2T_lower + i_language_code * 3;
+        }
+        else if ( i_language_code >= 128 && i_language_code <= 148 )
+        {
+            i_language_code -= 128;
+            p_data = psz_qt_to_iso639_2T_upper + i_language_code * 3;
+        }
+        else
+            return false;
+        memcpy( psz_iso, p_data, 3 );
+    }
+    else
+    {
+        *b_mactables = false;
+        /*
+         * to build code: ( ( 'f' - 0x60 ) << 10 ) | ( ('r' - 0x60) << 5 ) | ('a' - 0x60)
+         */
+        if( i_language_code == 0x55C4 ) /* "und" */
+        {
+            memset( psz_iso, 0, 3 );
+            return false;
+        }
+
+        for( unsigned i = 0; i < 3; i++ )
+            psz_iso[i] = ( ( i_language_code >> ( (2-i)*5 ) )&0x1f ) + 0x60;
+    }
+    return true;
+}
+void* file_open(stream_t *stream_s, const char* filename, int mode)
 {
    FILE* file = NULL;
    const char* mode_fopen = NULL;
@@ -32,129 +98,58 @@ void* sfile_open(stream_t *stream_s, const char* filename, int mode)
    return file;
 }
 
-int sfile_read(stream_t *stream_s, void* buf, int size)
+int file_read(stream_t *stream_s, void* buf, int size)
 {
    FILE* file = (FILE*)stream_s->opaque;
    return fread(buf, 1, size, file);
 }
 
-int sfile_write(stream_t *stream_s, void *buf, int size)
+int file_write(stream_t *stream_s, void *buf, int size)
 {
    FILE* file = (FILE*)stream_s->opaque;
    return fwrite(buf, 1, size, file);
 }
 
-int sfile_peek(stream_t *stream_s, void* buf, int size)
+int file_peek(stream_t *stream_s, void* buf, int size)
 {
-   uint32_t offset = sfile_tell(stream_s);
-   int ret = sfile_read(stream_s, buf, size);
-   sfile_seek(stream_s, offset, SEEK_SET);
+   uint32_t offset = file_tell(stream_s);
+   int ret = file_read(stream_s, buf, size);
+   file_seek(stream_s, offset, SEEK_SET);
    return ret;
 }
 
-uint64_t sfile_seek(stream_t *stream_s, int64_t offset, int whence)
+uint64_t file_seek(stream_t *stream_s, int64_t offset, int whence)
 {
    FILE* file = (FILE*)stream_s->opaque;
    return fseek(file, offset, whence);
 }
 
-uint64_t sfile_tell(stream_t *stream_s)
+uint64_t file_tell(stream_t *stream_s)
 {
    FILE* file = (FILE*)stream_s->opaque;
    return ftell(file);
 }
 
-int sfile_close(stream_t *stream_s)
+int file_close(stream_t *stream_s)
 {
    FILE* file = (FILE*)stream_s->opaque;
    return fclose(file);
 }
 
-void* buffer_open(stream_t *stream_s, BUFFER_t *buffer)
-{
-   stream_s->opaque = (void *)buffer;
-
-   return buffer;
-}
-
-int buffer_read(stream_t *stream_s, void* buf, int size)
-{
-   BUFFER_t *buffer = (BUFFER_t *)stream_s->opaque;
-   memcpy(buf,buffer->buf,size);
-   return size;
-}
-
-int buffer_write(stream_t *stream_s, void *buf, int size)
-{
-   BUFFER_t *buffer = (BUFFER_t *)stream_s->opaque;
-   memcpy(buffer->buf,buf,size);
-   return size;
-}
-
-int buffer_peek(stream_t *stream_s, void* buf, int size)
-{
-   uint32_t offset = buffer_tell(stream_s);
-   int ret = buffer_read(stream_s, buf, size);
-   return ret;
-}
-
-uint64_t buffer_seek(stream_t *stream_s, int64_t offset,\
-	int whence)
-{
-   BUFFER_t *buffer = (BUFFER_t *)stream_s->opaque;
-   (*buffer).offset = whence + offset;
-   memcpy(buffer->buf,buffer->begin_addr + (*buffer).offset,\
-	   (*buffer).filesize - (*buffer).offset );
-   return 0;
-}
-
-uint64_t buffer_tell(stream_t *stream_s)
-{
-   BUFFER_t *buffer = (BUFFER_t *)stream_s->opaque;
-   return (*buffer).offset;
-}
-
-int buffer_close(stream_t *stream_s)
-{
-   BUFFER_t *buffer = (BUFFER_t *)stream_s->opaque;
-   free(buffer->buf);
-   free(buffer->begin_addr);
-   free(buffer);
-   return 0;
-}
-
 stream_t* create_file_stream()
 {
    stream_t* s = malloc(sizeof(stream_t));
-   s->open = sfile_open;
-   s->read = sfile_read;
-   s->write = sfile_write;
-   s->peek = sfile_peek;
-   s->seek = sfile_seek;
-   s->tell = sfile_tell;
-   s->close = sfile_close;
+   s->open = file_open;
+   s->read = file_read;
+   s->write = file_write;
+   s->peek = file_peek;
+   s->seek = file_seek;
+   s->tell = file_tell;
+   s->close = file_close;
    return s;
 }
 
 void destory_file_stream(stream_t* stream_s)
-{
-   free(stream_s);
-}
-
-stream_t* create_buffer_stream()
-{
-   stream_t* s = malloc(sizeof(stream_t));
-   s->open = buffer_open;
-   s->read = buffer_read;
-   s->write = buffer_write;
-   s->peek = buffer_peek;
-   s->seek = buffer_seek;
-   s->tell = buffer_tell;
-   s->close = buffer_close;
-   return s;
-}
-
-void destory_buffer_stream(stream_t* stream_s)
 {
    free(stream_s);
 }
@@ -201,14 +196,14 @@ int buf_file_read(stream_t *stream_s, void* buf, int size)
          s->read_buf_s.bufsize == -1)
       {
          int read_bytes, ret;
-         // �ȶ�λ��offset, �ٽ��ж�����.
-         ret = sfile_seek(stream_s, s->offset, SEEK_SET);
+         // 先定位到offset, 再进行读操作.
+         ret = file_seek(stream_s, s->offset, SEEK_SET);
          if (ret != 0)
          {
             assert(0);
             return ret;       // ERROR!!!
          }
-         read_bytes = sfile_read(stream_s, s->read_buf_s.buf, READ_BUFFER_SIZE);
+         read_bytes = file_read(stream_s, s->read_buf_s.buf, READ_BUFFER_SIZE);
          if (read_bytes < 0)
             return read_bytes; // ERROR!!!
          if (read_bytes == 0)
@@ -253,13 +248,13 @@ int buf_file_write(stream_t *stream_s, void *buf, int size)
 
    if (s->write_buf_s.bufsize != 0)
    {
-      int ret = sfile_seek(stream_s, s->write_buf_s.offset, SEEK_SET);
+      int ret = file_seek(stream_s, s->write_buf_s.offset, SEEK_SET);
       if (ret != 0)
          return ret;
       write_bytes = 0;
       while (write_bytes != s->write_buf_s.bufsize)
       {
-         int n = sfile_write(stream_s, (char*)s->write_buf_s.buf + write_bytes, 
+         int n = file_write(stream_s, (char*)s->write_buf_s.buf + write_bytes, 
             s->write_buf_s.bufsize - write_bytes);
          if (n < 0)
             return n;
@@ -270,13 +265,13 @@ int buf_file_write(stream_t *stream_s, void *buf, int size)
 
    if (size > WRITE_BUFFER_SIZE)
    {
-      int ret = sfile_seek(stream_s, s->offset, SEEK_SET);
+      int ret = file_seek(stream_s, s->offset, SEEK_SET);
       if (ret != 0)
          return ret;
       write_bytes = 0;
       while (write_bytes != size)
       {
-         int n = sfile_write(stream_s, (char*)buf + write_bytes, size - write_bytes);
+         int n = file_write(stream_s, (char*)buf + write_bytes, size - write_bytes);
          if (n < 0)
             return n;
          write_bytes += n;
@@ -300,12 +295,12 @@ int buf_file_peek(stream_t *stream_s, void* buf, int size)
    int ret = 0;
    int len = 0;
 
-   ret = sfile_seek(stream_s, s->offset, SEEK_SET);
+   ret = file_seek(stream_s, s->offset, SEEK_SET);
    if (ret != 0)
       return ret;
 
-   len = sfile_read(stream_s, buf, size);
-   ret = sfile_seek(stream_s, s->offset, SEEK_SET);
+   len = file_read(stream_s, buf, size);
+   ret = file_seek(stream_s, s->offset, SEEK_SET);
    if (ret != 0)
       return ret;
 
@@ -316,13 +311,13 @@ uint64_t buf_file_seek(stream_t *stream_s, int64_t offset, int whence)
 {
    buf_stream_t* s = (buf_stream_t*)stream_s;
    uint64_t ret = 0;
-   ret = sfile_seek(stream_s, s->offset, SEEK_SET);
+   ret = file_seek(stream_s, s->offset, SEEK_SET);
    if (ret != 0)
       return ret;
-   ret = sfile_seek(stream_s, offset, whence);
+   ret = file_seek(stream_s, offset, whence);
    if (ret != 0)
       return ret;
-   s->offset = sfile_tell(stream_s);
+   s->offset = file_tell(stream_s);
    if (s->read_buf_s.offset > s->offset || 
       s->read_buf_s.offset + s->read_buf_s.bufsize <= s->offset)
       s->read_buf_s.bufsize = -1;
@@ -338,13 +333,13 @@ int buf_file_close(stream_t *stream_s)
 
    if (s->write_buf_s.bufsize != 0)
    {
-      int ret = sfile_seek(stream_s, s->write_buf_s.offset, SEEK_SET);
+      int ret = file_seek(stream_s, s->write_buf_s.offset, SEEK_SET);
       if (ret != 0)
          return ret;
       write_bytes = 0;
       while (write_bytes != s->write_buf_s.bufsize)
       {
-         int n = sfile_write(stream_s, (char*)s->write_buf_s.buf + write_bytes, 
+         int n = file_write(stream_s, (char*)s->write_buf_s.buf + write_bytes, 
             s->write_buf_s.bufsize - write_bytes);
          if (n < 0)
             return n;
@@ -353,7 +348,7 @@ int buf_file_close(stream_t *stream_s)
       s->write_buf_s.bufsize = 0;
    }
 
-   return sfile_close(stream_s);
+   return file_close(stream_s);
 }
 
 
@@ -386,7 +381,7 @@ uint16_t read_le16(stream_t *src)
 {
    uint16_t value;
 
-   stream_read(src, &value, sizeof(value));
+   stream_Read(src, &value, sizeof(value));
    return(SwapLE16(value));
 }
 
@@ -394,7 +389,7 @@ uint16_t read_be16(stream_t *src)
 {
    uint16_t value;
 
-   stream_read(src, &value, sizeof(value));
+   stream_Read(src, &value, sizeof(value));
    return(SwapBE16(value));
 }
 
@@ -402,7 +397,7 @@ uint32_t read_le32(stream_t *src)
 {
    uint32_t value;
 
-   stream_read(src, &value, sizeof(value));
+   stream_Read(src, &value, sizeof(value));
    return(SwapLE32(value));
 }
 
@@ -410,7 +405,7 @@ uint32_t read_be32(stream_t *src)
 {
    uint32_t value;
 
-   stream_read(src, &value, sizeof(value));
+   stream_Read(src, &value, sizeof(value));
    return(SwapBE32(value));
 }
 
@@ -418,7 +413,7 @@ uint64_t read_le64(stream_t *src)
 {
    uint64_t value;
 
-   stream_read(src, &value, sizeof(value));
+   stream_Read(src, &value, sizeof(value));
    return(SwapLE64(value));
 }
 
@@ -426,7 +421,7 @@ uint64_t read_be64(stream_t *src)
 {
    uint64_t value;
 
-   stream_read(src, &value, sizeof(value));
+   stream_Read(src, &value, sizeof(value));
    return(SwapBE64(value));
 }
 
