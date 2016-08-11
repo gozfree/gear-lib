@@ -8,6 +8,16 @@
 #ifndef __STREAM_H__
 #define __STREAM_H__
 
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <stdio.h>
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <assert.h>
+#include <math.h>
+#include <stdarg.h>
+#include <inttypes.h>
 #include <string.h>
 #include <inttypes.h>
 #include <stdint.h>
@@ -44,12 +54,16 @@ typedef uint8_t bool;
 #define min(a, b)           ((a) > (b) ? (b) : (a))
 #define max(a, b)           ((a) > (b) ? (a) : (b))
 
-#define FREENULL(a) do { free( a ); a = NULL; } while(0)
+#define FREENULL(a) do { if (a) {free( a ); a = NULL;} } while(0)
 
+void msg_log(int log_lvl, const char *fmt, ...);
+#define MSG_DGB  1
+#define MSG_WARN 2
+#define MSG_ERR  3
 
-#define msg_Dbg(fmt, ...) printf(fmt, __VA_ARGS__)
-#define msg_Warn(fmt, ...) printf(fmt, __VA_ARGS__)
-#define msg_Err(fmt, ...) printf(fmt, __VA_ARGS__)
+#define msg_Dbg(fmt, ...) msg_log(MSG_DGB, __VA_ARGS__)
+#define msg_Warn(fmt, ...) msg_log(MSG_WARN, __VA_ARGS__)
+#define msg_Err(fmt, ...) msg_log(MSG_ERR, __VA_ARGS__)
 
 #define VLC_UNUSED(x) (void)(x)
 #   define __MIN(a, b)   ( ((a) < (b)) ? (a) : (b) )
@@ -152,51 +166,47 @@ static inline uint64_t U64_AT (const void *p)
 #define GetDWBE(p) U32_AT(p)
 #define GetQWBE(p) U64_AT(p)
 
-// 打开方式.
 #define MODE_READ             (1)
 #define MODE_WRITE            (2)
 #define MODE_READWRITEFILTER  (3)
 #define MODE_EXISTING         (4)
 #define MODE_CREATE           (8)
 
-// 读写结构定义.
 typedef struct stream {
-   void* (*open)(struct stream *stream_s, const char* filename, int mode);
-   int (*read)(struct stream *stream_s, void* buf, int size);
-   int (*write)(struct stream *stream_s, void *buf, int size);
-   int (*peek)(struct stream *stream_s, void* buf, int size);
-   uint64_t (*seek)(struct stream *stream_s, int64_t offset, int whence);
-   uint64_t (*tell)(struct stream *stream_s);
-   uint64_t (*size)(struct stream *stream_s);
-   int (*close)(struct stream *stream_s);
-   void* opaque;
+    void *(*open)(struct stream *stream_s, const char *filename, int mode);
+    int (*read)(struct stream *stream_s, void *buf, int size);
+    int (*write)(struct stream *stream_s, void *buf, int size);
+    int (*peek)(struct stream *stream_s, const uint8_t **buf, int size);
+    uint64_t (*seek)(struct stream *stream_s, int64_t offset, int whence);
+    uint64_t (*tell)(struct stream *stream_s);
+    uint64_t (*size)(struct stream *stream_s);
+    int (*close)(struct stream *stream_s);
+    void *opaque;
+    void **priv_buf;//store peek malloc buffer
+    int priv_buf_num;
 } stream_t;
 
-// 读写宏定义.
 #define stream_open(s, filename, mode) ((stream_t*)s)->open(((stream_t*)s), filename, mode)
 #define stream_Read(s, buf, size) ((stream_t*)s)->read(((stream_t*)s), buf, size)
 #define stream_write(s, buf, size) ((stream_t*)s)->write(((stream_t*)s), buf, size)
-#define stream_Peek(s, buf, size) ((stream_t*)s)->peek(((stream_t*)s), *buf, size)
+#define stream_Peek(s, buf, size) ((stream_t*)s)->peek(((stream_t*)s), buf, size)
 #define stream_Seek(s, offset) ((stream_t*)s)->seek(((stream_t*)s), offset, SEEK_SET)
 #define stream_Tell(s) ((stream_t*)s)->tell(((stream_t*)s))
 #define stream_close(s) ((stream_t*)s)->close(((stream_t*)s))
 #define stream_Size(s) ((stream_t*)s)->size(((stream_t*)s))
 
-// 文件读写.
-void* file_open(stream_t *stream_s, const char* filename, int mode);
-int file_read(stream_t *stream_s, void* buf, int size);
+void* file_open(stream_t *stream_s, const char *filename, int mode);
+int file_read(stream_t *stream_s, void *buf, int size);
 int file_write(stream_t *stream_s, void *buf, int size);
-int file_peek(stream_t *stream_s, void* buf, int size);
+int file_peek(stream_t *stream_s, const uint8_t **buf, int size);
 uint64_t file_seek(stream_t *stream_s, int64_t offset, int whence);
 uint64_t file_tell(stream_t *stream_s);
 int file_close(stream_t *stream_s);
 
-// 创建文件读写流.
 stream_t* create_file_stream();
 void destory_file_stream(stream_t* stream_s);
 
 
-// 一个带读写缓冲的文件stream实现.
 #define READ_BUFFER_SIZE   10485760
 #define WRITE_BUFFER_SIZE  10485760
 
@@ -204,36 +214,33 @@ typedef struct buf_stream {
    stream_t s;
 
    struct read_buf {
-      void* buf;        // 读缓冲.
-      int64_t bufsize;  // 缓冲大小.
-      int64_t offset;   // 在文件中的offset.
+      void* buf;
+      int64_t bufsize;
+      int64_t offset;
    } read_buf_s;
 
    struct write_buf {
-      void* buf;        // 写缓冲.
-      int64_t bufsize;  // 缓冲大小.
-      int64_t offset;   // 写文件的offset.
+      void* buf;
+      int64_t bufsize;
+      int64_t offset;
    } write_buf_s;
 
-   uint64_t offset;     // 当前读写指针在文件中的offset.
+   uint64_t offset;
 
 } buf_stream_t;
 
-// 带缓冲的读写实现.
 int buf_file_read(stream_t *stream_s, void* buf, int size);
 int buf_file_write(stream_t *stream_s, void *buf, int size);
-int buf_file_peek(stream_t *stream_s, void* buf, int size);
+int buf_file_peek(stream_t *stream_s, const uint8_t **buf, int size);
 uint64_t buf_file_seek(stream_t *stream_s, int64_t offset, int whence);
 int buf_file_close(stream_t *stream_s);
 
-// 创建带缓冲的文件读写流.
 stream_t* create_buf_file_stream();
 void destory_buf_file_stream(stream_t* stream_s);
 
-// 大小端读写操作实现.
 //#define LIL_ENDIAN	1234
 //#define BIG_ENDIAN	4321
-/* #define BYTEORDER    1234 ? 让下面宏根据系统进行判断大小端. */
+/* #define BYTEORDER    1234 */
 
 #ifndef BYTEORDER
 #if defined(__hppa__) || \

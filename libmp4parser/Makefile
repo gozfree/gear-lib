@@ -63,7 +63,6 @@ CFLAGS	+= -I../libfile/
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -I$(OUTPUT)/lib -lfile
 LDFLAGS	+= -pthread -lm
 
 ###############################################################################

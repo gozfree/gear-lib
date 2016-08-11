@@ -5,18 +5,14 @@
  * created: 2016-07-29 11:01
  * updated: 2016-07-29 11:01
  ******************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <assert.h>
-#include <math.h>
-#include <stdarg.h>
-#include <inttypes.h>
+
+#include "patch.h"
 #ifdef HAVE_ZLIB_H
 #   include <zlib.h>                                  /* for compressed moov */
 #endif
 
 #include "libmp4.h"
+
 #include <math.h>
 
 /* Some assumptions:
