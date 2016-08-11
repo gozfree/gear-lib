@@ -5,44 +5,19 @@
  * created: 2016-07-29 14:24
  * updated: 2016-07-29 14:24
  ******************************************************************************/
-#ifndef __STREAM_H__
-#define __STREAM_H__
+#ifndef __PATCH_H__
+#define __pATCH_H__
 
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
-#include <stdio.h>
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
-#include <stdio.h>
 #include <stdlib.h>
-#include <memory.h>
-#include <assert.h>
-#include <math.h>
 #include <stdarg.h>
-#include <inttypes.h>
-#include <string.h>
-#include <inttypes.h>
-#include <stdint.h>
 
-typedef uint32_t vlc_fourcc_t;
-typedef uint8_t bool;
-#define true    1
-#define false   0
-
-#ifdef WORDS_BIGENDIAN
-#   define VLC_FOURCC( a, b, c, d ) \
-        ( ((uint32_t)d) | ( ((uint32_t)c) << 8 ) \
-           | ( ((uint32_t)b) << 16 ) | ( ((uint32_t)a) << 24 ) )
-#   define VLC_TWOCC( a, b ) \
-        ( (uint16_t)(b) | ( (uint16_t)(a) << 8 ) )
-
-#else
-#   define VLC_FOURCC( a, b, c, d ) \
-        ( ((uint32_t)a) | ( ((uint32_t)b) << 8 ) \
-           | ( ((uint32_t)c) << 16 ) | ( ((uint32_t)d) << 24 ) )
-#   define VLC_TWOCC( a, b ) \
-        ( (uint16_t)(a) | ( (uint16_t)(b) << 8 ) )
-
+#ifdef __cplusplus
+extern "C" {
 #endif
 
+
+
+typedef uint32_t vlc_fourcc_t;
 #ifdef __GNUC__
 #   define likely(p)   __builtin_expect(!!(p), 1)
 #   define unlikely(p) __builtin_expect(!!(p), 0)
@@ -166,129 +141,18 @@ static inline uint64_t U64_AT (const void *p)
 #define GetDWBE(p) U32_AT(p)
 #define GetQWBE(p) U64_AT(p)
 
-#define MODE_READ             (1)
-#define MODE_WRITE            (2)
-#define MODE_READWRITEFILTER  (3)
-#define MODE_EXISTING         (4)
-#define MODE_CREATE           (8)
 
-typedef struct stream {
-    void *(*open)(struct stream *stream_s, const char *filename, int mode);
-    int (*read)(struct stream *stream_s, void *buf, int size);
-    int (*write)(struct stream *stream_s, void *buf, int size);
-    int (*peek)(struct stream *stream_s, const uint8_t **buf, int size);
-    uint64_t (*seek)(struct stream *stream_s, int64_t offset, int whence);
-    uint64_t (*tell)(struct stream *stream_s);
-    uint64_t (*size)(struct stream *stream_s);
-    int (*close)(struct stream *stream_s);
-    void *opaque;
-    void **priv_buf;//store peek malloc buffer
-    int priv_buf_num;
-} stream_t;
-
-#define stream_open(s, filename, mode) ((stream_t*)s)->open(((stream_t*)s), filename, mode)
 #define stream_Read(s, buf, size) ((stream_t*)s)->read(((stream_t*)s), buf, size)
 #define stream_write(s, buf, size) ((stream_t*)s)->write(((stream_t*)s), buf, size)
 #define stream_Peek(s, buf, size) ((stream_t*)s)->peek(((stream_t*)s), buf, size)
 #define stream_Seek(s, offset) ((stream_t*)s)->seek(((stream_t*)s), offset, SEEK_SET)
 #define stream_Tell(s) ((stream_t*)s)->tell(((stream_t*)s))
-#define stream_close(s) ((stream_t*)s)->close(((stream_t*)s))
 #define stream_Size(s) ((stream_t*)s)->size(((stream_t*)s))
-
-void* file_open(stream_t *stream_s, const char *filename, int mode);
-int file_read(stream_t *stream_s, void *buf, int size);
-int file_write(stream_t *stream_s, void *buf, int size);
-int file_peek(stream_t *stream_s, const uint8_t **buf, int size);
-uint64_t file_seek(stream_t *stream_s, int64_t offset, int whence);
-uint64_t file_tell(stream_t *stream_s);
-int file_close(stream_t *stream_s);
-
-stream_t* create_file_stream();
-void destory_file_stream(stream_t* stream_s);
-
-
-#define READ_BUFFER_SIZE   10485760
-#define WRITE_BUFFER_SIZE  10485760
-
-typedef struct buf_stream {
-   stream_t s;
-
-   struct read_buf {
-      void* buf;
-      int64_t bufsize;
-      int64_t offset;
-   } read_buf_s;
-
-   struct write_buf {
-      void* buf;
-      int64_t bufsize;
-      int64_t offset;
-   } write_buf_s;
-
-   uint64_t offset;
-
-} buf_stream_t;
-
-int buf_file_read(stream_t *stream_s, void* buf, int size);
-int buf_file_write(stream_t *stream_s, void *buf, int size);
-int buf_file_peek(stream_t *stream_s, const uint8_t **buf, int size);
-uint64_t buf_file_seek(stream_t *stream_s, int64_t offset, int whence);
-int buf_file_close(stream_t *stream_s);
-
-stream_t* create_buf_file_stream();
-void destory_buf_file_stream(stream_t* stream_s);
-
-//#define LIL_ENDIAN	1234
-//#define BIG_ENDIAN	4321
-/* #define BYTEORDER    1234 */
-
-#ifndef BYTEORDER
-#if defined(__hppa__) || \
-   defined(__m68k__) || defined(mc68000) || defined(_M_M68K) || \
-   (defined(__MIPS__) && defined(__MISPEB__)) || \
-   defined(__ppc__) || defined(__POWERPC__) || defined(_M_PPC) || \
-   defined(__sparc__)
-#define BYTEORDER	BIG_ENDIAN
-#else
-#define BYTEORDER	LIL_ENDIAN
-#endif
-#endif /* !BYTEORDER */
-
-uint16_t Swap16(uint16_t x);
-uint32_t Swap32(uint32_t x);
-uint64_t Swap64(uint64_t x);
-
-#if BYTEORDER == LIL_ENDIAN
-#define SwapLE16(X)	(X)
-#define SwapLE32(X)	(X)
-#define SwapLE64(X)	(X)
-#define SwapBE16(X)	Swap16(X)
-#define SwapBE32(X)	Swap32(X)
-#define SwapBE64(X)	Swap64(X)
-#else
-#define SwapLE16(X)	Swap16(X)
-#define SwapLE32(X)	Swap32(X)
-#define SwapLE64(X)	Swap64(X)
-#define SwapBE16(X)	(X)
-#define SwapBE32(X)	(X)
-#define SwapBE64(X)	(X)
-#endif
-
-uint16_t read_le16(stream_t *src);
-uint16_t read_be16(stream_t *src);
-uint32_t read_le32(stream_t *src);
-uint32_t read_be32(stream_t *src);
-uint64_t read_le64(stream_t *src);
-uint64_t read_be64(stream_t *src);
-
-int write_le16(stream_t *dst, uint16_t value);
-int write_be16(stream_t *dst, uint16_t value);
-int write_le32(stream_t *dst, uint32_t value);
-int write_be32(stream_t *dst, uint32_t value);
-int write_le64(stream_t *dst, uint64_t value);
-int write_be64(stream_t *dst, uint64_t value);
 
 bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
                                   bool *b_mactables );
 
+#ifdef __cplusplus
+}
+#endif
 #endif

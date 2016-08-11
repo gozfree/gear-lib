@@ -6,8 +6,7 @@
  * updated: 2016-07-27 15:03:36
  *****************************************************************************/
 #include <stdio.h>
-#include "patch.h"
-#include "libmp4.h"
+#include "libmp4parser.h"
 
 int main(int argc, char* argv[])
 {
