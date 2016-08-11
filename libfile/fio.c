@@ -50,6 +50,7 @@ static struct file_desc *fio_open(const char *path, file_open_mode_t mode)
         free(file);
         return NULL;
     }
+    file->name = strdup(path);
     return file;
 }
 
@@ -139,10 +140,24 @@ static int fio_sync(struct file_desc *file)
     return fsync(file->fd);
 }
 
+static size_t fio_size(struct file_desc *file)
+{
+    long size;
+    if (!file) {
+        return 0;
+    }
+    long tmp = ftell(file->fp);
+    fseek(file->fp, 0L, SEEK_END);
+    size = ftell(file->fp);
+    fseek(file->fp, tmp, SEEK_SET);
+    return (size_t)size;
+}
+
 static void fio_close(struct file_desc *file)
 {
     if (file) {
         fclose(file->fp);
+        free(file->name);
         free(file);
     }
 }
@@ -153,5 +168,6 @@ struct file_ops fio_ops = {
     .read  = fio_read,
     .seek  = fio_seek,
     .sync  = fio_sync,
+    .size  = fio_size,
     .close = fio_close,
 };

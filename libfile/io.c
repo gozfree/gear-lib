@@ -52,6 +52,7 @@ static struct file_desc *io_open(const char *path, file_open_mode_t mode)
 	free(file);
 	return NULL;
     }
+    file->name = strdup(path);
     return file;
 }
 
@@ -148,14 +149,23 @@ static int io_sync(struct file_desc *file)
     return fflush(file->fp);
 }
 
+static size_t io_size(struct file_desc *file)
+{
+    struct stat buf;
+    if (stat(file->name, &buf) < 0) {
+        return 0;
+    }
+    return (size_t)buf.st_size;
+}
+
 static void io_close(struct file_desc *file)
 {
     if (file) {
         close(file->fd);
+        free(file->name);
         free(file);
     }
 }
-
 
 struct file_ops io_ops = {
     .open  = io_open,
@@ -163,5 +173,6 @@ struct file_ops io_ops = {
     .read  = io_read,
     .seek  = io_seek,
     .sync  = io_sync,
+    .size  = io_size,
     .close = io_close,
 };

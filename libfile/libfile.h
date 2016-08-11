@@ -28,6 +28,7 @@ struct file_desc {
         int fd;
         FILE *fp;
     };
+    char *name;
 };
 
 typedef struct file {
@@ -42,6 +43,7 @@ typedef struct file_ops {
     ssize_t (*read)(struct file_desc *fd, void *buf, size_t count);
     off_t (*seek)(struct file_desc *fd, off_t offset, int whence);
     int (*sync)(struct file_desc *fd);
+    size_t (*size)(struct file_desc *fd);
     void (*close)(struct file_desc *fd);
 } file_ops_t;
 
@@ -49,7 +51,8 @@ struct file *file_open(const char *path, file_open_mode_t mode);
 void file_close(struct file *file);
 ssize_t file_read(struct file *file, void *data, size_t size);
 ssize_t file_write(struct file *file, const void *data, size_t size);
-ssize_t file_size(const char *path);
+ssize_t file_size(struct file *file);
+ssize_t file_get_size(const char *path);
 struct iovec *file_dump(const char *path);
 
 

@@ -57,7 +57,12 @@ ssize_t file_write(struct file *file, const void *data, size_t size)
     return file->ops->write(file->fd, data, size);
 }
 
-ssize_t file_size(const char *path)
+ssize_t file_size(struct file *file)
+{
+    return file->ops->size(file->fd);
+}
+
+ssize_t file_get_size(const char *path)
 {
     struct stat st;
     off_t size = 0;
@@ -72,7 +77,7 @@ ssize_t file_size(const char *path)
 
 struct iovec *file_dump(const char *path)
 {
-    ssize_t size = file_size(path);
+    ssize_t size = file_get_size(path);
     if (size == 0) {
         return NULL;
     }
