@@ -1,4 +1,4 @@
-libraries [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
+libraries [中文说明](README.cn.md) [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
 =========
 This is a collection of basic libraries.
 * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
