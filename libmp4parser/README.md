@@ -9,6 +9,7 @@ valgrind --leak-check=full ./test_libmp4parser test.mp4
 
 a typical mp4 parser result is:
 vlc -vvv test.mp4
+```
 ...
 [00007fe5e8c01818] core demux debug: looking for demux module matching "mp4": 66 candidates
 [00007fe5e8c01818] mp4 demux debug: added fragment moov
@@ -59,10 +60,11 @@ vlc -vvv test.mp4
 [00007fe5e8c01818] mp4 demux debug: found 2 tracks
 [00007fe5e8c01818] mp4 demux debug: track[Id 0x1] read 684 chunk
 ...
+```
 
 
 with libmp4parser result is:
-
+```
 debug: found Box: ftyp size 32 0
 debug: found Box: moov size 29184 32
 debug: found Box: mvhd size 108 40
@@ -140,4 +142,5 @@ debug: skip box: "mdat"
 search result box is root
 ftyp.major_brand is isom
 warn: cannot free box hvc1, type unknown
+```
 
