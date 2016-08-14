@@ -1323,7 +1323,7 @@ static inline size_t mp4_box_headersize( MP4_Box_t *p_box )
     if( (i_read > 0) && (p_peek[0]) )   \
     {       \
         const int __i_copy__ = strnlen( (char*)p_peek, i_read-1 );  \
-        p_str = malloc( __i_copy__+1 );               \
+        p_str = (typeof(p_str))malloc( __i_copy__+1 );               \
         if( p_str ) \
         { \
              memcpy( p_str, p_peek, __i_copy__ ); \
@@ -1341,7 +1341,7 @@ static inline size_t mp4_box_headersize( MP4_Box_t *p_box )
     int64_t  i_read = p_box->i_size; \
     uint8_t *p_peek, *p_buff; \
     int i_actually_read; \
-    if( !( p_peek = p_buff = malloc( i_read ) ) ) \
+    if( !( p_peek = p_buff = (uint8_t *)malloc( i_read ) ) ) \
     { \
         return( 0 ); \
     } \
@@ -1349,7 +1349,7 @@ static inline size_t mp4_box_headersize( MP4_Box_t *p_box )
     if( i_actually_read < 0 || (int64_t)i_actually_read < i_read )\
     { \
         msg_Warn( p_stream, "MP4_READBOX_ENTER: I got %i bytes, "\
-        "but I requested %"PRId64"", i_actually_read, i_read );\
+        "but I requested %" PRId64 "", i_actually_read, i_read );\
         free( p_buff ); \
         return( 0 ); \
     } \

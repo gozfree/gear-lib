@@ -140,7 +140,7 @@ static uint64_t file_seek(stream_t *stream_s, int64_t offset, int whence)
     return fseek(file, offset, whence);
 }
 
-static uint64_t file_tell(stream_t *stream_s)
+static int64_t file_tell(stream_t *stream_s)
 {
     FILE* file = (FILE*)stream_s->opaque;
     return ftell(file);
@@ -149,16 +149,16 @@ static uint64_t file_tell(stream_t *stream_s)
 static int file_peek(stream_t *stream_s, const uint8_t **buf, int size)
 {
     uint32_t offset = file_tell(stream_s);
-    *buf = calloc(1, size);
+    *buf = (uint8_t *)calloc(1, size);
     stream_s->priv_buf_num++;
-    stream_s->priv_buf = realloc(stream_s->priv_buf, stream_s->priv_buf_num * sizeof(uint8_t*));
+    stream_s->priv_buf = (void **)realloc(stream_s->priv_buf, stream_s->priv_buf_num * sizeof(uint8_t*));
     stream_s->priv_buf[stream_s->priv_buf_num-1] = (void *)*buf;
     int ret = file_read(stream_s, (void *)*buf, size);
     file_seek(stream_s, offset, SEEK_SET);
     return ret;
 }
 
-static uint64_t file_size(stream_t *stream_s)
+static int64_t file_size(stream_t *stream_s)
 {
     FILE* file = (FILE*)stream_s->opaque;
     long size;
@@ -187,7 +187,7 @@ stream_t* create_file_stream()
     s->size = file_size;
     s->close = file_close;
     s->priv_buf_num = 0;
-    s->priv_buf = calloc(1, sizeof(void));
+    s->priv_buf = (void **)calloc(1, sizeof(uint32_t));
     return s;
 }
 

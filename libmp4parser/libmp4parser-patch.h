@@ -9,7 +9,9 @@
 #ifndef __LIBMP4PARSER_PATCH_H__
 #define __LIBMP4PARSER_PATCH_H__
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE         /* See feature_test_macros(7) */
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -17,6 +19,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define typeof __typeof__
 
 
 /* redefine bool to fix complie error */
@@ -51,8 +55,8 @@ typedef struct stream {
     int (*write)(struct stream *stream_s, void *buf, int size);
     int (*peek)(struct stream *stream_s, const uint8_t **buf, int size);
     uint64_t (*seek)(struct stream *stream_s, int64_t offset, int whence);
-    uint64_t (*tell)(struct stream *stream_s);
-    uint64_t (*size)(struct stream *stream_s);
+    int64_t (*tell)(struct stream *stream_s);
+    int64_t (*size)(struct stream *stream_s);
     int (*close)(struct stream *stream_s);
     void *opaque;
     void **priv_buf;//store peek malloc buffer
