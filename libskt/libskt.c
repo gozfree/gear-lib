@@ -89,7 +89,7 @@ struct skt_connection *skt_udp_connect(const char *host, uint16_t port)
     return _skt_connect(SOCK_DGRAM, host, port);
 }
 
-int skt_tcp_bind_listen(const char *host, uint16_t port, int reuse)
+int skt_tcp_bind_listen(const char *host, uint16_t port)
 {
     struct sockaddr_in si;
     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -97,7 +97,7 @@ int skt_tcp_bind_listen(const char *host, uint16_t port, int reuse)
         loge("socket failed: %s\n", strerror(errno));
         goto fail;
     }
-    if (-1 == skt_set_reuse(fd, reuse)) {
+    if (-1 == skt_set_reuse(fd, 1)) {
         loge("skt_set_reuse failed: %s\n", strerror(errno));
         goto fail;
     }
@@ -120,7 +120,7 @@ fail:
     return -1;
 }
 
-int skt_udp_bind(const char *host, uint16_t port, int reuse)
+int skt_udp_bind(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_in si;
@@ -133,7 +133,7 @@ int skt_udp_bind(const char *host, uint16_t port, int reuse)
         loge("socket: %s\n", strerror(errno));
         return -1;
     }
-    if (-1 == skt_set_reuse(fd, reuse)) {
+    if (-1 == skt_set_reuse(fd, 1)) {
         loge("skt_set_reuse failed!\n");
         close(fd);
         return -1;
@@ -164,6 +164,12 @@ int skt_accept(int fd, uint32_t *ip, uint16_t *port)
 void skt_close(int fd)
 {
     close(fd);
+}
+
+int skt_get_tcp_info(int fd, struct tcp_info *tcpi)
+{
+    socklen_t len = sizeof(*tcpi);
+    return getsockopt(fd, SOL_TCP, TCP_INFO, tcpi, &len);
 }
 
 int skt_get_local_list(skt_addr_list_t **al, int loopback)

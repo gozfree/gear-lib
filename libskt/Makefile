@@ -47,6 +47,8 @@ SHARED	:= -shared
 LDFLAGS	:=
 LDFLAGS += -L$(OUTPUT)/lib -llog
 LDFLAGS += -L$(OUTPUT)/lib -lgevent
+LDFLAGS += -L$(OUTPUT)/lib -lthread
+LDFLAGS += -L$(OUTPUT)/lib -llock
 LDFLAGS	+= -pthread
 LDFLAGS	+= $($(ARCH)_LDFLAGS)
 

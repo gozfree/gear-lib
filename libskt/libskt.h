@@ -15,13 +15,13 @@
 #include <ifaddrs.h>
 #endif
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <netdb.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define LIBNAME         "libskt"
 #define MAX_ADDR_STRING (65)
 
 //socket structs
@@ -61,12 +61,12 @@ typedef struct skt_connection {
 
 //socket tcp apis
 struct skt_connection *skt_tcp_connect(const char *host, uint16_t port);
-int skt_tcp_bind_listen(const char *host, uint16_t port, int reuse);
+int skt_tcp_bind_listen(const char *host, uint16_t port);
 int skt_accept(int fd, uint32_t *ip, uint16_t *port);
 
 //socket udp apis
 struct skt_connection *skt_udp_connect(const char *host, uint16_t port);
-int skt_udp_bind(const char *host, uint16_t port, int reuse);
+int skt_udp_bind(const char *host, uint16_t port);
 
 //socket common apis
 void skt_close(int fd);
@@ -88,6 +88,7 @@ int skt_set_reuse(int fd, int enable);
 int skt_set_tcp_keepalive(int fd, int enable);
 int skt_set_buflen(int fd, int len);
 
+int skt_get_tcp_info(int fd, struct tcp_info *ti);
 int skt_get_local_list(struct skt_addr_list **list, int loopback);
 int skt_gethostbyname(struct skt_addr_list **list, const char *name);
 int skt_getaddrinfo(skt_addr_list_t **list,
