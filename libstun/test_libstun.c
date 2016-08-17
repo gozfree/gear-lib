@@ -30,13 +30,13 @@ typedef struct addr_info{
 } addr_info_t;
 
 static char stun_server_ip[64] = {0};
-void usage()
+static void usage(void)
 {
     printf("./test -s <stun_srv>\n"
            "./test -s <stun_srv> [-c <local_ip> <local_port>]\n");
 }
 
-int udp_send(int fd, const char* ip, uint16_t port, const void* buf, uint32_t len)
+static int udp_send(int fd, const char* ip, uint16_t port, const void* buf, uint32_t len)
 {
     int ret = 0;
     struct sockaddr_in sa;
@@ -56,7 +56,7 @@ int udp_send(int fd, const char* ip, uint16_t port, const void* buf, uint32_t le
     return ret;
 }
 
-void *keep_alive(void *args)
+static void *keep_alive(void *args)
 {
     //int fd = *(int *)args;
     while (1) {
@@ -66,7 +66,7 @@ void *keep_alive(void *args)
     return NULL;
 }
 
-void *send_msg(void *args)
+static void *send_msg(void *args)
 {
     struct addr_info *tmp = (struct addr_info *)args;
     int fd = tmp->fd;
@@ -92,17 +92,7 @@ void *send_msg(void *args)
     return NULL;
 }
 
-int skt_get_remote_addr(struct sockaddr_in *si, char *ip, int fd)
-{
-    socklen_t len = sizeof(si);
-    if (-1 == getpeername(fd, (struct sockaddr *)&si, &len)) {
-        perror("getpeername");
-        return -1;
-    }
-    strcpy(ip, inet_ntoa(si->sin_addr));
-    return 0;
-}
-void recv_msg(int fd)
+static void recv_msg(int fd)
 {
     int ret;
     char buf[1024] = {0};
@@ -131,7 +121,7 @@ void recv_msg(int fd)
 }
 
 
-int test(const char *local_ip, uint16_t local_port)
+static int test(const char *local_ip, uint16_t local_port)
 {
     int i;
     int ret;

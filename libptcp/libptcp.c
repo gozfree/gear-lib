@@ -19,8 +19,7 @@
 #include <semaphore.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
-#include <libgzf.h>
-#include <kernel_list.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "queue.h"
 #include "libptcp.h"
@@ -35,12 +34,27 @@
 
 #define MAX_EPOLL_EVENT 16
 
+typedef enum {
+    TCP_LISTEN,
+    TCP_SYN_SENT,
+    TCP_SYN_RECEIVED,
+    TCP_ESTABLISHED,
+    TCP_CLOSED,
+    TCP_FIN_WAIT_1,
+    TCP_FIN_WAIT_2,
+    TCP_CLOSING,
+    TCP_TIME_WAIT,
+    TCP_CLOSE_WAIT,
+    TCP_LAST_ACK,
+} ptcp_state_t;
+
+
 //////////////////////////////////////////////////////////////////////
 // Network Constants
 //////////////////////////////////////////////////////////////////////
 
 // Standard MTUs
-const uint16_t PACKET_MAXIMUMS[] = {
+static const uint16_t PACKET_MAXIMUMS[] = {
   65535,    // Theoretical maximum, Hyperchannel
   32000,    // Nothing
   17914,    // 16Mb IBM Token Ring
@@ -533,7 +547,7 @@ void ptcp_set_debug_level(ptcp_debug_level_t level)
   debug_level = level;
 }
 
-int64_t get_monotonic_time(void)
+static int64_t get_monotonic_time(void)
 {
   struct timespec ts;
   int result;
@@ -560,7 +574,7 @@ void ptcp_set_time(ptcp_socket_t *ps, uint32_t current_time)
   ps->current_time = current_time;
 }
 
-void ptcp_destroy(ptcp_socket_t *ps)
+static void ptcp_destroy(ptcp_socket_t *ps)
 {
   struct list_head *i, *next;
   SSegment *sseg;
@@ -574,7 +588,7 @@ void ptcp_destroy(ptcp_socket_t *ps)
   if (ps->rlist) {
   list_for_each_safe(i, next, &ps->rlist->entry) {
     RSegment *rseg = (RSegment *)container_of(i, list_t, entry);
-    free(rseg);   
+    free(rseg);
   }
   }
   free(ps->rlist);
@@ -590,7 +604,7 @@ void ptcp_destroy(ptcp_socket_t *ps)
 static void notify_clock(union sigval sv);
 timer_t timeout_add(uint64_t msec, void (*func)(union sigval sv), void *data);
 
-ptcp_socket_t *ptcp_create(ptcp_callbacks_t *cbs)
+static ptcp_socket_t *ptcp_create(ptcp_callbacks_t *cbs)
 {
   ptcp_socket_t *ps = (ptcp_socket_t *)calloc(1, sizeof(ptcp_socket_t));
   if (ps == NULL) {
@@ -2339,10 +2353,12 @@ timer_t timeout_add(uint64_t msec, void (*func)(union sigval sv), void *data)
     return timerid;
 }
 
-int del_timer(timer_t id)
+#if 0
+static int del_timer(timer_t id)
 {
     return timer_delete(id);
 }
+#endif
 
 static void clock_reset(ptcp_socket_t *p, uint64_t timeout)
 {
@@ -2418,26 +2434,30 @@ static ptcp_write_result_t ptcp_read(ptcp_socket_t *p, void *buf, size_t len)
     }
     return WR_FAIL;
 }
-void on_opened(ptcp_socket_t *p, void *data)
+
+static void on_opened(ptcp_socket_t *p, void *data)
 {
 //    printf("%s:%d xxxx\n", __func__, __LINE__);
     sem_post(&p->sem);
 }
-void on_readable(ptcp_socket_t *p, void *data)
+
+static void on_readable(ptcp_socket_t *p, void *data)
 {
 //    printf("%s:%d xxxx\n", __func__, __LINE__);
 }
-void on_writable(ptcp_socket_t *p, void *data)
+
+static void on_writable(ptcp_socket_t *p, void *data)
 {
 //    printf("%s:%d xxxx\n", __func__, __LINE__);
 }
-void on_closed(ptcp_socket_t *p, uint32_t error, void *data)
+
+static void on_closed(ptcp_socket_t *p, uint32_t error, void *data)
 {
 //    printf("%s:%d xxxx\n", __func__, __LINE__);
 }
 
 
-ptcp_socket_t *ptcp_socket()
+ptcp_socket_t *ptcp_socket(void)
 {
     int fds[2];
     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

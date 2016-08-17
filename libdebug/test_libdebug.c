@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "libdebug.h"
 
-void foo()
+static void foo(void)
 {
     char *tmp = NULL;
     *tmp = 0;
@@ -18,12 +18,12 @@ void foo()
     free(tmp);
 }
 
-void foo2()
+static void foo2(void)
 {
     foo();
 }
 
-void foo3()
+static void foo3(void)
 {
     foo2();
 }

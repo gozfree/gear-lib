@@ -6,10 +6,7 @@ LOCAL_MODULE := libptcp
 
 LIBRARIES_DIR	:= $(LOCAL_PATH)/../
 
-LIBGZF_INC := $(LIBRARIES_DIR)/libgzf/
-
-LOCAL_C_INCLUDES := $(LOCAL_PATH) \
-                    $(LIBGZF_INC)
+LOCAL_C_INCLUDES := $(LOCAL_PATH)
 
 # Add your application source files here...
 LOCAL_SRC_FILES := libptcp.c

@@ -12,6 +12,11 @@
 #include <stdio.h>
 #include <stdint.h>
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Keypair: holds a key/value pair. Key must be a hashable C string */
 typedef struct _keypair_ {
     char *key;
@@ -133,5 +138,8 @@ void   dict_dump(dict * d, FILE * out);
 
 void dict_get_key_list(dict * d, key_list **klist);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

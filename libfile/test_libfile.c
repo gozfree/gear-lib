@@ -10,7 +10,7 @@
 #include "libfile.h"
 
 
-void foo()
+static void foo(void)
 {
    char buf[128] = {0};
    struct file *f = file_open("/tmp/lsusb", F_RDONLY);

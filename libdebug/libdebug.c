@@ -112,7 +112,7 @@ static void backtrace_handler(int sig_num, siginfo_t *info, void *ucontext)
     exit(EXIT_FAILURE);
 }
 
-int debug_backtrace_init()
+int debug_backtrace_init(void)
 {
     struct sigaction sigact;
     sigact.sa_sigaction = backtrace_handler;
@@ -130,7 +130,7 @@ int debug_backtrace_init()
     return ret;
 }
 
-void debug_backtrace_dump()
+void debug_backtrace_dump(void)
 {
     void* buffer[BT_SIZE];
     int size = backtrace(buffer, BT_SIZE);

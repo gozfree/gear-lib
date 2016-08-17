@@ -24,7 +24,7 @@ struct select_ctx {
     fd_set *efds;
 };
 
-static void *select_init()
+static void *select_init(void)
 {
     struct select_ctx *sc = CALLOC(1, struct select_ctx);
     if (!sc) {
@@ -118,9 +118,9 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
 }
 
 struct gevent_ops selectops = {
-    select_init,
-    select_deinit,
-    select_add,
-    select_del,
-    select_dispatch,
+    .init     = select_init,
+    .deinit   = select_deinit,
+    .add      = select_add,
+    .del      = select_del,
+    .dispatch = select_dispatch,
 };

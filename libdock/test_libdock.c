@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include <libthread.h>
 #include <libdlmod.h>
@@ -56,7 +56,7 @@ static void *thread(struct thread *t, void *arg)
 }
 
 
-int test()
+static int test(void)
 {
     int ret = 0;
     int i;

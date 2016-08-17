@@ -25,7 +25,7 @@ struct poll_ctx {
     struct pollfd *fds;
 };
 
-static void *poll_init()
+static void *poll_init(void)
 {
     struct poll_ctx *pc;
     struct pollfd *fds;
@@ -113,9 +113,9 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
 }
 
 struct gevent_ops pollops = {
-    poll_init,
-    poll_deinit,
-    poll_add,
-    poll_del,
-    poll_dispatch,
+    .init     = poll_init,
+    .deinit   = poll_deinit,
+    .add      = poll_add,
+    .del      = poll_del,
+    .dispatch = poll_dispatch,
 };

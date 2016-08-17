@@ -10,7 +10,7 @@
 #include <vector>
 #include <sstream>
 #include <stdarg.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 
 #include "../libconfig.h"

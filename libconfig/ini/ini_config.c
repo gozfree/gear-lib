@@ -6,7 +6,6 @@
  * updated: 2015-09-30 00:42
  ******************************************************************************/
 #include <stdarg.h>
-#include <libgzf.h>
 #include <liblog.h>
 #include "../libconfig.h"
 #include "iniparser.h"

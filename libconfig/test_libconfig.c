@@ -16,7 +16,7 @@
 #include <liblog.h>
 #include "libconfig.h"
 
-int ini_test()
+static int ini_test(void)
 {
     struct config *conf = conf_load(CONFIG_INI, "ini/example.ini");
     logi("ini_test\n");
@@ -28,7 +28,7 @@ int ini_test()
     return 0;
 }
 
-int json_test()
+static int json_test(void)
 {
     struct config *conf = conf_load(CONFIG_JSON, "json/test.json");
     logi("json_test\n");
@@ -40,7 +40,7 @@ int json_test()
     return 0;
 }
 
-int lua_test()
+static int lua_test(void)
 {
     struct config *conf = conf_load(CONFIG_LUA, "lua/config.lua");
     logi("lua_test\n");

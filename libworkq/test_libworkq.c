@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include "libworkq.h"
 
 void test(void *arg)

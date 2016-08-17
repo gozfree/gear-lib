@@ -29,21 +29,6 @@ typedef enum {
     PSEUDO_TCP_DEBUG_VERBOSE,
 } ptcp_debug_level_t;
 
-
-typedef enum {
-    TCP_LISTEN,
-    TCP_SYN_SENT,
-    TCP_SYN_RECEIVED,
-    TCP_ESTABLISHED,
-    TCP_CLOSED,
-    TCP_FIN_WAIT_1,
-    TCP_FIN_WAIT_2,
-    TCP_CLOSING,
-    TCP_TIME_WAIT,
-    TCP_CLOSE_WAIT,
-    TCP_LAST_ACK,
-} ptcp_state_t;
-
 typedef enum {
     WR_SUCCESS,
     WR_TOO_LARGE,
@@ -56,7 +41,7 @@ typedef enum {
     PSEUDO_TCP_SHUTDOWN_RDWR,
 } ptcp_shutdown_t;
 
-typedef struct ptcp_callbacks {    
+typedef struct ptcp_callbacks {
     void *data;
     void (*on_opened)(ptcp_socket_t *p, void *data);
     void (*on_readable)(ptcp_socket_t *p, void *data);

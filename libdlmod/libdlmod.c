@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "libdlmod.h"
 
@@ -52,7 +52,7 @@ int dl_capability(struct dl_handle *dl, const char *mod_name,
     snprintf(symbol, sizeof(symbol), "%s_%s", mod_name, CAPABILITY);
     get_capability get_cap = (get_capability)dlsym(dl->handle, symbol);
     if (((err = dlerror()) != NULL)) {
-        loge("Failed to get symbol %s: %s", symbol, err);
+        loge("Failed to get symbol %s: %s\n", symbol, err);
         return -1;
     }
     get_cap(desc);

@@ -6,10 +6,7 @@ LOCAL_MODULE := libconfig
 
 LIBRARIES_DIR	:= $(LOCAL_PATH)/../
 
-LIBGZF_INC := $(LIBRARIES_DIR)/libgzf/
-
-LOCAL_C_INCLUDES := $(LOCAL_PATH) \
-                    $(LIBGZF_INC)
+LOCAL_C_INCLUDES := $(LOCAL_PATH)
 
 # Add your application source files here...
 INI_SRC_FILES	:= ini/iniparser.c ini/dictionary.c ini/ini_config.c

@@ -7,7 +7,7 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include <libdict.h>
 #include <libthread.h>
@@ -53,11 +53,11 @@ static void *dock_thread(struct thread *t, void *arg)
 }
 
 
-struct dock *dock_init()
+struct dock *dock_init(void)
 {
     struct dock *dock = CALLOC(1, struct dock);
     dock->plug_dict = dict_new();
-    dock->thread = thread_create("dock_thread", dock_thread, dock);
+    dock->thread = thread_create(dock_thread, dock);
 
     return dock;
 }

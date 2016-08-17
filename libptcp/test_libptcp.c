@@ -20,7 +20,7 @@
 
 #include "libptcp.h"
 
-int server(const char *host, uint16_t port)
+static int server(const char *host, uint16_t port)
 {
     int len;
     struct sockaddr_in si;
@@ -55,7 +55,7 @@ int server(const char *host, uint16_t port)
     return 0;
 }
 
-int client(const char *host, uint16_t port)
+static int client(const char *host, uint16_t port)
 {
     int i, len;
     char buf[128] = {0};

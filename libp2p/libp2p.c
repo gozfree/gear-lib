@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include <libstun.h>
 #include <libskt.h>
@@ -35,11 +35,11 @@ void *tmp_thread(void *arg);
 
 static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 {
-    void *ptr;
+    char *ptr;
     int num = 0;
     //logi("on_get_connect_list, len = %d\n", len);
     num = len / MAX_UUID_LEN;
-    for (ptr = arg; num > 0; --num) {
+    for (ptr = (char *)arg; num > 0; --num) {
         logi("uuid list: %s\n", ptr);
         len = MAX_UUID_LEN;
         ptr += len;
@@ -109,10 +109,10 @@ RPC_MAP(RPC_GET_CONNECT_LIST, on_get_connect_list_resp)
 RPC_MAP(RPC_PEER_POST_MSG, on_peer_post_msg_resp)
 END_RPC_MAP()
 
-int rpc_get_connect_list(struct rpc *r)
+static int rpc_get_connect_list(struct rpc *r)
 {
     int len = 100;
-    char *buf = calloc(1, len);
+    char *buf = (char *)calloc(1, len);
     memset(buf, 0xA5, len);
     rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, NULL, 0);
     //printf("func_id = %x\n", RPC_GET_CONNECT_LIST);
@@ -125,7 +125,7 @@ void p2p_get_peer_list(struct p2p *p2p)
     rpc_get_connect_list(p2p->rpc);
 }
 
-int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
+static int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
 {
     rpc_call(r, RPC_PEER_POST_MSG, buf, len, NULL, 0);
     //printf("func_id = %x\n", RPC_PEER_POST_MSG);
@@ -180,7 +180,7 @@ void *tmp_thread(void *arg)
     return NULL;
 }
 
-void on_rpc_read(int fd, void *arg)
+static void on_rpc_read(int fd, void *arg)
 {
     struct p2p *p2p = (struct p2p *)arg;
     struct rpc *r = p2p->rpc;
@@ -241,17 +241,17 @@ void on_rpc_read(int fd, void *arg)
 }
 #endif
 
-void on_rpc_write(int fd, void *arg)
+static void on_rpc_write(int fd, void *arg)
 {
     //printf("on_write fd= %d\n", fd);
 }
 
-void on_rpc_error(int fd, void *arg)
+static void on_rpc_error(int fd, void *arg)
 {
     printf("on_error fd= %d\n", fd);
 }
 
-static int __rand()
+static int __rand(void)
 {
     uint64_t tick;
     struct timeval tv;
@@ -263,7 +263,7 @@ static int __rand()
     return random();
 }
 
-uint16_t random_port()
+static uint16_t random_port(void)
 {
     uint16_t min = 0x4000;
     uint16_t max = 0x7FFF;

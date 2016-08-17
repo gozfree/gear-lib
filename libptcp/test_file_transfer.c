@@ -25,19 +25,7 @@
 #include <assert.h>
 #include "libptcp.h"
 
-void printf_buf(const char *buf, uint32_t len)
-{
-    int i;
-    for (i = 0; i < len; i++) {
-        if (!(i%16))
-           printf("\n0x%04x: ", buf[i]);
-        printf("%02x ", (buf[i] & 0xFF));
-    }
-    printf("\n");
-}
-
-
-long filesize(FILE *fd)
+static long filesize(FILE *fd)
 {
     long curpos, length;
     curpos = ftell(fd);
@@ -57,7 +45,7 @@ struct xfer_callback {
 };
 
 //=====================tcp=======================
-void *tcp_server_init(const char *host, uint16_t port)
+static void *tcp_server_init(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_in si;
@@ -91,7 +79,7 @@ void *tcp_server_init(const char *host, uint16_t port)
     return (void *)afd;
 }
 
-void *tcp_client_init(const char *host, uint16_t port)
+static void *tcp_client_init(const char *host, uint16_t port)
 {
     int *fd = (int *)calloc(1, sizeof(int));
     struct sockaddr_in si;
@@ -112,31 +100,31 @@ void *tcp_client_init(const char *host, uint16_t port)
     return (void *)fd;
 }
 
-int tcp_send(void *arg, void *buf, size_t len)
+static int tcp_send(void *arg, void *buf, size_t len)
 {
     int *fd = (int *)arg;
     return send(*fd, buf, len, 0);
 }
 
-int tcp_recv(void *arg, void *buf, size_t len)
+static int tcp_recv(void *arg, void *buf, size_t len)
 {
     int *fd = (int *)arg;
     return recv(*fd, buf, len, 0);
 }
 
-int tcp_close(void *arg)
+static int tcp_close(void *arg)
 {
     int *fd = (int *)arg;
     return close(*fd);
 }
 
-int tcp_errno(void *arg)
+static int tcp_errno(void *arg)
 {
     return errno;
 }
 
 //=================udp=======================
-void *udp_server_init(const char *host, uint16_t port)
+static void *udp_server_init(const char *host, uint16_t port)
 {
     int *fd = (int *)calloc(1, sizeof(int));
     struct sockaddr_in si;
@@ -157,7 +145,7 @@ void *udp_server_init(const char *host, uint16_t port)
     return (void *)fd;
 }
 
-void *udp_client_init(const char *host, uint16_t port)
+static void *udp_client_init(const char *host, uint16_t port)
 {
     int *fd = (int *)calloc(1, sizeof(int));
     struct sockaddr_in si;
@@ -178,31 +166,31 @@ void *udp_client_init(const char *host, uint16_t port)
     return (void *)fd;
 }
 
-int udp_send(void *arg, void *buf, size_t len)
+static int udp_send(void *arg, void *buf, size_t len)
 {
     int *fd = (int *)arg;
     return send(*fd, buf, len, 0);
 }
 
-int udp_recv(void *arg, void *buf, size_t len)
+static int udp_recv(void *arg, void *buf, size_t len)
 {
     int *fd = (int *)arg;
     return recv(*fd, buf, len, 0);
 }
 
-int udp_close(void *arg)
+static int udp_close(void *arg)
 {
     int *fd = (int *)arg;
     return close(*fd);
 }
 
-int udp_errno(void *arg)
+static int udp_errno(void *arg)
 {
     return errno;
 }
 
 //=================ptcp=======================
-void *ptcp_server_init(const char *host, uint16_t port)
+static void *ptcp_server_init(const char *host, uint16_t port)
 {
     ptcp_socket_t *ps = ptcp_socket();
     if (ps == NULL) {
@@ -220,14 +208,14 @@ void *ptcp_server_init(const char *host, uint16_t port)
     return ps;
 }
 
-int _ptcp_recv(void *arg, void *buf, size_t len)
+static int _ptcp_recv(void *arg, void *buf, size_t len)
 {
     ptcp_socket_t *ps = (ptcp_socket_t *)arg;
     int ret = ptcp_recv(ps, buf, len);
     return ret;
 }
 
-void *ptcp_client_init(const char *host, uint16_t port)
+static void *ptcp_client_init(const char *host, uint16_t port)
 {
     ptcp_socket_t *ps = ptcp_socket();
     if (ps == NULL) {
@@ -247,13 +235,13 @@ void *ptcp_client_init(const char *host, uint16_t port)
     return ps;
 }
 
-int _ptcp_send(void *arg, void *buf, size_t len)
+static int _ptcp_send(void *arg, void *buf, size_t len)
 {
     ptcp_socket_t *ps = (ptcp_socket_t *)arg;
     return ptcp_send(ps, buf, len);
 }
 
-int _ptcp_close(void *arg)
+static int _ptcp_close(void *arg)
 {
     ptcp_socket_t *ps = (ptcp_socket_t *)arg;
     ptcp_close(ps);
@@ -261,7 +249,7 @@ int _ptcp_close(void *arg)
 }
 
 #define ECLOSED 123
-int ptcp_errno(void *arg)
+static int ptcp_errno(void *arg)
 {
     ptcp_socket_t *ps = (ptcp_socket_t *)arg;
 
@@ -271,7 +259,7 @@ int ptcp_errno(void *arg)
     return ptcp_get_error(ps);
 }
 
-int file_send(char *name, struct xfer_callback *cbs)
+static int file_send(char *name, struct xfer_callback *cbs)
 {
     int len, flen, slen, total;
     char buf[1024] = {0};
@@ -305,7 +293,7 @@ int file_send(char *name, struct xfer_callback *cbs)
     printf("file %s length is %u\n", name, flen);
     return total;
 }
-int file_recv(char *name, struct xfer_callback *cbs)
+static int file_recv(char *name, struct xfer_callback *cbs)
 {
     int len, flen, rlen;
     char buf[1024] = {0};
@@ -344,7 +332,7 @@ static void sigterm_handler(int sig)
     exit(0);
 }
 
-struct xfer_callback tcp_cbs = {
+static struct xfer_callback tcp_cbs = {
     tcp_server_init,
     tcp_client_init,
     tcp_send,
@@ -352,7 +340,7 @@ struct xfer_callback tcp_cbs = {
     tcp_close,
     tcp_errno
 };
-struct xfer_callback udp_cbs = {
+static struct xfer_callback udp_cbs = {
     udp_server_init,
     udp_client_init,
     udp_send,
@@ -360,7 +348,7 @@ struct xfer_callback udp_cbs = {
     udp_close,
     udp_errno
 };
-struct xfer_callback ptcp_cbs = {
+static struct xfer_callback ptcp_cbs = {
     ptcp_server_init,
     ptcp_client_init,
     _ptcp_send,

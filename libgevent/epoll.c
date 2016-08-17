@@ -29,7 +29,7 @@ struct epoll_ctx {
     struct epoll_event *events;
 };
 
-static void *epoll_init()
+static void *epoll_init(void)
 {
     int fd;
     struct epoll_ctx *ec;
@@ -139,9 +139,9 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
 }
 
 struct gevent_ops epollops = {
-    epoll_init,
-    epoll_deinit,
-    epoll_add,
-    epoll_del,
-    epoll_dispatch,
+    .init     = epoll_init,
+    .deinit   = epoll_deinit,
+    .add      = epoll_add,
+    .del      = epoll_del,
+    .dispatch = epoll_dispatch,
 };

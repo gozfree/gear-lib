@@ -10,7 +10,6 @@ This is a collection of basic libraries.
 
 | Library                 | Note                                                       |
 |-------------------------|------------------------------------------------------------|
-|  [libgzf](libgzf)       | The most basically header file of all libraries.           |
 |  [libatomic](libatomic) | Atomic operation library.                                  |
 |  [libcmd](libcmd)       | Based on readline, a bash like library.                    |
 |  [libconfig](libconfig) | Configure library, support ini, json.                      |
@@ -20,6 +19,7 @@ This is a collection of basic libraries.
 |  [libhash](libhash)     | Hash key-value library based on hlist from kernel.         |
 |  [libipc](libipc)       | Inter-Process Communication, support mqueue/netlink/shm.   |
 |  [liblog](liblog)       | Log library, support console/file/rsyslog.                 |
+|  [libmacro](libmacro)   | Basic Macro define library, include kernel list and so on. |
 |  [libosal](libosal)     | OSAL(Operating System Abstraction Layer) library.          |
 |  [libp2p](libp2p)       | High level p2p punch hole library, easy API to use.        |
 |  [libptcp](libptcp)     | Pseudo Tcp Socket over UDP, rewrite with C from libjingle. |

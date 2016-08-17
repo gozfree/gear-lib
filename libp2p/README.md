@@ -2,7 +2,6 @@
 This is a simple p2p library.
 
 ##Dependency
-* [libgzf](../libgzf/)
 * [liblog](../liblog/)
 * [libgevent](../libgevent/)
 * [libdict](../libdict/)

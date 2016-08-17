@@ -29,7 +29,7 @@ void foo()
    struct file *f = file_open("/tmp/lsusb", F_RDONLY);
    file_read(f, buf, sizeof(buf));
    printf("buf =%s", buf);
-   printf("len=%zu\n", file_size("/tmp/lsusb"));
+   printf("len=%zu\n", file_get_size("/tmp/lsusb"));
 }
 
 

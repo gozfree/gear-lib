@@ -69,7 +69,7 @@ typedef struct rpc_connect {
 } rpc_connect_t;
 
 
-int rpc_get_connect_list(struct rpc *r, struct rpc_connect *list, int *num)
+static int rpc_get_connect_list(struct rpc *r, struct rpc_connect *list, int *num)
 {
     int len = 100;
     char *buf = (char *)calloc(1, len);
@@ -80,7 +80,7 @@ int rpc_get_connect_list(struct rpc *r, struct rpc_connect *list, int *num)
     return 0;
 }
 
-int rpc_shell_help(struct rpc *r, void *buf, size_t len)
+static int rpc_shell_help(struct rpc *r, void *buf, size_t len)
 {
     char res[1024] = {0};
     rpc_call(r, RPC_SHELL_HELP, buf, len, res, sizeof(res));
@@ -89,7 +89,7 @@ int rpc_shell_help(struct rpc *r, void *buf, size_t len)
     return 0;
 }
 
-int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
+static int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
 {
     rpc_call(r, RPC_PEER_POST_MSG, buf, len, NULL, 0);
     //printf("func_id = %x\n", RPC_PEER_POST_MSG);
@@ -97,13 +97,13 @@ int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
     return 0;
 }
 
-void usage()
+static void usage(void)
 {
     fprintf(stderr, "./test_libskt <ip> <port>\n");
     fprintf(stderr, "e.g. ./test_libskt 116.228.149.106 12345\n");
 }
 
-void cmd_usage()
+static void cmd_usage(void)
 {
     printf("====rpc cmd====\n"
             "a: get all connect list\n"
@@ -113,7 +113,7 @@ void cmd_usage()
             "\n");
 }
 
-void *raw_data_thread(void *arg)
+static void *raw_data_thread(void *arg)
 {
     struct rpc *r = (struct rpc *)arg;
     uint32_t uuid_dst;
@@ -193,7 +193,8 @@ int main(int argc, char **argv)
     return 0;
 }
 
-int cmd_main(int argc, char **argv)
+#if 0
+static int cmd_main(int argc, char **argv)
 {
 //116.228.149.106
     uint16_t port;
@@ -221,3 +222,4 @@ int cmd_main(int argc, char **argv)
     rpc_destroy(r);
     return 0;
 }
+#endif

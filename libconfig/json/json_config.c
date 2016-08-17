@@ -6,7 +6,7 @@
  * updated: 2015-12-15 23:27
  ******************************************************************************/
 #include <jansson.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "../libconfig.h"
 

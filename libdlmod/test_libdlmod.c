@@ -6,7 +6,7 @@
  * updated: 2015-11-09 18:52
  ******************************************************************************/
 #include <unistd.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include "libdlmod.h"
 #include <libthread.h>
 
@@ -80,7 +80,7 @@ static void *thread(struct thread *t, void *arg)
     return NULL;
 }
 
-void test_thread()
+static void test_thread(void)
 {
     int i;
     struct capability_desc desc;
@@ -120,13 +120,13 @@ void test_thread()
     dl_unload(dl);
 }
 
-void *my_thread(void *arg)
+static void *my_thread(void *arg)
 {
     while (1) {
         sleep(1);
         printf("%s:%d xxx\n", __func__, __LINE__);
     }
-
+    return NULL;
 }
 
 int main(int argc, char **argv)

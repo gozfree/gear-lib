@@ -8,11 +8,14 @@
 #ifndef _LIBDLMOD_H_
 #define _LIBDLMOD_H_
 
-#include <libgzf.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct capability_desc {
+    int entry;
+    char **cap;
+};
 
 struct dl_handle {
     void *handle;
@@ -41,7 +44,7 @@ void dl_unload(struct dl_handle *dl);
  * using CALL(api, args...), you need override api
  */
 #define CALL(func, ...) \
-    ({__typeof__(func) *sym = dl_override(#func); sym(__VA_ARGS__);}) \
+    ({__typeof__(func) *sym = (__typeof__(func) *)dl_override(#func); sym(__VA_ARGS__);}) \
 
 
 #ifdef __cplusplus

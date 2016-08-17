@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
-#include <libgzf.h>
 #include <liblog.h>
 #include "libgevent.h"
 
@@ -19,9 +18,9 @@ static void on_input(int fd, void *arg)
     logi("input %d", fd);
 }
 
-int foo()
+static int foo(void)
 {
-    int fd = -1;
+    int fd = 0;
     struct gevent_base *evbase = gevent_base_create();
     if (!evbase) {
         loge("gevent_base_create failed!\n");
@@ -43,7 +42,7 @@ int foo()
     return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
     foo();
     return 0;

@@ -28,7 +28,7 @@ static void event_in(int fd, void *arg)
 //    logd("fd = %d, event in\n", fd);
 }
 
-struct gevent_base *gevent_base_create()
+struct gevent_base *gevent_base_create(void)
 {
     int i;
     int fds[2];

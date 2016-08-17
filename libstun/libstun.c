@@ -39,12 +39,12 @@ static const int SOCKET_ERROR = -1;
 
 // define some basic types
 /// define a structure to hold a stun address
-const uint8_t IPv4Family = 0x01;
-const uint8_t IPv6Family = 0x02;
+static const uint8_t IPv4Family = 0x01;
+static const uint8_t IPv6Family = 0x02;
 
 // define  flags
-const uint32_t ChangeIpFlag = 0x04;
-const uint32_t ChangePortFlag = 0x02;
+static const uint32_t ChangeIpFlag = 0x04;
+static const uint32_t ChangePortFlag = 0x02;
 
 // define  stun attribute
 #define MappedAddress       0x0001
@@ -769,7 +769,7 @@ static unsigned int stunEncodeMessage(const StunMessage *msg,
     return (int)(ptr - buf);
 }
 
-static int stunRand()
+static int stunRand(void)
 {
     // return 32 bits of random stuff
     assert(sizeof(int) == 4);
@@ -777,7 +777,7 @@ static int stunRand()
     if (!init) {
         init = 1;
         uint64_t tick;
-#if defined(__GNUC__) && ( defined(__i686__) || defined(__i386__) )
+#if defined(__GNUC__) || ( defined(__i686__) || defined(__i386__) )
         asm("rdtsc":"=A"(tick));
 #elif defined(__MACH__)  || defined(__linux)
         int fd = open("/dev/random", O_RDONLY);
@@ -794,7 +794,7 @@ static int stunRand()
 }
 
 /// return a random number to use as a port
-static int stunRandomPort()
+static int stunRandomPort(void)
 {
     int min = 0x4000;
     int max = 0x7FFF;
@@ -1275,7 +1275,7 @@ int stun_socket(const char *ip, uint16_t port, stun_addr *map)
     return fd;
 }
 
-int stun_nat_type()
+int stun_nat_type(void)
 {
     int presPort = 0;
     int hairpin = 0;

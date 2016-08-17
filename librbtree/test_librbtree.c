@@ -7,7 +7,7 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include "librbtree.h"
 
 #ifndef false
@@ -22,10 +22,11 @@ struct my_rbnode {
     struct rb_node node;
     int key;
 };
-struct rb_root mytree = RB_ROOT;
-struct rb_root mytree_uk = RB_ROOT;
+static struct rb_root mytree = RB_ROOT;
+static struct rb_root mytree_uk = RB_ROOT;
 
-struct my_rbnode *my_search(struct rb_root *root, int val)
+#if 0
+static struct my_rbnode *my_search(struct rb_root *root, int val)
 {
     struct rb_node *node = root->rb_node;
 
@@ -44,37 +45,38 @@ struct my_rbnode *my_search(struct rb_root *root, int val)
     }
     return NULL;
 }
+#endif
 
-int my_insert(struct rb_root *root, struct my_rbnode *data)
+static int my_insert(struct rb_root *root, struct my_rbnode *data)
 {
-    struct rb_node **new = &(root->rb_node), *parent = NULL;
+    struct rb_node **_new = &(root->rb_node), *parent = NULL;
 
     /* Figure out where to put new node */
-    while (*new) {
-        struct my_rbnode *this = container_of(*new, struct my_rbnode, node);
-        int result = (data->key - this->key);
+    while (*_new) {
+        struct my_rbnode *_this = container_of(*_new, struct my_rbnode, node);
+        int result = (data->key - _this->key);
 
-        parent = *new;
+        parent = *_new;
         if (result < 0)
-            new = &((*new)->rb_left);
+            _new = &((*_new)->rb_left);
 //        else if (result > 0)
         else
-            new = &((*new)->rb_right);
+            _new = &((*_new)->rb_right);
 //        else
 //            return false;
     }
 
     /* Add new node and rebalance tree. */
-    rb_link_node(&data->node, parent, new);
+    rb_link_node(&data->node, parent, _new);
     rb_insert_color(&data->node, root);
 
     return true;
 }
 
-int input1[] = {-84,170,-85,142,-17,41,170,-85,-17,-71,170,152,-31,161,22,104,-85,160,120,-31,144,115};
-int input2[] = {-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,};
-int input3[] = {170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85};
-int input4[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+static int input1[] = {-84,170,-85,142,-17,41,170,-85,-17,-71,170,152,-31,161,22,104,-85,160,120,-31,144,115};
+static int input2[] = {-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,-84,};
+static int input3[] = {170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85,170,-85};
+static int input4[] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 static void test(struct rb_root *mytree, int *input, size_t len)
 {
@@ -82,7 +84,7 @@ static void test(struct rb_root *mytree, int *input, size_t len)
     struct rb_node *node;
     int res;
     int i;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < (int)len; i++) {
         struct my_rbnode *entry = CALLOC(1, struct my_rbnode);
         entry->key = input[i];
         res = my_insert(mytree, entry);

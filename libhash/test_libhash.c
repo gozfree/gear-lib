@@ -15,7 +15,7 @@
 #define NKEYS   1024*1024
 //#define NKEYS   10240
 
-double epoch_double()
+static double epoch_double(void)
 {
     struct timeval t;
     gettimeofday(&t, NULL);
@@ -33,7 +33,7 @@ int main(int argc, char * argv[])
 
     nkeys = (argc>1) ? (int)atoi(argv[1]) : NKEYS ;
     printf("%15s: %d\n", "values", nkeys);
-    buffer = malloc(9 * nkeys);
+    buffer = (char *)malloc(9 * nkeys);
 
     d = hash_create(2097152);
     t1 = epoch_double();
@@ -53,7 +53,7 @@ int main(int argc, char * argv[])
 
     t1 = epoch_double();
     for(i = 0; i < nkeys; i++) {
-        val = hash_get(d, buffer + i*9);
+        val = (char *)hash_get(d, buffer + i*9);
         if (0) {
         printf("hash_get: key=%p, val=%p\n", buffer + i*9, val);
         }

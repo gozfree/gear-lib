@@ -53,6 +53,7 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 LDFLAGS	+= -lthread
+LDFLAGS	+= -llock
 LDFLAGS	+= -ldlmod
 LDFLAGS	+= -llog
 LDFLAGS	+= -ldict

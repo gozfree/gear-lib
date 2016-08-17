@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <libgzf.h>
 #include "libsort.h"
+
 static void generic_swap(void *a, void *b, int size)
 {
     char t;

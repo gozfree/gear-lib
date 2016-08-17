@@ -12,19 +12,19 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <libgzf.h>
+#include <libmacro.h>
 #include <liblog.h>
 #include "libp2p.h"
 
 
-static char *_rpc_ip = "192.168.1.211";
+static const char *_rpc_ip = "192.168.1.211";
 //static char *_rpc_ip = "180.153.102.147";
 //static char *_rpc_ip = "116.228.149.106";
 
-static char *_stun_ip = "192.168.1.211";
+static const char *_stun_ip = "192.168.1.211";
 //static char *_stun_ip = "180.153.102.147";
 //static char *_stun_ip = "116.228.149.106";
-void *input_thread(void *arg)
+static void *input_thread(void *arg)
 {
     struct p2p *p2p = (struct p2p *)arg;
     uint32_t uuid_dst;
@@ -51,7 +51,7 @@ void *input_thread(void *arg)
     return NULL;
 }
 
-int main()
+int main(int argc, char **argv)
 {
     pthread_t tid;
     struct p2p *p2p = p2p_init(_rpc_ip, _stun_ip);
