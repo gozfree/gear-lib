@@ -11,7 +11,7 @@
 #include <pthread.h>
 #include "liblog.h"
 
-void test_no_init()
+static void test_no_init(void)
 {
     int i;
     char tmp[32] = "abcd";
@@ -25,7 +25,7 @@ void test_no_init()
     log_deinit();
 }
 
-void test_rsyslog()
+static void test_rsyslog(void)
 {
     int i;
     char tmp[32] = "abcd";
@@ -41,7 +41,7 @@ void test_rsyslog()
     log_deinit();
 }
 
-void test_file_name()
+static void test_file_name(void)
 {
     int i;
     log_init(LOG_FILE, "tmp/foo.log");
@@ -57,7 +57,7 @@ void test_file_name()
     log_deinit();
 }
 
-void test_file_noname()
+static void test_file_noname(void)
 {
     int i;
     log_init(LOG_FILE, NULL);
@@ -72,7 +72,7 @@ void test_file_noname()
     log_deinit();
 }
 
-void test()
+static void test(void)
 {
     int i;
     log_init(LOG_STDERR, NULL);
@@ -100,7 +100,7 @@ static void *test2(void *arg)
     return NULL;
 }
 
-void test_thread_log()
+static void test_thread_log(void)
 {
     pthread_t pid;
     pthread_create(&pid, NULL, test2, NULL);

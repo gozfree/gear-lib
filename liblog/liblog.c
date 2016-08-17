@@ -83,7 +83,7 @@
 typedef struct log_ops {
     int (*open)(const char *path);
     ssize_t (*write)(struct iovec *vec, int n);
-    int (*close)();
+    int (*close)(void);
 } log_ops_t;
 
 typedef struct log_driver {
@@ -167,7 +167,7 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
 #if defined (__ANDROID__)
 #define get_proc_name() (char *)(0)
 #else
-static char *get_proc_name()
+static char *get_proc_name(void)
 {
     int i, ret;
     char proc_name[PROC_NAME_LEN];
@@ -200,7 +200,7 @@ static char *get_proc_name()
 #if defined (__ANDROID__)
 #define _gettid()	(0)
 #else
-static pid_t _gettid()
+static pid_t _gettid(void)
 {
     return syscall(__NR_gettid);
 }
@@ -313,7 +313,7 @@ static int _log_fopen(const char *path)
     return 0;
 }
 
-static int _log_fclose()
+static int _log_fclose(void)
 {
     return fclose(_log_fp);
 }
@@ -365,7 +365,7 @@ static int _log_open(const char *path)
     return 0;
 }
 
-static int _log_close()
+static int _log_close(void)
 {
     return close(_log_fd);
 }
@@ -403,7 +403,7 @@ static struct log_ops log_io_ops = {
     .close = _log_close
 };
 
-struct log_ops *_log_handle = NULL;
+static struct log_ops *_log_handle = NULL;
 
 /*
  *time: level: process[pid]: [tid] tag: message
@@ -546,7 +546,7 @@ void log_set_level(int level)
     }
 }
 
-void log_check_env()
+static void log_check_env(void)
 {
     _log_level = LOG_LEVEL_DEFAULT;
     const char *levelstr = level_str(getenv(LOG_LEVEL_ENV));
@@ -643,7 +643,7 @@ static int log_init_stderr(const char *ident)
     return 0;
 }
 
-static void log_deinit_stderr()
+static void log_deinit_stderr(void)
 {
 }
 
@@ -714,7 +714,7 @@ static int log_init_file(const char *ident)
     return 0;
 }
 
-static void log_deinit_file()
+static void log_deinit_file(void)
 {
     _log_handle->close();
 }
@@ -735,7 +735,7 @@ static int log_init_syslog(const char *facilitiy_str)
     return 0;
 }
 
-static void log_deinit_syslog()
+static void log_deinit_syslog(void)
 {
     closelog();
 }
@@ -820,7 +820,7 @@ int log_init(int type, const char *ident)
     return 0;
 }
 
-void log_deinit()
+void log_deinit(void)
 {
     if (!_log_driver) {
         return;
