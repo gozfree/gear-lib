@@ -10,7 +10,7 @@
 #include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <libgzf.h>
+#include <libmacro.h>
 
 #include "libcmd.h"
 
@@ -93,7 +93,7 @@ static char **cmd_completion(const char *text, int start, int end)
     return matches;
 }
 
-static char *cmd_get_input()
+static char *cmd_get_input(void)
 {
     if (g_line_read) {
         free(g_line_read);
@@ -112,26 +112,18 @@ struct cmd *cmd_init(int cnt)
 {
     int res = 0;
     struct cmd *cmd = NULL;
-    struct cmd_entry *entry = NULL;
     do {
         if (cnt < 0 || cnt > CMD_MAX_NUM) {
             printf("cmd num can't more than %d\n", CMD_MAX_NUM);
             res = -1;
             break;
         }
-        entry = CALLOC(cnt, struct cmd_entry);
-        if (!entry) {
-            printf("malloc cmd entry failed!\n");
-            res = -1;
-            break;
-        }
         cmd = CALLOC(1, struct cmd);
         if (!cmd) {
-            printf("malloc cmd entry failed!\n");
+            printf("malloc cmd failed!\n");
             res = -1;
             break;
         }
-        cmd->entry = &entry;
         cmd->cnt = cnt;
         cmd->dict = dict_new();
         if (!cmd->dict) {
@@ -145,7 +137,6 @@ struct cmd *cmd_init(int cnt)
 
     if (UNLIKELY(res != 0)) {
         if (cmd->dict) dict_free(cmd->dict);
-        if (entry) free(entry);
         if (cmd) free(cmd);
     }
     g_cmd = cmd;
@@ -156,9 +147,7 @@ void cmd_deinit(struct cmd *cmd)
 {
     if (!cmd) return;
     if (cmd->dict) dict_free(cmd->dict);
-    if (*cmd->entry) free(*cmd->entry);
     if (cmd) free(cmd);
-    g_cmd = NULL;
 }
 
 int cmd_register(struct cmd *cmd, const char *name, cmd_cb func)
@@ -224,6 +213,9 @@ void cmd_loop(struct cmd *cmd)
     char *s;
     while (1) {
         s = cmd_get_input();
+        if (!s) {
+            continue;
+        }
         cmd_execute(cmd, s);
     }
 }

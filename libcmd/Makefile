@@ -46,9 +46,9 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 LDFLAGS	+= -lreadline
-LDFLAGS	+= -lgzf
-LDFLAGS	+= -ldict
 LDFLAGS	+= -llog
+LDFLAGS	+= -ldict
+LDFLAGS	+= -losal
 
 .PHONY : all clean
 
