@@ -114,11 +114,12 @@ static void backtrace_handler(int sig_num, siginfo_t *info, void *ucontext)
 
 int debug_backtrace_init(void)
 {
+    uint32_t i;
     struct sigaction sigact;
     sigact.sa_sigaction = backtrace_handler;
     sigact.sa_flags = SA_RESTART | SA_SIGINFO;
     int ret = 0;
-    for (uint32_t i = 0; i < (sizeof(signum) / sizeof(uint32_t)); ++i) {
+    for (i = 0; i < (sizeof(signum) / sizeof(uint32_t)); ++i) {
         if (sigaction(signum[i], &sigact, NULL) != 0) {
             fprintf(stderr, "Failed to set signal handler for %s(%d)!",
                   strsignal(signum[i]),

@@ -40,9 +40,10 @@ static void *print_mutex_lock(void *arg)
     struct thread_arg *argp = (struct thread_arg *)arg;
     int c = argp->flag;
     uint64_t n = argp->count;
+    uint64_t i;
     pthread_t tid = pthread_self();
     printf("c = %d\n", c);
-    for (uint64_t i = 0; i < n; ++ i) {
+    for (i = 0; i < n; ++ i) {
         if (c) {
             mutex_lock(mutex);
             ++ value;
@@ -66,10 +67,11 @@ static void *print_spin_lock(void *arg)
     struct thread_arg *argp = (struct thread_arg *)arg;
     int c = argp->flag;
     uint64_t n = argp->count;
+    uint64_t i;
     pthread_t tid = pthread_self();
 
     printf("c = %d\n", c);
-    for (uint64_t i = 0; i < n; ++ i) {
+    for (i = 0; i < n; ++ i) {
         if (c) {
             spin_lock(spin);
             ++ value;
