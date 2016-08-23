@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <pthread.h>
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <sys/time.h>
 #include "liblock.h"
@@ -125,7 +126,7 @@ int main(int argc, char **argv)
         gettimeofday(&end, NULL);
         startUs = start.tv_sec * 1000000 + start.tv_usec;
         endUs = end.tv_sec * 1000000 + end.tv_usec;
-        fprintf(stdout, "Value is %zu, Used %zuus:%zuus\n",
+        fprintf(stdout, "Value is %" PRIu64 ", Used %" PRIu64 "us:%" PRIu64 "\n",
                 value, (endUs - startUs) / 1000000, (endUs - startUs) % 1000000);
     }
     if (mutex) {

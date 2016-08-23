@@ -63,6 +63,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
+LDFLAGS	+= -lrt
 
 ###############################################################################
 # target

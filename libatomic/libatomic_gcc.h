@@ -15,7 +15,14 @@
 extern "C" {
 #endif
 
+#define GCC_VERSION (__GNUC__*100 + __GNUC_MINOR__*10 + __GNUC_PATCHLEVEL__)
+
+#if GCC_VERSION > 463
 #define HAVE_ATOMIC_COMPARE_EXCHANGE 1
+#else
+#define HAVE_ATOMIC_COMPARE_EXCHANGE 0
+#endif
+
 #define HAVE_SYNC_VAL_COMPARE_AND_SWAP 1
 
 #define atomic_int_get atomic_int_get_gcc

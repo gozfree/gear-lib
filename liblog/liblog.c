@@ -188,9 +188,9 @@ static char *get_proc_name(void)
     if (i == 0) {
         return NULL;
     }
-    proc = (char *)calloc(1, i);
+    proc = (char *)calloc(1, ret - i);
     if (proc) {
-        strncpy(proc, ptr, i);
+        strncpy(proc, ptr, ret - i);
     }
 
     return proc;

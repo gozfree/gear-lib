@@ -70,8 +70,16 @@ Recommend Ubuntu14.04 gcc-4.8.4+
   * "sudo make install" is needed when build libxxx alone.
 
 ## License
-GPL. Please refer to the LICENSE file for detailed information.
+LGPL/GPLv3. Please refer to the LICENSE file for detailed information.
 
 ## Author & Contributing
 Welcome pull request to the libraries.  
 gozfree <gozfree@163.com>
+In alphabetical order
+| github-id       | email              |
+|-----------------|--------------------|
+| CMShuyuhui      |                    |
+| core1011        |                    |
+| elfring         |                    |
+| ktsaou          |                    |
+| zh794390558     |                    |
