@@ -37,7 +37,7 @@ TGT_UNIT_TEST	= test_$(LIBNAME)
 OBJS_LIB	= $(LIBNAME).o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
-CFLAGS	:= -g -Wall -Werror -fPIC -std=c99
+CFLAGS	:= -g -Wall -Werror -fPIC -std=gnu99
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 CFLAGS	+= -I../libmacro/
