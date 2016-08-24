@@ -56,7 +56,7 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	:= -g -Wall -Werror -fPIC -std=c99
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 CFLAGS	+= -I../libmacro/
