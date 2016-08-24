@@ -76,6 +76,7 @@ LGPL/GPLv3. Please refer to the LICENSE file for detailed information.
 Welcome pull request to the libraries.  
 gozfree <gozfree@163.com>
 In alphabetical order
+
 | github-id       | email              |
 |-----------------|--------------------|
 | CMShuyuhui      |                    |
