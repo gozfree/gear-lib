@@ -150,12 +150,12 @@ static void js_unload(struct config *c)
 }
 
 struct config_ops json_ops = {
-    .load        = js_load,
-    .set_string  = NULL,
-    .get_string  = js_get_string,
-    .get_int     = js_get_int,
-    .get_double  = js_get_double,
-    .get_boolean = js_get_boolean,
-    .dump        = NULL,
-    .unload      = js_unload,
+    js_load,
+    NULL,
+    js_get_string,
+    js_get_int,
+    js_get_double,
+    js_get_boolean,
+    NULL,
+    js_unload,
 };

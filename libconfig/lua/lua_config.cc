@@ -218,12 +218,12 @@ static void lua_unload(struct config *c)
 }
 
 struct config_ops lua_ops = {
-    .load        = lua_load,
-    .set_string  = NULL,
-    .get_string  = lua_get_string,
-    .get_int     = lua_get_int,
-    .get_double  = lua_get_double,
-    .get_boolean = lua_get_boolean,
-    .dump        = NULL,
-    .unload      = lua_unload,
+    lua_load,
+    NULL,
+    lua_get_string,
+    lua_get_int,
+    lua_get_double,
+    lua_get_boolean,
+    NULL,
+    lua_unload,
 };

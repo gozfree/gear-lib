@@ -63,7 +63,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
