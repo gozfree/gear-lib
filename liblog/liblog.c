@@ -321,6 +321,7 @@ static int _log_fclose(void)
 static ssize_t _log_fwrite(struct iovec *vec, int n)
 {
     int i, ret;
+    char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size_by_fp(_log_fp);
     if (UNLIKELY(tmp_size > _log_file_size)) {
         if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
@@ -331,11 +332,15 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
             fprintf(stderr, "_log_fclose errno:%d", errno);
         }
         log_get_time(_log_name_time, sizeof(_log_name_time), 1);
-        snprintf(_log_name, sizeof(_log_name), "%s%s_%s",
+        snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
                 _log_path, _log_name_prefix, _log_name_time);
+        if (-1 == rename(_log_name, log_rename)) {
+            fprintf(stderr, "log file splited %s error: %d:%s\n",
+                    log_rename, errno , strerror(errno));
+        }
         _log_fopen(_log_name);
         if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "splited file %s\n", _log_name);
+            fprintf(stderr, "splited file %s\n", log_rename);
         }
     }
     for (i = 0; i < n; i++) {
@@ -372,6 +377,7 @@ static int _log_close(void)
 
 static ssize_t _log_write(struct iovec *vec, int n)
 {
+    char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size(_log_name);
     if (UNLIKELY(tmp_size > _log_file_size)) {
         fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
@@ -380,11 +386,14 @@ static ssize_t _log_write(struct iovec *vec, int n)
             fprintf(stderr, "_log_close errno:%d", errno);
         }
         log_get_time(_log_name_time, sizeof(_log_name_time), 1);
-        snprintf(_log_name, sizeof(_log_name), "%s%s_%s",
+        snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
                 _log_path, _log_name_prefix, _log_name_time);
-
+        if (-1 == rename(_log_name, log_rename)) {
+            fprintf(stderr, "log file splited %s error: %d:%s\n",
+                    log_rename, errno , strerror(errno));
+        }
         _log_open(_log_name);
-        fprintf(stderr, "splited file %s\n", _log_name);
+        fprintf(stderr, "splited file %s\n", log_rename);
     }
 
     return writev(_log_fd, vec, n);

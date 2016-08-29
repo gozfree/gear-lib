@@ -77,10 +77,11 @@ Welcome pull request to the libraries.
 gozfree <gozfree@163.com>
 In alphabetical order
 
-| github-id       | email              |
-|-----------------|--------------------|
-| CMShuyuhui      |                    |
-| core1011        |                    |
-| elfring         |                    |
-| ktsaou          |                    |
-| zh794390558     |                    |
+| github-id            | email              |
+|----------------------|--------------------|
+| CMShuyuhui           |                    |
+| core1011             |                    |
+| elfring              |                    |
+| Mohammad Amin Sameti |                    |
+| ktsaou               |                    |
+| zh794390558          |                    |
