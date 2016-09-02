@@ -234,8 +234,10 @@ int mutex_cond_wait(mutex_lock_t *mutexp, mutex_cond_t *condp, int64_t ms)
     } else {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec += ms / 1000;
-        ts.tv_nsec += (ms % 1000) * 1000000;
+        uint64_t ns = ts.tv_sec * 1000 * 1000 * 1000 + ts.tv_nsec;
+        ns += ms * 1000 * 1000;
+        ts.tv_sec = ns / (1000 * 1000 * 1000);
+        ts.tv_nsec = ns % 1000 * 1000 * 1000;
 wait:
         ret = pthread_cond_timedwait(cond, mutex, &ts);
         if (ret != 0) {
@@ -504,8 +506,10 @@ int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
     } else {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
-        ts.tv_sec += ms / 1000;
-        ts.tv_nsec += (ms % 1000) * 1000000;
+        int64_t ns = ts.tv_sec * 1000 * 1000 * 1000 + ts.tv_nsec;
+        ns += ms * 1000 * 1000;
+        ts.tv_sec = ns / (1000 * 1000 * 1000);
+        ts.tv_nsec = ns % 1000 * 1000 * 1000;
         ret = sem_timedwait(lock, &ts);
         if (ret != 0) {
             switch (errno) {
