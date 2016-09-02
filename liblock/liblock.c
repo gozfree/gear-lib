@@ -506,7 +506,7 @@ int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
     } else {
         struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
-        int64_t ns = ts.tv_sec * 1000 * 1000 * 1000 + ts.tv_nsec;
+        uint64_t ns = ts.tv_sec * 1000 * 1000 * 1000 + ts.tv_nsec;
         ns += ms * 1000 * 1000;
         ts.tv_sec = ns / (1000 * 1000 * 1000);
         ts.tv_nsec = ns % 1000 * 1000 * 1000;
