@@ -6,8 +6,8 @@
  * updated: 2016-08-12 00:05
  ******************************************************************************/
 
-#ifndef __LIBMP4PARSER_PATCH_H__
-#define __LIBMP4PARSER_PATCH_H__
+#ifndef LIBMP4PARSER_PATCH_H
+#define LIBMP4PARSER_PATCH_H
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE         /* See feature_test_macros(7) */

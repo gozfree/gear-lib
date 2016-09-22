@@ -5,8 +5,8 @@
  * created: 2016-05-21 17:28:20
  * updated: 2016-05-21 17:28:20
  *****************************************************************************/
-#ifndef _LIBTIME_H_
-#define _LIBTIME_H_
+#ifndef LIBTIME_H
+#define LIBTIME_H
 
 #include <stdint.h>
 #include <time.h>

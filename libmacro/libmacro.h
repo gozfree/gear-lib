@@ -5,8 +5,8 @@
  * created: 2016-06-29 11:07:41
  * updated: 2016-06-29 11:07:41
  *****************************************************************************/
-#ifndef _LIBMACRO_H_
-#define _LIBMACRO_H_
+#ifndef LIBMACRO_H
+#define LIBMACRO_H
 
 #include "kernel_list.h"
 

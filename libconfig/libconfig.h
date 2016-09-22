@@ -5,8 +5,8 @@
  * created: 2015-09-29 23:49
  * updated: 2015-09-29 23:49
  *****************************************************************************/
-#ifndef _LIBCONFIG_H_
-#define _LIBCONFIG_H_
+#ifndef LIBCONFIG_H
+#define LIBCONFIG_H
 
 #include <stdio.h>
 

@@ -1,5 +1,12 @@
-#ifndef _LIBCMD_H_
-#define _LIBCMD_H_
+/******************************************************************************
+ * Copyright (C) 2014-2016
+ * file:    libcmd.h
+ * author:  gozfree <gozfree@163.com>
+ * created: 2016-09-16 18:00
+ * updated: 2016-09-16 18:00
+ ******************************************************************************/
+#ifndef LIBCMD_H
+#define LIBCMD_H
 
 #include <libdict.h>
 

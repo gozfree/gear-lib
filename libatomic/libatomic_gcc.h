@@ -5,8 +5,8 @@
  * created: 2016-04-24 17:57
  * updated: 2016-04-24 17:57
  ******************************************************************************/
-#ifndef _LIBATOMIC_GCC_H_
-#define _LIBATOMIC_GCC_H_
+#ifndef LIBATOMIC_GCC_H
+#define LIBATOMIC_GCC_H
 
 #include <stdint.h>
 #include "libatomic.h"

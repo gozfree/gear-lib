@@ -5,8 +5,8 @@
  * created: 2015-11-10 16:29:41
  * updated: 2015-11-10 16:29:41
  *****************************************************************************/
-#ifndef _NETLINK_DRIVER_H_
-#define _NETLINK_DRIVER_H_
+#ifndef NETLINK_DRIVER_H
+#define NETLINK_DRIVER_H
 
 
 #define NETLINK_IPC_GROUP	0	//must be zero

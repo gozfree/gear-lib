@@ -5,8 +5,8 @@
  * created: 2015-04-26 12:25
  * updated: 2015-07-13 03:30
  *****************************************************************************/
-#ifndef _LIB_DICT_H_
-#define _LIB_DICT_H_
+#ifndef LIBDICT_H
+#define LIBDICT_H
 
 #include <stdlib.h>
 #include <stdio.h>

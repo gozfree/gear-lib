@@ -5,8 +5,8 @@
  * created: 2015-10-31 19:09
  * updated: 2015-10-31 19:09
  ******************************************************************************/
-#ifndef _LIBRPC_STUB_H_
-#define _LIBRPC_STUB_H_
+#ifndef LIBRPC_STUB_H
+#define LIBRPC_STUB_H
 
 
 #include "librpc.h"

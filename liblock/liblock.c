@@ -19,7 +19,12 @@
 /******************************************************************************
  * spin lock APIs
  *****************************************************************************/
+#if ( __i386__ || __i386 || __amd64__ || __amd64 )
 #define cpu_pause() __asm__ ("pause")
+#else
+#define cpu_pause()
+#endif
+
 #define atomic_cmp_set(lock, old, set) \
     __sync_bool_compare_and_swap(lock, old, set)
 

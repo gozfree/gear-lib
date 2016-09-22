@@ -5,8 +5,8 @@
  * created: 2015-11-10 16:29:41
  * updated: 2015-11-10 16:29:41
  *****************************************************************************/
-#ifndef _LIBIPC_H_
-#define _LIBIPC_H_
+#ifndef LIBIPC_H
+#define LIBIPC_H
 
 #include <stdio.h>
 #include <string.h>

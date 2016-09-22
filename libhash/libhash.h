@@ -6,8 +6,8 @@
  * updated: 2015-05-10 00:42
  ******************************************************************************/
 
-#ifndef _LIBHASH_H_
-#define _LIBHASH_H_
+#ifndef LIBHASH_H
+#define LIBHASH_H
 
 #include <libmacro.h>
 #ifdef __cplusplus

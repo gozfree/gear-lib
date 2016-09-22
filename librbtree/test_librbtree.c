@@ -22,7 +22,6 @@ struct my_rbnode {
     struct rb_node node;
     int key;
 };
-static struct rb_root mytree = RB_ROOT;
 static struct rb_root mytree_uk = RB_ROOT;
 
 #if 0

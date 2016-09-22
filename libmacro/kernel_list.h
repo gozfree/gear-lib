@@ -5,8 +5,8 @@
  * created: 2015-07-13 03:32
  * updated: 2015-07-13 03:32
  *****************************************************************************/
-#ifndef _KERNEL_LIST_H_
-#define _KERNEL_LIST_H_
+#ifndef KERNEL_LIST_H
+#define KERNEL_LIST_H
 
 #include <stddef.h>
 
@@ -14,8 +14,9 @@
 extern "C" {
 #endif
 
-//XXX
-//struct is from "linux/include/linux/types.h"
+/*
+ * struct is from "linux/include/linux/types.h"
+ */
 struct list_head {
 	struct list_head *next, *prev;
 };
@@ -32,8 +33,9 @@ struct hlist_node {
 #define typeof __typeof__
 #endif
 
-//XXX
-//from "linux/include/linux/kernel.h"
+/*
+ * from "linux/include/linux/kernel.h"
+ */
 
 /**
  * container_of - cast a member of a structure out to the containing structure
@@ -46,9 +48,10 @@ struct hlist_node {
 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
 	(type *)( (char *)__mptr - offsetof(type,member) );})
 
-//XXX
-//below is from "linux/include/linux/list.h"
-//and remove some unused macros
+/*
+ * below is from "linux/include/linux/list.h"
+ * and remove some unused macros
+ */
 
 /*
  * Simple doubly linked list implementation.

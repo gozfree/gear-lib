@@ -5,8 +5,8 @@
  * created: 2015-11-28 17:59:24
  * updated: 2015-11-28 17:59:24
  *****************************************************************************/
-#ifndef _LIBOSAL_H_
-#define _LIBOSAL_H_
+#ifndef LIBOSAL_H
+#define LIBOSAL_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,8 +5,8 @@
  * created: 2016-07-29 11:01
  * updated: 2016-07-29 11:01
  ******************************************************************************/
-#ifndef __LIBMP4PARSER_H__
-#define __LIBMP4PARSER_H__
+#ifndef LIBMP4PARSER_H
+#define LIBMP4PARSER_H
 
 #include "libmp4parser-patch.h"
 

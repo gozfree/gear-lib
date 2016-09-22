@@ -5,8 +5,8 @@
  * created: 2015-04-27 00:59
  * updated: 2015-07-12 00:42
  *****************************************************************************/
-#ifndef _LIB_GEVENT_H_
-#define _LIB_GEVENT_H_
+#ifndef LIBGEVENT_H
+#define LIBGEVENT_H
 
 #include <stdint.h>
 #include <stdlib.h>

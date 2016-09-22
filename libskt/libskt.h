@@ -5,8 +5,8 @@
  * created: 2015-05-03 18:27
  * updated: 2016-01-03 14:56
  *****************************************************************************/
-#ifndef _LIBSKT_H_
-#define _LIBSKT_H_
+#ifndef LIBSKT_H
+#define LIBSKT_H
 
 #include <stdint.h>
 #include <stdlib.h>

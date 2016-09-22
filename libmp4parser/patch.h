@@ -5,8 +5,8 @@
  * created: 2016-07-29 14:24
  * updated: 2016-07-29 14:24
  ******************************************************************************/
-#ifndef __PATCH_H__
-#define __pATCH_H__
+#ifndef PATCH_H
+#define pATCH_H
 
 #include <stdlib.h>
 #include <stdarg.h>

@@ -5,8 +5,8 @@
  * created: 2016-06-22 14:09:11
  * updated: 2016-06-22 14:09:11
  *****************************************************************************/
-#ifndef _LIBLOCK_H_
-#define _LIBLOCK_H_
+#ifndef LIBLOCK_H
+#define LIBLOCK_H
 
 #include <stdint.h>
 

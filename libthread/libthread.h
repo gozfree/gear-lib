@@ -5,8 +5,8 @@
  * created: 2015-08-15 22:57
  * updated: 2016-01-03 15:38
  *****************************************************************************/
-#ifndef _LIBTHREAD_H_
-#define _LIBTHREAD_H_
+#ifndef LIBTHREAD_H
+#define LIBTHREAD_H
 
 #include <stdio.h>
 #include <stdlib.h>

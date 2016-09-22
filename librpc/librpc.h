@@ -5,8 +5,8 @@
  * created: 2015-05-06 23:54
  * updated: 2015-05-06 23:54
  *****************************************************************************/
-#ifndef _LIBRPC_H_
-#define _LIBRPC_H_
+#ifndef LIBRPC_H
+#define LIBRPC_H
 
 #include <stdio.h>
 #include <string.h>

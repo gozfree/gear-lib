@@ -5,8 +5,8 @@
  * created: 2015-11-09 18:51
  * updated: 2015-11-09 18:51
  ******************************************************************************/
-#ifndef _LIBDLMOD_H_
-#define _LIBDLMOD_H_
+#ifndef LIBDLMOD_H
+#define LIBDLMOD_H
 
 #ifdef __cplusplus
 extern "C" {

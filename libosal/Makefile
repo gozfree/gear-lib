@@ -57,7 +57,7 @@ LDFLAGS	+= -pthread
 
 TGT	:= $(TGT_LIB_A)
 TGT	+= $(TGT_LIB_SO)
-#TGT	+= $(TGT_UNIT_TEST)
+TGT	+= $(TGT_UNIT_TEST)
 
 OBJS	:= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 

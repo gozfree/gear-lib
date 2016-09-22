@@ -11,5 +11,9 @@
 
 int main(int argc, char **argv)
 {
+    char *cmd = "date";
+    char buf[64];
+    system_with_result(cmd, buf, sizeof(buf));
+    printf("buf = %s\n", buf);
     return 0;
 }

@@ -5,8 +5,8 @@
  * created: 2015-08-10 00:16
  * updated: 2015-08-10 00:16
  *****************************************************************************/
-#ifndef _QUEUE_H_
-#define _QUEUE_H_
+#ifndef QUEUE_H
+#define QUEUE_H
 
 #ifdef __cplusplus
 extern "C" {

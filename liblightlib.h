@@ -5,8 +5,8 @@
  * created: 2016-07-21 15:33
  * updated: 2016-07-21 15:33
  ******************************************************************************/
-#ifndef _LIBLIGHTLIB_H_
-#define _LIBLIGHTLIB_H_
+#ifndef LIBLIGHTLIB_H
+#define LIBLIGHTLIB_H
 
 #include <libatomic.h>
 #include <libdebug.h>

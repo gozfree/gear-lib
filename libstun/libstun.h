@@ -5,8 +5,8 @@
  * created: 2015-08-05 00:14
  * updated: 2015-08-05 00:14
  *****************************************************************************/
-#ifndef _LIBSTUN_H_
-#define _LIBSTUN_H_
+#ifndef LIBSTUN_H
+#define LIBSTUN_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,8 +5,8 @@
  * created: 2015-09-16 00:48
  * updated: 2015-09-16 00:48
  *****************************************************************************/
-#ifndef _LIBVECTOR_H_
-#define _LIBVECTOR_H_
+#ifndef LIBVECTOR_H
+#define LIBVECTOR_H
 
 #include <stdint.h>
 #include <sys/uio.h>

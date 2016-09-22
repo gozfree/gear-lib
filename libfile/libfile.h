@@ -5,8 +5,8 @@
  * created: 2016-07-22 14:17:17
  * updated: 2016-07-22 14:17:17
  *****************************************************************************/
-#ifndef _LIBFILE_H_
-#define _LIBFILE_H_
+#ifndef LIBFILE_H
+#define LIBFILE_H
 
 #include <stdint.h>
 #include <sys/uio.h>

@@ -5,8 +5,8 @@
  * created: 2016-06-17 16:53:13
  * updated: 2016-06-17 16:53:13
  *****************************************************************************/
-#ifndef _LIBDEBUG_H_
-#define _LIBDEBUG_H_
+#ifndef LIBDEBUG_H
+#define LIBDEBUG_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -5,8 +5,8 @@
  * created: 2015-12-17 20:26:45
  * updated: 2015-12-17 20:26:45
  *****************************************************************************/
-#ifndef _LIBDOCK_H_
-#define _LIBDOCK_H_
+#ifndef LIBDOCK_H
+#define LIBDOCK_H
 
 #include <libdict.h>
 #include <libthread.h>

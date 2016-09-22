@@ -5,8 +5,8 @@
  * created: 2015-04-20 01:47
  * updated: 2015-07-11 16:09
  *****************************************************************************/
-#ifndef _LIBLOG_H_
-#define _LIBLOG_H_
+#ifndef LIBLOG_H
+#define LIBLOG_H
 
 #ifdef __cplusplus
 extern "C" {

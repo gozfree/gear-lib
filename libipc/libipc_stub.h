@@ -5,8 +5,8 @@
  * created: 2015-11-23 02:04
  * updated: 2015-11-23 02:04
  ******************************************************************************/
-#ifndef _LIBIPC_STUB_H_
-#define _LIBIPC_STUB_H_
+#ifndef LIBIPC_STUB_H
+#define LIBIPC_STUB_H
 
 #include "libipc.h"
 

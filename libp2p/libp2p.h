@@ -5,8 +5,8 @@
  * created: 2015-05-19 23:57
  * updated: 2015-05-19 23:57
  *****************************************************************************/
-#ifndef _LIBP2P_H_
-#define _LIBP2P_H_
+#ifndef LIBP2P_H
+#define LIBP2P_H
 
 #include <libskt.h>
 #include <librpc.h>

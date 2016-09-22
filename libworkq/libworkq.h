@@ -5,8 +5,8 @@
  * created: 2015-07-13 01:51
  * updated: 2015-07-19 20:44
  *****************************************************************************/
-#ifndef _LIBWORKQ_H_
-#define _LIBWORKQ_H_
+#ifndef LIBWORKQ_H
+#define LIBWORKQ_H
 
 #include <pthread.h>
 #include <libgevent.h>

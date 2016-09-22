@@ -5,8 +5,8 @@
  * created: 2015-08-10 00:15
  * updated: 2015-08-10 00:15
  *****************************************************************************/
-#ifndef _LIBPTCP_H_
-#define _LIBPTCP_H_
+#ifndef LIBPTCP_H
+#define LIBPTCP_H
 
 #ifdef __cplusplus
 extern "C" {
