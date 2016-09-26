@@ -47,6 +47,12 @@ typedef struct file_ops {
     void (*close)(struct file_desc *fd);
 } file_ops_t;
 
+typedef enum file_backend_type {
+    FILE_BACKEND_IO,
+    FILE_BACKEND_FIO,
+} ipc_backend_type;
+
+void file_backend(ipc_backend_type type);
 struct file *file_open(const char *path, file_open_mode_t mode);
 void file_close(struct file *file);
 ssize_t file_read(struct file *file, void *data, size_t size);
@@ -54,7 +60,8 @@ ssize_t file_write(struct file *file, const void *data, size_t size);
 ssize_t file_size(struct file *file);
 ssize_t file_get_size(const char *path);
 struct iovec *file_dump(const char *path);
-
+int file_sync(struct file *file);
+off_t file_seek(struct file *file, off_t offset, int whence);
 
 #ifdef __cplusplus
 }
