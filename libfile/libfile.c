@@ -18,17 +18,19 @@
 extern const struct file_ops io_ops;
 extern const struct file_ops fio_ops;
 
-typedef enum file_backend_type {
-    FILE_BACKEND_IO,
-    FILE_BACKEND_FIO,
-} ipc_backend_type;
-
 
 static const struct file_ops *file_ops[] = {
     &io_ops,
     &fio_ops,
     NULL
 };
+
+static file_backend_type backend = FILE_BACKEND_IO;
+
+void file_backend(file_backend_type type)
+{
+    backend =  type; 
+}
 
 struct file *file_open(const char *path, file_open_mode_t mode)
 {
@@ -37,7 +39,7 @@ struct file *file_open(const char *path, file_open_mode_t mode)
         printf("malloc failed!\n");
         return NULL;
     }
-    file->ops = file_ops[FILE_BACKEND_IO];
+    file->ops = file_ops[backend];
     file->fd = file->ops->open(path, mode);
     return file;
 }
@@ -62,6 +64,16 @@ ssize_t file_size(struct file *file)
     return file->ops->size(file->fd);
 }
 
+int file_sync(struct file *file)
+{
+    return file->ops->sync(file->fd);
+}
+
+off_t file_seek(struct file *file, off_t offset, int whence)
+{
+    return file->ops->seek(file->fd, offset, whence);
+}
+
 ssize_t file_get_size(const char *path)
 {
     struct stat st;
@@ -71,7 +83,6 @@ ssize_t file_get_size(const char *path)
     } else {
         size = st.st_size;
     }
-
     return size;
 }
 
