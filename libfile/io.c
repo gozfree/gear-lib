@@ -146,7 +146,6 @@ static int io_sync(struct file_desc *file)
     if (!file) {
         return -1;
     }
-    //return fflush(file->fp);
     return fsync(file->fd);
 }
 
