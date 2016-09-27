@@ -50,9 +50,9 @@ typedef struct file_ops {
 typedef enum file_backend_type {
     FILE_BACKEND_IO,
     FILE_BACKEND_FIO,
-} ipc_backend_type;
+} file_backend_type;
 
-void file_backend(ipc_backend_type type);
+void file_backend(file_backend_type type);
 struct file *file_open(const char *path, file_open_mode_t mode);
 void file_close(struct file *file);
 ssize_t file_read(struct file *file, void *data, size_t size);
