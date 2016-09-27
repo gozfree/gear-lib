@@ -7,7 +7,7 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <libosal.h>
+#include "libosal.h"
 
 int main(int argc, char **argv)
 {
