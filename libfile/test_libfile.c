@@ -13,7 +13,7 @@
 static void foo(void)
 {
     int i = 0;
-    ipc_backend_type type;
+    file_backend_type type;
     char buf[128] = {0};
     for(i = 0; i < 2; ++i)
     {
