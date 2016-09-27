@@ -137,7 +137,6 @@ static int fio_sync(struct file_desc *file)
     if (!file) {
         return -1;
     }
-    //return fsync(file->fd);
     return fflush(file->fp);
 }
 
