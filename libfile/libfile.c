@@ -25,9 +25,9 @@ static const struct file_ops *file_ops[] = {
     NULL
 };
 
-static ipc_backend_type backend = FILE_BACKEND_IO;
+static file_backend_type backend = FILE_BACKEND_IO;
 
-void file_backend(ipc_backend_type type)
+void file_backend(file_backend_type type)
 {
     backend =  type; 
 }
