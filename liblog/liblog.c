@@ -10,7 +10,6 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
 #include <time.h>
 #include <pthread.h>
@@ -20,7 +19,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <linux/unistd.h>
+#include <sys/param.h>
+#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #include "liblog.h"
 #include "color.h"
@@ -34,12 +36,12 @@
 #define LOG_TAG_SIZE        (32)
 #define LOG_PNAME_SIZE      (32)
 #define LOG_TEXT_SIZE       (256)
-#define PROC_NAME_LEN	    (512)
 #define LOG_LEVEL_DEFAULT   LOG_INFO
 #define LOG_IO_OPS
 
-/*#define LOG_VERBOSE_ENABLE
-*/
+/*
+ *#define LOG_VERBOSE_ENABLE
+ */
 
 #define LOG_PREFIX_MASK     (0xFFFF)
 #define LOG_FULL_BIT        (1<<31)
@@ -134,51 +136,45 @@ static pthread_mutex_t _log_mutex;
 static int _log_prefix = 0;
 static int _log_output = 0;
 static int _log_use_io = 0;
-static char _proc_name[LOG_PNAME_SIZE];
+static char _proc_name[NAME_MAX];
 static unsigned long long _log_file_size = FILESIZE_LEN;
 static int _log_type;
 static const char *_log_ident;
 
 
-static unsigned long get_file_size(const char *path)
+static unsigned long long get_file_size(const char *path)
 {
     struct stat buf;
     if (stat(path, &buf) < 0) {
         return 0;
     }
-    return (unsigned long)buf.st_size;
+    return (unsigned long long)buf.st_size;
 }
 
-#if defined (__ANDROID__)
-#define get_file_size_by_fp(...) (unsigned long long)(1024*1024)
-#else
 static unsigned long long get_file_size_by_fp(FILE *fp)
 {
     unsigned long long size;
     if (!fp || fp == stderr) {
         return 0;
     }
+    long tmp = ftell(fp);
     fseek(fp, 0L, SEEK_END);
     size = ftell(fp);
+    fseek(fp, tmp, SEEK_SET);
     return size;
 }
-#endif
 
-#if defined (__ANDROID__)
-#define get_proc_name() (char *)(0)
-#else
-static char *get_proc_name(void)
+static int get_proc_name(char *name, size_t len)
 {
     int i, ret;
-    char proc_name[PROC_NAME_LEN];
-    char *proc = NULL;
+    char proc_name[MAXPATHLEN];
     char *ptr = NULL;
-    memset(proc_name, 0, PROC_NAME_LEN);
-    ret = readlink("/proc/self/exe", proc_name, PROC_NAME_LEN);
-    if (ret < 0 || ret >= PROC_NAME_LEN) {
-        fprintf(stderr, "get proc path failed!\n");
-        return NULL;
+    memset(proc_name, 0, sizeof(proc_name));
+    if (NULL == getcwd(proc_name, sizeof(proc_name))) {
+        fprintf(stderr, "getcwd failed: %s\n", strerror(errno));
+        return -1;
     }
+    ret = strlen(proc_name);
     for (i = ret, ptr = proc_name; i > 0; i--) {
         if (ptr[i] == '/') {
             ptr+= i+1;
@@ -186,19 +182,19 @@ static char *get_proc_name(void)
         }
     }
     if (i == 0) {
-        return NULL;
+        fprintf(stderr, "proc path is invalid\n");
+        return -1;
     }
-    proc = (char *)calloc(1, ret - i);
-    if (proc) {
-        strncpy(proc, ptr, ret - i);
+    if (ret-i > len) {
+        fprintf(stderr, "proc name length %d is larger than %d\n", ret-i, (int)len);
+        return -1;
     }
-
-    return proc;
+    strncpy(name, ptr, ret - i);
+    return 0;
 }
-#endif
 
-#if defined (__ANDROID__)
-#define _gettid()	(0)
+#if defined (__APPLE__)
+#define _gettid	getpid
 #else
 static pid_t _gettid(void)
 {
@@ -285,6 +281,7 @@ static int mkdir_r(const char *path, mode_t mode)
     free(temp);
     return ret;
 }
+
 static void check_dir(const char *path)
 {
     char *path_org = NULL;
@@ -790,11 +787,8 @@ static void __log_init(void)
 
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
         memset(_proc_name, 0, sizeof(_proc_name));
-        char *proc = get_proc_name();
-        if (proc) {
-            memset(_log_name, 0, sizeof(_log_name));
-            strncpy(_proc_name, proc, strlen(proc));
-            free(proc);
+        if (get_proc_name(_proc_name, sizeof(_proc_name))) {
+            fprintf(stderr, "get_proc_name failed\n");
         }
     }
     if (type == 0) {
