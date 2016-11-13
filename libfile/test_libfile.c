@@ -7,8 +7,10 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/vfs.h>
+#include <errno.h>
 #include "libfile.h"
 
 
@@ -43,12 +45,13 @@ static void foo(void)
     }
 }
 
-static void foo2()
+static void foo2(void)
 {
-    struct statfs stfs;
-    statfs(".", &stfs);
-    printf("filesystem type is %X\n", (unsigned int)stfs.f_type);
-
+    struct file_systat *stat = file_get_systat("/run/nginx.pid");
+    printf("total = %zuMB\n", stat->size_total/(1024*1024));
+    printf("avail = %zuMB\n", stat->size_avail/(1024*1024));
+    printf("free = %zuMB\n", stat->size_free/(1024*1024));
+    printf("fs type name = %s\n", stat->fs_type_name);
 }
 
 int main(int argc, char **argv)

@@ -40,8 +40,15 @@ typedef struct file {
 typedef struct file_info {
     struct timespec time_modify;
     struct timespec time_access;
-
+    uint64_t size;
 } file_info;
+
+typedef struct file_systat {
+    uint64_t size_total;
+    uint64_t size_avail;
+    uint64_t size_free;
+    char fs_type_name[32];
+} file_systat;
 
 typedef struct file_ops {
     struct file_desc * (*open)(const char *path, file_open_mode_t mode);
@@ -68,6 +75,7 @@ ssize_t file_get_size(const char *path);
 struct iovec *file_dump(const char *path);
 int file_sync(struct file *file);
 off_t file_seek(struct file *file, off_t offset, int whence);
+struct file_systat *file_get_systat(const char *path);
 
 #ifdef __cplusplus
 }
