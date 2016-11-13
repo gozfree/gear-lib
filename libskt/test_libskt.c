@@ -218,6 +218,7 @@ int main(int argc, char **argv)
 {
     uint16_t port;
     const char *ip;
+    skt_get_local_info();
     if (argc < 2) {
         usage();
         exit(0);

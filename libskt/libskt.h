@@ -95,6 +95,7 @@ int skt_getaddrinfo(skt_addr_list_t **list,
                 const char *domain, const char *port);
 int skt_getaddr_by_fd(int fd, struct skt_addr *addr);
 int skt_get_remote_addr(struct skt_addr *addr, int fd);
+int skt_get_local_info(void);
 
 #ifdef __cplusplus
 }

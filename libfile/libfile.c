@@ -13,7 +13,6 @@
 #include <errno.h>
 #include <string.h>
 #include "libfile.h"
-#include "libmacro.h"
 
 extern const struct file_ops io_ops;
 extern const struct file_ops fio_ops;
@@ -29,12 +28,12 @@ static file_backend_type backend = FILE_BACKEND_IO;
 
 void file_backend(file_backend_type type)
 {
-    backend =  type; 
+    backend = type;
 }
 
 struct file *file_open(const char *path, file_open_mode_t mode)
 {
-    struct file *file = CALLOC(1, struct file);
+    struct file *file = (struct file *)calloc(1, sizeof(struct file));
     if (!file) {
         printf("malloc failed!\n");
         return NULL;
@@ -79,7 +78,7 @@ ssize_t file_get_size(const char *path)
     struct stat st;
     off_t size = 0;
     if (stat(path, &st) < 0) {
-        printf("%s stat error: %s", path, strerror(errno));
+        printf("%s stat error: %s\n", path, strerror(errno));
     } else {
         size = st.st_size;
     }
@@ -92,7 +91,7 @@ struct iovec *file_dump(const char *path)
     if (size == 0) {
         return NULL;
     }
-    struct iovec *buf = CALLOC(1, struct iovec);
+    struct iovec *buf = (struct iovec *)calloc(1, sizeof(struct iovec));
     if (!buf) {
         printf("malloc failed!\n");
         return NULL;

@@ -37,6 +37,12 @@ typedef struct file {
     uint64_t size;
 } file;
 
+typedef struct file_info {
+    struct timespec time_modify;
+    struct timespec time_access;
+
+} file_info;
+
 typedef struct file_ops {
     struct file_desc * (*open)(const char *path, file_open_mode_t mode);
     ssize_t (*write)(struct file_desc *fd, const void *buf, size_t count);

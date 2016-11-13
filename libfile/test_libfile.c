@@ -7,6 +7,8 @@
  *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/vfs.h>
 #include "libfile.h"
 
 
@@ -15,8 +17,7 @@ static void foo(void)
     int i = 0;
     file_backend_type type;
     char buf[128] = {0};
-    for(i = 0; i < 2; ++i)
-    {
+    for (i = 0; i < 2; ++i) {
         if (i == 0)
             type = FILE_BACKEND_IO;
         else if (i == 1)
@@ -36,13 +37,24 @@ static void foo(void)
         printf("buf =%s", buf);
         printf("len=%zu\n", file_get_size("/tmp/lsusb"));
         struct iovec *iobuf = file_dump("/tmp/lsusb");
-        printf("len=%zu, buf=%s\n", iobuf->iov_len, (char *)iobuf->iov_base);
+        if (iobuf) {
+            printf("len=%zu, buf=%s\n", iobuf->iov_len, (char *)iobuf->iov_base);
+        }
     }
+}
+
+static void foo2()
+{
+    struct statfs stfs;
+    statfs(".", &stfs);
+    printf("filesystem type is %X\n", (unsigned int)stfs.f_type);
+
 }
 
 int main(int argc, char **argv)
 {
     foo();
+    foo2();
     return 0;
 }
 
