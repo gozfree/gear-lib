@@ -10,6 +10,7 @@
 #include <vector>
 #include <sstream>
 #include <stdarg.h>
+#include <string.h>
 #include <libmacro.h>
 #include <liblog.h>
 
@@ -132,7 +133,7 @@ static char *lua_get_string(struct config *c, ...)
         break;
     }
     free(key);
-    return ret;
+    return strdup(ret);
 }
 
 static double lua_get_double(struct config *c, ...)
@@ -218,12 +219,12 @@ static void lua_unload(struct config *c)
 }
 
 struct config_ops lua_ops = {
-    lua_load,
-    NULL,
-    lua_get_string,
-    lua_get_int,
-    lua_get_double,
-    lua_get_boolean,
-    NULL,
-    lua_unload,
+    .load        = lua_load,
+    .set_string  = NULL,
+    .get_string  = lua_get_string,
+    .get_int     = lua_get_int,
+    .get_double  = lua_get_double,
+    .get_boolean = lua_get_boolean,
+    .dump        = NULL,
+    .unload      = lua_unload,
 };

@@ -159,12 +159,12 @@ static void ini_dump(struct config *c, FILE *f)
 }
 
 struct config_ops ini_ops = {
-    ini_load,
-    ini_set_string,
-    ini_get_string,
-    ini_get_int,
-    ini_get_double,
-    ini_get_boolean,
-    ini_dump,
-    ini_unload,
+    .load        = ini_load,
+    .set_string  = ini_set_string,
+    .get_string  = ini_get_string,
+    .get_int     = ini_get_int,
+    .get_double  = ini_get_double,
+    .get_boolean = ini_get_boolean,
+    .dump        = ini_dump,
+    .unload      = ini_unload,
 };
