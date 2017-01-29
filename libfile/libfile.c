@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <libgen.h>
+#include <limits.h>
 #include "libfile.h"
 
 /*
@@ -91,6 +93,7 @@ static const struct file_ops *file_ops[] = {
 #define SIZEOF(array)       (sizeof(array)/sizeof(array[0]))
 
 static file_backend_type backend = FILE_BACKEND_IO;
+static char local_path[PATH_MAX];
 
 void file_backend(file_backend_type type)
 {
@@ -211,4 +214,23 @@ struct file_systat *file_get_systat(const char *path)
         }
     }
     return fi;
+}
+
+char *file_path_pwd()
+{
+    char *tmp = getcwd(local_path, sizeof(local_path));
+    if (!tmp) {
+        printf("getcwd failed: %s\n", strerror(errno));
+    }
+    return tmp;
+}
+
+char *file_path_suffix(char *path)
+{
+    return basename(path);
+}
+
+char *file_path_prefix(char *path)
+{
+    return dirname(path);
 }

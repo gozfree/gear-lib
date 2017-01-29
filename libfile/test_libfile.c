@@ -54,10 +54,18 @@ static void foo2(void)
     printf("fs type name = %s\n", stat->fs_type_name);
 }
 
+static void foo3(void)
+{
+    printf("local path=%s\n", file_path_pwd());
+    printf("suffix=%s\n", file_path_suffix(file_path_pwd()));
+    printf("prefix=%s\n", file_path_prefix(file_path_pwd()));
+}
+
 int main(int argc, char **argv)
 {
     foo();
     foo2();
+    foo3();
     return 0;
 }
 

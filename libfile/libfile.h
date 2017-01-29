@@ -76,6 +76,9 @@ struct iovec *file_dump(const char *path);
 int file_sync(struct file *file);
 off_t file_seek(struct file *file, off_t offset, int whence);
 struct file_systat *file_get_systat(const char *path);
+char *file_path_pwd();
+char *file_path_suffix(char *path);
+char *file_path_prefix(char *path);
 
 #ifdef __cplusplus
 }
