@@ -43,7 +43,7 @@ extern "C" {
 #define DUMP_BUFFER(buf, len)                                   \
     do {                                                        \
         int _i;                                                 \
-        if (!buf || len <= 0) {                                 \
+        if (buf == NULL || len <= 0) {                          \
             break;                                              \
         }                                                       \
         for (_i = 0; _i < len; _i++) {                          \
