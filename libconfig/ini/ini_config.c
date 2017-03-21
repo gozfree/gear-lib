@@ -10,6 +10,8 @@
 #include "../libconfig.h"
 #include "iniparser.h"
 
+static char *file_path = NULL;
+
 static int ini_load(struct config *c, const char *name)
 {
     dictionary *ini = iniparser_load(name);
@@ -18,10 +20,11 @@ static int ini_load(struct config *c, const char *name)
         return -1;
     }
     c->priv = (void *)ini;
+    file_path = strdup(name);
     return 0;
 }
 
-static int ini_set_string(struct config *c, const char *key, const char *val)
+static int ini_set_string(struct config *c, const char *key, const char *val, const char *end)
 {
     dictionary *ini = (dictionary *)c->priv;
     return iniparser_set(ini, key, val);
@@ -146,16 +149,36 @@ static int ini_get_boolean(struct config *c, ...)
     return ret;
 }
 
+static void ini_del(struct config *c, const char *key)
+{
+    dictionary *ini = (dictionary *)c->priv;
+    return iniparser_unset(ini, key);
+}
+
+
 static void ini_unload(struct config *c)
 {
     dictionary *ini = (dictionary *)c->priv;
     iniparser_freedict(ini);
+    free(file_path);
 }
 
 static void ini_dump(struct config *c, FILE *f)
 {
     dictionary *ini = (dictionary *)c->priv;
     iniparser_dump_ini(ini, f);
+}
+
+static int ini_save(struct config *c)
+{
+    FILE *f = fopen(file_path, "w+");
+    if (!f) {
+        return -1;
+    }
+    dictionary *ini = (dictionary *)c->priv;
+    iniparser_dump_ini(ini, f);
+    fclose(f);
+    return 0;
 }
 
 struct config_ops ini_ops = {
@@ -165,6 +188,8 @@ struct config_ops ini_ops = {
     .get_int     = ini_get_int,
     .get_double  = ini_get_double,
     .get_boolean = ini_get_boolean,
+    .del         = ini_del,
     .dump        = ini_dump,
+    .save        = ini_save,
     .unload      = ini_unload,
 };

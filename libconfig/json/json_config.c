@@ -156,6 +156,8 @@ struct config_ops json_ops = {
     .get_int     = js_get_int,
     .get_double  = js_get_double,
     .get_boolean = js_get_boolean,
+    .del         = NULL,
     .dump        = NULL,
+    .save        = NULL,
     .unload      = js_unload,
 };

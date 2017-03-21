@@ -11,8 +11,14 @@
 #include <sstream>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <libmacro.h>
 #include <liblog.h>
+
 
 #include "../libconfig.h"
 #include "luatables.h"
@@ -33,6 +39,30 @@ class LuaConfig: public LuaTable
     void destroy() {
         delete this;
     };
+
+    bool save() {
+        std::string config_string = serialize();
+        if (config_string.length() <= 0) {
+            return false;
+        }
+        int fd = open(filename.c_str(), O_WRONLY|O_TRUNC, 0666);
+        if (fd < 0) {
+            return false;
+        }
+        size_t written = 0;
+        size_t total = config_string.length();
+        const char *str = config_string.c_str();
+        while (written < total) {
+            ssize_t retval = write(fd, (void*)(str + written), (total - written));
+            if (retval > 0) {
+                written += retval;
+            } else if (retval <= 0) {
+                loge("Failed to write file %s: %s", filename.c_str(), strerror(errno));
+                break;
+            }
+        }
+        return (written == total);
+    }
 
   public:
     virtual ~LuaConfig(){}
@@ -128,6 +158,9 @@ static char *lua_get_string(struct config *c, ...)
     case 4:
         ret = (char *)(*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<string>("").c_str();
         break;
+    case 5:
+        ret = (char *)(*lt)[key[0]][key[1]][key[2]][key[3]][key[4]].getDefault<string>("").c_str();
+        break;
     case 0:
     default:
         break;
@@ -179,7 +212,7 @@ static int lua_get_boolean(struct config *c, ...)
     LuaConfig *lt = (LuaConfig *)c->priv;
     char **key = NULL;
     char *tmp = NULL;
-    int ret;
+    int ret = 0;
     int cnt = 0;
     va_list ap;
     va_start(ap, c);
@@ -212,6 +245,12 @@ static int lua_get_boolean(struct config *c, ...)
     return ret;
 }
 
+static int lua_save(struct config *c)
+{
+    LuaConfig *lt = (LuaConfig *)c->priv;
+    return (lt->save()?0:-1);
+}
+
 static void lua_unload(struct config *c)
 {
     LuaConfig *lt = (LuaConfig *)c->priv;
@@ -225,6 +264,8 @@ struct config_ops lua_ops = {
     .get_int     = lua_get_int,
     .get_double  = lua_get_double,
     .get_boolean = lua_get_boolean,
+    .del         = NULL,
     .dump        = NULL,
+    .save        = lua_save,
     .unload      = lua_unload,
 };
