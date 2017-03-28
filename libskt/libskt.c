@@ -30,6 +30,8 @@
 #define MTU                 (1500 - 42 - 200)
 #define MAX_RETRY_CNT       (3)
 
+#define USE_IPV6    0
+
 static struct skt_connection *_skt_connect(int type,
                 const char *host, uint16_t port)
 {
@@ -303,7 +305,11 @@ int skt_getaddrinfo(skt_addr_list_t **al, const char *domain, const char *port)
     skt_addr_list_t *ap, *an;
 
     memset(&hints, 0, sizeof(struct addrinfo));
+#if USE_IPV6
     hints.ai_family = AF_UNSPEC;   /* Allows IPv4 or IPv6 */
+#else
+    hints.ai_family = AF_INET;   /* Allows IPv4 or IPv6 */
+#endif
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_CANONNAME;

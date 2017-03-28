@@ -13,13 +13,32 @@
 #include <signal.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <liblog.h>
 #include <libgevent.h>
 #include <libthread.h>
+#include <libmacro.h>
 #include "libskt.h"
 
 struct skt_connection *g_sc = NULL;
 
 static struct gevent_base *g_evbase;
+
+static uint8_t socket_id = -1;
+void on_read(int fd, void *arg)
+{
+    char buf[14];
+    memset(buf, 0, sizeof(buf));
+    int ret = skt_recv(fd, buf, sizeof(buf));
+    if (ret > 0) {
+        DUMP_BUFFER(buf, sizeof(buf));
+        socket_id = buf[6];
+        printf("socket_id = %d\n", socket_id);
+    } else if (ret == 0) {
+        printf("delete connection fd:%d\n", fd);
+    } else if (ret < 0) {
+        printf("recv failed!\n");
+    }
+}
 void on_recv(int fd, void *arg)
 {
     char buf[2048];
@@ -68,6 +87,7 @@ int tcp_client(const char *host, uint16_t port)
         printf("connect failed!\n");
         return -1;
     }
+    on_read(g_sc->fd, NULL);
     skt_addr_ntop(str_ip, g_sc->local.ip);
     printf("local ip = %s, port = %d\n", str_ip, g_sc->local.port);
     skt_addr_ntop(str_ip, g_sc->remote.ip);
