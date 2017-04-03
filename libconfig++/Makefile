@@ -43,7 +43,9 @@ endif
 LIBNAME		= libgconfig
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
-TGT_LIB_H	= $(LIBNAME).h
+TGT_LIB_H	= $(LIBNAME).h \
+		  lua/lua_config.h lua/luatables.h lua/utils/serialize.lua.h \
+		  json/json_config.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
@@ -55,9 +57,9 @@ OBJS_LUA	= lua/luatables.o \
 OBJS_JSON	= json/json_config.o
 
 
-OBJS_LIB	= $(OBJS_LUA) \
-              $(OBJS_JSON)
-#$(LIBNAME).o \
+OBJS_LIB	= $(LIBNAME).o \
+		  $(OBJS_LUA) \
+		  $(OBJS_JSON)
 
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
@@ -123,13 +125,14 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
+	mkdir -p $(OUTPUT)/include/libgconfig
+	$(CP_V) -dpRf --parents $(TGT_LIB_H)  $(OUTPUT)/include/libgconfig
 	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
 
 uninstall:
-	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/include/libgconfig/$(TGT_LIB_H)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO_VER)

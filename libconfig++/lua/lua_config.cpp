@@ -17,7 +17,6 @@
 #include "luatables.h"
 #include "lua_config.h"
 
-using namespace std;
 
 LuaConfig::LuaConfig()
 {

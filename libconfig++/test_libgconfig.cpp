@@ -14,7 +14,7 @@ using namespace std;
 
 static void lua_test()
 {
-    LuaConfig *conf = LuaConfig::create("lua/config.lua");
+    LuaConfig *conf = Config::create("lua/config.lua");
     logi("yuv_path= %s\n", (*conf)["yuv_path"].getDefault<string>("").c_str());
     logi("[type_3][sub_type_1][my] = %s\n", (*conf)["type_3"]["sub_type_1"]["my"].getDefault<string>("").c_str());
 
@@ -24,7 +24,7 @@ static void lua_test()
 
 static void json_test()
 {
-    JsonConfig *conf = JsonConfig::create("json/config.json");
+    JsonConfig *conf = Config::create("json/config.json");
     logi("[name] = %s\n", (*conf)["name"].asString().c_str());
 
     Json::Value root;
