@@ -19,7 +19,7 @@ typedef void *vector_iter;
 
 typedef struct vector {
     size_t size;     //number of element
-    size_t max_size; //max number of element
+    //size_t max_size; //max number of element
     size_t capacity; //size of allocated storage capacity
     size_t type_size;
     size_t tmp_cursor;
@@ -33,8 +33,8 @@ typedef struct vector {
  * vector_destroy
  * vector_empty
  * vector_push_back
- * vector_pop_back
- * vector_back
+ * vector_pop_back  : only decrease the vector size
+ * vector_back      : pop the last item
  * vector_begin
  * vector_end
  * vector_size
@@ -55,6 +55,7 @@ vector_iter vector_next(struct vector *v);
 vector_iter vector_prev(struct vector *v);
 void *_vector_iter_value(struct vector *v, vector_iter iter);
 void *_vector_at(struct vector *v, int pos);
+void* _vector_pop_back(struct vector *v);
 
 
 #define vector_create(type_t) \
@@ -62,11 +63,10 @@ void *_vector_at(struct vector *v, int pos);
 void vector_destroy(struct vector *v);
 int vector_empty(struct vector *v);
 #define vector_push_back(v, e) _vector_push_back(v, (void *)&e, sizeof(e))
-void vector_pop_back(struct vector *v);
-#define vector_back(v, type_t) \
+#define vector_pop_back(v, type_t) \
     ({ \
         type_t tmp; \
-        memcpy(&tmp, vector_end(v), v->type_size); \
+        memcpy(&tmp, _vector_pop_back(v), v->type_size); \
         &tmp; \
     })
 

@@ -26,15 +26,27 @@ void mix_struct()
     tb.f = 1.23;
     vector_t *c = vector_create(struct tmp_box);
     vector_push_back(c, tb);
+    vector_push_back(c, tb);
+    vector_push_back(c, tb);
+    printf("\n");
     for (iter = vector_begin(c); iter != vector_end(c); iter = vector_next(c)) {
         struct tmp_box *tt = vector_iter_valuep(c, iter, struct tmp_box);
         printf("vector member.c: %c\n", tt->c);
         printf("vector member.i: %d\n", tt->i);
         printf("vector member.f: %f\n", tt->f);
     }
+
+    printf("\n");
+    for (iter = vector_begin(c); iter != vector_end(c); iter = vector_next(c)) {
+        struct tmp_box *tt = vector_iter_valuep(c, iter, struct tmp_box);
+        printf("vector member.c: %c\n", tt->c);
+        printf("vector member.i: %d\n", tt->i);
+        printf("vector member.f: %f\n", tt->f);
+    }
+
     printf("size = %zu\n", c->size);
     printf("type_size = %zu\n", c->type_size);
-    printf("max_size = %zu\n", c->max_size);
+    //printf("max_size = %zu\n", c->max_size);
     printf("capacity = %zu\n", c->capacity);
     vector_destroy(c);
 
@@ -51,23 +63,32 @@ void default_struct()
     vector_push_back(a, t1);
     vector_push_back(a, t2);
     vector_push_back(a, t3);
+    printf("\n");
     for (iter = vector_begin(a); iter != vector_end(a); iter = vector_next(a)) {
         printf("vector member: %d\n", *vector_iter_valuep(a, iter, int));
     }
+
+    printf("\n");
+    for (iter = vector_begin(a); iter != vector_end(a); iter = vector_next(a)) {
+        printf("vector member: %d\n", *vector_iter_valuep(a, iter, int));
+    }
+
+    printf("\n");
     for (i = 0; i < a->size; i++) {
         printf("vector member: %d\n", *vector_at(a, i, int));
     }
 
     while (!vector_empty(a)) {
-        tmp = vector_back(a, int);
+        tmp = vector_pop_back(a, int);
         sum += *tmp;
-        vector_pop_back(a);
     }
+
     printf("sum is %d\n", sum);
     printf("size = %zu\n", a->size);
     printf("type_size = %zu\n", a->type_size);
-    printf("max_size = %zu\n", a->max_size);
+    //printf("max_size = %zu\n", a->max_size);
     printf("capacity = %zu\n", a->capacity);
+
     vector_destroy(a);
 }
 

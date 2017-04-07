@@ -22,7 +22,8 @@ void _vector_push_back(struct vector *v, void *e, size_t type_size)
         printf("%s: paraments invalid!\n", __func__);
         return;
     }
-    if (v->size * v->type_size >= v->capacity) {
+check:
+    if ((v->size + 1) * v->type_size >= v->capacity) {
         resize = v->capacity + VECTOR_DEFAULT_BUF_LEN;
         pnew = realloc(v->buf.iov_base, resize);
         if (!pnew) {
@@ -30,24 +31,27 @@ void _vector_push_back(struct vector *v, void *e, size_t type_size)
             return;
         }
         v->buf.iov_base = pnew;
-        v->capacity += resize;
+        v->buf.iov_len = resize;
+        v->capacity = resize;
+        goto check;
     }
     void *ptop = (uint8_t *)v->buf.iov_base + v->size * v->type_size;
     memcpy(ptop, e, v->type_size);
     v->size++;
 }
 
-void vector_pop_back(struct vector *v)
+void* _vector_pop_back(struct vector *v)
 {
     if (!v) {
         printf("%s: paraments invalid!\n", __func__);
-        return;
+        return NULL;
     }
     if (v->size <= 0) {
         printf("vector is empty already, cannot pop!\n");
-        return;
+        return NULL;
     }
     v->size--;
+    return (void*)(v->buf.iov_base + v->size * v->type_size); 
 }
 
 int vector_empty(struct vector *v)
@@ -65,6 +69,7 @@ vector_iter vector_begin(struct vector *v)
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
+    v->tmp_cursor = 0;
     return v->buf.iov_base;
 }
 
@@ -125,7 +130,7 @@ struct vector *_vector_create(size_t size)
     v->size = 0;
     v->tmp_cursor = 0;
     v->type_size = size;
-    v->max_size = (size_t)(-1/size);
+    //v->max_size = (size_t)(-1/size);
     v->capacity = VECTOR_DEFAULT_BUF_LEN;
     v->buf.iov_len = VECTOR_DEFAULT_BUF_LEN;
     v->buf.iov_base = calloc(1, v->buf.iov_len);
