@@ -55,7 +55,7 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	:= -g -rdynamic -Wall -Werror -fPIC
+CFLAGS	:= -g -rdynamic -Wall -Werror -fPIC -std=c99
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 
