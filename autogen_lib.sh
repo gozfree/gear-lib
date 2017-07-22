@@ -13,9 +13,28 @@ VERSION_SH=version.sh
 
 LIBFOO_MACRO=`echo ${MODULE} | tr 'a-z' 'A-Z'`
 
-DATE=$(date '+%Y-%m-%d %H:%M:%S')
+YEAR=$(date '+%Y')
 S='$'
 exclamation='!'
+
+LGPL_HEADER=\
+"/******************************************************************************
+ * Copyright (C) 2014-${YEAR} Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/"
 
 usage()
 {
@@ -33,13 +52,7 @@ mkdir_libfoo()
 autogen_libfoo_h()
 {
 cat > ${LIBFOO_H} <<!
-/******************************************************************************
- * Copyright (C) 2014-2016
- * file:    ${LIBFOO_H}
- * author:  gozfree <gozfree@163.com>
- * created: ${DATE}
- * updated: ${DATE}
- *****************************************************************************/
+${LGPL_HEADER}
 #ifndef ${LIBFOO_MACRO}_H
 #define ${LIBFOO_MACRO}_H
 
@@ -59,13 +72,7 @@ extern "C" {
 autogen_libfoo_c()
 {
 cat > ${LIBFOO_C} <<!
-/******************************************************************************
- * Copyright (C) 2014-2016
- * file:    ${LIBFOO_C}
- * author:  gozfree <gozfree@163.com>
- * created: ${DATE}
- * updated: ${DATE}
- *****************************************************************************/
+${LGPL_HEADER}
 #include <stdio.h>
 #include <stdlib.h>
 #include "${LIBFOO_H}"
@@ -76,13 +83,7 @@ cat > ${LIBFOO_C} <<!
 autogen_test_libfoo_c()
 {
 cat > ${TEST_LIBFOO_C} <<!
-/******************************************************************************
- * Copyright (C) 2014-2015
- * file:    ${TEST_LIBFOO_C}
- * author:  gozfree <gozfree@163.com>
- * created: ${DATE}
- * updated: ${DATE}
- *****************************************************************************/
+${LGPL_HEADER}
 #include <stdio.h>
 #include <stdlib.h>
 #include "${LIBFOO_H}"
@@ -98,14 +99,6 @@ int main(int argc, char **argv)
 autogen_makefile()
 {
 cat > ${MAKEFILE} <<!
-###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    ${MAKEFILE}
-#  author:  gozfree <gozfree@163.com>
-#  created: ${DATE}
-#  updated: ${DATE}
-###############################################################################
-
 ###############################################################################
 # common
 ###############################################################################
