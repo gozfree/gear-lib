@@ -1,15 +1,25 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2015-12-20 02:42
-#  updated: 2015-12-20 02:42
+# Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with libraries; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ###############################################################################
 
 ###############################################################################
 # common
 ###############################################################################
-#ARCH: linux/pi/android/ios/
+#ARCH: linux/arm/android/ios/win
 ARCH		?= linux
 CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
@@ -55,13 +65,20 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS	:= -g -Wall -Werror
+ifeq ($(ARCH), win)
+else
+CFLAGS	+= -fPIC
+endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
+CFLAGS	+= -I$(INC_DIR)
 CFLAGS	+= -I$(OUTPUT)/include
-
-SHARED	:= -shared
+SHARED	:= -shared -fPIC
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
+ifeq ($(ARCH), win)
+LDFLAGS	+= -L$(LIB_DIR)
+endif
 LDFLAGS	+= -lpthread
 
 ###############################################################################
@@ -84,7 +101,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(CC_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED) $(LDFLAGS)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 

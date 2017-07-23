@@ -1,10 +1,20 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    liblog.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-20 01:08
- * updated: 2015-07-11 16:09
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -14,16 +24,22 @@
 #include <time.h>
 #include <pthread.h>
 #include <fcntl.h>
-#include <syslog.h>
-#include <sys/uio.h>
+#define _GNU_SOURCE
+#include <unistd.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/param.h>
-#define _GNU_SOURCE
-#include <unistd.h>
+#if defined (__linux__)
+#include <syslog.h>
+#include <sys/uio.h>
 #include <sys/syscall.h>
-
+#define USE_SYSLOG
+#elif defined (__WIN32__)
+#include "win.h"
+#endif
 #include "liblog.h"
 #include "color.h"
 
@@ -81,6 +97,13 @@
 #define UNLIKELY(x)     (x)
 #endif
 
+#ifndef NAME_MAX
+#define NAME_MAX         255 /* defined in /usr/include/linux/limits.h */
+#endif
+
+#ifndef PATH_SPLIT
+#define PATH_SPLIT       '/'
+#endif
 
 typedef struct log_ops {
     int (*open)(const char *path);
@@ -107,6 +130,8 @@ static const char *_log_level_str[] = {
     NULL
 };
 
+
+#ifdef USE_SYSLOG
 static struct {
     const char     *name;
     const int       value;
@@ -122,6 +147,7 @@ static struct {
     {"local7",  LOG_LOCAL7},
     {NULL, 0}
 };
+#endif
 
 static int _is_log_init = 0;
 static int _log_fd = 0;
@@ -170,13 +196,13 @@ static int get_proc_name(char *name, size_t len)
     char proc_name[MAXPATHLEN];
     char *ptr = NULL;
     memset(proc_name, 0, sizeof(proc_name));
-    if (NULL == getcwd(proc_name, sizeof(proc_name))) {
+    if (0 == getcwd(proc_name, sizeof(proc_name))) {
         fprintf(stderr, "getcwd failed: %s\n", strerror(errno));
         return -1;
     }
     ret = strlen(proc_name);
     for (i = ret, ptr = proc_name; i > 0; i--) {
-        if (ptr[i] == '/') {
+        if (ptr[i] == PATH_SPLIT) {
             ptr+= i+1;
             break;
         }
@@ -195,7 +221,7 @@ static int get_proc_name(char *name, size_t len)
 
 #if defined (__APPLE__)
 #define _gettid	getpid
-#else
+#elif defined (__linux__)
 static pid_t _gettid(void)
 {
     return syscall(__NR_gettid);
@@ -322,8 +348,8 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
     unsigned long long tmp_size = get_file_size_by_fp(_log_fp);
     if (UNLIKELY(tmp_size > _log_file_size)) {
         if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
-                    _log_name, tmp_size, _log_file_size);
+            fprintf(stderr, "%s size= %"PRIu64" reach max %"PRIu64", splited\n",
+                    _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
         }
         if (EOF == _log_fclose()) {
             fprintf(stderr, "_log_fclose errno:%d", errno);
@@ -377,8 +403,8 @@ static ssize_t _log_write(struct iovec *vec, int n)
     char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size(_log_name);
     if (UNLIKELY(tmp_size > _log_file_size)) {
-        fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
-                _log_name, tmp_size, _log_file_size);
+        fprintf(stderr, "%s size= %"PRIu64" reach max %"PRIu64", splited\n",
+                _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
         if (-1 == _log_close()) {
             fprintf(stderr, "_log_close errno:%d", errno);
         }
@@ -395,7 +421,6 @@ static ssize_t _log_write(struct iovec *vec, int n)
 
     return writev(_log_fd, vec, n);
 }
-
 
 static struct log_ops log_fio_ops = {
     .open = _log_fopen,
@@ -535,9 +560,11 @@ int log_print(int lvl, const char *tag, const char *file,
         fprintf(stderr, "vsnprintf errno:%d\n", errno);
         return -1;
     }
+#ifdef USE_SYSLOG
     if (UNLIKELY(_log_syslog)) {
         syslog(lvl, "%s", buf);
     }
+#endif
     ret = _log_print(lvl, tag, file, line, func, buf);
 
     return ret;
@@ -725,6 +752,7 @@ static void log_deinit_file(void)
     _log_handle->close();
 }
 
+#ifdef USE_SYSLOG
 static int log_init_syslog(const char *facilitiy_str)
 {
     const char *ident = NULL;
@@ -746,6 +774,12 @@ static void log_deinit_syslog(void)
     closelog();
 }
 
+static struct log_driver log_rsys_driver = {
+    .init = log_init_syslog,
+    .deinit = log_deinit_syslog,
+};
+#endif
+
 static struct log_driver log_stderr_driver = {
     .init = log_init_stderr,
     .deinit = log_deinit_stderr,
@@ -754,11 +788,6 @@ static struct log_driver log_stderr_driver = {
 static struct log_driver log_file_driver = {
     .init = log_init_file,
     .deinit = log_deinit_file,
-};
-
-static struct log_driver log_rsys_driver = {
-    .init = log_init_syslog,
-    .deinit = log_deinit_syslog,
 };
 
 static struct log_driver *_log_driver = NULL;
@@ -803,7 +832,11 @@ static void __log_init(void)
         _log_driver = &log_file_driver;
         break;
     case LOG_RSYSLOG:
+#ifdef USE_SYSLOG
         _log_driver = &log_rsys_driver;
+#else
+        _log_driver = NULL;
+#endif
         break;
     default:
         fprintf(stderr, "unsupport log type!\n");
