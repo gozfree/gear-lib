@@ -82,30 +82,17 @@ static void test_file_noname(void)
     log_deinit();
 }
 
-static void test(void)
+static void *test(void *arg)
 {
     int i;
-    log_init(LOG_STDERR, NULL);
+    char *tmp = (char *)arg;
+    log_init(LOG_FILE, NULL);
     for (i = 0; i < 100; i++) {
-        loge("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logw("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logi("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logd("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logv("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-    }
-    log_deinit();
-}
-
-static void *test2(void *arg)
-{
-    int i;
-    log_init(LOG_STDERR, NULL);
-    for (i = 0; i < 1; i++) {
-        loge("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logw("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logi("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logd("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logv("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
+        loge("%s:%s:%d: error msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logw("%s:%s:%d: warn msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logi("%s:%s:%d: info msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logd("%s:%s:%d: debug msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logv("%s:%s:%d: verbose msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
     }
     return NULL;
 }
@@ -113,15 +100,16 @@ static void *test2(void *arg)
 static void test_thread_log(void)
 {
     pthread_t pid;
-    pthread_create(&pid, NULL, test2, NULL);
+    pthread_create(&pid, NULL, test, "test1");
+    pthread_create(&pid, NULL, test, "test2");
+    pthread_create(&pid, NULL, test, "test3");
     pthread_join(pid, NULL);
-    test();
 }
 
 int main(int argc, char **argv)
 {
-    test_file_name();
     test_no_init();
+    test_file_name();
     test_rsyslog();
     test_file_noname();
     test_thread_log();

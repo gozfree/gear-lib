@@ -579,9 +579,9 @@ void log_set_level(int level)
     }
 }
 
-static void log_check_env(void)
+static void log_check_env(int *lvl, int *out)
 {
-    _log_level = LOG_LEVEL_DEFAULT;
+    *lvl = LOG_LEVEL_DEFAULT;
     const char *levelstr = level_str(getenv(LOG_LEVEL_ENV));
     const char *outputstr = output_str(getenv(LOG_OUTPUT_ENV));
     const char *timestr = time_str(getenv(LOG_TIMESTAMP_ENV));
@@ -598,21 +598,21 @@ static void log_check_env(void)
     case 6:
     case 7:
     case 8:
-        _log_level = level;
+        *lvl = level;
         break;
     case 0:
         if (is_str_equal(levelstr, "error")) {
-            _log_level = LOG_ERR;
+            *lvl = LOG_ERR;
         } else if (is_str_equal(levelstr, "warn")) {
-            _log_level = LOG_WARNING;
+            *lvl = LOG_WARNING;
         } else if (is_str_equal(levelstr, "notice")) {
-            _log_level = LOG_NOTICE;
+            *lvl = LOG_NOTICE;
         } else if (is_str_equal(levelstr, "info")) {
-            _log_level = LOG_INFO;
+            *lvl = LOG_INFO;
         } else if (is_str_equal(levelstr, "debug")) {
-            _log_level = LOG_DEBUG;
+            *lvl = LOG_DEBUG;
         } else if (is_str_equal(levelstr, "verbose")) {
-            _log_level = LOG_VERB;
+            *lvl = LOG_VERB;
         }
         break;
     default:
@@ -623,15 +623,15 @@ static void log_check_env(void)
     case 2:
     case 3:
     case 4:
-        _log_output = output;
+        *out = output;
         break;
     case 0:
         if (is_str_equal(outputstr, "stderr")) {
-            _log_output = LOG_STDERR;
+            *out = LOG_STDERR;
         } else if (is_str_equal(outputstr, "file")) {
-            _log_output = LOG_FILE;
+            *out = LOG_FILE;
         } else if (is_str_equal(outputstr, "rsyslog")) {
-            _log_output = LOG_RSYSLOG;
+            *out = LOG_RSYSLOG;
         }
         break;
     default:
@@ -651,10 +651,10 @@ static void log_check_env(void)
     default:
         break;
     }
-    if (_log_level == LOG_DEBUG) {
+    if (*lvl == LOG_DEBUG) {
         UPDATE_LOG_PREFIX(_log_prefix, LOG_FUNCLINE_BIT);
     }
-    if (_log_level == LOG_VERB) {
+    if (*lvl == LOG_VERB) {
         UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
     }
 }
@@ -771,6 +771,7 @@ static int log_init_syslog(const char *facilitiy_str)
 
 static void log_deinit_syslog(void)
 {
+    _log_syslog = 0;
     closelog();
 }
 
@@ -792,14 +793,16 @@ static struct log_driver log_file_driver = {
 
 static struct log_driver *_log_driver = NULL;
 
-static void __log_init(void)
+pthread_once_t thread_once = PTHREAD_ONCE_INIT;
+
+static void log_init_once(void)
 {
     int type = _log_type;
     const char *ident = _log_ident;
     if (_is_log_init) {
         return;
     }
-    log_check_env();
+    log_check_env(&_log_level, &_log_output);
 #ifdef LOG_VERBOSE_ENABLE
     UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
 #endif
@@ -820,8 +823,7 @@ static void __log_init(void)
             fprintf(stderr, "get_proc_name failed\n");
         }
     }
-    if (type == 0) {
-    } else {
+    if (type != 0) {//if not stdin, set output to type
         _log_output = type;
     }
     switch (_log_output) {
@@ -842,6 +844,9 @@ static void __log_init(void)
         fprintf(stderr, "unsupport log type!\n");
         break;
     }
+    if (!_log_driver) {
+        return;
+    }
     _log_driver->init(ident);
     _is_log_init = 1;
     pthread_mutex_init(&_log_mutex, NULL);
@@ -852,17 +857,21 @@ int log_init(int type, const char *ident)
 {
     _log_type = type;
     _log_ident = ident;
-    __log_init();
+    if (0 != pthread_once(&thread_once, log_init_once)) {
+        fprintf(stderr, "pthread_once failed\n");
+    }
     return 0;
 }
 
 void log_deinit(void)
 {
-    if (!_log_driver) {
+    if (!_is_log_init) {
         return;
     }
-    _log_driver->deinit();
-    _log_driver = NULL;
+    if (_log_driver) {
+        _log_driver->deinit();
+        _log_driver = NULL;
+    }
     _is_log_init = 0;
     pthread_mutex_destroy(&_log_mutex);
 }
