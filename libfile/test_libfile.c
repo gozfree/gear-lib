@@ -63,6 +63,11 @@ static void foo3(void)
 
 int main(int argc, char **argv)
 {
+    uint64_t size = 1000;
+    file_dir_remove("/home/hacker/github/snowball.repo/libraries/libfile/tmp");
+    file_dir_size("/home/hacker/github/snowball.repo/libraries/libfile/", &size);
+    printf("folder_size=%zu\n", size);
+    file_dir_tree("/media/hacker/1B68-9956");
     foo();
     foo2();
     foo3();

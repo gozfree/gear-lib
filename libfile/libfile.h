@@ -9,6 +9,7 @@
 #define LIBFILE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <sys/uio.h>
 
 #ifdef __cplusplus
@@ -66,6 +67,9 @@ typedef enum file_backend_type {
 } file_backend_type;
 
 void file_backend(file_backend_type type);
+int file_create(const char *path);
+void file_delete(const char *path);
+bool file_exist(const char *path);
 struct file *file_open(const char *path, file_open_mode_t mode);
 void file_close(struct file *file);
 ssize_t file_read(struct file *file, void *data, size_t size);
@@ -79,6 +83,11 @@ struct file_systat *file_get_systat(const char *path);
 char *file_path_pwd();
 char *file_path_suffix(char *path);
 char *file_path_prefix(char *path);
+
+int file_dir_create(const char *path);
+int file_dir_remove(const char *path);
+int file_dir_tree(const char *path);
+int file_dir_size(const char *path, uint64_t *size);
 
 #ifdef __cplusplus
 }

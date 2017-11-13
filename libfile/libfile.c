@@ -10,11 +10,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
+#include <dirent.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <libgen.h>
 #include <limits.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include "libfile.h"
 
 /*
@@ -114,36 +118,58 @@ struct file *file_open(const char *path, file_open_mode_t mode)
 
 void file_close(struct file *file)
 {
-    return file->ops->close(file->fd);
+    if (!file || !file->ops) {
+        return;
+    }
+    file->ops->close(file->fd);
+    free(file);
 }
 
 ssize_t file_read(struct file *file, void *data, size_t size)
 {
+    if (!file || !data || size == 0) {
+        return -1;
+    }
     return file->ops->read(file->fd, data, size);
 }
 
 ssize_t file_write(struct file *file, const void *data, size_t size)
 {
+    if (!file || !data || size == 0) {
+        return -1;
+    }
     return file->ops->write(file->fd, data, size);
 }
 
 ssize_t file_size(struct file *file)
 {
+    if (!file) {
+        return -1;
+    }
     return file->ops->size(file->fd);
 }
 
 int file_sync(struct file *file)
 {
+    if (!file) {
+        return -1;
+    }
     return file->ops->sync(file->fd);
 }
 
 off_t file_seek(struct file *file, off_t offset, int whence)
 {
+    if (!file) {
+        return -1;
+    }
     return file->ops->seek(file->fd, offset, whence);
 }
 
 ssize_t file_get_size(const char *path)
 {
+    if (!path) {
+        return -1;
+    }
     struct stat st;
     off_t size = 0;
     if (stat(path, &st) < 0) {
@@ -156,6 +182,9 @@ ssize_t file_get_size(const char *path)
 
 struct iovec *file_dump(const char *path)
 {
+    if (!path) {
+        return NULL;
+    }
     ssize_t size = file_get_size(path);
     if (size == 0) {
         return NULL;
@@ -191,6 +220,7 @@ struct file_systat *file_get_systat(const char *path)
         printf("path can't be null\n");
         return NULL;
     }
+    int i;
     struct statfs stfs;
     if (-1 == statfs(path, &stfs)) {
         printf("statfs %s failed: %s\n", path, strerror(errno));
@@ -205,7 +235,7 @@ struct file_systat *file_get_systat(const char *path)
     fi->size_total = stfs.f_bsize * stfs.f_blocks;
     fi->size_avail = stfs.f_bsize * stfs.f_bavail;
     fi->size_free  = stfs.f_bsize * stfs.f_bfree;
-    for (int i = 0; i < SIZEOF(fs_type_info); i++) {
+    for (i = 0; i < SIZEOF(fs_type_info); i++) {
         if (stfs.f_type == fs_type_info[i].value) {
             stfs.f_type = i;
             strncpy(fi->fs_type_name, fs_type_info[i].name,
@@ -233,4 +263,171 @@ char *file_path_suffix(char *path)
 char *file_path_prefix(char *path)
 {
     return dirname(path);
+}
+
+bool file_exist(const char *path)
+{
+    return (access(path, F_OK|W_OK|R_OK) == 0) ? true : false;
+}
+
+static int mkdir_r(const char *path, mode_t mode)
+{
+    if (!path) {
+        return -1;
+    }
+    char *temp = strdup(path);
+    char *pos = temp;
+    int ret = 0;
+
+    if (strncmp(temp, "/", 1) == 0) {
+        pos += 1;
+    } else if (strncmp(temp, "./", 2) == 0) {
+        pos += 2;
+    }
+    for ( ; *pos != '\0'; ++ pos) {
+        if (*pos == '/') {
+            *pos = '\0';
+            if (-1 == (ret = mkdir(temp, mode))) {
+                if (errno == EEXIST) {
+                    ret = 0;
+                } else {
+                    fprintf(stderr, "failed to mkdir %s: %d:%s\n",
+                                    temp, errno, strerror(errno));
+                    break;
+                }
+            }
+            *pos = '/';
+        }
+    }
+    if (*(pos - 1) != '/') {
+        if (-1 == (ret = mkdir(temp, mode))) {
+            if (errno == EEXIST) {
+                ret = 0;
+            } else {
+                fprintf(stderr, "failed to mkdir %s: %d:%s\n",
+                                temp, errno, strerror(errno));
+            }
+        }
+    }
+    free(temp);
+    return ret;
+}
+
+int file_dir_create(const char *path)
+{
+    return mkdir_r(path, 0775);
+}
+
+int dfs_remove_dir(const char *path)
+{
+    DIR *pdir = NULL;
+    struct dirent *ent = NULL;
+    char full_path[PATH_MAX];
+    int ret = 0;
+    pdir = opendir(path);
+    if (!pdir) {
+        printf("can not open path: %s\n", path);
+        if (errno == EMFILE) {
+            return -EMFILE;
+        } else {
+            return -1;
+        }
+    }
+    while (NULL != (ent = readdir(pdir))) {
+        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..")) {
+            continue;
+        }
+        memset(full_path, 0, sizeof(full_path));
+        sprintf(full_path, "%s/%s", path, ent->d_name);
+        if (ent->d_type == DT_DIR) {
+            ret = dfs_remove_dir(full_path);
+            if (ret != 0) {
+                printf("dfs_remove_dir %s ret=%d\n", full_path, ret);
+            }
+        }
+        ret = remove(full_path);
+    }
+    closedir(pdir);
+    return ret;
+}
+
+int file_dir_remove(const char *path)
+{
+    dfs_remove_dir(path);
+    return remove(path);
+}
+
+int file_dir_tree(const char *path)
+{
+    DIR *pdir = NULL;
+    struct dirent *ent = NULL;
+    char full_path[PATH_MAX];
+    int ret;
+    pdir = opendir(path);
+    if (!pdir) {
+        printf("can not open path: %s\n", path);
+        if (errno == EMFILE) {
+            return -EMFILE;
+        } else {
+            return -1;
+        }
+    }
+    while (NULL != (ent = readdir(pdir))) {
+        memset(full_path, 0, sizeof(full_path));
+        sprintf(full_path, "%s/%s", path, ent->d_name);
+        if (ent->d_type == DT_DIR) {
+            if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..")) {
+                continue;
+            }
+
+            ret = file_dir_tree(full_path);
+            if (ret == -EMFILE) {
+                closedir(pdir);
+                return ret;
+            }
+        }
+    }
+    closedir(pdir);
+    return 0;
+}
+
+int dfs_dir_size(const char *path, uint64_t *size)
+{
+    DIR *pdir = NULL;
+    struct dirent *ent = NULL;
+    char full_path[PATH_MAX];
+    int ret;
+    pdir = opendir(path);
+    if (!pdir) {
+        printf("can not open path: %s\n", path);
+        if (errno == EMFILE) {
+            return -EMFILE;
+        } else {
+            return -1;
+        }
+    }
+    while (NULL != (ent = readdir(pdir))) {
+        memset(full_path, 0, sizeof(full_path));
+        sprintf(full_path, "%s/%s", path, ent->d_name);
+        if (ent->d_type == DT_DIR) {
+            if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..")) {
+                continue;
+            }
+            ret = dfs_dir_size(full_path, size);
+            if (ret == -EMFILE) {
+                closedir(pdir);
+                return ret;
+            }
+        } else if (ent->d_type == DT_REG) {
+            *size += file_get_size(full_path);
+        }
+    }
+    closedir(pdir);
+    return 0;
+}
+
+int file_dir_size(const char *path, uint64_t *size)
+{
+    *size = 0;
+    return dfs_dir_size(path, size);
 }
