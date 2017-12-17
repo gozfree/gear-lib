@@ -24,9 +24,7 @@
 
 #define QUEUE_MAX_DEPTH 200
 
-#define CALLOC(size, type)  (type *)calloc(size, sizeof(type))
-
-void *memdup(void *src, size_t len)
+static void *memdup(void *src, size_t len)
 {
     void *dst = calloc(1, len);
     if (dst) {
@@ -35,25 +33,52 @@ void *memdup(void *src, size_t len)
     return dst;
 }
 
-struct item *item_alloc(void *data, size_t len)
+struct item *item_alloc(struct queue *q, void *data, size_t len)
 {
     struct item *item = CALLOC(1, struct item);
     if (!item) {
         printf("malloc failed!\n");
         return NULL;
     }
-    item->data.iov_base = memdup(data, len);
-    item->data.iov_len = len;
+    if (q->alloc_hook) {
+        item->opaque = (q->alloc_hook)(data, len);
+    } else {
+        item->data.iov_base = memdup(data, len);
+        item->data.iov_len = len;
+    }
     return item;
 }
 
-void item_free(struct item *item)
+void item_free(struct queue *q, struct item *item)
 {
     if (!item) {
         return;
     }
-    free(item->data.iov_base);
+    if (q->free_hook) {
+        (q->free_hook)(item->opaque);
+    } else {
+        free(item->data.iov_base);
+    }
     free(item);
+}
+
+int queue_set_mode(struct queue *q, enum queue_mode mode)
+{
+    q->mode = mode;
+    return 0;
+}
+
+int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb)
+{
+    q->alloc_hook = alloc_cb;
+    q->free_hook = free_cb;
+    return 0;
+}
+
+int queue_set_depth(struct queue *q, int depth)
+{
+    q->max_depth = depth;
+    return 0;
 }
 
 struct queue *queue_create()
@@ -68,6 +93,9 @@ struct queue *queue_create()
     pthread_cond_init(&q->cond, NULL);
     q->depth = 0;
     q->max_depth = QUEUE_MAX_DEPTH;
+    q->mode = QUEUE_FULL_FLUSH;
+    q->alloc_hook = NULL;
+    q->free_hook = NULL;
     return q;
 }
 
@@ -77,7 +105,7 @@ int queue_flush(struct queue *q)
     pthread_mutex_lock(&q->lock);
     list_for_each_entry_safe(item, next, &q->head, entry) {
         list_del(&item->entry);
-        item_free(item);
+        item_free(q, item);
     }
     q->depth = 0;
     pthread_mutex_unlock(&q->lock);
@@ -95,14 +123,26 @@ void queue_destroy(struct queue *q)
     free(q);
 }
 
+void queue_pop_free(struct queue *q)
+{
+    struct item *tmp = queue_pop(q);
+    if (tmp) {
+        item_free(q, tmp);
+    }
+}
+
 int queue_push(struct queue *q, struct item *item)
 {
     if (!q || !item) {
         printf("invalid paraments!\n");
         return -1;
     }
-    if (q->depth > q->max_depth) {
-        queue_flush(q);
+    if (q->depth >= q->max_depth) {
+        if (q->mode == QUEUE_FULL_FLUSH) {
+            queue_flush(q);
+        } else if (q->mode == QUEUE_FULL_RING) {
+            queue_pop_free(q);
+        }
     }
     pthread_mutex_lock(&q->lock);
     list_add_tail(&item->entry, &q->head);
