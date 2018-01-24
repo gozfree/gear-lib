@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -167,6 +167,8 @@ static unsigned long long _log_file_size = FILESIZE_LEN;
 static int _log_type;
 static const char *_log_ident;
 
+static int _log_rotate = 0;
+
 
 static unsigned long long get_file_size(const char *path)
 {
@@ -208,7 +210,7 @@ static int get_proc_name(char *name, size_t len)
         }
     }
     if (i == 0) {
-        fprintf(stderr, "proc path is invalid\n");
+        fprintf(stderr, "proc path %s is invalid\n", proc_name);
         return -1;
     }
     if (ret-i > len) {
@@ -336,6 +338,18 @@ static int _log_fopen(const char *path)
     return 0;
 }
 
+static int _log_fopen_rewrite(const char *path)
+{
+    check_dir(path);
+    _log_fp = fopen(path, "w");
+    if (!_log_fp) {
+        fprintf(stderr, "fopen %s failed: %s\n", path, strerror(errno));
+        fprintf(stderr, "use stderr as output\n");
+        _log_fp = stderr;
+    }
+    return 0;
+}
+
 static int _log_fclose(void)
 {
     return fclose(_log_fp);
@@ -347,23 +361,30 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
     char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size_by_fp(_log_fp);
     if (UNLIKELY(tmp_size > _log_file_size)) {
-        if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
+        if (_log_rotate) {
+            if (EOF == _log_fclose()) {
+                fprintf(stderr, "_log_fclose errno:%d", errno);
+            }
+            _log_fopen_rewrite(_log_name);
+        } else {
+            if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
             fprintf(stderr, "%s size= %"PRIu64" reach max %"PRIu64", splited\n",
                     _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
-        }
-        if (EOF == _log_fclose()) {
-            fprintf(stderr, "_log_fclose errno:%d", errno);
-        }
-        log_get_time(_log_name_time, sizeof(_log_name_time), 1);
-        snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
-                _log_path, _log_name_prefix, _log_name_time);
-        if (-1 == rename(_log_name, log_rename)) {
-            fprintf(stderr, "log file splited %s error: %d:%s\n",
-                    log_rename, errno , strerror(errno));
-        }
-        _log_fopen(_log_name);
-        if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "splited file %s\n", log_rename);
+            }
+            if (EOF == _log_fclose()) {
+                fprintf(stderr, "_log_fclose errno:%d", errno);
+            }
+            log_get_time(_log_name_time, sizeof(_log_name_time), 1);
+            snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
+                    _log_path, _log_name_prefix, _log_name_time);
+            if (-1 == rename(_log_name, log_rename)) {
+                fprintf(stderr, "log file splited %s error: %d:%s\n",
+                        log_rename, errno , strerror(errno));
+            }
+            _log_fopen(_log_name);
+            if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
+                fprintf(stderr, "splited file %s\n", log_rename);
+            }
         }
     }
     for (i = 0; i < n; i++) {
@@ -393,6 +414,17 @@ static int _log_open(const char *path)
     return 0;
 }
 
+static int _log_open_rewrite(const char *path)
+{
+    check_dir(path);
+    _log_fd = open(path, O_RDWR|O_CREAT|O_TRUNC, 0644);
+    if (_log_fd == -1) {
+        fprintf(stderr, "open %s failed: %s\n", path, strerror(errno));
+        fprintf(stderr, "use STDERR_FILEIO as output\n");
+        _log_fd = STDERR_FILENO;
+    }
+    return 0;
+}
 static int _log_close(void)
 {
     return close(_log_fd);
@@ -403,24 +435,32 @@ static ssize_t _log_write(struct iovec *vec, int n)
     char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size(_log_name);
     if (UNLIKELY(tmp_size > _log_file_size)) {
+        if (_log_rotate) {
+            if (-1 == _log_close()) {
+                fprintf(stderr, "_log_close errno:%d", errno);
+            }
+            _log_open_rewrite(_log_name);
+        } else {
         fprintf(stderr, "%s size= %"PRIu64" reach max %"PRIu64", splited\n",
                 _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
-        if (-1 == _log_close()) {
-            fprintf(stderr, "_log_close errno:%d", errno);
+            if (-1 == _log_close()) {
+                fprintf(stderr, "_log_close errno:%d", errno);
+            }
+            log_get_time(_log_name_time, sizeof(_log_name_time), 1);
+            snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
+                    _log_path, _log_name_prefix, _log_name_time);
+            if (-1 == rename(_log_name, log_rename)) {
+                fprintf(stderr, "log file splited %s error: %d:%s\n",
+                        log_rename, errno , strerror(errno));
+            }
+            _log_open(_log_name);
+            fprintf(stderr, "splited file %s\n", log_rename);
         }
-        log_get_time(_log_name_time, sizeof(_log_name_time), 1);
-        snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
-                _log_path, _log_name_prefix, _log_name_time);
-        if (-1 == rename(_log_name, log_rename)) {
-            fprintf(stderr, "log file splited %s error: %d:%s\n",
-                    log_rename, errno , strerror(errno));
-        }
-        _log_open(_log_name);
-        fprintf(stderr, "splited file %s\n", log_rename);
     }
 
     return writev(_log_fd, vec, n);
 }
+
 
 static struct log_ops log_fio_ops = {
     .open = _log_fopen,
@@ -659,14 +699,18 @@ static void log_check_env(int *lvl, int *out)
     }
 }
 
-int log_set_split_size(int size)
+void log_set_split_size(int size)
 {
     if ((uint32_t)size > FILESIZE_LEN || size < 0) {
         _log_file_size = FILESIZE_LEN;
     } else {
         _log_file_size = size;
     }
-    return 0;
+}
+
+void log_set_rotate(int enable)
+{
+    _log_rotate = enable;
 }
 
 static int log_init_stderr(const char *ident)

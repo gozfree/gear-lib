@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,8 @@ int log_init(int type, const char *ident);
 void log_deinit();
 
 void log_set_level(int level);
-int log_set_split_size(int size);
+void log_set_split_size(int size);
+void log_set_rotate(int enable);
 int log_set_path(const char *path);
 int log_print(int lvl, const char *tag, const char *file, int line,
         const char *func, const char *fmt, ...);
