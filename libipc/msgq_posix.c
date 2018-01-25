@@ -1,10 +1,20 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    msgq.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-11-10 17:24
- * updated: 2015-11-10 17:24
- *****************************************************************************/
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <fcntl.h>           /* For O_* constants */
 #include <sys/stat.h>        /* For mode constants */
 #include <sys/time.h>
