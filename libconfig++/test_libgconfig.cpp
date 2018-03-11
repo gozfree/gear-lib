@@ -1,10 +1,20 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    test_libconfig++.c
- * author:  gozfree <gozfree@163.com>
- * created: 2017-03-30 15:00:24
- * updated: 2017-03-30 15:00:24
- *****************************************************************************/
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,10 +25,9 @@ using namespace std;
 static void lua_test()
 {
     LuaConfig *conf = Config::create("lua/config.lua");
-    logi("yuv_path= %s\n", (*conf)["yuv_path"].getDefault<string>("").c_str());
-    logi("[type_3][sub_type_1][my] = %s\n", (*conf)["type_3"]["sub_type_1"]["my"].getDefault<string>("").c_str());
-
-    //lc.save();
+    logi("yuv_path= %s\n", (*conf)["yuv_path"].get<string>("").c_str());
+    logi("[type_3][sub_type_1][my] = %s\n",
+         (*conf)["type_3"]["sub_type_1"]["my"].get<string>("").c_str());
     conf->destroy();
 }
 
