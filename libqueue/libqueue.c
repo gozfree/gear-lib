@@ -108,6 +108,7 @@ int queue_flush(struct queue *q)
         item_free(q, item);
     }
     q->depth = 0;
+    pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     return 0;
 }

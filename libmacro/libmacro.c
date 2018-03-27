@@ -17,5 +17,14 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "libmacro.h"
 
+void *memdup(void *src, size_t len)
+{
+    void *dst = calloc(1, len);
+    if (dst) {
+        memcpy(dst, src, len);
+    }
+    return dst;
+}

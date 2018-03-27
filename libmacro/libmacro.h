@@ -18,6 +18,7 @@
 #ifndef LIBMACRO_H
 #define LIBMACRO_H
 
+#include <stdio.h>
 #include "kernel_list.h"
 
 #ifdef __cplusplus
@@ -66,6 +67,7 @@ extern "C" {
 
 #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
 
+void *memdup(void *src, size_t len);
 
 
 #ifdef __cplusplus
