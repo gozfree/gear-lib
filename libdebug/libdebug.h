@@ -36,6 +36,11 @@ int debug_backtrace_init();
 void debug_backtrace_dump();
 
 
+/*! help analysis signals
+ *
+ */
+int debug_signals_init();
+
 #ifdef __cplusplus
 }
 #endif
