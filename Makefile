@@ -84,7 +84,8 @@ LIBGEVENT_O	= libgevent/libgevent.o \
 		  libgevent/select.o
 LIBHASH_O	= libhash/libhash.o
 LIBIPC_O	= libipc/libipc.o \
-		  libipc/msgq.o \
+		  libipc/msgq_posix.o \
+		  libipc/msgq_sysv.o \
 		  libipc/netlink.o \
 		  libipc/shm.o
 LIBLOCK_O	= liblock/liblock.o
