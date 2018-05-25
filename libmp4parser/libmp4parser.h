@@ -8,7 +8,7 @@
 #ifndef LIBMP4PARSER_H
 #define LIBMP4PARSER_H
 
-#include "libmp4parser-patch.h"
+#include "patch.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1272,7 +1272,7 @@ typedef union MP4_Box_data_s
 /* the most basic structure */
 typedef struct MP4_Box_s
 {
-    off_t        i_pos;      /* absolute position */
+    uint64_t     i_pos;  /* absolute position */
 
     uint32_t     i_type;
     uint32_t     i_shortsize;
@@ -1349,7 +1349,7 @@ static inline size_t mp4_box_headersize( MP4_Box_t *p_box )
     if( i_actually_read < 0 || (int64_t)i_actually_read < i_read )\
     { \
         msg_Warn( p_stream, "MP4_READBOX_ENTER: I got %i bytes, "\
-        "but I requested %" PRId64 "", i_actually_read, i_read );\
+        "but I requested %"PRId64"", i_actually_read, i_read );\
         free( p_buff ); \
         return( 0 ); \
     } \

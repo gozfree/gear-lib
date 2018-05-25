@@ -85,6 +85,8 @@ int MP4_ReadBoxCommon( stream_t *p_stream, MP4_Box_t *p_box )
 
     if( p_box->i_shortsize == 1 )
     {
+        if( i_read < 8 )
+            return 0;
         /* get the true size on 64 bits */
         MP4_GET8BYTES( p_box->i_size );
     }
@@ -94,8 +96,13 @@ int MP4_ReadBoxCommon( stream_t *p_stream, MP4_Box_t *p_box )
         /* XXX size of 0 means that the box extends to end of file */
     }
 
-    if( p_box->i_type == ATOM_uuid && i_read >= 16 )
+    if( UINT64_MAX - p_box->i_size < p_box->i_pos )
+        return 0;
+
+    if( p_box->i_type == ATOM_uuid )
     {
+        if( i_read < 16 )
+            return 0;
         /* get extented type on 16 bytes */
         GetUUID( &p_box->i_uuid, p_peek );
     }
@@ -107,10 +114,10 @@ int MP4_ReadBoxCommon( stream_t *p_stream, MP4_Box_t *p_box )
     if( p_box->i_size )
     {
         if MP4_BOX_TYPE_ASCII()
-            msg_Dbg( p_stream, "found Box: %4.4s size %" PRId64" %" PRId64,
+            msg_Dbg( p_stream, "found Box: %4.4s size %"PRId64" %"PRId64,
                     (char*)&p_box->i_type, p_box->i_size, p_box->i_pos );
         else
-            msg_Dbg( p_stream, "found Box: c%3.3s size %" PRId64,
+            msg_Dbg( p_stream, "found Box: c%3.3s size %"PRId64,
                     (char*)&p_box->i_type+1, p_box->i_size );
     }
 #endif
@@ -144,8 +151,8 @@ static int MP4_NextBox( stream_t *p_stream, MP4_Box_t *p_box )
          * and we skip the followong check */
         if( p_box->p_father->i_size > 0 )
         {
-            const off_t i_box_end = p_box->i_size + p_box->i_pos;
-            const off_t i_father_end = p_box->p_father->i_size + p_box->p_father->i_pos;
+            const uint64_t i_box_end = p_box->i_size + p_box->i_pos;
+            const uint64_t i_father_end = p_box->p_father->i_size + p_box->p_father->i_pos;
 
             /* check if it's within p-father */
             if( i_box_end >= i_father_end )
@@ -177,9 +184,12 @@ int MP4_ReadBoxContainerChildren( stream_t *p_stream,
 
     /* Size of root container is set to 0 when unknown, for exemple
      * with a DASH stream. In that case, we skip the following check */
-    if( p_container->i_size
-            && ( stream_Tell( p_stream ) + 8 >
-        (off_t)(p_container->i_pos + p_container->i_size) )
+    int64_t i_tell = stream_Tell( p_stream );
+    if( unlikely(i_tell < 0 || (UINT64_MAX - 8 < (uint64_t)i_tell)) )
+        return 0;
+
+    if( p_container->i_size && ( (uint64_t)i_tell + 8 >
+        p_container->i_pos + p_container->i_size )
       )
     {
         /* there is no box to load */
@@ -288,8 +298,8 @@ static int MP4_ReadBox_ftyp( stream_t *p_stream, MP4_Box_t *p_box )
 
         if( unlikely( tab == NULL ) )
             MP4_READBOX_EXIT( 0 );
-
-        for( unsigned i = 0; i < p_box->data.p_ftyp->i_compatible_brands_count; i++ )
+        unsigned i;
+        for( i = 0; i < p_box->data.p_ftyp->i_compatible_brands_count; i++ )
         {
             MP4_GETFOURCC( tab[i] );
         }
@@ -337,16 +347,16 @@ static int MP4_ReadBox_mvhd(  stream_t *p_stream, MP4_Box_t *p_box )
     MP4_GET2BYTES( p_box->data.p_mvhd->i_volume );
     MP4_GET2BYTES( p_box->data.p_mvhd->i_reserved1 );
 
-
-    for( unsigned i = 0; i < 2; i++ )
+    unsigned i;
+    for( i = 0; i < 2; i++ )
     {
         MP4_GET4BYTES( p_box->data.p_mvhd->i_reserved2[i] );
     }
-    for( unsigned i = 0; i < 9; i++ )
+    for( i = 0; i < 9; i++ )
     {
         MP4_GET4BYTES( p_box->data.p_mvhd->i_matrix[i] );
     }
-    for( unsigned i = 0; i < 6; i++ )
+    for( i = 0; i < 6; i++ )
     {
         MP4_GET4BYTES( p_box->data.p_mvhd->i_predefined[i] );
     }
@@ -414,7 +424,7 @@ static int MP4_ReadBox_tfxd(  stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream, "read box: \"tfxd\" version %d, flags 0x%x, "\
-            "fragment duration %" PRIu64", fragment abs time %" PRIu64,
+            "fragment duration %"PRIu64", fragment abs time %"PRIu64,
                 p_tfxd_data->i_version,
                 p_tfxd_data->i_flags,
                 p_tfxd_data->i_fragment_duration,
@@ -438,8 +448,8 @@ static int MP4_ReadBox_tfrf(  stream_t *p_stream, MP4_Box_t *p_box )
                                               sizeof( TfrfBoxDataFields_t ) );
     if( !p_tfrf_data->p_tfrf_data_fields )
         MP4_READBOX_EXIT( 0 );
-
-    for( uint8_t i = 0; i < p_tfrf_data->i_fragment_count; i++ )
+    uint8_t i;
+    for( i = 0; i < p_tfrf_data->i_fragment_count; i++ )
     {
         TfrfBoxDataFields_t *TfrfBoxDataField = &p_tfrf_data->p_tfrf_data_fields[i];
         if( p_tfrf_data->i_version == 0 )
@@ -456,14 +466,14 @@ static int MP4_ReadBox_tfrf(  stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream, "read box: \"tfrf\" version %d, flags 0x%x, "\
-            "fragment count %" PRIu8, p_tfrf_data->i_version,
+            "fragment count %"PRIu8, p_tfrf_data->i_version,
                 p_tfrf_data->i_flags, p_tfrf_data->i_fragment_count );
 
     for( uint8_t i = 0; i < p_tfrf_data->i_fragment_count; i++ )
     {
         TfrfBoxDataFields_t *TfrfBoxDataField = &p_tfrf_data->p_tfrf_data_fields[i];
-        msg_Dbg( p_stream, "\"tfrf\" fragment duration %" PRIu64", "\
-                                    "fragment abs time %" PRIu64,
+        msg_Dbg( p_stream, "\"tfrf\" fragment duration %"PRIu64", "\
+                                    "fragment abs time %"PRIu64,
                     TfrfBoxDataField->i_fragment_duration,
                     TfrfBoxDataField->i_fragment_abs_time );
     }
@@ -514,7 +524,7 @@ static int MP4_ReadBox_stra( stream_t *p_stream, MP4_Box_t *p_box )
     memcpy( p_stra->CodecPrivateData, p_peek, p_stra->cpd_len );
 
 #ifdef MP4_VERBOSE
-    msg_Dbg( p_stream, "es_cat is %" PRIu8", birate is %" PRIu32,
+    msg_Dbg( p_stream, "es_cat is %"PRIu8", birate is %"PRIu32,
               p_stra->i_es_cat, p_stra->Bitrate );
 #endif
 
@@ -584,7 +594,8 @@ static int MP4_ReadBox_sidx(  stream_t *p_stream, MP4_Box_t *p_box )
 
     p_sidx_data->p_items = (MP4_Box_sidx_item_t *)calloc( i_count, sizeof( MP4_Box_sidx_item_t ) );
     uint32_t tmp;
-    for( unsigned i = 0; i < i_count; i++ )
+    unsigned i;
+    for( i = 0; i < i_count; i++ )
     {
         MP4_GET4BYTES( tmp );
         p_sidx_data->p_items[i].b_reference_type = (bool)((tmp & 0x80000000)>>24);
@@ -599,8 +610,8 @@ static int MP4_ReadBox_sidx(  stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream, "read box: \"sidx\" version %d, flags 0x%x, "\
-            "ref_ID %" PRIu32", timescale %" PRIu32", ref_count %" PRIu16", "\
-            "first subsegmt duration %" PRIu32,
+            "ref_ID %"PRIu32", timescale %"PRIu32", ref_count %"PRIu16", "\
+            "first subsegmt duration %"PRIu32,
                 p_sidx_data->i_version,
                 p_sidx_data->i_flags,
                 p_sidx_data->i_reference_ID,
@@ -660,7 +671,7 @@ static int MP4_ReadBox_tfhd(  stream_t *p_stream, MP4_Box_t *p_box )
     char psz_size[128] = "\0";
     char psz_flag[128] = "\0";
     if( p_box->data.p_tfhd->i_flags & MP4_TFHD_BASE_DATA_OFFSET )
-        snprintf(psz_base, sizeof(psz_base), "base offset %" PRId64, p_box->data.p_tfhd->i_base_data_offset);
+        snprintf(psz_base, sizeof(psz_base), "base offset %"PRId64, p_box->data.p_tfhd->i_base_data_offset);
     if( p_box->data.p_tfhd->i_flags & MP4_TFHD_SAMPLE_DESC_INDEX )
         snprintf(psz_desc, sizeof(psz_desc), "sample description index %d", p_box->data.p_tfhd->i_sample_description_index);
     if( p_box->data.p_tfhd->i_flags & MP4_TFHD_DFLT_SAMPLE_DURATION )
@@ -697,8 +708,8 @@ static int MP4_ReadBox_trun(  stream_t *p_stream, MP4_Box_t *p_box )
       (MP4_descriptor_trun_sample_t *)calloc( p_box->data.p_trun->i_sample_count, sizeof(MP4_descriptor_trun_sample_t) );
     if ( p_box->data.p_trun->p_samples == NULL )
         MP4_READBOX_EXIT( 0 );
-
-    for( unsigned int i = 0; i<p_box->data.p_trun->i_sample_count; i++ )
+    unsigned int i;
+    for( i = 0; i<p_box->data.p_trun->i_sample_count; i++ )
     {
         MP4_descriptor_trun_sample_t *p_sample = &p_box->data.p_trun->p_samples[i];
         if( p_box->data.p_trun->i_flags & MP4_TRUN_SAMPLE_DURATION )
@@ -721,7 +732,7 @@ static int MP4_ReadBox_trun(  stream_t *p_stream, MP4_Box_t *p_box )
     {
         MP4_descriptor_trun_sample_t *p_sample = &p_box->data.p_trun->p_samples[i];
         msg_Dbg( p_stream, "read box: \"trun\" sample %4.4u flags 0x%x "\
-            "duration %" PRIu32" size %" PRIu32" composition time offset %" PRIu32,
+            "duration %"PRIu32" size %"PRIu32" composition time offset %"PRIu32,
                         i, p_sample->i_flags, p_sample->i_duration,
                         p_sample->i_size, p_sample->i_composition_time_offset );
     }
@@ -763,8 +774,8 @@ static int MP4_ReadBox_tkhd(  stream_t *p_stream, MP4_Box_t *p_box )
         MP4_GET4BYTES( p_box->data.p_tkhd->i_reserved );
         MP4_GET4BYTES( p_box->data.p_tkhd->i_duration );
     }
-
-    for( unsigned i = 0; i < 2; i++ )
+    unsigned i;
+    for( i = 0; i < 2; i++ )
     {
         MP4_GET4BYTES( p_box->data.p_tkhd->i_reserved2[i] );
     }
@@ -773,7 +784,7 @@ static int MP4_ReadBox_tkhd(  stream_t *p_stream, MP4_Box_t *p_box )
     MP4_GET2BYTES( p_box->data.p_tkhd->i_volume );
     MP4_GET2BYTES( p_box->data.p_tkhd->i_reserved3 );
 
-    for( unsigned i = 0; i < 9; i++ )
+    for( i = 0; i < 9; i++ )
     {
         MP4_GET4BYTES( p_box->data.p_tkhd->i_matrix[i] );
     }
@@ -947,7 +958,8 @@ static int MP4_ReadBox_vmhd( stream_t *p_stream, MP4_Box_t *p_box )
     MP4_GETVERSIONFLAGS( p_box->data.p_vmhd );
 
     MP4_GET2BYTES( p_box->data.p_vmhd->i_graphics_mode );
-    for( unsigned i = 0; i < 3; i++ )
+    unsigned i;
+    for( i = 0; i < 3; i++ )
     {
         MP4_GET2BYTES( p_box->data.p_vmhd->i_opcolor[i] );
     }
@@ -1212,20 +1224,21 @@ static int MP4_ReadBox_esds( stream_t *p_stream, MP4_Box_t *p_box )
         {
             MP4_GET2BYTES( es_descriptor.i_depend_on_ES_ID );
         }
-        if( es_descriptor.b_url )
+        if( es_descriptor.b_url && i_read > 0 )
         {
-            unsigned int i_len;
+            uint8_t i_url;
 
-            MP4_GET1BYTE( i_len );
-            i_len = __MIN(i_read, i_len);
-            es_descriptor.psz_URL = (unsigned char *)malloc( i_len + 1 );
+            MP4_GET1BYTE( i_url );
+            if( i_url > i_read )
+                MP4_READBOX_EXIT( 1 );
+            es_descriptor.psz_URL = malloc( (unsigned) i_url + 1 );
             if( es_descriptor.psz_URL )
             {
-                memcpy( es_descriptor.psz_URL, p_peek, i_len );
-                es_descriptor.psz_URL[i_len] = 0;
+                memcpy( es_descriptor.psz_URL, p_peek, i_url );
+                es_descriptor.psz_URL[i_url] = 0;
             }
-            p_peek += i_len;
-            i_read -= i_len;
+            p_peek += i_url;
+            i_read -= i_url;
         }
         else
         {
@@ -1475,7 +1488,7 @@ static int MP4_ReadBox_dvc1( stream_t *p_stream, MP4_Box_t *p_box )
     uint8_t i_profile = (p_dvc1->i_profile_level & 0xf0) >> 4;
     if( i_profile != 0x06 && i_profile != 0x0c )
     {
-        msg_Warn( p_stream, "unsupported VC-1 profile (%" PRIu8"), please report", i_profile );
+        msg_Warn( p_stream, "unsupported VC-1 profile (%"PRIu8"), please report", i_profile );
         MP4_READBOX_EXIT( 0 );
     }
 
@@ -1491,7 +1504,7 @@ static int MP4_ReadBox_dvc1( stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream,
-             "read box: \"dvc1\" profile=%" PRIu8" level=%i",
+             "read box: \"dvc1\" profile=%"PRIu8" level=%i",
              i_profile, p_dvc1->i_profile_level & 0x0e >> 1 );
 #endif
 
@@ -1595,8 +1608,8 @@ static int MP4_ReadBox_sample_soun( stream_t *p_stream, MP4_Box_t *p_box )
         i_read -= 30;
         MP4_READBOX_EXIT( 1 );
     }
-
-    for( unsigned i = 0; i < 6 ; i++ )
+    unsigned i;
+    for( i = 0; i < 6 ; i++ )
     {
         MP4_GET1BYTE( p_box->data.p_sample_soun->i_reserved1[i] );
     }
@@ -1713,7 +1726,7 @@ static int MP4_ReadBox_sample_soun( stream_t *p_stream, MP4_Box_t *p_box )
         p_box->data.p_sample_soun->i_bytes_per_sample = 0;
 
 #ifdef MP4_VERBOSE
-        msg_Dbg( p_stream, "read box: \"soun\" mp4 or qt1/2 (rest=%" PRId64")",
+        msg_Dbg( p_stream, "read box: \"soun\" mp4 or qt1/2 (rest=%"PRId64")",
                  i_read );
 #endif
         stream_Seek( p_stream, p_box->i_pos +
@@ -1758,8 +1771,8 @@ int MP4_ReadBox_sample_vide( stream_t *p_stream, MP4_Box_t *p_box )
 {
     p_box->i_handler = ATOM_vide;
     MP4_READBOX_ENTER( MP4_Box_data_sample_vide_t );
-
-    for( unsigned i = 0; i < 6 ; i++ )
+    unsigned i;
+    for( i = 0; i < 6 ; i++ )
     {
         MP4_GET1BYTE( p_box->data.p_sample_vide->i_reserved1[i] );
     }
@@ -1979,8 +1992,8 @@ static int MP4_ReadBox_stsz( stream_t *p_stream, MP4_Box_t *p_box )
             (uint32_t *)calloc( p_box->data.p_stsz->i_sample_count, sizeof(uint32_t) );
         if( unlikely( !p_box->data.p_stsz->i_entry_size ) )
             MP4_READBOX_EXIT( 0 );
-
-        for( unsigned int i = 0; (i<p_box->data.p_stsz->i_sample_count)&&(i_read >= 4 ); i++ )
+        unsigned int i;
+        for( i = 0; (i<p_box->data.p_stsz->i_sample_count)&&(i_read >= 4 ); i++ )
         {
             MP4_GET4BYTES( p_box->data.p_stsz->i_entry_size[i] );
         }
@@ -2029,8 +2042,8 @@ static int MP4_ReadBox_stsc( stream_t *p_stream, MP4_Box_t *p_box )
     {
         MP4_READBOX_EXIT( 0 );
     }
-
-    for( unsigned int i = 0; (i < p_box->data.p_stsc->i_entry_count )&&( i_read >= 12 );i++ )
+    unsigned int i;
+    for( i = 0; (i < p_box->data.p_stsc->i_entry_count )&&( i_read >= 12 );i++ )
     {
         MP4_GET4BYTES( p_box->data.p_stsc->i_first_chunk[i] );
         MP4_GET4BYTES( p_box->data.p_stsc->i_samples_per_chunk[i] );
@@ -2057,8 +2070,8 @@ static int MP4_ReadBox_stco_co64( stream_t *p_stream, MP4_Box_t *p_box )
         (uint64_t *)calloc( p_box->data.p_co64->i_entry_count, sizeof(uint64_t) );
     if( p_box->data.p_co64->i_chunk_offset == NULL )
         MP4_READBOX_EXIT( 0 );
-
-    for( unsigned int i = 0; i < p_box->data.p_co64->i_entry_count; i++ )
+    unsigned int i;
+    for( i = 0; i < p_box->data.p_co64->i_entry_count; i++ )
     {
         if( p_box->i_type == ATOM_stco )
         {
@@ -2182,14 +2195,14 @@ static int MP4_ReadBox_stdp( stream_t *p_stream, MP4_Box_t *p_box )
 
     if( unlikely( !p_box->data.p_stdp->i_priority ) )
         MP4_READBOX_EXIT( 0 );
-
-    for( unsigned i = 0; i < i_read / 2 ; i++ )
+    unsigned i;
+    for( i = 0; i < i_read / 2 ; i++ )
     {
         MP4_GET2BYTES( p_box->data.p_stdp->i_priority[i] );
     }
 
 #ifdef MP4_VERBOSE
-    msg_Dbg( p_stream, "read box: \"stdp\" entry-count %" PRId64,
+    msg_Dbg( p_stream, "read box: \"stdp\" entry-count %"PRId64,
                       i_read / 2 );
 
 #endif
@@ -2231,8 +2244,8 @@ static int MP4_ReadBox_padb( stream_t *p_stream, MP4_Box_t *p_box )
     {
         MP4_READBOX_EXIT( 0 );
     }
-
-    for( unsigned int i = 0; i < i_read / 2 ; i++ )
+    unsigned int i;
+    for( i = 0; i < i_read / 2 ; i++ )
     {
         if( i >= count )
         {
@@ -2247,7 +2260,7 @@ static int MP4_ReadBox_padb( stream_t *p_stream, MP4_Box_t *p_box )
     }
 
 #ifdef MP4_VERBOSE
-    msg_Dbg( p_stream, "read box: \"stdp\" entry-count %" PRId64,
+    msg_Dbg( p_stream, "read box: \"stdp\" entry-count %"PRId64,
                       i_read / 2 );
 
 #endif
@@ -2523,8 +2536,8 @@ static int MP4_ReadBox_rdrf( stream_t *p_stream, MP4_Box_t *p_box )
         if( p_box->data.p_rdrf->psz_ref == NULL )
             MP4_READBOX_EXIT( 0 );
         i_len--;
-
-        for( unsigned i = 0; i < i_len; i++ )
+        unsigned i;
+        for( i = 0; i < i_len; i++ )
         {
             MP4_GET1BYTE( p_box->data.p_rdrf->psz_ref[i] );
         }
@@ -2781,7 +2794,8 @@ static void MP4_FreeBox_0xa9xxx( MP4_Box_t *p_box )
 static void MP4_FreeBox_chpl( MP4_Box_t *p_box )
 {
     MP4_Box_data_chpl_t *p_chpl = p_box->data.p_chpl;
-    for( unsigned i = 0; i < p_chpl->i_chapter; i++ )
+    unsigned i;
+    for( i = 0; i < p_chpl->i_chapter; i++ )
         free( p_chpl->chapter[i].psz_name );
 }
 
@@ -2867,8 +2881,8 @@ static int MP4_ReadBox_tref_generic( stream_t *p_stream, MP4_Box_t *p_box )
         p_box->data.p_tref_generic->i_track_ID = (uint32_t *)calloc( p_box->data.p_tref_generic->i_entry_count, sizeof(uint32_t) );
     if( p_box->data.p_tref_generic->i_track_ID == NULL )
         MP4_READBOX_EXIT( 0 );
-
-    for( unsigned i = 0; i < p_box->data.p_tref_generic->i_entry_count; i++ )
+    unsigned i;
+    for( i = 0; i < p_box->data.p_tref_generic->i_entry_count; i++ )
     {
         MP4_GET4BYTES( p_box->data.p_tref_generic->i_track_ID[i] );
     }
@@ -2986,7 +3000,7 @@ static int MP4_ReadBox_mehd( stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream,
-             "read box: \"mehd\" frag dur. %" PRIu64"",
+             "read box: \"mehd\" frag dur. %"PRIu64"",
              p_box->data.p_mehd->i_fragment_duration );
 #endif
 
@@ -3006,7 +3020,7 @@ static int MP4_ReadBox_trex( stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream,
-             "read box: \"trex\" trackID: %" PRIu32"",
+             "read box: \"trex\" trackID: %"PRIu32"",
              p_box->data.p_trex->i_track_ID );
 #endif
 
@@ -3025,15 +3039,15 @@ static int MP4_ReadBox_sdtp( stream_t *p_stream, MP4_Box_t *p_box )
 
     if( !p_sdtp->p_sample_table )
         MP4_READBOX_EXIT( 0 );
-
-    for( uint32_t i = 0; i < i_sample_count; i++ )
+    uint32_t i;
+    for( i = 0; i < i_sample_count; i++ )
         MP4_GET1BYTE( p_sdtp->p_sample_table[i] );
 
 #ifdef MP4_VERBOSE
-    msg_Dbg( p_stream, "i_sample_count is %" PRIu32"", i_sample_count );
+    msg_Dbg( p_stream, "i_sample_count is %"PRIu32"", i_sample_count );
     if ( i_sample_count > 3 )
         msg_Dbg( p_stream,
-             "read box: \"sdtp\" head: %" PRIx8" %" PRIx8" %" PRIx8" %" PRIx8"",
+             "read box: \"sdtp\" head: %"PRIx8" %"PRIx8" %"PRIx8" %"PRIx8"",
                  p_sdtp->p_sample_table[0],
                  p_sdtp->p_sample_table[1],
                  p_sdtp->p_sample_table[2],
@@ -3057,7 +3071,7 @@ static int MP4_ReadBox_mfro( stream_t *p_stream, MP4_Box_t *p_box )
 
 #ifdef MP4_VERBOSE
     msg_Dbg( p_stream,
-             "read box: \"mfro\" size: %" PRIu32"",
+             "read box: \"mfro\" size: %"PRIu32"",
              p_box->data.p_mfro->i_size);
 #endif
 
@@ -3073,7 +3087,6 @@ static int MP4_ReadBox_tfra( stream_t *p_stream, MP4_Box_t *p_box )
 
     MP4_GET4BYTES( p_tfra->i_track_ID );
     uint32_t i_lengths = 0;
-    int i_fields_length = 0;
     MP4_GET4BYTES( i_lengths );
     MP4_GET4BYTES( p_tfra->i_number_of_entries );
     i_number_of_entries = p_tfra->i_number_of_entries;
@@ -3096,7 +3109,7 @@ static int MP4_ReadBox_tfra( stream_t *p_stream, MP4_Box_t *p_box )
                         || !p_tfra->p_trun_number || !p_tfra->p_sample_number )
         goto error;
 
-    i_fields_length = 3 + p_tfra->i_length_size_of_traf_num
+    int i_fields_length = 3 + p_tfra->i_length_size_of_traf_num
             + p_tfra->i_length_size_of_trun_num
             + p_tfra->i_length_size_of_sample_num;
 
@@ -3178,25 +3191,25 @@ static int MP4_ReadBox_tfra( stream_t *p_stream, MP4_Box_t *p_box )
 #ifdef MP4_VERBOSE
     if( p_tfra->i_version == 0 )
     {
-        msg_Dbg( p_stream, "time[0]: %" PRIu32", moof_offset[0]: %" PRIx32"",
+        msg_Dbg( p_stream, "time[0]: %"PRIu32", moof_offset[0]: %"PRIx32"",
                          p_tfra->p_time[0], p_tfra->p_moof_offset[0] );
 
-        msg_Dbg( p_stream, "time[1]: %" PRIu32", moof_offset[1]: %" PRIx32"",
+        msg_Dbg( p_stream, "time[1]: %"PRIu32", moof_offset[1]: %"PRIx32"",
                          p_tfra->p_time[1], p_tfra->p_moof_offset[1] );
     }
     else
     {
-        msg_Dbg( p_stream, "time[0]: %" PRIu64", moof_offset[0]: %" PRIx64"",
+        msg_Dbg( p_stream, "time[0]: %"PRIu64", moof_offset[0]: %"PRIx64"",
                 ((uint64_t *)(p_tfra->p_time))[0],
                 ((uint64_t *)(p_tfra->p_moof_offset))[0] );
 
-        msg_Dbg( p_stream, "time[1]: %" PRIu64", moof_offset[1]: %" PRIx64"",
+        msg_Dbg( p_stream, "time[1]: %"PRIu64", moof_offset[1]: %"PRIx64"",
                 ((uint64_t *)(p_tfra->p_time))[1],
                 ((uint64_t *)(p_tfra->p_moof_offset))[1] );
     }
 
-    msg_Dbg( p_stream, "number_of_entries is %" PRIu32"", i_number_of_entries );
-    msg_Dbg( p_stream, "track ID is: %" PRIu32"", p_tfra->i_track_ID );
+    msg_Dbg( p_stream, "number_of_entries is %"PRIu32"", i_number_of_entries );
+    msg_Dbg( p_stream, "track ID is: %"PRIu32"", p_tfra->i_track_ID );
 #endif
 
     MP4_READBOX_EXIT( 1 );
@@ -3838,17 +3851,18 @@ static void MP4_BoxDumpStructure_Internal( stream_t *s,
             return;
 
         memset( str, ' ', sizeof(str) );
-        for( unsigned i = 0; i < i_level; i++ )
+        unsigned i;
+        for( i = 0; i < i_level; i++ )
         {
             str[i*4] = '|';
         }
         if( MP4_BOX_TYPE_ASCII() )
             snprintf( &str[i_level * 4], sizeof(str) - 4*i_level,
-                      "+ %4.4s size %" PRIu64" offset %ld",
+                      "+ %4.4s size %"PRIu64" offset %ld",
                         (char*)&p_box->i_type, p_box->i_size, p_box->i_pos );
         else
             snprintf( &str[i_level * 4], sizeof(str) - 4*i_level,
-                      "+ c%3.3s size %" PRIu64" offset %ld",
+                      "+ c%3.3s size %"PRIu64" offset %ld",
                         (char*)&p_box->i_type+1, p_box->i_size, p_box->i_pos );
         msg_Dbg( s, "%s", str );
     }

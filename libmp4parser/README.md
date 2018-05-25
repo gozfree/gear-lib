@@ -1,7 +1,7 @@
 ##libmp4parser
 This is a simple libmp4parser library.
 
-The implement of mp4 parser comes from vlc-2.2.3 with stream patch.
+The implement of mp4 parser comes from vlc-2.2.6 with stream patch.
 
 check memory leak
 valgrind --leak-check=full ./test_libmp4parser test.mp4

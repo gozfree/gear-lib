@@ -6,15 +6,22 @@
  * updated: 2016-07-29 14:24
  ******************************************************************************/
 #ifndef PATCH_H
-#define pATCH_H
+#define PATCH_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#endif
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <string.h>
+#include <inttypes.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 
 typedef uint32_t vlc_fourcc_t;
@@ -109,6 +116,24 @@ static inline uint64_t bswap64 (uint64_t x)
 #define ntoh32(i) hton32(i)
 #define ntoh64(i) hton64(i)
 
+/* define from vlc */
+#ifdef WORDS_BIGENDIAN
+#   define VLC_FOURCC( a, b, c, d ) \
+        ( ((uint32_t)d) | ( ((uint32_t)c) << 8 ) \
+           | ( ((uint32_t)b) << 16 ) | ( ((uint32_t)a) << 24 ) )
+#   define VLC_TWOCC( a, b ) \
+        ( (uint16_t)(b) | ( (uint16_t)(a) << 8 ) )
+
+#else
+#   define VLC_FOURCC( a, b, c, d ) \
+        ( ((uint32_t)a) | ( ((uint32_t)b) << 8 ) \
+           | ( ((uint32_t)c) << 16 ) | ( ((uint32_t)d) << 24 ) )
+#   define VLC_TWOCC( a, b ) \
+        ( (uint16_t)(a) | ( (uint16_t)(b) << 8 ) )
+
+#endif
+
+
 
 /** Reads 16 bits in network byte order */
 static inline uint16_t U16_AT (const void *p)
@@ -141,7 +166,34 @@ static inline uint64_t U64_AT (const void *p)
 #define GetDWBE(p) U32_AT(p)
 #define GetQWBE(p) U64_AT(p)
 
+/* implement stream  */
 
+#define MODE_READ             (1)
+#define MODE_WRITE            (2)
+#define MODE_READWRITEFILTER  (3)
+#define MODE_EXISTING         (4)
+#define MODE_CREATE           (8)
+
+
+typedef struct stream {
+    void *(*open)(struct stream *stream_s, const char *filename, int mode);
+    int (*read)(struct stream *stream_s, void *buf, int size);
+    int (*write)(struct stream *stream_s, void *buf, int size);
+    int (*peek)(struct stream *stream_s, const uint8_t **buf, int size);
+    uint64_t (*seek)(struct stream *stream_s, int64_t offset, int whence);
+    int64_t (*tell)(struct stream *stream_s);
+    int64_t (*size)(struct stream *stream_s);
+    int (*close)(struct stream *stream_s);
+    void *opaque;
+    void **priv_buf;//store peek malloc buffer
+    int priv_buf_num;
+} stream_t;
+
+stream_t* create_file_stream();
+void destory_file_stream(stream_t* stream_s);
+
+#define stream_open(s, filename, mode) ((stream_t*)s)->open(((stream_t*)s), filename, mode)
+#define stream_close(s) ((stream_t*)s)->close(((stream_t*)s))
 #define stream_Read(s, buf, size) ((stream_t*)s)->read(((stream_t*)s), buf, size)
 #define stream_write(s, buf, size) ((stream_t*)s)->write(((stream_t*)s), buf, size)
 #define stream_Peek(s, buf, size) ((stream_t*)s)->peek(((stream_t*)s), buf, size)

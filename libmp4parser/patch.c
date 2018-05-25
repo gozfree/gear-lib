@@ -10,7 +10,6 @@
 #include <malloc.h>
 #include <memory.h>
 #include <assert.h>
-#include "libmp4parser-patch.h"
 #include "patch.h"
 
 bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
@@ -45,7 +44,7 @@ bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
             "iku"    "gla"    "glv"    "gle"    "ton"
             "gre"                                     /* 148 */
             ;
-
+    unsigned i;
     if ( i_language_code < 0x400 || i_language_code == 0x7FFF )
     {
         const void *p_data;
@@ -75,7 +74,7 @@ bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
             return false;
         }
 
-        for( unsigned i = 0; i < 3; i++ )
+        for( i = 0; i < 3; i++ )
             psz_iso[i] = ( ( i_language_code >> ( (2-i)*5 ) )&0x1f ) + 0x60;
     }
     return true;
@@ -91,10 +90,10 @@ void msg_log(int log_lvl, const char *fmt, ...)
     va_end(ap);
     switch (log_lvl) {
     case MSG_DGB:
-        printf("debug: %s\n", buf);
+        //printf("debug: %s\n", buf);
         break;
     case MSG_WARN:
-        printf("warn: %s\n", buf);
+        //printf("warn: %s\n", buf);
         break;
     case MSG_ERR:
         printf("err: %s\n", buf);
@@ -193,10 +192,13 @@ stream_t* create_file_stream()
 
 void destory_file_stream(stream_t* stream_s)
 {
-    for (int i = 0; i < stream_s->priv_buf_num; i++) {
+    int i;
+    for (i = 0; i < stream_s->priv_buf_num; i++) {
         free(stream_s->priv_buf[i]);
     }
     free(stream_s->priv_buf);
     free(stream_s);
 }
+
+
 
