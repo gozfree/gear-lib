@@ -1,12 +1,4 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2016-07-27 15:03:36
-#  updated: 2016-07-27 15:03:36
-###############################################################################
-
-###############################################################################
 # common
 ###############################################################################
 #ARCH: linux/pi/android/ios/
@@ -40,16 +32,16 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libmp4parser
+LIBNAME		= libhal
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
-TGT_LIB_H	= $(LIBNAME).h libmp4parser-patch.h
+TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o patch.o mp4parser_inner.o
+OBJS_LIB	= $(LIBNAME).o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -58,12 +50,11 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
-CFLAGS	+= -I../libfile/
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lm
+LDFLAGS	+= -pthread
 
 ###############################################################################
 # target

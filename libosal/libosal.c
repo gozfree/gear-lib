@@ -1,10 +1,20 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    libosal.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-11-28 17:59:24
- * updated: 2015-11-28 17:59:24
- *****************************************************************************/
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -147,4 +157,34 @@ int is_little_endian(void)
         printf("%s: something wrong!\n", __func__);
     }
     return probe_byte[0] == 0xff;
+}
+
+bool proc_exist(const char *proc)
+{
+#define MAX_CMD_BUFSZ               128
+    FILE* fp;
+    int count;
+    char buf[MAX_CMD_BUFSZ];
+    char cmd[MAX_CMD_BUFSZ];
+    bool exist = false;
+    snprintf(cmd, sizeof(cmd), "ps -ef | grep -w %s | grep -v grep | wc -l", proc);
+
+    do {
+        if ((fp = popen(cmd, "r")) == NULL) {
+            printf("popen failed\n");
+            break;
+        }
+        if ((fgets(buf, MAX_CMD_BUFSZ, fp)) != NULL) {
+            count = atoi(buf);
+            if (count <= 0) {
+                exist = false;
+            } else if (count == 1) {
+                exist = true;
+            } else {
+                printf("process number may be wrong");
+            }
+        }
+        pclose(fp);
+    } while (0);
+    return exist;
 }

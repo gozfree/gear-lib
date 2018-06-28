@@ -25,7 +25,9 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdint.h>
+#if !defined(__UCLIBC__)
 #include <execinfo.h>
+#endif
 
 #include "libdebug.h"
 
@@ -82,6 +84,7 @@ static int signals_trace[] =
     SIGSEGV, /* Segmentation violation (ANSI).  */
 };
 
+#if !defined(__UCLIBC__)
 static void *get_uc_mcontext_pc(ucontext_t *uc)
 {
 #if defined(__APPLE__) && !defined(MAC_OS_X_VERSION_10_6)
@@ -119,7 +122,9 @@ static void *get_uc_mcontext_pc(ucontext_t *uc)
     return NULL;
 #endif
 }
+#endif
 
+#if !defined(__UCLIBC__)
 static void backtrace_symbols_detail(void *array[], int size)
 {
     int i;
@@ -142,9 +147,11 @@ static void backtrace_symbols_detail(void *array[], int size)
     }
     fclose(fp);
 }
+#endif
 
 static void backtrace_handler(int sig_num, siginfo_t *info, void *ucontext)
 {
+#if !defined(__UCLIBC__)
     void *array[BT_SIZE];
     int i, size = 0;
     char **strings = NULL;
@@ -160,6 +167,7 @@ static void backtrace_handler(int sig_num, siginfo_t *info, void *ucontext)
         fprintf(stderr, "#%d  %s\n", i, strings[i]);
     }
     backtrace_symbols_detail(array, size);
+#endif
 
     exit(EXIT_FAILURE);
 }
@@ -174,7 +182,7 @@ int debug_backtrace_init(void)
     int ret = 0;
     for (i = 0; i < (sizeof(signals_trace) / sizeof(int)); ++i) {
         if (sigaction(signals_trace[i], &sa, NULL) != 0) {
-            fprintf(stderr, "Failed to set signal handler for %s(%d)!\n",
+            fprintf(stderr, "backtrace failed to set signal handler for %s(%d)!\n",
                     strsignal(signals_trace[i]), signals_trace[i]);
             ret = -1;
             break;
@@ -185,9 +193,11 @@ int debug_backtrace_init(void)
 
 void debug_backtrace_dump(void)
 {
+#if !defined(__UCLIBC__)
     void* buffer[BT_SIZE];
     int size = backtrace(buffer, BT_SIZE);
     backtrace_symbols_detail(buffer, size);
+#endif
 }
 
 static void debug_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
@@ -275,7 +285,7 @@ int debug_signals_init(void)
 
     for (i = 0; i < (sizeof(signals_all) / sizeof(int)); ++i) {
         if (sigaction(signals_all[i], &sa, NULL) == -1) {
-            fprintf(stderr, "Failed to set signal handler for %s(%d)!\n",
+            fprintf(stderr, "signal failed to set signal handler for %s(%d)!\n",
                   strsignal(signals_all[i]), signals_all[i]);
         }
     }

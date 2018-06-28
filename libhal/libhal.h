@@ -15,20 +15,47 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#ifndef LIBHAL_H
+#define LIBHAL_H
+
 #include <stdio.h>
-#include "libmp4parser.h"
+#include <stdlib.h>
+#include <stdbool.h>
+#include <arpa/inet.h>
+#include <linux/if.h>
+#include <linux/wireless.h>
 
-int main(int argc, char* argv[])
-{
-    if (argc < 2) {
-        printf("Invalid argument, useage: \n mp4parser /path/to/mp4file \n");
-        return -1;
-    }
-    struct mp4_parser *mp = mp4_parser_create(argv[1]);
-    uint64_t duration = 0;
-    mp4_get_duration(mp, &duration);
-    printf("duration = %lu\n", duration);
-    return 0;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct sdcard_info {
+    bool is_insert;
+    bool is_mounted;
+    char name[64];
+    char serial[64];
+    char manfid[64];
+    char oemid[64];
+    char date[64];
+    uint64_t used_size;
+    uint64_t capacity;
+};
+
+struct network_info {
+    bool is_probed;
+    bool is_running;
+    char ipaddr[16];
+    char macaddr[32];
+    char ssid[IW_ESSID_MAX_SIZE+1];
+    char pswd[64];
+};
+
+
+int network_get_info(const char *interface, struct network_info *info);
+int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
+
+
+#ifdef __cplusplus
 }
-
-
+#endif
+#endif

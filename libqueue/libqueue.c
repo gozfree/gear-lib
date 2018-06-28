@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,15 +23,6 @@
 #include "libqueue.h"
 
 #define QUEUE_MAX_DEPTH 200
-
-static void *memdup(void *src, size_t len)
-{
-    void *dst = calloc(1, len);
-    if (dst) {
-        memcpy(dst, src, len);
-    }
-    return dst;
-}
 
 struct item *item_alloc(struct queue *q, void *data, size_t len)
 {

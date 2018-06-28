@@ -16,19 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 #include <stdio.h>
-#include "libmp4parser.h"
+#include <stdlib.h>
+#include "libhal.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("Invalid argument, useage: \n mp4parser /path/to/mp4file \n");
-        return -1;
-    }
-    struct mp4_parser *mp = mp4_parser_create(argv[1]);
-    uint64_t duration = 0;
-    mp4_get_duration(mp, &duration);
-    printf("duration = %lu\n", duration);
+    struct network_info ni;
+    network_get_info("lo", &ni);
+    printf("%s\n", ni.ipaddr);
     return 0;
 }
-
-

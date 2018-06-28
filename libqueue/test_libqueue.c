@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

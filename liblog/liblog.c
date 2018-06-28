@@ -24,7 +24,6 @@
 #include <time.h>
 #include <pthread.h>
 #include <fcntl.h>
-#define _GNU_SOURCE
 #include <unistd.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -213,7 +212,7 @@ static int get_proc_name(char *name, size_t len)
         fprintf(stderr, "proc path %s is invalid\n", proc_name);
         return -1;
     }
-    if (ret-i > len) {
+    if (ret-i > (int)len) {
         fprintf(stderr, "proc name length %d is larger than %d\n", ret-i, (int)len);
         return -1;
     }
