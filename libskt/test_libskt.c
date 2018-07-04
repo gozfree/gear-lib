@@ -13,7 +13,6 @@
 #include <signal.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <liblog.h>
 #include <libgevent.h>
 #include <libthread.h>
 #include <libmacro.h>

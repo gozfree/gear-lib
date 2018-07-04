@@ -1,16 +1,25 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libgevent.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-27 00:59
- * updated: 2015-07-12 00:42
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <libmacro.h>
-#include <liblog.h>
 #include "libgevent.h"
 
 extern const struct gevent_ops selectops;
@@ -25,7 +34,6 @@ static const struct gevent_ops *eventops[] = {
 
 static void event_in(int fd, void *arg)
 {
-//    logd("fd = %d, event in\n", fd);
 }
 
 struct gevent_base *gevent_base_create(void)
@@ -39,7 +47,7 @@ struct gevent_base *gevent_base_create(void)
     }
     eb = CALLOC(1, struct gevent_base);
     if (!eb) {
-        loge("malloc gevent_base failed!\n");
+        printf("malloc gevent_base failed!\n");
         close(fds[0]);
         close(fds[1]);
         return NULL;
@@ -77,7 +85,7 @@ int gevent_base_loop(struct gevent_base *eb)
     while (eb->loop) {
         ret = evop->dispatch(eb, NULL);
         if (ret == -1) {
-            loge("dispatch failed\n");
+            printf("dispatch failed\n");
 //            return -1;
         }
     }
@@ -119,12 +127,12 @@ struct gevent *gevent_create(int fd,
     int flags = 0;
     struct gevent *e = CALLOC(1, struct gevent);
     if (!e) {
-        loge("malloc gevent failed!\n");
+        printf("malloc gevent failed!\n");
         return NULL;
     }
     struct gevent_cbs *evcb = CALLOC(1, struct gevent_cbs);
     if (!evcb) {
-        loge("malloc gevent failed!\n");
+        printf("malloc gevent failed!\n");
         return NULL;
     }
     evcb->ev_in = ev_in;
@@ -160,7 +168,7 @@ void gevent_destroy(struct gevent *e)
 int gevent_add(struct gevent_base *eb, struct gevent *e)
 {
     if (!e || !eb) {
-        loge("%s:%d paraments is NULL\n", __func__, __LINE__);
+        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
         return -1;
     }
     return eb->evop->add(eb, e);
@@ -169,7 +177,7 @@ int gevent_add(struct gevent_base *eb, struct gevent *e)
 int gevent_del(struct gevent_base *eb, struct gevent *e)
 {
     if (!e || !eb) {
-        loge("%s:%d paraments is NULL\n", __func__, __LINE__);
+        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
         return -1;
     }
     return eb->evop->del(eb, e);
