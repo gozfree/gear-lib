@@ -131,9 +131,15 @@ class LuaTableNode {
 	T get() {
 		if (!exists()) {
 			std::cerr << "Error: could not find value " << keyStackToString() << "." << std::endl;
-			abort();
 		}
 		return getDefault (T());
+	}
+	template<typename T>
+	T get(const T& def_value) {
+		if (!exists()) {
+			std::cerr << "Error: could not find value " << keyStackToString() << "." << std::endl;
+		}
+		return getDefault(def_value);
 	}
 
 	// convenience operators (assignment, conversion, comparison)

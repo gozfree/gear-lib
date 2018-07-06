@@ -28,14 +28,6 @@
 #include "lua_config.h"
 
 
-LuaConfig::LuaConfig()
-{
-}
-
-LuaConfig::~LuaConfig()
-{
-}
-
 LuaConfig *LuaConfig::create(const char *config)
 {
     LuaConfig *result = new LuaConfig();

@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <sys/vfs.h>
 #include <sys/socket.h>
+#include <sys/sysinfo.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <linux/if.h>
@@ -262,4 +263,35 @@ int sdcard_get_info(const char *mount_point, struct sdcard_info *info)
         info->used_size = info->capacity-free_space;
     } while (0);
     return ret;
+}
+
+int cpu_get_info(struct cpu_info *info)
+{
+    FILE *fp;
+    char *p;
+    char buf[512];
+
+    info->cores = get_nprocs_conf();
+    info->cores_available = get_nprocs();
+
+    if (NULL == (fp = fopen("/proc/cpuinfo", "r"))) {
+        printf("read cpuinfo failed!\n");
+        return -1;
+    }
+    while (fgets(buf, 511, fp) != NULL) {
+        if (memcmp(buf, "flags", 5) == 0 ||//x86
+            memcmp(buf, "Features", 8) == 0) {//arm
+            if (NULL != (p = strstr(buf, ": "))) {
+                strcpy(info->features, p+2);
+            }
+        }
+        if (memcmp(buf, "model name", 10) == 0) {
+            if (NULL != (p = strstr(buf, ": "))) {
+                strcpy(info->name, p+2);
+            }
+        }
+        memset(buf, 0, sizeof(buf));
+    }
+    fclose(fp);
+    return 0;
 }

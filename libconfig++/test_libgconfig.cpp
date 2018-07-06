@@ -20,14 +20,17 @@
 #include <stdlib.h>
 #include <liblog.h>
 #include "libgconfig.h"
-using namespace std;
+using std::string;
 
 static void lua_test()
 {
-    LuaConfig *conf = Config::create("lua/config.lua");
-    logi("yuv_path= %s\n", (*conf)["yuv_path"].get<string>("").c_str());
-    logi("[type_3][sub_type_1][my] = %s\n",
-         (*conf)["type_3"]["sub_type_1"]["my"].get<string>("").c_str());
+    LuaConfig *conf = LuaConfig::create("lua/config.lua");
+    logi("url = %s\n", (*conf)["url"].get<string>("").c_str());
+    (*conf)["auto_live"] = true;
+    (*conf)["url"] = string("rtsp://xxx");
+    (*conf)["crypto"] = string("md5");
+    (*conf)["desc"] = string("stream");
+    conf->save();
     conf->destroy();
 }
 
@@ -45,7 +48,7 @@ static void json_test()
 
     Json::FastWriter writer;
     std::string json_file = writer.write(root);
-    ofstream ofs;
+    std::ofstream ofs;
     ofs.open("test1.json");
     assert(ofs.is_open());
     ofs<<json_file;

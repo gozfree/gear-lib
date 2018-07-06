@@ -66,16 +66,17 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS_LUA	= `pkg-config --cflags lua5.2`
+CFLAGS_LUA	= `pkg-config --cflags lua5.3`
 CFLAGS_JSON	= `pkg-config --cflags jsoncpp`
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 CFLAGS	+= $(CFLAGS_LUA)
+CFLAGS	+= -std=c++11
 
 SHARED	:= -shared
 
-LDFLAGS_LUA	= `pkg-config --libs lua5.2`
+LDFLAGS_LUA	= `pkg-config --libs lua5.3`
 LDFLAGS_JSON	= `pkg-config --libs jsoncpp`
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS += -L$(OUTPUT)/lib -llog

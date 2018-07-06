@@ -20,18 +20,15 @@
 
 #include "luatables.h"
 
-using namespace std;
-
 class LuaConfig: public LuaTable
 {
 public:
-    LuaConfig();
-    ~LuaConfig();
-
-public:
     static LuaConfig *create(const char *path);
     void destroy();
+
+public:
     bool save();
+    virtual ~LuaConfig(){}
 
 private:
     bool init(const char *config);

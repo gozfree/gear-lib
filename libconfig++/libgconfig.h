@@ -28,7 +28,7 @@ public:
     ~Config();
 
 public:
-    static Config *create(string path);
+    static Config *create(std::string path);
 
 };
 

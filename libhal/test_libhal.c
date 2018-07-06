@@ -22,7 +22,12 @@
 int main(int argc, char **argv)
 {
     struct network_info ni;
+    struct cpu_info ci;
     network_get_info("lo", &ni);
+    cpu_get_info(&ci);
     printf("%s\n", ni.ipaddr);
+    printf("cores = %d, cores_available = %d\n", ci.cores, ci.cores_available);
+    printf("features = %s\n", ci.features);
+    printf("name = %s\n", ci.name);
     return 0;
 }

@@ -29,6 +29,13 @@
 extern "C" {
 #endif
 
+struct cpu_info {
+    int cores;
+    int cores_available;
+    char name[128];
+    char features[1024];
+};
+
 struct sdcard_info {
     bool is_insert;
     bool is_mounted;
@@ -53,6 +60,7 @@ struct network_info {
 
 int network_get_info(const char *interface, struct network_info *info);
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
+int cpu_get_info(struct cpu_info *info);
 
 
 #ifdef __cplusplus

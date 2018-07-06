@@ -65,7 +65,7 @@ static int lua_test(void)
     logi("md_enable = %d\n", conf_get_boolean(conf, "md_enable"));
     logi("fps= %f\n", conf_get_double(conf, "fps"));
     logi("yuv_path= %s\n", conf_get_string(conf, "yuv_path"));
-    //conf_save(conf);
+    conf_save(conf);
     conf_unload(conf);
 
     return 0;

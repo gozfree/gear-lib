@@ -46,6 +46,7 @@ Config *Config::create(string path)
     } else if (suffix == "json") {
         return (Config *)JsonConfig::create(path.c_str());
     } else {
+        printf("type %s does not support!\n", suffix.c_str());
         return NULL;
     }
 }
