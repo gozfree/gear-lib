@@ -266,6 +266,7 @@ void fw_deinit(struct fw *fw)
         inotify_rm_watch(fw->fd, atoi(key));
         free(val);
     }
+    dict_free(fw->dict_path);
     gevent_base_loop_break(fw->evbase);
     close(fw->fd);
     free(fw);

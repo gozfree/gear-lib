@@ -113,7 +113,11 @@ int skt_tcp_bind_listen(const char *host, uint16_t port)
         goto fail;
     }
     si.sin_family = AF_INET;
-    si.sin_addr.s_addr = host ? inet_addr(host) : INADDR_ANY;
+    if (!host || strlen(host) == 0) {
+        si.sin_addr.s_addr = INADDR_ANY;
+    } else {
+        si.sin_addr.s_addr = inet_addr(host);
+    }
     si.sin_port = htons(port);
     if (-1 == bind(fd, (struct sockaddr*)&si, sizeof(si))) {
         printf("bind failed: %s\n", strerror(errno));
