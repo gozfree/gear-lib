@@ -46,7 +46,6 @@ struct media_session *media_session_new(void *pool, char *name, size_t size)
     snprintf(s->description, sizeof(s->description), "%s", "Session streamd by ipcam");
     snprintf(s->info, sizeof(s->info), "%s", name);
     gettimeofday(&s->tm_create, NULL);
-    
     dict_add((dict *)pool, name, (char *)s);
     return s;
 }

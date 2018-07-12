@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-char *get_sdp(struct media_session *ms);
+int get_sdp(struct media_session *ms, char *sdp, size_t len);
 
 #ifdef __cplusplus
 }

@@ -50,6 +50,21 @@ static char const* get_date_string()
     return buf;
 }
 
+int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
+{
+    char buf[RTSP_RESPONSE_LEN_MAX];
+    int len = snprintf(buf, sizeof(buf),
+                    "RTSP/1.0 %d %s\r\n"
+                    "CSeq: %s\r\n"
+                    "Date: %s\r\n"
+                    "%s"
+                    "\r\n",
+                    code, rtsp_reason_phrase(code), req->cseq, get_date_string(), msg?msg:"");
+    logd("rtsp response len = %d buf:\n%s\n", len, buf);
+    return skt_send(req->fd, buf, len);
+}
+
+
 static int handle_not_found(struct rtsp_request *req, char *buf, size_t size)
 {
     snprintf(buf, size, RESP_NOT_FOUND_FMT,
@@ -68,13 +83,13 @@ static void client_session_destroy(struct client_session *cs)
 
 }
 
-static int handle_teardown(struct rtsp_request *req, char *url)
+static int on_teardown(struct rtsp_request *req, char *url)
 {
     client_session_destroy(NULL);
     //int len = skt_send(req->fd, resp, strlen(resp));
     return 0;
 }
-static int handle_get_parameter(struct rtsp_request *req, char *url)
+static int on_get_parameter(struct rtsp_request *req, char *url)
 {
     //int len = skt_send(req->fd, resp, strlen(resp));
     return 0;
@@ -94,31 +109,32 @@ static char *get_rtsp_url(struct rtsp_request *req, struct media_session *ms, ch
     return buf;
 }
 
-static int handle_describe(struct rtsp_request *req, char *url)
+static int on_describe(struct rtsp_request *req, char *url)
 {
+    char sdp[RTSP_RESPONSE_LEN_MAX];
     char buf[RTSP_RESPONSE_LEN_MAX];
     struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
-    int len = 0;
     char rtspurl[1024]   = {0};
     struct media_session *ms = media_session_lookup(rc->media_session_pool, url);
     if (!ms) {
-        loge("media_session %s not found\n", url);
-        len = snprintf(buf, sizeof(buf), RESP_NOT_FOUND_FMT,
-                 req->cseq, get_date_string());
-        logd("rtsp response len = %d buf:\n%s\n", len, buf);
-        return skt_send(req->fd, buf, len);
+        logd("media_session %s not found\n", url);
+        return handle_rtsp_response(req, 404, NULL);
     }
-    logi("media_session_lookup found\n");
-    char *sdp = get_sdp(ms);
+    if (-1 == get_sdp(ms, sdp, sizeof(sdp))) {
+        loge("get_sdp failed!\n");
+        return handle_rtsp_response(req, 404, NULL);
+    }
     //XXX: sdp line can't using "\r\n" as ending!!!
-    len = snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
+    int len = snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
                  req->cseq,
                  get_date_string(),
                  get_rtsp_url(req, ms, rtspurl, sizeof(rtspurl)),
                  (uint32_t)strlen(sdp),
                  sdp);
-    logd("rtsp response len = %d buf:\n%s\n", len, buf);
-    return skt_send(req->fd, buf, len);
+    //int ret = handle_rtsp_response(req, 200, sdp);
+    loge("buf = %s\n", buf);
+    int ret = skt_send(req->fd, buf, len);
+    return ret;
 }
 
 static uint32_t conv_to_rtp_timestamp(struct timeval tv)
@@ -165,7 +181,7 @@ static char *get_rtp_info(struct rtsp_request *req, char *buf, size_t size)
     return buf;
 }
 
-static int handle_play(struct rtsp_request *req, char *url)
+static int on_play(struct rtsp_request *req, char *url)
 {
     char buf[RTSP_RESPONSE_LEN_MAX];
     char rtp_info[1024] = {0};
@@ -226,7 +242,7 @@ static struct client_session *client_session_lookup(struct rtsp_server_ctx *rc, 
 }
 
 
-static int handle_setup(struct rtsp_request *req, char *url)
+static int on_setup(struct rtsp_request *req, char *url)
 {
     char buf[RTSP_RESPONSE_LEN_MAX];
     const char *mode_string = NULL;
@@ -289,23 +305,9 @@ static int handle_setup(struct rtsp_request *req, char *url)
     return skt_send(req->fd, buf, len);
 }
 
-int handle_rtsp_reponse(struct rtsp_request *req, int code, const char *msg)
+static int on_options(struct rtsp_request *req, char *url)
 {
-    char buf[RTSP_RESPONSE_LEN_MAX];
-    int len = snprintf(buf, sizeof(buf),
-                    "RTSP/1.0 %d %s\r\n"
-                    "CSeq: %s\r\n"
-                    "Date: %s\r\n"
-                    "%s"
-                    "\r\n",
-                    code, rtsp_reason_phrase(code), req->cseq, get_date_string(), msg);
-    logd("rtsp response len = %d buf:\n%s\n", len, buf);
-    return skt_send(req->fd, buf, len);
-}
-
-static int handle_options(struct rtsp_request *req, char *url)
-{
-    return handle_rtsp_reponse(req, 200, ALLOWED_COMMAND);
+    return handle_rtsp_response(req, 200, ALLOWED_COMMAND);
 }
 
 int handle_rtsp_request(struct rtsp_request *req)
@@ -317,36 +319,36 @@ int handle_rtsp_request(struct rtsp_request *req)
     case 'o':
     case 'O':
         if (strcasecmp(req->cmd, "OPTIONS") == 0)
-            return handle_options(req, url);//ok
+            return on_options(req, url);//ok
         break;
     case 'd':
     case 'D':
         if (strcasecmp(req->cmd, "DESCRIBE") == 0)
-            return handle_describe(req, url);
+            return on_describe(req, url);
         break;
     case 's':
     case 'S':
         if (strcasecmp(req->cmd, "SETUP") == 0)
-            return handle_setup(req, url);
+            return on_setup(req, url);
         else if (strcasecmp(req->cmd, "SET_PARAMETER") == 0)
             loge("SET_PARAMETER not support!\n");
         break;
     case 't':
     case 'T':
         if (strcasecmp(req->cmd, "TEARDOWN") == 0)
-            return handle_teardown(req, url);
+            return on_teardown(req, url);
         break;
     case 'p':
     case 'P':
         if (strcasecmp(req->cmd, "PLAY") == 0)
-            return handle_play(req, url);
+            return on_play(req, url);
         else if (strcasecmp(req->cmd, "PAUSE") == 0)
             loge("PAUSE not support!\n");
         break;
     case 'g':
     case 'G':
         if (strcasecmp(req->cmd, "GET_PARAMETER") == 0)
-            return handle_get_parameter(req, url);
+            return on_get_parameter(req, url);
         break;
     case 'r':
     case 'R':
