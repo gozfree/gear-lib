@@ -27,7 +27,7 @@
 #include <libgevent.h>
 #include <libthread.h>
 #include "librtsp.h"
-#include "media_session.h"
+#include "media_source.h"
 #include "rtsp_parser.h"
 #include "request_handle.h"
 #include "rtsp_cmd.h"
@@ -57,10 +57,10 @@ static void on_recv(int fd, void *arg)
 {
     int rlen, res;
     struct rtsp_request *req = (struct rtsp_request *)arg;
-    memset(req->iobuf->iov_base, 0, RTSP_REQUEST_LEN_MAX);
-    rlen = skt_recv(fd, req->iobuf->iov_base, RTSP_REQUEST_LEN_MAX);
+    memset(req->raw->iov_base, 0, RTSP_REQUEST_LEN_MAX);
+    rlen = skt_recv(fd, req->raw->iov_base, RTSP_REQUEST_LEN_MAX);
     if (rlen > 0) {
-        req->iobuf->iov_len = rlen;
+        req->raw->iov_len = rlen;
         res = parse_rtsp_request(req);
         if (res == -1) {
             loge("parse_rtsp_request failed\n");
@@ -92,7 +92,7 @@ static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t i
     req->client.ip = ip;
     req->client.port = port;
     req->rtsp_server_ctx = rtsp;
-    req->iobuf = iovec_create(RTSP_REQUEST_LEN_MAX);
+    req->raw = iovec_create(RTSP_REQUEST_LEN_MAX);
     skt_set_noblk(fd, 1);
     struct gevent *e = gevent_create(fd, on_recv, NULL, on_error, req);
     if (-1 == gevent_add(rtsp->evbase, e)) {
@@ -124,10 +124,10 @@ static void *rtsp_thread_event(struct thread *t, void *arg)
     return NULL;
 }
 
-static void media_session_default(struct rtsp_server_ctx *c)
+static void media_source_default(struct rtsp_server_ctx *c)
 {
     const char *name = "live";
-    media_session_new(c->media_session_pool, (char *)name, sizeof(name));
+    media_source_new(c->media_source_pool, (char *)name, sizeof(name));
     logi("rtsp://%s:%d/%s\n", strlen(c->host.ip)?c->host.ip:LOCAL_HOST, c->host.port, name);
 }
 
@@ -138,9 +138,9 @@ static int master_thread_create(struct rtsp_server_ctx *c)
     if (fd == -1) {
         goto failed;
     }
-    c->client_session = dict_new();
-    c->media_session_pool = media_session_pool_create();
-    media_session_default(c);
+    c->client_session_pool = client_session_pool_create();
+    c->media_source_pool = media_source_pool_create();
+    media_source_default(c);
     c->listen_fd = fd;
     c->evbase = gevent_base_create();
     if (!c->evbase) {

@@ -24,12 +24,6 @@
 extern "C" {
 #endif
 
-typedef struct client_session {
-    uint32_t session_id;
-    
-} client_session_t;
-
-
 int handle_rtsp_request(struct rtsp_request *req);
 
 #ifdef __cplusplus

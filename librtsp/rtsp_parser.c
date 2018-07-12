@@ -48,14 +48,13 @@ static void url_decode(char* url)
 
 int parse_rtsp_request(struct rtsp_request *req)
 {
-    char *str = (char *)req->iobuf->iov_base;
-    int len = req->iobuf->iov_len;
-    uint32_t content_len = 0;
+    char *str = (char *)req->raw->iov_base;
+    int len = req->raw->iov_len;
     int cmd_len = sizeof(req->cmd);
     int url_prefix_len = sizeof(req->url_prefix);
     int url_suffix_len = sizeof(req->url_suffix);
     int cseq_len = sizeof(req->cseq);
-    int session_id_len = sizeof(req->session_id);
+    int session_id_len = sizeof(req->session.id);
     int cur;
     char c;
     const char *rtsp_prefix = "rtsp://";
@@ -155,6 +154,10 @@ int parse_rtsp_request(struct rtsp_request *req)
     if (!parse_succeed) {
         return -1;
     }
+    int org = 0;
+    for (org = 0; org < k-7; org++) {
+        req->url_origin[org] = str[i+org+1];
+    }
 
     // Look for "CSeq:" (mandatory, case insensitive), skip whitespace,
     // then read everything up to the next \r or \n as 'CSeq':
@@ -182,7 +185,7 @@ int parse_rtsp_request(struct rtsp_request *req)
 
     // Look for "Session:" (optional, case insensitive), skip whitespace,
     // then read everything up to the next \r or \n as 'Session':
-    req->session_id[0] = '\0'; // default value (empty string)
+    req->session.id[0] = '\0'; // default value (empty string)
     for (j = cur; j < (len-8); ++j) {
         if (strncasecmp("Session:", &str[j], 8) == 0) {
             j += 8;
@@ -192,44 +195,35 @@ int parse_rtsp_request(struct rtsp_request *req)
                 if (c == '\r' || c == '\n') {
                     break;
                 }
-                req->session_id[n] = c;
+                req->session.id[n] = c;
             }
-            req->session_id[n] = '\0';
+            req->session.id[n] = '\0';
+            req->session.timeout = 60000;
+            char *p = strchr(&str[j], ';');
+            if (p && 0 == strncmp("timeout=", p+1, 8)) {
+                req->session.timeout = (int)(atof(p+9) * 1000);
+            }
             break;
         }
     }
 
     // Also: Look for "Content-Length:" (optional, case insensitive)
-    content_len = 0; // default value
+    req->content_len = 0; // default value
     for (j = cur; (int)j < (int)(len-15); ++j) {
         if (strncasecmp("Content-Length:", &(str[j]), 15) == 0) {
             j += 15;
             while (j < len && (str[j] ==  ' ' || str[j] == '\t')) ++j;
             int num;
             if (sscanf(&str[j], "%u", &num) == 1) {
-                content_len = num;
+                req->content_len = num;
             }
         }
     }
-
-    logd("session_id = %s\n", req->session_id);
-    logd("content_len = %d\n", content_len);
     return 0;
 }
 
-int parse_transport(struct transport_header *hdr, char *buf, int len)
+int parse_transport(struct transport_header *t, char *buf, int len)
 {
-    uint16_t p1, p2;
-    unsigned ttl, rtpCid, rtcpCid;
-    hdr->mode = RTP_UDP;
-    hdr->mode_str = NULL;
-    hdr->client_dst_addr = NULL;
-    hdr->client_dst_ttl = 255;
-    hdr->client_rtp_port = 0;
-    hdr->client_rtcp_port = 1;
-    hdr->rtp_channel_id = 0xFF;
-    hdr->rtcp_channel_id = 0xFF;
-
     // First, find "Transport:"
     while (1) {
         if (*buf == '\0')
@@ -246,146 +240,279 @@ int parse_transport(struct transport_header *hdr, char *buf, int len)
     while (*fields == ' ') ++fields;
     char* field = (char *)calloc(1, strlen(fields)+1);
     while (sscanf(fields, "%[^;\r\n]", field) == 1) {
-        if (strcmp(field, "RTP/AVP/TCP") == 0) {
-            hdr->mode = RTP_TCP;
-        } else if (strcmp(field, "RAW/RAW/UDP") == 0 ||
-                   strcmp(field, "MP2T/H2221/UDP") == 0) {
-            hdr->mode = RAW_UDP;
-            hdr->mode_str = strdup(field);
-        } else if (strncasecmp(field, "destination=", 12) == 0) {
-            hdr->client_dst_addr = strdup(field+12);
-        } else if (sscanf(field, "ttl%u", &ttl) == 1) {
-            hdr->client_dst_ttl = (uint8_t)ttl;
-        } else if (sscanf(field, "client_port=%hu-%hu", &p1, &p2) == 2) {
-            hdr->client_rtp_port = p1;
-            hdr->client_rtcp_port = hdr->mode == RAW_UDP ? 0 : p2; // ignore the second port number if the client asked for raw UDP
-        } else if (sscanf(field, "client_port=%hu", &p1) == 1) {
-            hdr->client_rtp_port = p1;
-            hdr->client_rtcp_port = hdr->mode == RAW_UDP ? 0 : p1 + 1;
-        } else if (sscanf(field, "interleaved=%u-%u", &rtpCid, &rtcpCid) == 2) {
-            hdr->rtp_channel_id = (unsigned char)rtpCid;
-            hdr->rtcp_channel_id = (unsigned char)rtcpCid;
+        switch (*field) {
+        case 'r':
+        case 'R':
+            if (strncasecmp(field, "RTP/AVP/TCP", 11) == 0) {
+                t->mode = RTP_TCP;
+            } else if (strncasecmp(field, "RTP/AVP/UDP", 11) == 0 ||
+                       strncasecmp(field, "RTP/AVP", 7) == 0) {
+                t->mode = RTP_UDP;
+            } else if (strncasecmp(field, "RAW/RAW/UDP", 11) == 0) {
+                t->mode = RAW_UDP;
+            }
+            break;
+        case 'u':
+        case 'U':
+            if (strncasecmp(field, "unicast", 7) == 0) {
+                t->multicast = 0;
+            }
+            break;
+        case 'd':
+        case 'D':
+            if (strncasecmp(field, "destination=", 12) == 0) {
+                strcpy(t->destination, field+12);
+            }
+            break;
+        case 'm':
+        case 'M':
+            if (strncasecmp(field, "multicast", 9) == 0) {
+                t->multicast = 1;
+            } else if (strncasecmp(field, "mode=", 5) == 0) {
+                if (strcasecmp(field+5, "\"PLAY\"") == 0 ||
+                    strcasecmp(field+5, "PLAY") == 0) {
+                    //XXX
+                } else if (strcasecmp(field+5, "\"RECORD\"") == 0 ||
+                          strcasecmp(field+5, "RECORD") == 0) {
+                    //XXX
+                }
+            }
+            break;
+        case 's':
+        case 'S':
+            if (strncasecmp(field, "source=", 7) == 0) {
+                strcpy(t->source, field+7);
+            } else if (strncasecmp(field, "ssrc=", 5) == 0) {
+                if (t->multicast) {
+                    loge("must be unicast!\n");
+                    return -1;
+                }
+                t->rtp.u.ssrc = (int)strtol(field+5, NULL, 16);
+            } else if (2 == sscanf(field, "server_port=%hu-%hu", &t->rtp.u.server_port1, &t->rtp.u.server_port2)) {
+                if (t->multicast) {
+                    loge("must be unicast!\n");
+                    return -1;
+                }
+            } else if (1 == sscanf(field, "server_port=%hu", &t->rtp.u.server_port1)) {
+                if (t->multicast) {
+                    loge("must be unicast!\n");
+                    return -1;
+                }
+                t->rtp.u.server_port1 = t->rtp.u.server_port1 / 2 * 2;
+                t->rtp.u.server_port2 = t->rtp.u.server_port1 + 1;
+            }
+            break;
+        case 'a':
+            if (strcasecmp(field, "append") == 0) {
+                t->append = 1;
+            }
+            break;
+        case 'p':
+            if (2 == sscanf(field, "port=%hu-%hu", &t->rtp.m.port1, &t->rtp.m.port2)) {
+                if (!t->multicast) {
+                    loge("must be multicast!\n");
+                    return -1;
+                }
+            } else if (1 == sscanf(field, "port=%hu", &t->rtp.m.port1)) {
+                if (!t->multicast) {
+                    loge("must be multicast!\n");
+                    return -1;
+                }
+                t->rtp.m.port1 = t->rtp.m.port1 / 2 * 2;
+                t->rtp.m.port2 = t->rtp.m.port1 + 1;
+            }
+            break;
+        case 'c':
+            if (2 == sscanf(field, "client_port=%hu-%hu", &t->rtp.u.client_port1, &t->rtp.u.client_port2)) {
+                if (t->multicast) {
+                    loge("must be unicast!\n");
+                    return -1;
+                }
+            } else if(1 == sscanf(field, "client_port=%hu", &t->rtp.u.client_port1)) {
+                if (t->multicast) {
+                    loge("must be unicast!\n");
+                    return -1;
+                }
+                t->rtp.u.client_port1 = t->rtp.u.client_port1 / 2 * 2;
+                t->rtp.u.client_port2 = t->rtp.u.client_port1 + 1;
+            }
+            break;
+        case 'i':
+            if (2 == sscanf(field, "interleaved=%hu-%hu", &t->interleaved1, &t->interleaved2)) {
+            } else if(1 == sscanf(field, "interleaved=%hu", &t->interleaved1)) {
+                t->interleaved2 = t->interleaved1 + 1;
+            }
+            break;
+        case 't':
+            if (1 == sscanf(field, "ttl=%d", &t->rtp.m.ttl)) {
+                if (t->multicast) {
+                    loge("must be unicast!\n");
+                    return -1;
+                }
+            }
+            break;
+        case 'l':
+            if(1 == sscanf(field, "layers=%d", &t->layer)) {
+            }
+            break;
+        default:
+            break;
         }
-
         fields += strlen(field);
         while (*fields == ';' || *fields == ' ' || *fields == '\t') ++fields; // skip over separating ';' chars or whitespace
         if (*fields == '\0' || *fields == '\r' || *fields == '\n') break;
     }
     free(field);
-    logd("parse_transport finished\n");
-    logd("mode = %s\n", hdr->mode_str);
-    logd("rtp_port = %d\n", hdr->client_rtp_port);
-    logd("rtcp_port = %d\n", hdr->client_rtcp_port);
-    logd("rtp_channel_id = %d\n", hdr->rtp_channel_id);
-    logd("rtcp_channel_id = %d\n", hdr->rtcp_channel_id);
+    logi("client_port1 = %d, client_port2 = %d\n", t->rtp.u.client_port1, t->rtp.u.client_port2);
+    return 0;
+}
+
+int parse_session(struct session_header *s, char *buf, int len)
+{
+    int found = 0;
+    while (1) {
+        if (*buf == '\0') {
+            break;
+        }
+        if (*buf == '\r' && *(buf+1) == '\n' && *(buf+2) == '\r') {
+            break;
+        }
+        if (strncasecmp(buf, "Session:", 8) == 0) {
+            found = 1;
+            break;
+        }
+        ++buf;
+    }
+    if (!found) {
+        return 0;
+    }
+    s->timeout = 60000;
+    const char* p;
+    p = strchr(buf, ';');
+    if (p) {
+        size_t n = (size_t)(p - buf);
+        if (n >= sizeof(s->id))
+            return -1;
+
+        memcpy(s->id, buf, n);
+        s->id[n] = '\0';
+
+        if (0 == strncmp("timeout=", p+1, 8))
+            s->timeout = (int)(atof(p+9) * 1000);
+    } else {
+        size_t n = strlen(buf);
+        if (n >= sizeof(s->id))
+            return -1;
+        memcpy(s->id, buf, n);
+        s->id[n] = '\0';
+    }
     return 0;
 }
 
 const char* http_reason_phrase(int code)
 {
-	static const char *reason1xx[] = 
-	{
-		"Continue", // 100
-		"Switching Protocols" // 101
-	};
+    static const char *reason1xx[] = 
+    {
+        "Continue", // 100
+        "Switching Protocols" // 101
+    };
 
-	static const char *reason2xx[] = 
-	{
-		"OK", // 200
-		"Created", // 201
-		"Accepted", // 202
-		"Non-Authoritative Information", // 203
-		"No Content", // 204
-		"Reset Content", // 205
-		"Partial Content" // 206
-	};
+    static const char *reason2xx[] = 
+    {
+        "OK", // 200
+        "Created", // 201
+        "Accepted", // 202
+        "Non-Authoritative Information", // 203
+        "No Content", // 204
+        "Reset Content", // 205
+        "Partial Content" // 206
+    };
 
-	static const char *reason3xx[] = 
-	{
-		"Multiple Choices", // 300
-		"Move Permanently", // 301
-		"Found", // 302
-		"See Other", // 303
-		"Not Modified", // 304
-		"Use Proxy", // 305
-		"Unused", // 306
-		"Temporary Redirect" // 307
-	};
+    static const char *reason3xx[] = 
+    {
+        "Multiple Choices", // 300
+        "Move Permanently", // 301
+        "Found", // 302
+        "See Other", // 303
+        "Not Modified", // 304
+        "Use Proxy", // 305
+        "Unused", // 306
+        "Temporary Redirect" // 307
+    };
 
-	static const char *reason4xx[] = 
-	{
-		"Bad Request", // 400
-		"Unauthorized", // 401
-		"Payment Required", // 402
-		"Forbidden", // 403
-		"Not Found", // 404
-		"Method Not Allowed", // 405
-		"Not Acceptable", // 406
-		"Proxy Authentication Required", // 407
-		"Request Timeout", // 408
-		"Conflict", // 409
-		"Gone", // 410
-		"Length Required", //411
-		"Precondition Failed", // 412
-		"Request Entity Too Large", // 413
-		"Request-URI Too Long", // 414
-		"Unsupported Media Type", // 415
-		"Request Range Not Satisfiable", // 416
-		"Expectation Failed" // 417
-	};
+    static const char *reason4xx[] = 
+    {
+        "Bad Request", // 400
+        "Unauthorized", // 401
+        "Payment Required", // 402
+        "Forbidden", // 403
+        "Not Found", // 404
+        "Method Not Allowed", // 405
+        "Not Acceptable", // 406
+        "Proxy Authentication Required", // 407
+        "Request Timeout", // 408
+        "Conflict", // 409
+        "Gone", // 410
+        "Length Required", //411
+        "Precondition Failed", // 412
+        "Request Entity Too Large", // 413
+        "Request-URI Too Long", // 414
+        "Unsupported Media Type", // 415
+        "Request Range Not Satisfiable", // 416
+        "Expectation Failed" // 417
+    };
 
-	static const char *reason5xx[] = 
-	{
-		"Internal Server Error", // 500
-		"Not Implemented", // 501
-		"Bad Gateway", // 502
-		"Service Unavailable", // 503
-		"Gateway Timeout", // 504
-		"HTTP Version Not Supported" // 505
-	};
+    static const char *reason5xx[] = 
+    {
+        "Internal Server Error", // 500
+        "Not Implemented", // 501
+        "Bad Gateway", // 502
+        "Service Unavailable", // 503
+        "Gateway Timeout", // 504
+        "HTTP Version Not Supported" // 505
+    };
 
-	if(code >= 100 && code < 100+sizeof(reason1xx)/sizeof(reason1xx[0]))
-		return reason1xx[code-100];
-	else if(code >= 200 && code < 200+sizeof(reason2xx)/sizeof(reason2xx[0]))
-		return reason2xx[code-200];
-	else if(code >= 300 && code < 300+sizeof(reason3xx)/sizeof(reason3xx[0]))
-		return reason3xx[code-300];
-	else if(code >= 400 && code < 400+sizeof(reason4xx)/sizeof(reason4xx[0]))
-		return reason4xx[code-400];
-	else if(code >= 500 && code < 500+sizeof(reason5xx)/sizeof(reason5xx[0]))
-		return reason5xx[code-500];
-	else
-		return "unknown";
+    if (code >= 100 && code < 100+sizeof(reason1xx)/sizeof(reason1xx[0]))
+        return reason1xx[code-100];
+    else if (code >= 200 && code < 200+sizeof(reason2xx)/sizeof(reason2xx[0]))
+        return reason2xx[code-200];
+    else if (code >= 300 && code < 300+sizeof(reason3xx)/sizeof(reason3xx[0]))
+        return reason3xx[code-300];
+    else if (code >= 400 && code < 400+sizeof(reason4xx)/sizeof(reason4xx[0]))
+        return reason4xx[code-400];
+    else if (code >= 500 && code < 500+sizeof(reason5xx)/sizeof(reason5xx[0]))
+        return reason5xx[code-500];
+    else
+        return "unknown";
 }
 
 const char* rtsp_reason_phrase(int code)
 {
-	static const char *reason45x[] = 
-	{
-		"Parameter Not Understood", // 451
-		"Conference Not Found", // 452
-		"Not Enough Bandwidth", // 453
-		"Session Not Found", // 454
-		"Method Not Valid in This State", // 455
-		"Header Field Not Valid for Resource", // 456
-		"Invalid Range", // 457
-		"Parameter Is Read-Only", // 458
-		"Aggregate Operation Not Allowed", // 459
-		"Only Aggregate Operation Allowed", // 460
-		"Unsupported Transport", // 461
-		"Destination Unreachable", // 462
-	};
+    static const char *reason45x[] = 
+    {
+        "Parameter Not Understood", // 451
+        "Conference Not Found", // 452
+        "Not Enough Bandwidth", // 453
+        "Session Not Found", // 454
+        "Method Not Valid in This State", // 455
+        "Header Field Not Valid for Resource", // 456
+        "Invalid Range", // 457
+        "Parameter Is Read-Only", // 458
+        "Aggregate Operation Not Allowed", // 459
+        "Only Aggregate Operation Allowed", // 460
+        "Unsupported Transport", // 461
+        "Destination Unreachable", // 462
+    };
 
-	if(451 <= code && code < 451+sizeof(reason45x)/sizeof(reason45x[0]))
-		return reason45x[code-451];
+    if (451 <= code && code < 451+sizeof(reason45x)/sizeof(reason45x[0]))
+        return reason45x[code-451];
 
-	switch(code)
-	{
-	case 505:
-		return "RTSP Version Not Supported";
-	case 551:
-		return "Option not supported";
-	default:
-		return http_reason_phrase(code);
-	}
+    switch(code) {
+    case 505:
+        return "RTSP Version Not Supported";
+    case 551:
+        return "Option not supported";
+    default:
+        return http_reason_phrase(code);
+    }
 }

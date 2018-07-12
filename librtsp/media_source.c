@@ -16,16 +16,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 
-#include "media_session.h"
+#include "media_source.h"
 #include <libdict.h>
 #include <libmacro.h>
 
-void *media_session_pool_create()
+void *media_source_pool_create()
 {
     return (void *)dict_new();
 }
 
-void media_session_pool_destroy(void *pool)
+void media_source_pool_destroy(void *pool)
 {
     int rank = 0;
     char *key, *val;
@@ -39,9 +39,9 @@ void media_session_pool_destroy(void *pool)
     dict_free((dict *)pool);
 }
 
-struct media_session *media_session_new(void *pool, char *name, size_t size)
+struct media_source *media_source_new(void *pool, char *name, size_t size)
 {
-    struct media_session *s = CALLOC(1, struct media_session);
+    struct media_source *s = CALLOC(1, struct media_source);
     snprintf(s->name, size, "%s", name);
     snprintf(s->description, sizeof(s->description), "%s", "Session streamd by ipcam");
     snprintf(s->info, sizeof(s->info), "%s", name);
@@ -50,12 +50,60 @@ struct media_session *media_session_new(void *pool, char *name, size_t size)
     return s;
 }
 
-void media_session_del(void *pool, char *name)
+void media_source_del(void *pool, char *name)
 {
     dict_del((dict *)pool, name);
 }
 
-struct media_session *media_session_lookup(void *pool, char *name)
+struct media_source *media_source_lookup(void *pool, char *name)
 {
-    return (struct media_session *)dict_get((dict *)pool, name, NULL);
+    return (struct media_source *)dict_get((dict *)pool, name, NULL);
 }
+
+void *client_session_pool_create()
+{
+    return (void *)dict_new();
+}
+
+void client_session_pool_destroy(void *pool)
+{
+    int rank = 0;
+    char *key, *val;
+    while (1) {
+        rank = dict_enumerate((dict *)pool, rank, &key, &val);
+        if (rank < 0) {
+            break;
+        }
+        free(val);
+    }
+    dict_free((dict *)pool);
+}
+
+static uint32_t get_random_number()
+{
+    struct timeval now = {0};
+    gettimeofday(&now, NULL);
+    srand(now.tv_usec);
+    return (rand() % ((uint32_t)-1));
+}
+
+struct client_session *client_session_new(void *pool)
+{
+    char key[9];
+    struct client_session *s = CALLOC(1, struct client_session);
+    s->session_id = get_random_number();
+    snprintf(key, sizeof(key), "%08x", s->session_id);
+    dict_add((dict *)pool, key, (char *)s);
+    return s;
+}
+
+void client_session_del(void *pool, char *name)
+{
+    dict_del((dict *)pool, name);
+}
+
+struct client_session *client_session_lookup(void *pool, char *name)
+{
+    return (struct client_session *)dict_get((dict *)pool, name, NULL);
+}
+

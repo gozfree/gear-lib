@@ -41,7 +41,7 @@ TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= librtsp_server.o media_session.o rtsp_parser.o request_handle.o sdp.o
+OBJS_LIB	= librtsp_server.o media_source.o rtsp_parser.o request_handle.o sdp.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################

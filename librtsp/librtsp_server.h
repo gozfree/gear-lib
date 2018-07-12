@@ -29,8 +29,8 @@ struct rtsp_server_ctx {
     int listen_fd;
     struct skt_paddr host;
     struct gevent_base *evbase;
-    void *client_session;
-    void *media_session_pool;
+    void *client_session_pool;
+    void *media_source_pool;
     struct protocol_ctx *rtp_ctx;
     uint16_t server_rtp_port;
     uint16_t server_rtcp_port;

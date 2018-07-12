@@ -18,13 +18,13 @@
 #ifndef SDP_H
 #define SDP_H
 
-#include "media_session.h"
+#include "media_source.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int get_sdp(struct media_session *ms, char *sdp, size_t len);
+int get_sdp(struct media_source *ms, char *sdp, size_t len);
 
 #ifdef __cplusplus
 }

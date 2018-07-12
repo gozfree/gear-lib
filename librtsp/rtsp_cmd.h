@@ -1,7 +1,7 @@
 
 
 #define  ALLOWED_COMMAND \
-    "OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, GET_PARAMETER, SET_PARAMETER\r\n"
+    "OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, GET_PARAMETER, SET_PARAMETER\r\n\r\n"
 
 #define RESP_BAD_REQUEST_FMT    ((const char *) \
         "RTSP/1.0 400 Bad Request\r\n"          \
@@ -36,9 +36,6 @@
         "Public: %s\r\n\r\n")
 
 #define RESP_DESCRIBE_FMT   ((const char *)     \
-        "RTSP/1.0 200 OK\r\n"                   \
-        "CSeq: %s\r\n"                          \
-        "%s\r\n"                                \
         "Content-Base: %s\r\n"                  \
         "Content-Type: application/sdp\r\n"     \
         "Content-Length: %u\r\n\r\n"            \

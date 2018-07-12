@@ -262,7 +262,7 @@ const char* SDP_LIVE_FMT =
         "a=recvonly\n"
         "a=control:*\n";
 
-int get_sdp(struct media_session *ms, char *sdp, size_t len)
+int get_sdp(struct media_source *ms, char *sdp, size_t len)
 {
     int sdp_len = 0;
     char sdp_filter[128];
@@ -305,7 +305,6 @@ int get_sdp(struct media_session *ms, char *sdp, size_t len)
       + strlen(ms->info)
       + strlen(sdp_media);
     logi("sdp_len = %d\n", sdp_len);
-    sdp = (char *)calloc(1, sdp_len);
     if (sdp_len > len) {
         loge("sdp len %d is larger than buffer len %d!\n", sdp_len, len);
         return -1;
@@ -325,7 +324,6 @@ int get_sdp(struct media_session *ms, char *sdp, size_t len)
 	     ms->info, // a=x-qt-text-inf: line
 	     sdp_media); // miscellaneous session SDP lines (if any)
     logd("strlen sdp = %d\n", strlen(sdp));
-    loge("sdp = %s\n", sdp);
 
   return 0;
 }

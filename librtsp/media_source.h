@@ -15,8 +15,9 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#ifndef MEDIA_SESSION_H
-#define MEDIA_SESSION_H
+#ifndef MEDIA_SOURCE_H
+#define MEDIA_SOURCE_H
+#include <stdint.h>
 #include <stddef.h>
 #include <sys/time.h>
 
@@ -27,19 +28,32 @@ extern "C" {
 #define STREAM_NAME_LEN     (128)
 #define DESCRIPTION_LEN     (128)
 
-typedef struct media_session {
+typedef struct media_source {
     char name[STREAM_NAME_LEN];
     char description[DESCRIPTION_LEN];
     char info[DESCRIPTION_LEN];
+    char sdp[4096];
     struct timeval tm_create;
-} media_session_t;
+} media_source_t;
 
-void *media_session_pool_create();
-void media_session_pool_destroy(void *pool);
+void *media_source_pool_create();
+void media_source_pool_destroy(void *pool);
+struct media_source *media_source_new(void *pool, char *name, size_t size);
+void media_source_del(void *pool, char *name);
+struct media_source *media_source_lookup(void *pool, char *name);
 
-struct media_session *media_session_new(void *pool, char *name, size_t size);
-void media_session_del(void *pool, char *name);
-struct media_session *media_session_lookup(void *pool, char *name);
+
+typedef struct client_session {
+    uint32_t session_id;
+    
+} client_session_t;
+
+void *client_session_pool_create();
+void client_session_pool_destroy(void *pool);
+struct client_session *client_session_new(void *pool);
+void client_session_del(void *pool, char *name);
+struct client_session *client_session_lookup(void *pool, char *name);
+
 
 #ifdef __cplusplus
 }
