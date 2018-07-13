@@ -54,7 +54,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lskt -lgevent -llog -ldict -lthread -llock
+LDFLAGS	+= -pthread -lfile -lskt -lgevent -llog -ldict -lthread -llock
 
 ###############################################################################
 # target

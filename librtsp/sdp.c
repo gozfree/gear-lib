@@ -327,3 +327,8 @@ int get_sdp(struct media_source *ms, char *sdp, size_t len)
 
   return 0;
 }
+
+int sdp_generate(struct media_source *s, char *name)
+{
+    return 0;
+}

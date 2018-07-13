@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 int get_sdp(struct media_source *ms, char *sdp, size_t len);
+int sdp_generate();
 
 #ifdef __cplusplus
 }

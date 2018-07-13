@@ -24,6 +24,7 @@
 #include <liblog.h>
 #include <libdict.h>
 #include <libmacro.h>
+#include <libfile.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -182,7 +183,14 @@ static int on_describe(struct rtsp_request *req, char *url)
     struct media_source *ms = media_source_lookup(rc->media_source_pool, url);
     if (!ms) {
         loge("media_source %s not found\n", url);
-        return handle_rtsp_response(req, 404, NULL);
+        if (file_exist(url)) {
+            ms = media_source_new(rc->media_source_pool, url, strlen(url));
+            if (!ms) {
+                return handle_rtsp_response(req, 404, NULL);
+            }
+        } else {
+            return handle_rtsp_response(req, 404, NULL);
+        }
     }
     if (-1 == get_sdp(ms, sdp, sizeof(sdp))) {
         loge("get_sdp failed!\n");

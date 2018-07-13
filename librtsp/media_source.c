@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include "media_source.h"
+#include "sdp.h"
 #include <libdict.h>
 #include <libmacro.h>
 
@@ -46,7 +47,11 @@ struct media_source *media_source_new(void *pool, char *name, size_t size)
     snprintf(s->description, sizeof(s->description), "%s", "Session streamd by ipcam");
     snprintf(s->info, sizeof(s->info), "%s", name);
     gettimeofday(&s->tm_create, NULL);
-    dict_add((dict *)pool, name, (char *)s);
+    if (-1 == dict_add((dict *)pool, name, (char *)s)) {
+        free(s);
+        return NULL;
+    }
+    sdp_generate(s, name);
     return s;
 }
 
