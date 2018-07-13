@@ -21,6 +21,8 @@
 #include <libdict.h>
 #include <libmacro.h>
 
+extern const struct media_source live_media_source;
+
 void *media_source_pool_create()
 {
     return (void *)dict_new();
@@ -44,14 +46,16 @@ struct media_source *media_source_new(void *pool, char *name, size_t size)
 {
     struct media_source *s = CALLOC(1, struct media_source);
     snprintf(s->name, size, "%s", name);
-    snprintf(s->description, sizeof(s->description), "%s", "Session streamd by ipcam");
     snprintf(s->info, sizeof(s->info), "%s", name);
     gettimeofday(&s->tm_create, NULL);
     if (-1 == dict_add((dict *)pool, name, (char *)s)) {
         free(s);
         return NULL;
     }
-    sdp_generate(s, name);
+    if (s->sdp_generate) {
+        s->sdp_generate(s);
+    }
+    live_media_source.sdp_generate(s);
     return s;
 }
 

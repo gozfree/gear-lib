@@ -296,15 +296,14 @@ int get_sdp(struct media_source *ms, char *sdp, size_t len)
 
     sdp_len = strlen(sdp_prefix_fmt)
       + 20 + 6 + 20 + strlen("127.0.0.1")
-      + strlen(ms->description)
+      + strlen(ms->name)
       + strlen(ms->info)
       + strlen(SDP_TOOL_NAME) + strlen(SDP_TOOL_VERSION)
       + strlen(sdp_filter)
       + strlen(sdp_range)
-      + strlen(ms->description)
+      + strlen(ms->name)
       + strlen(ms->info)
       + strlen(sdp_media);
-    logi("sdp_len = %d\n", sdp_len);
     if (sdp_len > len) {
         loge("sdp len %d is larger than buffer len %d!\n", sdp_len, len);
         return -1;
@@ -315,20 +314,15 @@ int get_sdp(struct media_source *ms, char *sdp, size_t len)
         ms->tm_create.tv_sec, ms->tm_create.tv_usec,// o= <session id>
 	     1, // o= <version>
 	     RTSP_SERVER_IP, // o= <address>
-	     ms->description, // s= <description>
+	     ms->name, // s= <description>
 	     ms->info, // i= <info>
 	     SDP_TOOL_NAME, SDP_TOOL_VERSION, // a=tool:
 	     sdp_filter, // a=source-filter: incl (if a SSM session)
 	     sdp_range, // a=range: line
-	     ms->description, // a=x-qt-text-nam: line
+	     ms->name, // a=x-qt-text-nam: line
 	     ms->info, // a=x-qt-text-inf: line
 	     sdp_media); // miscellaneous session SDP lines (if any)
     logd("strlen sdp = %d\n", strlen(sdp));
 
   return 0;
-}
-
-int sdp_generate(struct media_source *s, char *name)
-{
-    return 0;
 }

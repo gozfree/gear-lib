@@ -128,13 +128,13 @@ static void media_source_default(struct rtsp_server_ctx *c)
 {
     const char *name = "live";
     media_source_new(c->media_source_pool, (char *)name, sizeof(name));
-    logi("rtsp://%s:%d/%s\n", strlen(c->host.ip)?c->host.ip:LOCAL_HOST, c->host.port, name);
+    logi("rtsp://%s:%d/%s\n", strlen(c->host.ip_str)?c->host.ip_str:LOCAL_HOST, c->host.port, name);
 }
 
 static int master_thread_create(struct rtsp_server_ctx *c)
 {
     struct gevent *e = NULL;
-    int fd = skt_tcp_bind_listen(c->host.ip, c->host.port);
+    int fd = skt_tcp_bind_listen(c->host.ip_str, c->host.port);
     if (fd == -1) {
         goto failed;
     }
@@ -181,7 +181,7 @@ struct rtsp_server_ctx *rtsp_server_init(const char *ip, uint16_t port)
         return NULL;
     }
     if (ip) {
-        strcpy(c->host.ip, ip);
+        strcpy(c->host.ip_str, ip);
     }
     c->host.port = port;
     master_thread_create(c);

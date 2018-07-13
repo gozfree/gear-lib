@@ -161,6 +161,9 @@ int tcp_server(uint16_t port)
     if (fd == -1) {
         return -1;
     }
+    struct skt_addr addr;
+    skt_getaddr_by_fd(fd, &addr);
+    printf("addr = %s\n", addr.ip_str);
     g_evbase = gevent_base_create();
     if (!g_evbase) {
         return -1;

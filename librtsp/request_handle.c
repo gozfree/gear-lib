@@ -21,6 +21,7 @@
 #include "media_source.h"
 #include "librtsp_server.h"
 #include "sdp.h"
+#include "uri_parse.h"
 #include <liblog.h>
 #include <libdict.h>
 #include <libmacro.h>
@@ -177,12 +178,21 @@ static int on_options(struct rtsp_request *req, char *url)
 
 static int on_describe(struct rtsp_request *req, char *url)
 {
-    char sdp[RTSP_RESPONSE_LEN_MAX];
+    //char sdp[RTSP_RESPONSE_LEN_MAX];
     char buf[RTSP_RESPONSE_LEN_MAX];
     struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
     struct media_source *ms = media_source_lookup(rc->media_source_pool, url);
     if (!ms) {
         loge("media_source %s not found\n", url);
+
+        char path1[256];
+        struct uri_t r;
+        if (0 == uri_parse(&r, req->url_origin, strlen(req->url_origin))) {
+            url_decode(r.path, strlen(r.path), path1, sizeof(path1));
+        } else {
+            loge("xxxx\n");
+        }
+        loge("path = %s\n", path1);
         if (file_exist(url)) {
             ms = media_source_new(rc->media_source_pool, url, strlen(url));
             if (!ms) {
@@ -192,14 +202,16 @@ static int on_describe(struct rtsp_request *req, char *url)
             return handle_rtsp_response(req, 404, NULL);
         }
     }
+#if 0
     if (-1 == get_sdp(ms, sdp, sizeof(sdp))) {
         loge("get_sdp failed!\n");
         return handle_rtsp_response(req, 404, NULL);
     }
+#endif
     snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
                  req->url_origin,
-                 (uint32_t)strlen(sdp),
-                 sdp);//XXX: sdp line can't using "\r\n" as ending!!!
+                 (uint32_t)strlen(ms->sdp),
+                 ms->sdp);//XXX: sdp line can't using "\r\n" as ending!!!
     return handle_rtsp_response(req, 200, buf);
 }
 

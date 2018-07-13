@@ -250,7 +250,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
     return 0;
 }
 
-int skt_get_remote_addr(struct skt_addr *addr, int fd)
+int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr)
 {
     struct sockaddr_in si;
     socklen_t len = sizeof(si);
@@ -261,6 +261,7 @@ int skt_get_remote_addr(struct skt_addr *addr, int fd)
     }
     addr->ip = si.sin_addr.s_addr;
     addr->port = ntohs(si.sin_port);
+    skt_addr_ntop(addr->ip_str, addr->ip);
     return 0;
 }
 
@@ -277,6 +278,7 @@ int skt_getaddr_by_fd(int fd, struct skt_addr *addr)
 
     addr->ip = si.sin_addr.s_addr;
     addr->port = ntohs(si.sin_port);
+    skt_addr_ntop(addr->ip_str, addr->ip);
 
     return 0;
 }

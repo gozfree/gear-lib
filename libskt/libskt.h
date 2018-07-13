@@ -43,19 +43,10 @@ enum skt_connect_type {
 };
 
 typedef struct skt_addr {
+    char ip_str[INET_ADDRSTRLEN];
     uint32_t ip;
     uint16_t port;
 } skt_addr_t;
-
-typedef struct skt_naddr {
-    uint32_t ip;
-    uint16_t port;
-} skt_naddr_t;
-
-typedef struct skt_paddr {
-    char ip[INET_ADDRSTRLEN];
-    uint16_t port;
-} skt_saddr_t;
 
 typedef struct skt_addr_list {
     skt_addr_t addr;
@@ -104,7 +95,7 @@ int skt_gethostbyname(struct skt_addr_list **list, const char *name);
 int skt_getaddrinfo(skt_addr_list_t **list,
                 const char *domain, const char *port);
 int skt_getaddr_by_fd(int fd, struct skt_addr *addr);
-int skt_get_remote_addr(struct skt_addr *addr, int fd);
+int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr);
 int skt_get_local_info(void);
 
 #ifdef __cplusplus

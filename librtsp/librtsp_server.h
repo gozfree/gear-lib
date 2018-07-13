@@ -27,7 +27,7 @@ extern "C" {
 
 struct rtsp_server_ctx {
     int listen_fd;
-    struct skt_paddr host;
+    struct skt_addr host;
     struct gevent_base *evbase;
     void *client_session_pool;
     void *media_source_pool;

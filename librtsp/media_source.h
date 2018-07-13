@@ -27,13 +27,14 @@ extern "C" {
 
 #define STREAM_NAME_LEN     (128)
 #define DESCRIPTION_LEN     (128)
+#define SDP_LEN_MAX 8192
 
 typedef struct media_source {
     char name[STREAM_NAME_LEN];
-    char description[DESCRIPTION_LEN];
     char info[DESCRIPTION_LEN];
-    char sdp[4096];
+    char sdp[SDP_LEN_MAX];
     struct timeval tm_create;
+    int (*sdp_generate)(struct media_source *ms);
 } media_source_t;
 
 void *media_source_pool_create();

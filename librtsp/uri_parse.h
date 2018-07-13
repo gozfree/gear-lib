@@ -15,17 +15,43 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#ifndef SDP_H
-#define SDP_H
+#ifndef URI_PARSE_H
+#define URI_PARSE_H
 
-#include "media_source.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+//e.g: http://usr:pwd@host:port/path?query#fragment
+struct uri_t
+{
+    char* scheme;
+    char* userinfo;
+    char* host;
+    int port;
+    char* path;
+    char* query;
+    char* fragment;
+};
 
-int get_sdp(struct media_source *ms, char *sdp, size_t len);
+int uri_parse(struct uri_t *uri, char* str, size_t len);
+
+struct uri_query_t
+{
+    const char* name;
+    int n_name;
+
+    const char* value;
+    int n_value;
+};
+
+int uri_query(const char* query, const char* end, struct uri_query_t** items);
+void uri_query_free(struct uri_query_t** items);
+
+int url_encode(const char* source, int srcBytes, char* target, int tgtBytes);
+int url_decode(const char* source, int srcBytes, char* target, int tgtBytes);
 
 #ifdef __cplusplus
 }
