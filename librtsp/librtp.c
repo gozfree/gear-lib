@@ -15,33 +15,6 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#ifndef LIBRTSP_SERVER_H
-#define LIBRTSP_SERVER_H
+#include "librtp.h"
 
-#include <libskt.h>
-#include <libdict.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct rtsp_server_ctx {
-    int listen_fd;
-    struct skt_addr host;
-    struct gevent_base *evbase;
-    void *transport_session_pool;
-    void *media_source_pool;
-    struct protocol_ctx *rtp_ctx;
-    uint16_t server_rtp_port;
-    uint16_t server_rtcp_port;
-    struct thread *master_thread;
-    struct thread *worker_thread;
-};
-
-struct rtsp_server_ctx *rtsp_server_init(const char *host, uint16_t port);
-void rtsp_deinit(struct rtsp_server_ctx *ctx);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

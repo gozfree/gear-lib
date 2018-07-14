@@ -38,9 +38,9 @@ typedef struct transport_header {
     int multicast; // 0-unicast/1-multicast, default multicast
     char destination[65];
     char source[65];
-	int layer; // rtsp setup response only
+    int layer; // rtsp setup response only
     int append; // use with RECORD mode only, rtsp setup response only
-	unsigned short interleaved1, interleaved2; // rtsp setup response only
+    unsigned short interleaved1, interleaved2; // rtsp setup response only
     union {
         struct multicast_t {
             int ttl; // multicast only
@@ -57,8 +57,8 @@ typedef struct transport_header {
 
 struct session_header
 {
-	char id[RTSP_PARAM_STRING_MAX]; // session id
-	int timeout;	   // millisecond
+    char id[RTSP_PARAM_STRING_MAX]; // session id
+    int timeout;   // millisecond
 };
 
 typedef struct rtsp_request {

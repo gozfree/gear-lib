@@ -44,16 +44,17 @@ void media_source_del(void *pool, char *name);
 struct media_source *media_source_lookup(void *pool, char *name);
 
 
-typedef struct client_session {
+typedef struct transport_session {
     uint32_t session_id;
-    
-} client_session_t;
+    uint16_t rtp_port;
+    uint16_t rtcp_port;
+} transport_session_t;
 
-void *client_session_pool_create();
-void client_session_pool_destroy(void *pool);
-struct client_session *client_session_new(void *pool);
-void client_session_del(void *pool, char *name);
-struct client_session *client_session_lookup(void *pool, char *name);
+void *transport_session_pool_create();
+void transport_session_pool_destroy(void *pool);
+struct transport_session *transport_session_new(void *pool);
+void transport_session_del(void *pool, char *name);
+struct transport_session *transport_session_lookup(void *pool, char *name);
 
 
 #ifdef __cplusplus

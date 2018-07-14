@@ -69,12 +69,12 @@ struct media_source *media_source_lookup(void *pool, char *name)
     return (struct media_source *)dict_get((dict *)pool, name, NULL);
 }
 
-void *client_session_pool_create()
+void *transport_session_pool_create()
 {
     return (void *)dict_new();
 }
 
-void client_session_pool_destroy(void *pool)
+void transport_session_pool_destroy(void *pool)
 {
     int rank = 0;
     char *key, *val;
@@ -96,23 +96,26 @@ static uint32_t get_random_number()
     return (rand() % ((uint32_t)-1));
 }
 
-struct client_session *client_session_new(void *pool)
+static uint16_t g_rtp_port_base = 20000;
+
+struct transport_session *transport_session_new(void *pool)
 {
     char key[9];
-    struct client_session *s = CALLOC(1, struct client_session);
+    struct transport_session *s = CALLOC(1, struct transport_session);
     s->session_id = get_random_number();
+    s->rtp_port = g_rtp_port_base;
     snprintf(key, sizeof(key), "%08x", s->session_id);
     dict_add((dict *)pool, key, (char *)s);
     return s;
 }
 
-void client_session_del(void *pool, char *name)
+void transport_session_del(void *pool, char *name)
 {
     dict_del((dict *)pool, name);
 }
 
-struct client_session *client_session_lookup(void *pool, char *name)
+struct transport_session *transport_session_lookup(void *pool, char *name)
 {
-    return (struct client_session *)dict_get((dict *)pool, name, NULL);
+    return (struct transport_session *)dict_get((dict *)pool, name, NULL);
 }
 

@@ -85,7 +85,7 @@ static int handle_session_not_found(struct rtsp_request *req, char *buf, size_t 
 
 static int on_teardown(struct rtsp_request *req, char *url)
 {
-    //client_session_pool_destroy(NULL);
+    //transport_session_pool_destroy(NULL);
     //int len = skt_send(req->fd, resp, strlen(resp));
     return 0;
 }
@@ -233,12 +233,13 @@ static int on_setup(struct rtsp_request *req, char *url)
     if (-1 == parse_session(&req->session, (char *)req->raw->iov_base, req->raw->iov_len)) {
         loge("parse_session failed!\n");
     }
+    loge("session.id = %s\n", req->session.id);
 
-    struct client_session *cs = client_session_lookup(rc->client_session_pool, req->session.id);
+    struct transport_session *cs = transport_session_lookup(rc->transport_session_pool, req->session.id);
     if (!cs) {
-        cs = client_session_new(rc->client_session_pool);
+        cs = transport_session_new(rc->transport_session_pool);
         if (!cs) {
-            loge("client_session_new failed\n");
+            loge("transport_session_new failed\n");
             handle_session_not_found(req, buf, sizeof(buf));
             return -1;
         }

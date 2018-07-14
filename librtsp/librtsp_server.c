@@ -138,7 +138,7 @@ static int master_thread_create(struct rtsp_server_ctx *c)
     if (fd == -1) {
         goto failed;
     }
-    c->client_session_pool = client_session_pool_create();
+    c->transport_session_pool = transport_session_pool_create();
     c->media_source_pool = media_source_pool_create();
     media_source_default(c);
     c->listen_fd = fd;
