@@ -34,6 +34,9 @@ extern "C" {
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |            synchronization source (SSRC) identifier           |
  * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ * |               contributing source (CSRC) identifiers          |
+ * |                               ....                            |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  */
 typedef struct rtp_header {
     uint8_t v:2;        /* protocol version */
@@ -46,16 +49,6 @@ typedef struct rtp_header {
     uint32_t timestamp; /* timestamp */
     uint32_t ssrc;      /* synchronization source */
 } rtp_header_t;
-
-#define RTP_VERSION 2 // RTP version field must equal 2 (p66)
-
-#define RTP_V(v)    ((v >> 30) & 0x03)   /* protocol version */
-#define RTP_P(v)    ((v >> 29) & 0x01)   /* padding flag */
-#define RTP_X(v)    ((v >> 28) & 0x01)   /* header extension flag */
-#define RTP_CC(v)   ((v >> 24) & 0x0F)   /* CSRC count */
-#define RTP_M(v)    ((v >> 23) & 0x01)   /* marker bit */
-#define RTP_PT(v)   ((v >> 16) & 0x7F)   /* payload type */
-#define RTP_SEQ(v)  ((v >> 00) & 0xFFFF) /* sequence number */
 
 
 /* RTCP Sender Report
@@ -83,12 +76,6 @@ typedef struct rtcp_header {
     uint8_t  pt:8;      /* packet type */
     uint16_t length:16; /* pkt len in words, w/o this word */
 } rtcp_header_t;
-
-#define RTCP_V(v)   ((v >> 30) & 0x03) // rtcp version
-#define RTCP_P(v)   ((v >> 29) & 0x01) // rtcp padding
-#define RTCP_RC(v)  ((v >> 24) & 0x1F) // rtcp reception report count
-#define RTCP_PT(v)  ((v >> 16) & 0xFF) // rtcp packet type
-#define RTCP_LEN(v) (v & 0xFFFF) // rtcp packet length
 
 typedef struct rtcp_sr { //sender report
     uint32_t ssrc;
@@ -150,6 +137,10 @@ struct rtp_packet
     int payloadlen; // payload length in bytes
 };
 
+int rtp_packet_serialize_header(const struct rtp_packet *pkt, void* data, int bytes);
+int rtp_packet_serialize(const struct rtp_packet *pkt, void* data, int bytes);
+int rtp_packet_deserialize(struct rtp_packet *pkt, const void* data, int bytes);
+
 
 enum rtp_mode {
     RTP_TCP,
@@ -175,6 +166,24 @@ ssize_t rtp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *b
 
 ssize_t rtcp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len);
 ssize_t rtp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *buf, size_t len);
+
+
+enum rtp_role { 
+	RTP_SENDER		= 1,	/// send RTP packet
+	RTP_RECEIVER	= 2,	/// receive RTP packet
+};
+
+
+struct rtp_context
+{
+    // RTP/RTCP
+    int avg_rtcp_size;
+    int rtcp_bw;
+    int rtcp_cycle; // for RTCP SDES
+    int frequence;
+    int init;
+    int role;
+};
 
 #ifdef __cplusplus
 }
