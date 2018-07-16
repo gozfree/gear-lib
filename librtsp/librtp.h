@@ -19,6 +19,7 @@
 #define LIBRTP_H
 
 #include <stdint.h>
+#include <netinet/in.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -138,7 +139,7 @@ enum {
     RTCP_SDES_PRIVATE = 8,
 };
 
-struct rtp_packet_t
+struct rtp_packet
 {
     struct rtp_header header;
     uint32_t csrc[16];
@@ -150,40 +151,30 @@ struct rtp_packet_t
 };
 
 
-struct rtp_payload_encode_t
-{
-	/// create RTP packer
-	/// @param[in] size maximum RTP packet payload size(don't include RTP header)
-	/// @param[in] payload RTP header PT filed (see more about rtp-profile.h)
-	/// @param[in] seq RTP header sequence number filed
-	/// @param[in] ssrc RTP header SSRC filed
-	/// @param[in] handler user-defined callback
-	/// @param[in] cbparam user-defined parameter
-	/// @return RTP packer
-	void* (*create)(int size, uint8_t payload, uint16_t seq, uint32_t ssrc, struct rtp_payload_t *handler, void* cbparam);
-	/// destroy RTP Packer
-	void(*destroy)(void* packer);
-
-	void(*get_info)(void* packer, uint16_t* seq, uint32_t* timestamp);
-
-	/// PS/H.264 Elementary Stream to RTP Packet
-	/// @param[in] packer
-	/// @param[in] data stream data
-	/// @param[in] bytes stream length in bytes
-	/// @param[in] time stream UTC time
-	/// @return 0-ok, ENOMEM-alloc failed, <0-failed
-	int(*input)(void* packer, const void* data, int bytes, uint32_t time);
+enum rtp_mode {
+    RTP_TCP,
+    RTP_UDP,
+    RAW_UDP,
 };
 
-struct rtp_transport {
+struct rtp_socket {
+    enum rtp_mode mode;
     uint16_t rtp_port;
     uint16_t rtcp_port;
+    char ip[INET_ADDRSTRLEN];
+    int rtp_fd;
+    int rtcp_fd;
+    int tcp_fd;
 };
 
-int rtp_transport_create();
+struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char* src_ip);
+void rtp_socket_destroy(struct rtp_socket *s);
 
-int rtp_transport_send();
+ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len);
+ssize_t rtp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *buf, size_t len);
 
+ssize_t rtcp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len);
+ssize_t rtp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *buf, size_t len);
 
 #ifdef __cplusplus
 }

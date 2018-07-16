@@ -19,6 +19,7 @@
 #define LIBRTSP_H
 
 #include "librtsp_server.h"
+#include "librtp.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -57,10 +57,19 @@ struct network_info {
     char pswd[64];
 };
 
+struct network_ports {
+    uint16_t tcp[8192];
+    uint16_t tcp_cnt;
+    uint16_t udp[8192];
+    uint16_t udp_cnt;
+};
+
 
 int network_get_info(const char *interface, struct network_info *info);
+int network_get_port_occupied(struct network_ports *ports);
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
 int cpu_get_info(struct cpu_info *info);
+
 
 
 #ifdef __cplusplus

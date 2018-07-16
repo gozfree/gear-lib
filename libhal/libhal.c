@@ -295,3 +295,33 @@ int cpu_get_info(struct cpu_info *info)
     fclose(fp);
     return 0;
 }
+
+int network_get_port_occupied(struct network_ports *np)
+{
+    FILE* fp;
+    char line[256];
+    unsigned int port;
+
+    memset(np, 0, sizeof(*np));
+
+    if (NULL != (fp = fopen("/proc/self/net/tcp", "r"))) {
+        while (fgets(line, sizeof(line), fp)) {
+            if (1 == sscanf(line, " %*d: %*p:%x", &port)) {
+                np->tcp[np->tcp_cnt] = port;
+                np->tcp_cnt++;
+            }
+        }
+        fclose(fp);
+    }
+
+    if (NULL != (fp = fopen("/proc/self/net/udp", "r"))) {
+        while (fgets(line, sizeof(line), fp)) {
+            if (1 == sscanf(line, " %*d: %*p:%x", &port)) {
+                np->udp[np->udp_cnt] = port;
+                np->udp_cnt++;
+            }
+        }
+        fclose(fp);
+    }
+    return 0;
+}

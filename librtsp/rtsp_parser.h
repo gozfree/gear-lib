@@ -27,12 +27,6 @@ extern "C" {
 
 #define RTSP_PARAM_STRING_MAX   (200)
 
-typedef enum stream_mode {
-    RTP_TCP,
-    RTP_UDP,
-    RAW_UDP,
-} stream_mode_t;
-
 typedef struct transport_header {
     int mode;
     int multicast; // 0-unicast/1-multicast, default multicast

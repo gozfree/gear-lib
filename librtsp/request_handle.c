@@ -20,6 +20,7 @@
 #include "request_handle.h"
 #include "media_source.h"
 #include "librtsp_server.h"
+#include "librtp.h"
 #include "sdp.h"
 #include "uri_parse.h"
 #include <liblog.h>

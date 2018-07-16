@@ -22,8 +22,14 @@
 
 int main(int argc, char **argv)
 {
+#if 0
     struct rtsp_server_ctx *ctx = rtsp_server_init(NULL, 8554);
     ctx = ctx;
+#else
+    struct rtp_socket *s = rtp_socket_create(RTP_UDP, 0, NULL);
+    s = s;
+
+#endif
     while (1) {
         sleep(1);
     }

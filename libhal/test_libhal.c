@@ -15,12 +15,13 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libhal.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "libhal.h"
 
 int main(int argc, char **argv)
 {
+    struct network_ports ports;
     struct network_info ni;
     struct cpu_info ci;
     network_get_info("lo", &ni);
@@ -29,5 +30,12 @@ int main(int argc, char **argv)
     printf("cores = %d, cores_available = %d\n", ci.cores, ci.cores_available);
     printf("features = %s\n", ci.features);
     printf("name = %s\n", ci.name);
+    network_get_port_occupied(&ports);
+    for (int i = 0; i < ports.tcp_cnt; i++) {
+        printf("tcp_ports = %d\n", ports.tcp[i]);
+    }
+    for (int i = 0; i < ports.udp_cnt; i++) {
+        printf("udp_ports = %d\n", ports.udp[i]);
+    }
     return 0;
 }

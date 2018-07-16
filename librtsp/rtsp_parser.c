@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 #include "rtsp_parser.h"
+#include "librtp.h"
 #include <liblog.h>
 #include <stdio.h>
 #include <stdlib.h>
