@@ -135,11 +135,18 @@ struct rtp_packet
     uint16_t reserved; // extension reserved
     const void* payload; // payload
     int payloadlen; // payload length in bytes
+    int size; //XXX
 };
 
+struct rtp_packet *rtp_packet_create(int size, uint8_t pt, uint16_t seq, uint32_t ssrc);
+void rtp_packet_destroy(struct rtp_packet *pkt);
 int rtp_packet_serialize_header(const struct rtp_packet *pkt, void* data, int bytes);
 int rtp_packet_serialize(const struct rtp_packet *pkt, void* data, int bytes);
 int rtp_packet_deserialize(struct rtp_packet *pkt, const void* data, int bytes);
+int rtp_packet_pack(struct rtp_packet *pkt, const void* data, int bytes, uint32_t timestamp);
+int rtp_packet_get_info(struct rtp_packet *pkt, uint16_t* seq, uint32_t* timestamp);
+void rtp_packet_setsize(int bytes);
+int rtp_packet_getsize();
 
 
 enum rtp_mode {
@@ -184,6 +191,64 @@ struct rtp_context
     int init;
     int role;
 };
+
+
+
+struct rtp_payload_t
+{
+	void* (*alloc)(void* param, int bytes);
+	void (*free)(void* param, void *packet);
+	void (*packet)(void* param, const void *packet, int bytes, uint32_t timestamp, int flags);
+};
+
+struct rtp_payload_encode_t
+{
+	/// create RTP packer
+	/// @param[in] size maximum RTP packet payload size(don't include RTP header)
+	/// @param[in] payload RTP header PT filed (see more about rtp-profile.h)
+	/// @param[in] seq RTP header sequence number filed
+	/// @param[in] ssrc RTP header SSRC filed
+	/// @param[in] handler user-defined callback
+	/// @param[in] cbparam user-defined parameter
+	/// @return RTP packer
+	void* (*create)(int size, uint8_t payload, uint16_t seq, uint32_t ssrc, struct rtp_payload_t *handler, void* cbparam);
+	/// destroy RTP Packer
+	void(*destroy)(void* packer);
+
+	void(*get_info)(void* packer, uint16_t* seq, uint32_t* timestamp);
+
+	/// PS/H.264 Elementary Stream to RTP Packet
+	/// @param[in] packer
+	/// @param[in] data stream data
+	/// @param[in] bytes stream length in bytes
+	/// @param[in] time stream UTC time
+	/// @return 0-ok, ENOMEM-alloc failed, <0-failed
+	int(*input)(void* packer, const void* data, int bytes, uint32_t time);
+};
+
+struct rtp_payload_decode_t
+{
+	void* (*create)(struct rtp_payload_t *handler, void* param);
+	void (*destroy)(void* packer);
+
+	/// RTP packet to PS/H.264 Elementary Stream
+	/// @param[in] decoder RTP packet unpackers
+	/// @param[in] packet RTP packet
+	/// @param[in] bytes RTP packet length in bytes
+	/// @param[in] time stream UTC time
+	/// @return 1-packet handled, 0-packet discard, <0-failed
+	int (*input)(void* decoder, const void* packet, int bytes);
+};
+
+
+struct rtp_payload_delegate_t
+{
+	struct rtp_payload_encode_t* encoder;
+	struct rtp_payload_decode_t* decoder;
+	void* packer;
+};
+
+int rtp_payload_find(int payload, const char* encoding, struct rtp_payload_delegate_t* codec);
 
 #ifdef __cplusplus
 }
