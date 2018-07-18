@@ -379,6 +379,48 @@ int rtp_packet_getsize()
 	return s_max_packet_size;
 }
 
+static const struct rtp_payload_type rtp_payload_types[] = {
+    {0,   "PCMU",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {3,   "GSM",    MEDIA_TYPE_AUDIO,   8000,  1},
+    {4,   "G723",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {5,   "DVI4",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {6,   "DVI4",   MEDIA_TYPE_AUDIO,   16000, 1},
+    {7,   "LPC",    MEDIA_TYPE_AUDIO,   8000,  1},
+    {8,   "PCMA",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {9,   "G722",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {10,  "L16",    MEDIA_TYPE_AUDIO,   44100, 2},
+    {11,  "L16",    MEDIA_TYPE_AUDIO,   44100, 1},
+    {12,  "QCELP",  MEDIA_TYPE_AUDIO,   8000,  1},
+    {13,  "CN",     MEDIA_TYPE_AUDIO,   8000,  1},
+    {14,  "MPA",    MEDIA_TYPE_AUDIO,   90000, 0},
+    {15,  "G728",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {16,  "DVI4",   MEDIA_TYPE_AUDIO,   11025, 1},
+    {17,  "DVI4",   MEDIA_TYPE_AUDIO,   22050, 1},
+    {18,  "G729",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {25,  "CelB",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {26,  "JPEG",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {28,  "nv",     MEDIA_TYPE_VIDEO,   90000, 0},
+    {31,  "H261",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {32,  "MPV",    MEDIA_TYPE_VIDEO,   90000, 0},
+    {32,  "MPV",    MEDIA_TYPE_VIDEO,   90000, 0},
+    {33,  "MP2T",   MEDIA_TYPE_DATA,    90000, 0},
+    {34,  "H263",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {96,  "H264",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {97,  "H265",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {-1,  "",       MEDIA_TYPE_UNKNOWN, -1,    0}
+};
+
+const struct rtp_payload_type* rtp_payload_type_find(int payload)
+{
+    int i;
+    for (i = 0; rtp_payload_types[i].pt >= 0; i++) {
+        if (i == payload) {
+            return &rtp_payload_types[i];
+        }
+    }
+    return NULL;
+}
+
 void* rtp_payload_encode_create(int payload, const char* name, uint16_t seq, uint32_t ssrc, struct rtp_payload_t *handler, void* cbparam)
 {
 	int size;

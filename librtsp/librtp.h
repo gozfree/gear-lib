@@ -193,12 +193,30 @@ struct rtp_context
 };
 
 
+enum media_type {
+    MEDIA_TYPE_UNKNOWN = -1,
+    MEDIA_TYPE_VIDEO,
+    MEDIA_TYPE_AUDIO,
+    MEDIA_TYPE_DATA,
+    MEDIA_TYPE_SUBTITLE,
+    MEDIA_TYPE_ATTACHMENT,
+    MEDIA_TYPE_NB
+};
+
+struct rtp_payload_type {
+    int pt;
+    const char name[32];
+    enum media_type media_type;
+    int clock_rate;
+    int audio_channels;
+};
 
 struct rtp_payload_t
 {
-	void* (*alloc)(void* param, int bytes);
-	void (*free)(void* param, void *packet);
-	void (*packet)(void* param, const void *packet, int bytes, uint32_t timestamp, int flags);
+    struct rtp_payload_type payload_type;
+    void* (*alloc)(void* param, int bytes);
+    void (*free)(void* param, void *packet);
+    void (*packet)(void* param, const void *packet, int bytes, uint32_t timestamp, int flags);
 };
 
 struct rtp_payload_encode_t
