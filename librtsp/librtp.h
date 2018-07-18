@@ -126,6 +126,8 @@ enum {
     RTCP_SDES_PRIVATE = 8,
 };
 
+#define RTP_VERSION      2
+#define RTP_FIXED_HEADER 12
 struct rtp_packet
 {
     struct rtp_header header;

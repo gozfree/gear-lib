@@ -35,6 +35,7 @@ typedef struct media_source {
     char sdp[SDP_LEN_MAX];
     struct timeval tm_create;
     int (*sdp_generate)(struct media_source *ms);
+    int (*get_frame)();
 } media_source_t;
 
 void *media_source_pool_create();

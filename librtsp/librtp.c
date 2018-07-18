@@ -24,9 +24,6 @@
 #include <time.h>
 #include <libmacro.h>
 
-#define RTP_VERSION      2
-#define RTP_FIXED_HEADER 12
-
 #define RTP_V(v)    ((v >> 30) & 0x03)   /* protocol version */
 #define RTP_P(v)    ((v >> 29) & 0x01)   /* padding flag */
 #define RTP_X(v)    ((v >> 28) & 0x01)   /* header extension flag */
