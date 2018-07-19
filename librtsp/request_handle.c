@@ -124,11 +124,10 @@ static char *get_rtp_info(struct rtsp_request *req, char *buf, size_t size)
     "url=%s/%s"
     ";seq=%d"
     ";rtptime=%u";
-    struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
     char url_total[2*RTSP_PARAM_STRING_MAX];
     // enough space for url_prefix/url_suffix'\0'
     strcat_url(url_total, req->url_prefix, req->url_suffix);
-    struct media_source *ms = media_source_lookup(rc->media_source_pool, url_total);
+    struct media_source *ms = media_source_lookup(url_total);
     if (!ms) {
         loge("media_source_lookup find nothting\n");
         return NULL;
@@ -181,27 +180,10 @@ static int on_describe(struct rtsp_request *req, char *url)
 {
     //char sdp[RTSP_RESPONSE_LEN_MAX];
     char buf[RTSP_RESPONSE_LEN_MAX];
-    struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
-    struct media_source *ms = media_source_lookup(rc->media_source_pool, url);
+    struct media_source *ms = media_source_lookup(url);
     if (!ms) {
         loge("media_source %s not found\n", url);
-
-        char path1[256];
-        struct uri_t r;
-        if (0 == uri_parse(&r, req->url_origin, strlen(req->url_origin))) {
-            url_decode(r.path, strlen(r.path), path1, sizeof(path1));
-        } else {
-            loge("xxxx\n");
-        }
-        loge("path = %s\n", path1);
-        if (file_exist(url)) {
-            ms = media_source_new(rc->media_source_pool, url, strlen(url));
-            if (!ms) {
-                return handle_rtsp_response(req, 404, NULL);
-            }
-        } else {
-            return handle_rtsp_response(req, 404, NULL);
-        }
+        return handle_rtsp_response(req, 404, NULL);
     }
 #if 0
     if (-1 == get_sdp(ms, sdp, sizeof(sdp))) {
@@ -209,6 +191,7 @@ static int on_describe(struct rtsp_request *req, char *url)
         return handle_rtsp_response(req, 404, NULL);
     }
 #endif
+    ms->sdp_generate(ms);
     snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
                  req->url_origin,
                  (uint32_t)strlen(ms->sdp),
@@ -245,7 +228,7 @@ static int on_setup(struct rtsp_request *req, char *url)
             return -1;
         }
     }
-    struct media_source *ms = media_source_lookup(rc->media_source_pool, url);
+    struct media_source *ms = media_source_lookup(url);
     if (!ms) {
         loge("media_source_lookup find nothting\n");
         handle_not_found(req, buf, sizeof(buf));

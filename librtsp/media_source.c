@@ -20,53 +20,48 @@
 #include "sdp.h"
 #include <libdict.h>
 #include <libmacro.h>
+#include <libatomic.h>
+#include <strings.h>
 
-extern const struct media_source live_media_source;
+extern const struct media_source_handle live_media_source;
+extern const struct media_source_handle h264_media_source;
 
-void *media_source_pool_create()
+#define REGISTER_MEDIA_SOURCE(x)                                               \
+    {                                                                          \
+        extern struct media_source media_source_##x;                           \
+            media_source_register(&media_source_##x);                          \
+    }
+
+static struct media_source *first_media_source = NULL;
+static struct media_source **last_media_source = &first_media_source;
+static int registered = 0;
+
+static void media_source_register(struct media_source *ms)
 {
-    return (void *)dict_new();
+    struct media_source **p = last_media_source;
+    ms->next = NULL;
+    while (*p || atomic_ptr_cas((void * volatile *)p, NULL, ms))
+        p = &(*p)->next;
+    last_media_source = &ms->next;
 }
 
-void media_source_pool_destroy(void *pool)
+void media_source_register_all(void)
 {
-    int rank = 0;
-    char *key, *val;
-    while (1) {
-        rank = dict_enumerate((dict *)pool, rank, &key, &val);
-        if (rank < 0) {
+    if (registered)
+        return;
+    registered = 1;
+
+    REGISTER_MEDIA_SOURCE(h264);
+}
+
+struct media_source *media_source_lookup(char *name)
+{
+    struct media_source *p;
+    for (p = first_media_source; p != NULL; p = p->next) {
+        if (!strcasecmp(name, p->name))
             break;
-        }
-        free(val);
     }
-    dict_free((dict *)pool);
-}
-
-struct media_source *media_source_new(void *pool, char *name, size_t size)
-{
-    struct media_source *s = CALLOC(1, struct media_source);
-    snprintf(s->name, size, "%s", name);
-    snprintf(s->info, sizeof(s->info), "%s", name);
-    gettimeofday(&s->tm_create, NULL);
-    if (-1 == dict_add((dict *)pool, name, (char *)s)) {
-        free(s);
-        return NULL;
-    }
-    if (s->sdp_generate) {
-        s->sdp_generate(s);
-    }
-    live_media_source.sdp_generate(s);
-    return s;
-}
-
-void media_source_del(void *pool, char *name)
-{
-    dict_del((dict *)pool, name);
-}
-
-struct media_source *media_source_lookup(void *pool, char *name)
-{
-    return (struct media_source *)dict_get((dict *)pool, name, NULL);
+    return p;
 }
 
 void *transport_session_pool_create()

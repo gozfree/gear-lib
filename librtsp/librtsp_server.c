@@ -127,7 +127,6 @@ static void *rtsp_thread_event(struct thread *t, void *arg)
 static void media_source_default(struct rtsp_server_ctx *c)
 {
     const char *name = "live";
-    media_source_new(c->media_source_pool, (char *)name, sizeof(name));
     logi("rtsp://%s:%d/%s\n", strlen(c->host.ip_str)?c->host.ip_str:LOCAL_HOST, c->host.port, name);
 }
 
@@ -138,8 +137,8 @@ static int master_thread_create(struct rtsp_server_ctx *c)
     if (fd == -1) {
         goto failed;
     }
+    media_source_register_all();
     c->transport_session_pool = transport_session_pool_create();
-    c->media_source_pool = media_source_pool_create();
     media_source_default(c);
     c->listen_fd = fd;
     c->evbase = gevent_base_create();

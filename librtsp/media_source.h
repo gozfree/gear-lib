@@ -27,7 +27,7 @@ extern "C" {
 
 #define STREAM_NAME_LEN     (128)
 #define DESCRIPTION_LEN     (128)
-#define SDP_LEN_MAX 8192
+#define SDP_LEN_MAX         8192
 
 typedef struct media_source {
     char name[STREAM_NAME_LEN];
@@ -36,13 +36,11 @@ typedef struct media_source {
     struct timeval tm_create;
     int (*sdp_generate)(struct media_source *ms);
     int (*get_frame)();
+    struct media_source *next;
 } media_source_t;
 
-void *media_source_pool_create();
-void media_source_pool_destroy(void *pool);
-struct media_source *media_source_new(void *pool, char *name, size_t size);
-void media_source_del(void *pool, char *name);
-struct media_source *media_source_lookup(void *pool, char *name);
+void media_source_register_all();
+struct media_source *media_source_lookup(char *name);
 
 
 typedef struct transport_session {

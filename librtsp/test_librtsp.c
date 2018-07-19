@@ -22,7 +22,7 @@
 
 int main(int argc, char **argv)
 {
-#if 0
+#if 1
     struct rtsp_server_ctx *ctx = rtsp_server_init(NULL, 8554);
     ctx = ctx;
 #else
