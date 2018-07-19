@@ -16,9 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 
-#include "rtsp_cmd.h"
 #include "request_handle.h"
 #include "media_source.h"
+#include "transport_session.h"
 #include "librtsp_server.h"
 #include "librtp.h"
 #include "sdp.h"
@@ -31,9 +31,22 @@
 #include <string.h>
 #include <time.h>
 
-#define RTSP_RESPONSE_LEN_MAX	(8192)
+#define RTSP_RESPONSE_LEN_MAX   (8192)
 
-#define RTSP_SERVER_IP      ((const char *)"127.0.0.1")
+#define  ALLOWED_COMMAND \
+    "OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, GET_PARAMETER, SET_PARAMETER\r\n\r\n"
+
+#define RESP_DESCRIBE_FMT   ((const char *)     \
+        "Content-Base: %s\r\n"                  \
+        "Content-Type: application/sdp\r\n"     \
+        "Content-Length: %u\r\n\r\n"            \
+        "%s")
+
+#define RESP_SETUP_FMT      ((const char *)     \
+        "Transport: %s\r\n"                     \
+        "Session: %08X\r\n\r\n")
+
+
 
 static char *strcat_url(char *dest, char *prefix, char *suffix)
 {
@@ -65,23 +78,8 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
                     req->cseq,
                     get_date_string(),
                     msg?msg:"\r\n");
-    logd("rtsp response len = %d buf:\n%s\n", len, buf);
+    logd("rtsp response[%d]:\n%s\n", len, buf);
     return skt_send(req->fd, buf, len);
-}
-
-
-static int handle_not_found(struct rtsp_request *req, char *buf, size_t size)
-{
-    snprintf(buf, size, RESP_NOT_FOUND_FMT,
-             req->cseq, get_date_string());
-    return 0;
-}
-
-static int handle_session_not_found(struct rtsp_request *req, char *buf, size_t size)
-{
-    snprintf(buf, size, RESP_SESSION_NOT_FOUND_FMT,
-             req->cseq, get_date_string());
-    return 0;
 }
 
 static int on_teardown(struct rtsp_request *req, char *url)
@@ -90,13 +88,12 @@ static int on_teardown(struct rtsp_request *req, char *url)
     //int len = skt_send(req->fd, resp, strlen(resp));
     return 0;
 }
+
 static int on_get_parameter(struct rtsp_request *req, char *url)
 {
     //int len = skt_send(req->fd, resp, strlen(resp));
     return 0;
 }
-
-
 
 static uint32_t conv_to_rtp_timestamp(struct timeval tv)
 {
@@ -106,69 +103,12 @@ static uint32_t conv_to_rtp_timestamp(struct timeval tv)
     return ts_inc;
 }
 
-
-
 static uint32_t get_timestamp()
 {
     struct timeval now;
     gettimeofday(&now, NULL);
 
     return conv_to_rtp_timestamp(now);
-}
-
-
-static char *get_rtp_info(struct rtsp_request *req, char *buf, size_t size)
-{
-    char const* rtp_info_fmt =
-    "RTP-Info: " // "RTP-Info:", plus any preceding rtpInfo items
-    "url=%s/%s"
-    ";seq=%d"
-    ";rtptime=%u";
-    char url_total[2*RTSP_PARAM_STRING_MAX];
-    // enough space for url_prefix/url_suffix'\0'
-    strcat_url(url_total, req->url_prefix, req->url_suffix);
-    struct media_source *ms = media_source_lookup(url_total);
-    if (!ms) {
-        loge("media_source_lookup find nothting\n");
-        return NULL;
-    }
-    snprintf(buf, size, rtp_info_fmt,
-             req->url_origin,
-             "track1",
-             req->cseq,
-             get_timestamp());
-    return buf;
-}
-
-static int on_play(struct rtsp_request *req, char *url)
-{
-    char buf[RTSP_RESPONSE_LEN_MAX];
-    char rtp_info[1024] = {0};
-
-    int len = snprintf(buf, sizeof(buf), RESP_PLAY_FMT,
-               req->cseq,
-               get_date_string(),
-               (uint32_t)strtol(req->session.id, NULL, 16),
-               get_rtp_info(req, rtp_info, sizeof(rtp_info)));
-    char rtp_url[128] = {0};
-    memset(rtp_url, 0, sizeof(rtp_url));
-
-#if 0
-    struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
-    snprintf(rtp_url, sizeof(rtp_url), "rtp://127.0.0.1:%d", rc->server_rtp_port);
-    struct protocol_ctx *pc = protocol_new(rtp_url);
-    logi("protocol_new success!\n");
-    if (-1 == protocol_open(pc)) {
-        logi("protocol_open rtp failed!\n");
-        return -1;
-    }
-    logi("protocol_open rtp success!\n");
-    req->rtsp_server_ctx->rtp_ctx = pc;
-    logi("rtp_ctx = %p\n", req->rtsp_server_ctx->rtp_ctx);
-#endif
-
-    logd("rtsp response len = %d buf:\n%s\n", len, buf);
-    return skt_send(req->fd, buf, len);
 }
 
 static int on_options(struct rtsp_request *req, char *url)
@@ -202,14 +142,8 @@ static int on_describe(struct rtsp_request *req, char *url)
 static int on_setup(struct rtsp_request *req, char *url)
 {
     char buf[RTSP_RESPONSE_LEN_MAX];
-    const char *mode_string = NULL;
-    const char *dst_ip = RTSP_SERVER_IP;
-    const char *client_ip = RTSP_SERVER_IP;
+    char transport[128];
     struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
-    rc->server_rtp_port = 6970;
-    rc->server_rtcp_port = rc->server_rtp_port + 1;
-    int port_rtp = rc->server_rtp_port;
-    int port_rtcp =  rc->server_rtcp_port;
 
     if (-1 == parse_transport(&req->transport, (char *)req->raw->iov_base, req->raw->iov_len)) {
         return handle_rtsp_response(req, 461, NULL);
@@ -217,56 +151,78 @@ static int on_setup(struct rtsp_request *req, char *url)
     if (-1 == parse_session(&req->session, (char *)req->raw->iov_base, req->raw->iov_len)) {
         loge("parse_session failed!\n");
     }
-    loge("session.id = %s\n", req->session.id);
 
-    struct transport_session *cs = transport_session_lookup(rc->transport_session_pool, req->session.id);
-    if (!cs) {
-        cs = transport_session_new(rc->transport_session_pool);
-        if (!cs) {
+    struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    if (!ts) {
+        ts = transport_session_new(rc->transport_session_pool, &req->transport);
+        if (!ts) {
             loge("transport_session_new failed\n");
-            handle_session_not_found(req, buf, sizeof(buf));
+            handle_rtsp_response(req, 500, NULL);
             return -1;
         }
     }
-    struct media_source *ms = media_source_lookup(url);
-    if (!ms) {
-        loge("media_source_lookup find nothting\n");
-        handle_not_found(req, buf, sizeof(buf));
-        return -1;
-    }
-    //TODO: handle subsession
-    if (req->transport.destination != NULL) {
-        dst_ip = req->transport.destination;
-    }
+
     switch (req->transport.mode) {
     case RTP_TCP:
-        mode_string = "RTP/AVP/TCP";
+        snprintf(transport, sizeof(transport), "RTP/AVP/TCP;unicast;interleaved=%d-%d", req->transport.interleaved1, req->transport.interleaved2);
         break;
     case RTP_UDP:
-        mode_string = "RTP/AVP";
+        if (req->transport.multicast) {
+            return handle_rtsp_response(req, 461, NULL);
+        } else {
+            snprintf(transport, sizeof(transport), 
+                     "RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu%s%s", 
+                     req->transport.rtp.u.client_port1, req->transport.rtp.u.client_port2,
+                     ts->rtp_skt->rtp_port, ts->rtp_skt->rtcp_port,
+                     req->transport.destination[0] ? ";destination=" : "",
+                     req->transport.destination[0] ? req->transport.destination : "");
+        }
         break;
     case RAW_UDP:
-        mode_string = "RTP/AVP/UDP";
+        return handle_rtsp_response(req, 461, NULL);
         break;
     default:
         break;
     }
-    skt_udp_bind(NULL, port_rtp);
-    skt_udp_bind(NULL, port_rtcp);
+    snprintf(buf, sizeof(buf), RESP_SETUP_FMT,
+             transport, ts->session_id);
 
-    int len = snprintf(buf, sizeof(buf), RESP_SETUP_FMT,
-                 req->cseq,
-                 get_date_string(),
-                 mode_string,
-                 dst_ip,
-                 client_ip,
-                 req->transport.rtp.u.client_port1,
-                 req->transport.rtp.u.client_port2,
-                 port_rtp, port_rtcp,
-                 cs->session_id);
-    logd("rtsp response len = %d buf:\n%s\n", len, buf);
-    return skt_send(req->fd, buf, len);
+    return handle_rtsp_response(req, 200, buf);
 }
+
+static int on_play(struct rtsp_request *req, char *url)
+{
+    int n = 0;
+    char buf[RTSP_RESPONSE_LEN_MAX];
+
+    if (-1 == parse_range(&req->range, (char *)req->raw->iov_base, req->raw->iov_len)) {
+        loge("parse_range failed!\n");
+        return -1;
+    }
+    struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
+    struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    if (!ts) {
+        handle_rtsp_response(req, 454, NULL);
+        return -1;
+    }
+
+    if (req->range.to > 0) {
+        n += snprintf(buf+n, sizeof(buf)-n, "Range: npt=%.3f-%.3f\r\n", (float)(req->range.from / 1000.0f), (float)(req->range.to / 1000.0f));
+    } else {
+        n += snprintf(buf+n, sizeof(buf)-n, "Range: npt=%.3f-\r\n", (float)(req->range.from / 1000.0f));
+    }
+
+    n += snprintf(buf+n, sizeof(buf)-n, "Session: %s\r\n", req->session.id);
+    n += snprintf(buf+n, sizeof(buf)-n, "RTP-Info: url=%s;seq=%s;rtptime=%u\r\n\r\n", req->url_origin, req->cseq, get_timestamp());//XXX
+
+    return handle_rtsp_response(req, 200, buf);
+}
+
+static int on_pause(struct rtsp_request *req, char *url)
+{
+    return handle_rtsp_response(req, 461, NULL);
+}
+
 int handle_rtsp_request(struct rtsp_request *req)
 {
     char url[2*RTSP_PARAM_STRING_MAX];
@@ -300,7 +256,7 @@ int handle_rtsp_request(struct rtsp_request *req)
         if (strcasecmp(req->cmd, "PLAY") == 0)
             return on_play(req, url);
         else if (strcasecmp(req->cmd, "PAUSE") == 0)
-            loge("PAUSE not support!\n");
+            return on_pause(req, url);
         break;
     case 'g':
     case 'G':

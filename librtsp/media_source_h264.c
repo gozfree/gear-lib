@@ -1,5 +1,6 @@
 #include <liblog.h>
 #include <libfile.h>
+#include <libmacro.h>
 #include <libvector.h>
 #include "sdp.h"
 #include "media_source.h"
@@ -50,8 +51,6 @@ struct h264_source_ctx {
     vector_iter vit;
     int sps_cnt;
     int duration;
-
-    struct h264_media_source_handle handle;
 };
 
 
@@ -114,8 +113,9 @@ static int h264_parser_frame(struct h264_source_ctx *c)
     return 0;
 }
 
-static int h264_file_init(struct h264_source_ctx *c, const char *name)
+static int h264_file_open(struct media_source *ms, const char *name)
 {
+    struct h264_source_ctx *c = CALLOC(1, struct h264_source_ctx);
     c->data = file_dump(name);
     if (!c->data) {
         return -1;
@@ -124,30 +124,37 @@ static int h264_file_init(struct h264_source_ctx *c, const char *name)
     c->sps_cnt = 0;
     h264_parser_frame(c);
     c->vit = vector_begin(c->frame);
+    ms->opaque = c;
     return 0;
 }
 
-static void h264_file_deinit(struct h264_source_ctx *c)
+static void h264_file_close(struct media_source *ms)
 {
+    struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
     vector_destroy(c->frame);
     free(c->data->iov_base);
 }
 
-static int h264_file_get_frame(struct h264_source_ctx *c, struct h264_frame *frame)
+static int h264_file_read_frame(struct media_source *ms, void **data, size_t len)
 {
+    struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
+    struct h264_frame *frame;
     if (c->vit == vector_end(c->frame)) {
         return -1;
     }
     frame = vector_iter_valuep(c->frame, c->vit, struct h264_frame);
+    *data = frame;
     c->vit = vector_next(c->frame);
     return 0;
 }
 
-struct h264_media_source_handle h264_file_handle = {
-    .init = h264_file_init,
-    .injector = h264_file_get_frame,
-    .deinit = h264_file_deinit,
-};
+static int h264_file_write(struct media_source *ms, void *data, size_t len)
+{
+    struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
+    c = c;
+
+    return 0;
+}
 
 static uint32_t get_random_number()
 {
@@ -194,4 +201,8 @@ static int sdp_generate(struct media_source *ms)
 struct media_source media_source_h264 = {
     .name = "H264",
     .sdp_generate = sdp_generate,
+    .open = h264_file_open,
+    .read = h264_file_read_frame,
+    .write = h264_file_write,
+    .close = h264_file_close,
 };

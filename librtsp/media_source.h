@@ -35,26 +35,17 @@ typedef struct media_source {
     char sdp[SDP_LEN_MAX];
     struct timeval tm_create;
     int (*sdp_generate)(struct media_source *ms);
+    int (*open)(struct media_source *ms, const char *uri);
+    int (*read)(struct media_source *ms, void **data, size_t len);
+    int (*write)(struct media_source *ms, void *data, size_t len);
+    void (*close)(struct media_source *ms);
     int (*get_frame)();
+    void *opaque;
     struct media_source *next;
 } media_source_t;
 
 void media_source_register_all();
 struct media_source *media_source_lookup(char *name);
-
-
-typedef struct transport_session {
-    uint32_t session_id;
-    uint16_t rtp_port;
-    uint16_t rtcp_port;
-} transport_session_t;
-
-void *transport_session_pool_create();
-void transport_session_pool_destroy(void *pool);
-struct transport_session *transport_session_new(void *pool);
-void transport_session_del(void *pool, char *name);
-struct transport_session *transport_session_lookup(void *pool, char *name);
-
 
 #ifdef __cplusplus
 }

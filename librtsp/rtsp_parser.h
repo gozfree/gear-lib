@@ -49,10 +49,34 @@ typedef struct transport_header {
     } rtp;
 } transport_header_t;
 
-struct session_header
-{
-    char id[RTSP_PARAM_STRING_MAX]; // session id
+struct session_header {
+    char id[128]; // session id
     int timeout;   // millisecond
+};
+
+enum RTSP_RANGE_TIME { 
+    RTSP_RANGE_SMPTE = 1, // relative to the start of the clip 
+    RTSP_RANGE_SMPTE_30=RTSP_RANGE_SMPTE, 
+    RTSP_RANGE_SMPTE_25, 
+    RTSP_RANGE_NPT,  // relative to the beginning of the presentation
+    RTSP_RANGE_CLOCK, // absolute time, ISO 8601 timestamps, UTC(GMT)
+};
+
+enum RTSP_RANGE_TIME_VALUE { 
+    RTSP_RANGE_TIME_NORMAL = 1, 
+    RTSP_RANGE_TIME_NOW, // npt now
+    RTSP_RANGE_TIME_NOVALUE, // npt don't set from value: -[npt-time]
+};
+
+struct range_header
+{
+    enum RTSP_RANGE_TIME type;
+    enum RTSP_RANGE_TIME_VALUE from_value;
+    enum RTSP_RANGE_TIME_VALUE to_value;
+
+    uint64_t from; // ms
+    uint64_t to; // ms
+    uint64_t time; // range time parameter(in ms), 0 if no value
 };
 
 typedef struct rtsp_request {
@@ -67,12 +91,14 @@ typedef struct rtsp_request {
     char cseq[RTSP_PARAM_STRING_MAX];
     struct transport_header transport;//maybe multi
     struct session_header session;
+    struct range_header range;
     struct rtsp_server_ctx *rtsp_server_ctx;
 } rtsp_request_t;
 
 int parse_rtsp_request(struct rtsp_request *req);
 int parse_transport(struct transport_header *t, char *buf, int len);
 int parse_session(struct session_header *s, char *buf, int len);
+int parse_range(struct range_header *s, char *buf, int len);
 const char* rtsp_reason_phrase(int code);
 
 #ifdef __cplusplus

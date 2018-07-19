@@ -15,29 +15,45 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#ifndef LIBRTSP_SERVER_H
-#define LIBRTSP_SERVER_H
+#ifndef TRANSPORT_SESSION_H
+#define TRANSPORT_SESSION_H
 
-#include <libskt.h>
-#include <libdict.h>
+#include "rtsp_parser.h"
+#include "librtp.h"
+#include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct rtsp_server_ctx {
-    int listen_fd;
-    struct skt_addr host;
-    struct gevent_base *evbase;
-    void *transport_session_pool;
-    void *media_source_pool;
-    struct protocol_ctx *rtp_ctx;
-    struct thread *master_thread;
-    struct thread *worker_thread;
-};
+typedef struct transport_session {
+    uint32_t session_id;
+    struct rtp_socket *rtp_skt;
+    //XXX
+    void* rtp;
+    int64_t dts_first; // first frame timestamp
+    int64_t dts_last; // last frame timestamp
+    uint64_t timestamp; // rtp timestamp
+    uint64_t rtcp_clock;
 
-struct rtsp_server_ctx *rtsp_server_init(const char *host, uint16_t port);
-void rtsp_deinit(struct rtsp_server_ctx *ctx);
+    uint32_t ssrc;
+    int bandwidth;
+    int frequency;
+    char name[64];
+    int payload;
+    void* packer; // rtp encoder
+    uint8_t packet[1450];
+
+    int track; // mp4 track
+
+} transport_session_t;
+
+void *transport_session_pool_create();
+void transport_session_pool_destroy(void *pool);
+struct transport_session *transport_session_new(void *pool, struct transport_header *transport);
+void transport_session_del(void *pool, char *name);
+struct transport_session *transport_session_lookup(void *pool, char *name);
 
 #ifdef __cplusplus
 }

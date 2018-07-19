@@ -293,7 +293,9 @@ struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char*
             }
             s->rtp_port = i;
             s->rtcp_port = i+1;
-            strcpy(s->ip, src_ip);
+            if (src_ip) {
+                strcpy(s->ip, src_ip);
+            }
             printf("rtp_port = %d, rtcp_port = %d\n", s->rtp_port, s->rtcp_port);
             break;
         } while(1);

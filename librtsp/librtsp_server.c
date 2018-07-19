@@ -28,14 +28,11 @@
 #include <libthread.h>
 #include "librtsp.h"
 #include "media_source.h"
+#include "transport_session.h"
 #include "rtsp_parser.h"
 #include "request_handle.h"
-#include "rtsp_cmd.h"
-
 
 #define LOCAL_HOST          ((const char *)"127.0.0.1")
-#define RTSP_SERVER_PORT	(8554)
-
 
 #define RTSP_REQUEST_LEN_MAX	(1024)
 
@@ -126,7 +123,7 @@ static void *rtsp_thread_event(struct thread *t, void *arg)
 
 static void media_source_default(struct rtsp_server_ctx *c)
 {
-    const char *name = "live";
+    const char *name = "H264";
     logi("rtsp://%s:%d/%s\n", strlen(c->host.ip_str)?c->host.ip_str:LOCAL_HOST, c->host.port, name);
 }
 
