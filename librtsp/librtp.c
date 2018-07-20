@@ -343,11 +343,12 @@ ssize_t rtcp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *
 #define RTCP_REPORT_INTERVAL			5000 /* milliseconds RFC3550 p25 */
 #define RTCP_REPORT_INTERVAL_MIN		2500 /* milliseconds RFC3550 p25 */
 
-struct rtp_context * rtp_create(uint32_t ssrc, int frequence, int boundwidth)
+struct rtp_context *rtp_create(int frequence, int boundwidth)
 {
     struct rtp_context *ctx	= CALLOC(1, struct rtp_context);
     if (!ctx) return NULL;
 
+    ctx->ssrc = rtp_ssrc();
     ctx->rtcp_bw = (size_t)(boundwidth * RTCP_BANDWIDTH_FRACTION);
     ctx->avg_rtcp_size = 0;
     ctx->frequence = frequence;

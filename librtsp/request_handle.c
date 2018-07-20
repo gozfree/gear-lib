@@ -154,9 +154,9 @@ static int on_setup(struct rtsp_request *req, char *url)
 
     struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
     if (!ts) {
-        ts = transport_session_new(rc->transport_session_pool, &req->transport);
+        ts = transport_session_create(rc->transport_session_pool, &req->transport);
         if (!ts) {
-            loge("transport_session_new failed\n");
+            loge("transport_session_create failed\n");
             handle_rtsp_response(req, 500, NULL);
             return -1;
         }
@@ -173,7 +173,7 @@ static int on_setup(struct rtsp_request *req, char *url)
             snprintf(transport, sizeof(transport), 
                      "RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu%s%s", 
                      req->transport.rtp.u.client_port1, req->transport.rtp.u.client_port2,
-                     ts->rtp_skt->rtp_port, ts->rtp_skt->rtcp_port,
+                     ts->rtp->sock->rtp_port, ts->rtp->sock->rtcp_port,
                      req->transport.destination[0] ? ";destination=" : "",
                      req->transport.destination[0] ? req->transport.destination : "");
         }

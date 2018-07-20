@@ -23,9 +23,6 @@
 #include <libatomic.h>
 #include <strings.h>
 
-extern const struct media_source_handle live_media_source;
-extern const struct media_source_handle h264_media_source;
-
 #define REGISTER_MEDIA_SOURCE(x)                                               \
     {                                                                          \
         extern struct media_source media_source_##x;                           \
@@ -63,4 +60,3 @@ struct media_source *media_source_lookup(char *name)
     }
     return p;
 }
-

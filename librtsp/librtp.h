@@ -183,17 +183,6 @@ enum rtp_role {
 };
 
 
-struct rtp_context
-{
-    // RTP/RTCP
-    int avg_rtcp_size;
-    int rtcp_bw;
-    int rtcp_cycle; // for RTCP SDES
-    int frequence;
-    int init;
-    int role;
-};
-
 
 enum media_type {
     MEDIA_TYPE_UNKNOWN = -1,
@@ -269,6 +258,22 @@ struct rtp_payload_delegate_t
 };
 
 int rtp_payload_find(int payload, const char* encoding, struct rtp_payload_delegate_t* codec);
+
+struct rtp_context
+{
+    uint32_t ssrc;
+    // RTP/RTCP
+    int avg_rtcp_size;
+    int rtcp_bw;
+    int rtcp_cycle; // for RTCP SDES
+    int frequence;
+    int init;
+    int role;
+    struct rtp_socket *sock;
+    struct rtp_payload_t *payload;
+};
+struct rtp_context *rtp_create(int frequence, int boundwidth);
+
 
 #ifdef __cplusplus
 }

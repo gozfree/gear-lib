@@ -18,6 +18,7 @@
 #ifndef TRANSPORT_SESSION_H
 #define TRANSPORT_SESSION_H
 
+#include "media_source.h"
 #include "rtsp_parser.h"
 #include "librtp.h"
 #include <stdint.h>
@@ -29,9 +30,9 @@ extern "C" {
 
 typedef struct transport_session {
     uint32_t session_id;
-    struct rtp_socket *rtp_skt;
+    struct rtp_context *rtp;
+    struct gevent_base *evbase;
     //XXX
-    void* rtp;
     int64_t dts_first; // first frame timestamp
     int64_t dts_last; // last frame timestamp
     uint64_t timestamp; // rtp timestamp
@@ -51,9 +52,12 @@ typedef struct transport_session {
 
 void *transport_session_pool_create();
 void transport_session_pool_destroy(void *pool);
-struct transport_session *transport_session_new(void *pool, struct transport_header *transport);
-void transport_session_del(void *pool, char *name);
+struct transport_session *transport_session_create(void *pool, struct transport_header *hdr);
+void transport_session_destroy(void *pool, char *name);
 struct transport_session *transport_session_lookup(void *pool, char *name);
+int transport_session_start(struct transport_session *ts, struct media_source *ms);
+int transport_session_pause(struct transport_session *s);
+int transport_session_stop(struct transport_session *s);
 
 #ifdef __cplusplus
 }
