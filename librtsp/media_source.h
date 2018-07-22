@@ -36,7 +36,7 @@ typedef struct media_source {
     struct timeval tm_create;
     int (*sdp_generate)(struct media_source *ms);
     int (*open)(struct media_source *ms, const char *uri);
-    int (*read)(struct media_source *ms, void **data, size_t len);
+    int (*read)(struct media_source *ms, void **data, size_t *len);
     int (*write)(struct media_source *ms, void *data, size_t len);
     void (*close)(struct media_source *ms);
     int (*get_frame)();

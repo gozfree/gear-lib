@@ -21,6 +21,7 @@
 #include "media_source.h"
 #include "rtsp_parser.h"
 #include "librtp.h"
+#include <libthread.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -47,6 +48,8 @@ typedef struct transport_session {
     uint8_t packet[1450];
 
     int track; // mp4 track
+    struct thread *thread;
+    struct media_source *media_source;
 
 } transport_session_t;
 

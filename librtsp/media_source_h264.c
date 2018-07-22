@@ -118,6 +118,7 @@ static int h264_file_open(struct media_source *ms, const char *name)
     struct h264_source_ctx *c = CALLOC(1, struct h264_source_ctx);
     c->data = file_dump(name);
     if (!c->data) {
+        loge("file_dump %s failed!\n", name);
         return -1;
     }
     c->frame = vector_create(struct h264_frame);
@@ -135,15 +136,16 @@ static void h264_file_close(struct media_source *ms)
     free(c->data->iov_base);
 }
 
-static int h264_file_read_frame(struct media_source *ms, void **data, size_t len)
+static int h264_file_read_frame(struct media_source *ms, void **data, size_t *len)
 {
     struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
     struct h264_frame *frame;
-    if (c->vit == vector_end(c->frame)) {
+    if (c->vit == NULL || c->vit == vector_end(c->frame)) {
         return -1;
     }
     frame = vector_iter_valuep(c->frame, c->vit, struct h264_frame);
-    *data = frame;
+    *data = &(frame->addr);
+    *len = frame->bytes;
     c->vit = vector_next(c->frame);
     return 0;
 }
@@ -189,9 +191,9 @@ static int sdp_generate(struct media_source *ms)
     n += snprintf(p+n, sizeof(p)-n, "a=x-qt-text-nam:%s\r\n", ms->name);
     n += snprintf(p+n, sizeof(p)-n, "a=x-qt-text-inf:%s\r\n", ms->info);
 
-    n += snprintf(p+n, sizeof(p)-n, "m=video 0 RTP/AVP 33\r\n");
-    n += snprintf(p+n, sizeof(p)-n, "b=AS:5000\r\n");
-    n += snprintf(p+n, sizeof(p)-n, "a=control:track1");
+    n += snprintf(p+n, sizeof(p)-n, "m=video 0 RTP/AVP 96\r\n");
+    //n += snprintf(p+n, sizeof(p)-n, "b=AS:5000\r\n");
+    //n += snprintf(p+n, sizeof(p)-n, "a=control:track1");
 
     strcpy(ms->sdp, p);
     return 0;

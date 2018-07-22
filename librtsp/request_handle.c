@@ -173,7 +173,7 @@ static int on_setup(struct rtsp_request *req, char *url)
             snprintf(transport, sizeof(transport), 
                      "RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu%s%s", 
                      req->transport.rtp.u.client_port1, req->transport.rtp.u.client_port2,
-                     ts->rtp->sock->rtp_port, ts->rtp->sock->rtcp_port,
+                     ts->rtp->sock->rtp_src_port, ts->rtp->sock->rtcp_src_port,
                      req->transport.destination[0] ? ";destination=" : "",
                      req->transport.destination[0] ? req->transport.destination : "");
         }
@@ -205,6 +205,7 @@ static int on_play(struct rtsp_request *req, char *url)
         handle_rtsp_response(req, 454, NULL);
         return -1;
     }
+    struct media_source *ms = media_source_lookup(url);
 
     if (req->range.to > 0) {
         n += snprintf(buf+n, sizeof(buf)-n, "Range: npt=%.3f-%.3f\r\n", (float)(req->range.from / 1000.0f), (float)(req->range.to / 1000.0f));
@@ -215,7 +216,9 @@ static int on_play(struct rtsp_request *req, char *url)
     n += snprintf(buf+n, sizeof(buf)-n, "Session: %s\r\n", req->session.id);
     n += snprintf(buf+n, sizeof(buf)-n, "RTP-Info: url=%s;seq=%s;rtptime=%u\r\n\r\n", req->url_origin, req->cseq, get_timestamp());//XXX
 
-    return handle_rtsp_response(req, 200, buf);
+    handle_rtsp_response(req, 200, buf);
+    transport_session_start(ts, ms);
+    return 0;
 }
 
 static int on_pause(struct rtsp_request *req, char *url)

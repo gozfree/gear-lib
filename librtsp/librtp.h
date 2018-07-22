@@ -140,17 +140,6 @@ struct rtp_packet
     int size; //XXX
 };
 
-struct rtp_packet *rtp_packet_create(int size, uint8_t pt, uint16_t seq, uint32_t ssrc);
-void rtp_packet_destroy(struct rtp_packet *pkt);
-int rtp_packet_serialize_header(const struct rtp_packet *pkt, void* data, int bytes);
-int rtp_packet_serialize(const struct rtp_packet *pkt, void* data, int bytes);
-int rtp_packet_deserialize(struct rtp_packet *pkt, const void* data, int bytes);
-int rtp_packet_pack(struct rtp_packet *pkt, const void* data, int bytes, uint32_t timestamp);
-int rtp_packet_get_info(struct rtp_packet *pkt, uint16_t* seq, uint32_t* timestamp);
-void rtp_packet_setsize(int bytes);
-int rtp_packet_getsize();
-
-
 enum rtp_mode {
     RTP_TCP,
     RTP_UDP,
@@ -159,13 +148,27 @@ enum rtp_mode {
 
 struct rtp_socket {
     enum rtp_mode mode;
-    uint16_t rtp_port;
-    uint16_t rtcp_port;
+    uint16_t rtp_src_port;
+    uint16_t rtcp_src_port;
+    uint16_t rtp_dst_port;
+    uint16_t rtcp_dst_port;
     char ip[INET_ADDRSTRLEN];
     int rtp_fd;
     int rtcp_fd;
     int tcp_fd;
 };
+
+int rtp_ssrc(void);
+
+struct rtp_packet *rtp_packet_create(int size, uint8_t pt, uint16_t seq, uint32_t ssrc);
+void rtp_packet_destroy(struct rtp_packet *pkt);
+int rtp_packet_serialize_header(const struct rtp_packet *pkt, void* data, int bytes);
+int rtp_packet_serialize(const struct rtp_packet *pkt, void* data, int bytes);
+int rtp_packet_deserialize(struct rtp_packet *pkt, const void* data, int bytes);
+int rtp_packet_pack(struct rtp_socket *sock, struct rtp_packet *pkt, const void* data, int bytes, uint32_t timestamp);
+int rtp_packet_get_info(struct rtp_packet *pkt, uint16_t* seq, uint32_t* timestamp);
+void rtp_packet_setsize(int bytes);
+int rtp_packet_getsize();
 
 struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char* src_ip);
 void rtp_socket_destroy(struct rtp_socket *s);
@@ -274,6 +277,7 @@ struct rtp_context
 };
 struct rtp_context *rtp_create(int frequence, int boundwidth);
 
+int rtp_payload_h264_encode(struct rtp_socket *sock, struct rtp_packet *pkt, const void* h264, int bytes, uint32_t timestamp);
 
 #ifdef __cplusplus
 }

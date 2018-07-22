@@ -16,13 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 #include "librtp.h"
+#include <liblog.h>
 #include <libskt.h>
+#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include <libmacro.h>
 
 #define RTP_V(v)    ((v >> 30) & 0x03)   /* protocol version */
 #define RTP_P(v)    ((v >> 29) & 0x01)   /* padding flag */
@@ -222,7 +223,7 @@ int rtp_packet_get_info(struct rtp_packet *pkt, uint16_t* seq, uint32_t* timesta
     return 0;
 }
 
-int rtp_packet_pack(struct rtp_packet *pkt, const void* data, int bytes, uint32_t timestamp)
+int rtp_packet_pack(struct rtp_socket *sock, struct rtp_packet *pkt, const void* data, int bytes, uint32_t timestamp)
 {
     int n;
     uint8_t *rtp;
@@ -249,7 +250,8 @@ int rtp_packet_pack(struct rtp_packet *pkt, const void* data, int bytes, uint32_
             return -1;
         }
 
-        //rtp_sendto(s, ip, port, rtp, n);//XXX
+        loge("send len=%d\n", n);
+        rtp_sendto(sock, NULL, 0, rtp, n);//XXX
         free(rtp);
     }
 
@@ -291,12 +293,12 @@ struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char*
                 skt_close(s->rtp_fd);
                 continue;
             }
-            s->rtp_port = i;
-            s->rtcp_port = i+1;
+            s->rtp_src_port = i;
+            s->rtcp_src_port = i+1;
             if (src_ip) {
                 strcpy(s->ip, src_ip);
             }
-            printf("rtp_port = %d, rtcp_port = %d\n", s->rtp_port, s->rtcp_port);
+            loge("bind rtp port %d %d\n", s->rtp_src_port, s->rtcp_src_port);
             break;
         } while(1);
         break;
@@ -318,7 +320,7 @@ void rtp_socket_destroy(struct rtp_socket *s)
 
 ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len)
 {
-    return skt_sendto(s->rtp_fd, ip, port, buf, len);
+    return skt_sendto(s->rtp_fd, ip, s->rtp_dst_port, buf, len);
 }
 
 ssize_t rtp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *buf, size_t len)

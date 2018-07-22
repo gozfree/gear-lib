@@ -87,7 +87,11 @@ vector_iter vector_next(struct vector *v)
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
-    v->tmp_cursor++;
+    if (v->tmp_cursor < v->size) {
+        v->tmp_cursor++;
+    } else {
+        return NULL;
+    }
     return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
 }
 
