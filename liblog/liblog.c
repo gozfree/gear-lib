@@ -197,8 +197,8 @@ static int get_proc_name(char *name, size_t len)
     char proc_name[MAXPATHLEN];
     char *ptr = NULL;
     memset(proc_name, 0, sizeof(proc_name));
-    if (0 == getcwd(proc_name, sizeof(proc_name))) {
-        fprintf(stderr, "getcwd failed: %s\n", strerror(errno));
+    if (-1 == readlink("/proc/self/exe", proc_name, sizeof(proc_name))) {
+        fprintf(stderr, "readlink failed!\n");
         return -1;
     }
     ret = strlen(proc_name);
