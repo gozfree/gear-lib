@@ -367,7 +367,7 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
             _log_fopen_rewrite(_log_name);
         } else {
             if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "%s size= %"PRIu64" reach max %"PRIu64", splited\n",
+            fprintf(stderr, "%s size= %" PRIu64 " reach max %" PRIu64 ", splited\n",
                     _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
             }
             if (EOF == _log_fclose()) {
@@ -440,7 +440,7 @@ static ssize_t _log_write(struct iovec *vec, int n)
             }
             _log_open_rewrite(_log_name);
         } else {
-        fprintf(stderr, "%s size= %"PRIu64" reach max %"PRIu64", splited\n",
+        fprintf(stderr, "%s size= %" PRIu64 " reach max %" PRIu64 ", splited\n",
                 _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
             if (-1 == _log_close()) {
                 fprintf(stderr, "_log_close errno:%d", errno);
