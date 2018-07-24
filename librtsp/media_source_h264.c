@@ -57,8 +57,9 @@ struct h264_source_ctx {
 static inline const uint8_t* find_start_code(const uint8_t* ptr, const uint8_t* end)
 {
     for (const uint8_t *p = ptr; p + 3 < end; p++) {
-        if (0x00 == p[0] && 0x00 == p[1] && (0x01 == p[2] || (0x00==p[2] && 0x01==p[3])))
+        if (0x00 == p[0] && 0x00 == p[1] && (0x01 == p[2] || (0x00==p[2] && 0x01==p[3]))) {
             return p;
+        }
     }
     return end;
 }
@@ -80,7 +81,7 @@ static inline int h264_nal_type(const unsigned char* ptr)
 static int h264_parser_frame(struct h264_source_ctx *c)
 {
     size_t count = 0;
-    bool spspps = true;
+//    bool spspps = true;
 
     const uint8_t *start = c->data->iov_base;
     const uint8_t *end = start + c->data->iov_len;
@@ -91,6 +92,15 @@ static int h264_parser_frame(struct h264_source_ctx *c)
         size_t bytes = nalu2 - nalu;
 
         int nal_unit_type = h264_nal_type(nalu);
+
+        struct h264_frame frame;
+        frame.addr = nalu;
+        frame.bytes = bytes;
+        frame.time = 40 * count++;
+        frame.type = nal_unit_type;
+        loge("frame.type = %d, bytes =%d\n", nal_unit_type, bytes);
+        vector_push_back(c->frame, frame);
+#if 0
         if (nal_unit_type <= 5) {
             if(c->sps_cnt > 0) spspps = false; // don't need more sps/pps
 
@@ -105,6 +115,7 @@ static int h264_parser_frame(struct h264_source_ctx *c)
                 c->sps_cnt++;
             }
         }
+#endif
 
         nalu = nalu2;
     }
@@ -144,7 +155,7 @@ static int h264_file_read_frame(struct media_source *ms, void **data, size_t *le
         return -1;
     }
     frame = vector_iter_valuep(c->frame, c->vit, struct h264_frame);
-    *data = &(frame->addr);
+    *data = (void *)frame->addr;
     *len = frame->bytes;
     c->vit = vector_next(c->frame);
     return 0;
