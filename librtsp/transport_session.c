@@ -79,18 +79,19 @@ static void *send_thread(struct thread *t, void *ptr)
         return NULL;
     }
 	unsigned int ssrc = (unsigned int)rtp_ssrc();
+    uint64_t pts = time_get_msec();
+    unsigned int seq = ssrc;
     while (1) {
         if (-1 == ms->read(ms, &data, &len)) {
             loge("read failed!\n");
             sleep(1);
             continue;
         }
-        loge("after read ssrc = %d, %d\n", ssrc, len);
         //rtp_sendto(ts->rtp->sock, NULL, 0, data, len);
-        ssrc += 30;
-        struct rtp_packet *pkt = rtp_packet_create(len, 96, ssrc, ssrc);
-        //rtp_packet_pack(ts->rtp->sock, pkt, data, len, 0);
-        rtp_payload_h264_encode(ts->rtp->sock, pkt, data, len, time_get_msec());
+        struct rtp_packet *pkt = rtp_packet_create(len, 96, seq, ssrc);
+        rtp_payload_h264_encode(ts->rtp->sock, pkt, data, len, pts);
+        pts += 3000;
+        seq = pkt->header.seq;
         rtp_packet_destroy(pkt);
         usleep(500*1000);
 

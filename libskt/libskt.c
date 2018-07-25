@@ -665,7 +665,7 @@ int skt_sendto(int fd, const char *ip, uint16_t port,
         return -1;
     }
     sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = inet_addr(ip);
+    sa.sin_addr.s_addr = ip?inet_addr(ip):INADDR_ANY;
     sa.sin_port = htons(port);
 
     while (left > 0) {

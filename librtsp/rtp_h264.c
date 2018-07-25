@@ -70,7 +70,6 @@ static const uint8_t* h264_nalu_find(const uint8_t* p, const uint8_t* end)
             return p + 1;
         }
     }
-    loge("no nalu\n");
     return end;
 }
 
@@ -92,7 +91,6 @@ static int rtp_h264_pack_nalu(struct rtp_socket *sock, struct rtp_packet *pkt, c
     }
 
     ++pkt->header.seq;
-    loge("before rtp_sendto len=%d, bytes = %d\n", n, bytes);
     rtp_sendto(sock, NULL, 0, rtp, n);
     free(rtp);
     return 0;
@@ -135,7 +133,6 @@ static int rtp_h264_pack_fu_a(struct rtp_socket *sock, struct rtp_packet *pkt, c
         rtp[n + 0] = fu_indicator;
         rtp[n + 1] = fu_header;
         memcpy(rtp + n + N_FU_HEADER, pkt->payload, pkt->payloadlen);
-        loge("before rtp_sendto len=%d\n", n + N_FU_HEADER + pkt->payloadlen);
         rtp_sendto(sock, NULL, 0, rtp, n + N_FU_HEADER + pkt->payloadlen);
         free(rtp);
 
@@ -164,7 +161,6 @@ int rtp_payload_h264_encode(struct rtp_socket *sock, struct rtp_packet *pkt, con
         if (p2 != pend) --nalu_size;
         while(0 == p1[nalu_size-1]) --nalu_size;
 
-        loge("nalu_size = %d, size=%d\n", nalu_size, pkt->size);
         if (nalu_size + RTP_FIXED_HEADER <= (size_t)pkt->size) {
             r = rtp_h264_pack_nalu(sock, pkt, p1, nalu_size);
         } else {

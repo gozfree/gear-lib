@@ -98,7 +98,6 @@ static int h264_parser_frame(struct h264_source_ctx *c)
         frame.bytes = bytes;
         frame.time = 40 * count++;
         frame.type = nal_unit_type;
-        loge("frame.type = %d, bytes =%d\n", nal_unit_type, bytes);
         vector_push_back(c->frame, frame);
 #if 0
         if (nal_unit_type <= 5) {
@@ -195,7 +194,7 @@ static int sdp_generate(struct media_source *ms)
     n += snprintf(p+n, sizeof(p)-n, "c=IN IP4 0.0.0.0\n");
     n += snprintf(p+n, sizeof(p)-n, "t=0 0\n");
     n += snprintf(p+n, sizeof(p)-n, "a=range:npt=0-\n");
-    n += snprintf(p+n, sizeof(p)-n, "a=recvonly\n");
+    n += snprintf(p+n, sizeof(p)-n, "a=sendonly\n");
     n += snprintf(p+n, sizeof(p)-n, "a=control:*\n");
     n += snprintf(p+n, sizeof(p)-n, "a=source-filter: incl IN IP4 * %s\r\n", "0.0.0.0");
     n += snprintf(p+n, sizeof(p)-n, "a=rtcp-unicast: reflection\r\n");
@@ -203,8 +202,9 @@ static int sdp_generate(struct media_source *ms)
     n += snprintf(p+n, sizeof(p)-n, "a=x-qt-text-inf:%s\r\n", ms->info);
 
     n += snprintf(p+n, sizeof(p)-n, "m=video 0 RTP/AVP 96\r\n");
-    //n += snprintf(p+n, sizeof(p)-n, "b=AS:5000\r\n");
-    //n += snprintf(p+n, sizeof(p)-n, "a=control:track1");
+    n += snprintf(p+n, sizeof(p)-n, "a=rtpmap:96 H264/90000\r\n");
+    n += snprintf(p+n, sizeof(p)-n, "a=fmtp:96 packetization-mode=1; profile-level-id=4D4028; sprop-parameter-sets=Z01AKJpkA8ARPy4C3AQEBQAAAwPoAADqYOhgBGMAAF9eC7y40MAIxgAAvrwXeXCg,aO44gA==;\r\n");
+    n += snprintf(p+n, sizeof(p)-n, "a=cliprect:0,0,240,320\r\n");
 
     strcpy(ms->sdp, p);
     return 0;
