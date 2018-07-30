@@ -45,7 +45,7 @@ KERNEL_MODULE	= netlink_driver.ko
 KERNEL_DIR	= /lib/modules/$(shell uname -r)/build
 
 OBJS_LIB	= $(LIBNAME).o
-OBJS_LIB	+= msgq_posix.o msgq_sysv.o netlink.o shm.o
+OBJS_LIB	+= msgq_posix.o msgq_sysv.o netlink.o shm.o unix_socket.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -62,11 +62,7 @@ EXTRA_CFLAGS	+= -I../libmacro/
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llog
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lthread
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llock
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -ldict
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -ldict -lgevent
 EXTRA_LDFLAGS	+= -pthread -lrt
 
 

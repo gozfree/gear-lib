@@ -18,13 +18,15 @@
 #ifndef LIBIPC_H
 #define LIBIPC_H
 
+#include <libdict.h>
+#include <libgevent.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdint.h>
 #include <semaphore.h>
-#include <libdict.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,6 +80,7 @@ struct ipc_ops {
 typedef struct ipc {
     void *ctx;
     int fd;
+    int afd;
     enum ipc_role role;
     struct ipc_packet packet;
     const struct ipc_ops *ops;
@@ -85,6 +88,8 @@ typedef struct ipc {
     void *resp_buf;//async response buffer;
     int resp_len;
     dict *async_cmd_list;
+    pthread_t tid;
+    struct gevent_base *evbase;
 } ipc_t;
 
 struct ipc *ipc_create(enum ipc_role role, uint16_t port);

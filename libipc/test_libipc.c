@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <liblog.h>
 #include "libipc.h"
 #include "libipc_stub.h"
 
@@ -36,7 +35,7 @@ int shell_test()
     int loop = 1;
     struct ipc *ipc = ipc_create(IPC_CLIENT, IPC_SERVER_PORT);
     if (!ipc) {
-        loge("ipc_create failed!\n");
+        printf("ipc_create failed!\n");
         return -1;
     }
     while (loop) {
@@ -58,15 +57,15 @@ int foo()
     calc.right = 321;
     calc.opcode = '+';
     int ret;
-    logi("calc string=\"%d %c %d\"\n", calc.left, calc.opcode, calc.right);
+    printf("calc string=\"%d %c %d\"\n", calc.left, calc.opcode, calc.right);
     struct ipc *ipc = ipc_create(IPC_CLIENT, IPC_SERVER_PORT);
-    logi("before ipc_call\n");
+    printf("before ipc_call\n");
     if (0 != ipc_call(ipc, IPC_CALC, &calc, sizeof(calc), &ret, sizeof(ret))) {
-        loge("ipc_call %d failed!\n", IPC_CALC);
+        printf("ipc_call %d failed!\n", IPC_CALC);
         return -1;
     }
-    logi("ipc_call IPC_CALC success!\n");
-    logi("return value = %d\n", ret);
+    printf("ipc_call IPC_CALC success!\n");
+    printf("return value = %d\n", ret);
     ipc_destroy(ipc);
     return 0;
 }
