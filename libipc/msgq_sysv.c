@@ -206,7 +206,7 @@ static void * serverMessageReceiver(void *arg)
 }
 #endif
 
-static void *_mq_init_client()
+static void *_mq_init_client(struct ipc *ipc)
 {
     struct mq_ctx *ctx = CALLOC(1, struct mq_ctx);
     ctx->role = IPC_CLIENT;
@@ -221,6 +221,7 @@ static void *_mq_init_client()
         printf("msgget failed!\n");
         goto failed;
     }
+    printf("%s:%d fdc=%d, fds=%d\n", __func__, __LINE__, ctx->msgid_c, ctx->msgid_s);
 
     return ctx;
 
@@ -240,7 +241,7 @@ static void _mq_deinit_client(struct mq_ctx *ctx)
     free(ctx);
 }
 
-static void *_mq_init_server()
+static void *_mq_init_server(struct ipc *ipc)
 {
     struct mq_ctx *ctx = CALLOC(1, struct mq_ctx);
     ctx->role = IPC_SERVER;
@@ -249,7 +250,9 @@ static void *_mq_init_server()
         printf("msgget failed: %d\n", errno);
         goto failed;
     }
+    ipc->fd = ctx->msgid_s;
     ctx->run = true;
+    printf("%s:%d fds=%d\n", __func__, __LINE__, ctx->msgid_s);
 #if 0
     if (0 != pthread_create(&ctx->tid, NULL, serverMessageReceiver, ctx)) {
         printf("pthread_create failed!\n");
@@ -274,12 +277,12 @@ static void _mq_deinit_server(struct mq_ctx *ctx)
     free(ctx);
 }
 
-static void *_mq_init(const char *name, enum ipc_role role)
+static void *_mq_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     if (role == IPC_SERVER) {
-        return _mq_init_server();
+        return _mq_init_server(ipc);
     } else if (role == IPC_CLIENT) {
-        return _mq_init_client();
+        return _mq_init_client(ipc);
     } else {
         return NULL;
     }
@@ -301,33 +304,33 @@ static void _mq_deinit(struct ipc *ipc)
 static int _mq_send(struct ipc *ipc, const void *buf, size_t len)
 {
     struct mq_ctx *c = (struct mq_ctx *)ipc->ctx;
-    if (msgsnd(c->msgid_s, buf, len, IPC_NOWAIT) != 0) {
+    int ret = msgsnd(c->msgid_s, buf, len, IPC_NOWAIT);
+    if (ret == -1) {
         printf("msgsnd failed, errno %d\n", errno);
         return -1;
     }
-
-    return 0;
+    return len;
 }
 
 static int _mq_recv(struct ipc *ipc, void *buf, size_t len)
 {
     struct mq_ctx *c = (struct mq_ctx *)ipc->ctx;
-    if (msgrcv(c->msgid_s, buf, len, 0, 0) != 0) {
-        printf("msgsnd failed, errno %d\n", errno);
-        return -1;
+    int ret = msgrcv(c->msgid_s, buf, len, 0, 0);
+    if (ret == -1) {
+        printf("msgrcv failed, errno %d\n", errno);
     }
 
-    return 0;
+    return ret;
 }
 static int _mq_connect(struct ipc *ipc, const char *name)
 {
     char buf[128];
     struct mq_ctx *c = (struct mq_ctx *)ipc->ctx;
-    if (0 != _mq_send(ipc, (const void *)&c->pid, sizeof(pid_t))) {
+    if (-1 == _mq_send(ipc, (const void *)&c->pid, sizeof(pid_t))) {
         printf("msgSend failed!\n");
         return -1;
     }
-    if (0 > _mq_recv(ipc, buf, sizeof(buf))) {
+    if (-1 == _mq_recv(ipc, buf, sizeof(buf))) {
         printf("msgRecv failed!\n");
     }
     return 0;
@@ -336,7 +339,9 @@ static int _mq_connect(struct ipc *ipc, const char *name)
 static int _mq_accept(struct ipc *ipc)
 {
     char buf[128];
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     _mq_recv(ipc, buf, sizeof(buf));
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 }
 

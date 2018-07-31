@@ -23,6 +23,10 @@
 #include <libmacro.h>
 #include "libipc.h"
 
+#define IPC_SERVER_NAME "/IPC_SERVER"
+#define IPC_CLIENT_NAME "/IPC_CLIENT"
+
+
 /*
  * mq_xxx api is POSIX message queue,
  * seems better than SysV message queue?
@@ -126,7 +130,7 @@ static void on_connect(union sigval sv)
     sem_post(&ctx->sem);
 }
 
-static void *_mq_init(const char *name, enum ipc_role role)
+static void *_mq_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     struct mq_attr attr;
     struct mq_ctx *ctx = CALLOC(1, struct mq_ctx);
@@ -134,6 +138,8 @@ static void *_mq_init(const char *name, enum ipc_role role)
         printf("malloc failed!\n");
         return NULL;
     }
+    char name[256] = {0};
+    snprintf(name, sizeof(name), "%s.%d", IPC_SERVER_NAME, port);
     attr.mq_flags = 0;
     attr.mq_maxmsg = MQ_MAXMSG;
     attr.mq_msgsize = MQ_MSGSIZE;

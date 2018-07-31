@@ -22,9 +22,6 @@
 #include <libmacro.h>
 #include "libipc.h"
 
-#define IPC_SERVER_NAME "/IPC_SERVER"
-#define IPC_CLIENT_NAME "/IPC_CLIENT"
-
 extern const struct ipc_ops msgq_posix_ops;
 extern const struct ipc_ops msgq_sysv_ops;
 extern const struct ipc_ops socket_ops;
@@ -98,7 +95,6 @@ static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
     }
     *out_len = MIN2(hdr->payload_len, MAX_IPC_MESSAGE_SIZE);
     memcpy(out_arg, pkt->payload, *out_len);
-    printf("payload = %s\n", pkt->payload);
     return 0;
 }
 
@@ -252,7 +248,7 @@ int find_ipc_handler(uint32_t func_id, ipc_handler_t *handler)
     return -1;
 }
 
-static int process_msg(struct ipc *ipc, void *buf, size_t len)
+int process_msg(struct ipc *ipc, void *buf, size_t len)
 {
     ipc_handler_t handler;
     uint32_t func_id = 0;
@@ -279,14 +275,17 @@ static int process_msg(struct ipc *ipc, void *buf, size_t len)
     return 0;
 }
 
+#if 0
 static void on_recv(struct ipc *ipc, void *buf, size_t len)
 {
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     if (buf != NULL && len > 0) {
         process_msg(ipc, buf, len);
     }
 }
+#endif
 
-static void on_return(struct ipc *ipc, void *buf, size_t len)
+void on_return(struct ipc *ipc, void *buf, size_t len)
 {
     uint32_t func_id;
     size_t out_len;
@@ -304,23 +303,35 @@ static void on_return(struct ipc *ipc, void *buf, size_t len)
     ipc->resp_len = out_len;
     sem_post(&ipc->sem);
 }
+
+#if 0
 static void on_error(int fd, void *arg)
 {
     printf("error: %d\n", errno);
 }
+
 static void recv_cb(int fd, void *arg)
 {
-
+    struct ipc *ipc = (struct ipc *)arg;
+    char buf[1024];
+    printf("%s:%d fd = %d\n", __func__, __LINE__, fd);
+    int len = ipc->ops->recv(ipc, buf, sizeof(buf));
+    printf("%s:%d len = %d\n", __func__, __LINE__, len);
+    process_msg(ipc, buf, len);
+    printf("%s:%d xxxx\n", __func__, __LINE__);
 }
+
 static void on_connect(int fd, void *arg)
 {
     struct ipc *ipc = (struct ipc *)arg;
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     ipc->afd = ipc->ops->accept(ipc);
     if (ipc->afd == -1) {
         printf("ipc accept faileds\n");
         return;
-    };
-    struct gevent *e = gevent_create(ipc->afd, recv_cb, NULL, on_error, (void *)&ipc->afd);
+    }
+    printf("%s:%d fd = %d, afd=%d\n", __func__, __LINE__, fd, ipc->afd);
+    struct gevent *e = gevent_create(ipc->afd, recv_cb, NULL, on_error, (void *)ipc);
     if (-1 == gevent_add(ipc->evbase, e)) {
         printf("event_add failed!\n");
     }
@@ -332,25 +343,26 @@ static void *event_thread(void *arg)
     gevent_base_loop(ipc->evbase);
     return NULL;
 }
+#endif
 
-struct ipc *ipc_create_server(uint16_t port)
+struct ipc *ipc_server_create(uint16_t port)
 {
-    char ipc_srv_name[256];
     struct ipc *ipc = CALLOC(1, struct ipc);
     if (!ipc) {
         printf("malloc failed!\n");
         return NULL;
     }
     ipc->role = IPC_SERVER;
-    snprintf(ipc_srv_name, sizeof(ipc_srv_name), "%s.%d", IPC_SERVER_NAME, port);
-    ipc->ctx = ipc->ops->init(ipc_srv_name, ipc->role);
+    ipc->ops = ipc_ops[IPC_BACKEND_SOCKET];
+    ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
     if (!ipc->ctx) {
         printf("init failed!\n");
         return NULL;
     }
     _arg_buf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
-    ipc->ops->register_recv_cb(ipc, on_recv);
+    //ipc->ops->register_recv_cb(ipc, on_recv);
 
+#if 0
     ipc->evbase = gevent_base_create();
     if (!ipc->evbase) {
         printf("gevent_base_create failed!\n");
@@ -362,54 +374,45 @@ struct ipc *ipc_create_server(uint16_t port)
         printf("event_add failed!\n");
     }
     pthread_create(&ipc->tid, NULL, event_thread, ipc);
+#endif
 
     return ipc;
 }
 
-struct ipc *ipc_create(enum ipc_role role, uint16_t port)
+struct ipc *ipc_client_create(uint16_t port)
 {
-    char ipc_srv_name[256];
-    char ipc_cli_name[256];
     struct ipc *ipc = CALLOC(1, struct ipc);
     if (!ipc) {
         printf("malloc failed!\n");
         return NULL;
     }
-    ipc->role = role;
-//    ipc->ops = ipc_ops[IPC_BACKEND_NLK];
+    ipc->role = IPC_CLIENT;
     ipc->ops = ipc_ops[IPC_BACKEND_SOCKET];
-    snprintf(ipc_srv_name, sizeof(ipc_srv_name), "%s.%d", IPC_SERVER_NAME, port);
-    snprintf(ipc_cli_name, sizeof(ipc_cli_name), "%s.%d", IPC_CLIENT_NAME, getpid());
+    ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
+    if (!ipc->ctx) {
+        printf("init failed!\n");
+        return NULL;
+    }
+    ipc->async_cmd_list = dict_new();
+    if (!ipc->async_cmd_list) {
+        printf("create async_cmd_list failed!\n");
+        return NULL;
+    }
+    ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
+    _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
+    //ipc->ops->register_recv_cb(ipc, on_return);
+    sem_init(&ipc->sem, 0, 0);
+    return ipc;
+}
+
+struct ipc *ipc_create(enum ipc_role role, uint16_t port)
+{
+    struct ipc *ipc = NULL;
+
     if (role == IPC_SERVER) {
-        ipc->ctx = ipc->ops->init(ipc_srv_name, role);
-        if (!ipc->ctx) {
-            printf("init failed!\n");
-            return NULL;
-        }
-        _arg_buf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
-        ipc->ops->register_recv_cb(ipc, on_recv);
-        printf("%s:%d xxx\n", __func__, __LINE__);
-        ipc->ops->accept(ipc);
-        printf("%s:%d xxx\n", __func__, __LINE__);
+        ipc = ipc_server_create(port);
     } else {//IPC_CLIENT
-        ipc->ctx = ipc->ops->init(ipc_cli_name, role);
-        if (!ipc->ctx) {
-            printf("init failed!\n");
-            return NULL;
-        }
-        ipc->async_cmd_list = dict_new();
-        if (!ipc->async_cmd_list) {
-            printf("create async_cmd_list failed!\n");
-            return NULL;
-        }
-        ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
-        _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
-        ipc->ops->register_recv_cb(ipc, on_return);
-        if (-1 == ipc->ops->connect(ipc, ipc_srv_name)) {
-            printf("connect failed!\n");
-            return NULL;
-        }
-        sem_init(&ipc->sem, 0, 0);
+        ipc = ipc_client_create(port);
     }
     return ipc;
 }

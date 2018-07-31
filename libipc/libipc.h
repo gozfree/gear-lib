@@ -66,7 +66,7 @@ typedef struct ipc_packet {
 
 typedef void (ipc_recv_cb)(struct ipc *ipc, void *buf, size_t len);
 struct ipc_ops {
-    void *(*init)(const char *name, enum ipc_role role);
+    void *(*init)(struct ipc *ipc, uint16_t port, enum ipc_role role);
     void (*deinit)(struct ipc *ipc);
     int (*accept)(struct ipc *ipc);
     int (*connect)(struct ipc *ipc, const char *name);
@@ -100,6 +100,8 @@ int ipc_call(struct ipc *i, uint32_t func_id,
              void *out_arg, size_t out_len);
 
 void ipc_destroy(struct ipc *i);
+int process_msg(struct ipc *ipc, void *buf, size_t len);
+void on_return(struct ipc *ipc, void *buf, size_t len);
 
 int ipc_register_map(ipc_handler_t *map, int num_entry);
 

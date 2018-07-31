@@ -28,7 +28,7 @@ struct shm_ctx {
 };
 
 
-static void *shm_init(const char *name, enum ipc_role role)
+static void *shm_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     return NULL;
 }

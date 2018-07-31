@@ -81,10 +81,11 @@ static const char *nl_dir[] = {
     } while (0);
 
 
-static void *nl_init(const char *name, enum ipc_role role)
+static void *nl_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     int ret;
     struct sockaddr_nl saddr;
+    char name[256] = {0};
     int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
     if (fd == -1) {
         printf("socket failed: %d:%s\n", errno, strerror(errno));
