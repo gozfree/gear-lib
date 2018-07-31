@@ -179,8 +179,6 @@ static int sk_send(struct ipc *ipc, const void *buf, size_t len)
     return ret;
 }
 
-
-
 struct ipc_ops socket_ops = {
     .init             = sk_init,
     .deinit           = sk_deinit,

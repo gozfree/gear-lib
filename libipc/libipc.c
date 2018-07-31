@@ -353,7 +353,7 @@ struct ipc *ipc_server_create(uint16_t port)
         return NULL;
     }
     ipc->role = IPC_SERVER;
-    ipc->ops = ipc_ops[IPC_BACKEND_SOCKET];
+    ipc->ops = ipc_ops[IPC_BACKEND_MQ_SYSV];
     ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
     if (!ipc->ctx) {
         printf("init failed!\n");
@@ -387,7 +387,7 @@ struct ipc *ipc_client_create(uint16_t port)
         return NULL;
     }
     ipc->role = IPC_CLIENT;
-    ipc->ops = ipc_ops[IPC_BACKEND_SOCKET];
+    ipc->ops = ipc_ops[IPC_BACKEND_MQ_SYSV];
     ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
     if (!ipc->ctx) {
         printf("init failed!\n");
