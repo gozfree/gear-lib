@@ -42,6 +42,9 @@ int shell_test()
         memset(buf, 0, sizeof(buf));
         printf("hack shell$ ");
         scanf("%s", cmd);
+        if (!strcmp(cmd, "quit")) {
+            break;
+        }
         ipc_call(ipc, IPC_SHELL_HELP, cmd, sizeof(cmd), buf, sizeof(buf));
         printf("%s\n", buf);
     }
