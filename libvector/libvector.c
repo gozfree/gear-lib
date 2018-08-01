@@ -81,6 +81,15 @@ vector_iter vector_end(struct vector *v)
     return (void *)((uint8_t *)v->buf.iov_base + v->size * v->type_size);
 }
 
+vector_iter vector_last(struct vector *v)
+{
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
+    return (void *)((uint8_t *)v->buf.iov_base + (v->size-1) * v->type_size);
+}
+
 vector_iter vector_next(struct vector *v)
 {
     if (!v) {

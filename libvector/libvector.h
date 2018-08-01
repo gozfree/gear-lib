@@ -51,6 +51,7 @@ struct vector *_vector_create(size_t size);
 void _vector_push_back(struct vector *v, void *e, size_t type_size);
 vector_iter vector_begin(struct vector *v);
 vector_iter vector_end(struct vector *v);
+vector_iter vector_last(struct vector *v);//last=end-1
 vector_iter vector_next(struct vector *v);
 vector_iter vector_prev(struct vector *v);
 void *_vector_iter_value(struct vector *v, vector_iter iter);
@@ -66,7 +67,7 @@ void vector_pop_back(struct vector *v);
 #define vector_back(v, type_t) \
     ({ \
         type_t tmp; \
-        memcpy(&tmp, vector_end(v), v->type_size); \
+        memcpy(&tmp, vector_last(v), v->type_size); \
         &tmp; \
     })
 
