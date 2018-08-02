@@ -73,9 +73,9 @@ autogen_libfoo_c()
 {
 cat > ${LIBFOO_C} <<!
 ${LGPL_HEADER}
+#include "${LIBFOO_H}"
 #include <stdio.h>
 #include <stdlib.h>
-#include "${LIBFOO_H}"
 
 !
 }
@@ -84,9 +84,9 @@ autogen_test_libfoo_c()
 {
 cat > ${TEST_LIBFOO_C} <<!
 ${LGPL_HEADER}
+#include "${LIBFOO_H}"
 #include <stdio.h>
 #include <stdlib.h>
-#include "${LIBFOO_H}"
 
 int main(int argc, char **argv)
 {
@@ -229,7 +229,7 @@ include ${S}(BUILD_SHARED_LIBRARY)
 autogen_readme_md()
 {
 cat > ${README_MD} <<!
-##${MODULE}
+## ${MODULE}
 This is a simple ${MODULE} library.
 
 !

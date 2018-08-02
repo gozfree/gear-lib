@@ -132,7 +132,11 @@ static void *server_thread(void *arg)
         case MQ_CMD_QUIT:
             break;
         default:
-            process_msg(ipc, buf, size);
+            if (_mq_recv_cb) {
+                _mq_recv_cb(ipc, buf, size);
+            } else {
+                printf("_mq_recv_cb is NULL!\n");
+            }
             break;
         }
     }
@@ -159,7 +163,11 @@ static void *client_thread(void *arg)
         case MQ_CMD_UNBIND:
             break;
         default:
-            on_return(ipc, buf, size);
+            if (_mq_recv_cb) {
+                _mq_recv_cb(ipc, buf, size);
+            } else {
+                printf("_mq_recv_cb is NULL!\n");
+            }
             break;
         }
     }

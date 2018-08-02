@@ -1,4 +1,4 @@
-##libdict
+## libdict
 This is a simple hash key-value dictonary library.
 
 The key-value store type is string:string.

@@ -33,6 +33,8 @@ struct sk_ctx {
     struct sockaddr_un sockaddr;
 };
 
+static ipc_recv_cb *sk_recv_cb = NULL;
+
 static void on_error(int fd, void *arg)
 {
     printf("error: %d\n", errno);
@@ -70,10 +72,10 @@ static void on_recv(int fd, void *arg)
     struct ipc *ipc = (struct ipc *)arg;
     char buf[1024];
     int len = sk_recv(ipc, buf, sizeof(buf));
-    if (ipc->role == IPC_SERVER) {
-        process_msg(ipc, buf, len);
-    } else if (ipc->role == IPC_CLIENT) {
-        on_return(ipc, buf, len);
+    if (sk_recv_cb) {
+        sk_recv_cb(ipc, buf, len);
+    } else {
+        printf("sk_recv_cb is NULL!\n");
     }
 }
 
@@ -160,6 +162,7 @@ static void sk_deinit(struct ipc *ipc)
 
 static int sk_set_recv_cb(struct ipc *ipc, ipc_recv_cb *cb)
 {
+    sk_recv_cb = cb;
     return 0;
 }
 
@@ -182,7 +185,7 @@ static int sk_send(struct ipc *ipc, const void *buf, size_t len)
 struct ipc_ops socket_ops = {
     .init             = sk_init,
     .deinit           = sk_deinit,
-    .accept           = sk_accept,
+    .accept           = NULL,
     .connect          = NULL,
     .register_recv_cb = sk_set_recv_cb,
     .send             = sk_send,

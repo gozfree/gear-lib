@@ -23,9 +23,6 @@
 #include <mqueue.h>
 #include <semaphore.h>
 
-#define IPC_SERVER_NAME "/IPC_SERVER"
-#define IPC_CLIENT_NAME "/IPC_CLIENT"
-
 /*
  * message queue IPC build flow:
  *
@@ -43,8 +40,11 @@
 #define MQ_MAXMSG       5
 #define MQ_MSGSIZE      1024
 #define MQ_MSG_PRIO     10
-
 #define MAX_MQ_NAME     256
+
+#define IPC_SERVER_NAME "/IPC_SERVER"
+#define IPC_CLIENT_NAME "/IPC_CLIENT"
+
 
 struct mq_posix_ctx {
     mqd_t mq_wr;
@@ -143,7 +143,6 @@ static int _mq_accept(struct ipc *ipc)
     return 0;
 }
 
-
 static void on_recv(union sigval sv)
 {
     int len;
@@ -159,13 +158,10 @@ static void on_recv(union sigval sv)
         printf("_mq_recv failed!\n");
         return;
     }
-    if (ipc->role == IPC_SERVER) {
-        process_msg(ipc, _mq_recv_buf, len);
-    } else if (ipc->role == IPC_CLIENT) {
-        on_return(ipc, _mq_recv_buf, len);
-    }
     if (_mq_recv_cb) {
         _mq_recv_cb(ipc, _mq_recv_buf, len);
+    } else {
+        printf("_mq_recv_cb is NULL!\n");
     }
 }
 
@@ -254,7 +250,6 @@ failed:
     return NULL;
 }
 
-
 static int _mq_set_recv_cb(struct ipc *ipc, ipc_recv_cb *cb)
 {
     _mq_recv_cb = cb;
@@ -301,8 +296,8 @@ static int _mq_recv(struct ipc *ipc, void *buf, size_t len)
 struct ipc_ops msgq_posix_ops = {
      .init             = _mq_init,
      .deinit           = _mq_deinit,
-     .accept           = _mq_accept,
-     .connect          = _mq_connect,
+     .accept           = NULL,
+     .connect          = NULL,
      .register_recv_cb = _mq_set_recv_cb,
      .send             = _mq_send,
      .recv             = _mq_recv,

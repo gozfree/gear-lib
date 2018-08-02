@@ -15,12 +15,12 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libipc.h"
+#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <libmacro.h>
-#include "libipc.h"
 
 extern const struct ipc_ops msgq_posix_ops;
 extern const struct ipc_ops msgq_sysv_ops;
@@ -51,16 +51,16 @@ static const struct ipc_ops *ipc_ops[] = {
 };
 
 static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
-                const void *in_arg, size_t in_len)
+                    const void *in_arg, size_t in_len)
 {
     struct ipc_header *hdr;
-    struct timeval curtime;
+    struct timeval now;
 
     if (!pkt) {
         printf("invalid paraments!\n");
         return -1;
     }
-    gettimeofday(&curtime, NULL);
+    gettimeofday(&now, NULL);
     if (in_len > MAX_IPC_MESSAGE_SIZE - sizeof(ipc_header_t)) {
         printf("cmd arg too long %zu\n", in_len);
         return -1;
@@ -68,7 +68,7 @@ static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
 
     hdr = &(pkt->header);
     hdr->func_id = func_id;
-    hdr->time_stamp = curtime.tv_sec * 1000000L + curtime.tv_usec;
+    hdr->time_stamp = now.tv_sec * 1000000L + now.tv_usec;
 
     if (in_arg) {
         hdr->payload_len = in_len;
@@ -80,7 +80,7 @@ static int pack_msg(struct ipc_packet *pkt, uint32_t func_id,
 }
 
 static int unpack_msg(struct ipc_packet *pkt, uint32_t *func_id,
-                void *out_arg, size_t *out_len)
+                      void *out_arg, size_t *out_len)
 {
     struct ipc_header *hdr;
     if (!pkt || !out_arg || !out_len) {
@@ -128,32 +128,32 @@ static int pop_async_cmd(struct ipc *ipc, uint32_t func_id)
 }
 
 int ipc_call(struct ipc *ipc, uint32_t func_id,
-                const void *in_arg, size_t in_len,
-                void *out_arg, size_t out_len)
+             const void *in_arg, size_t in_len,
+             void *out_arg, size_t out_len)
 {
     if (!ipc) {
         printf("invalid parament!\n");
         return -1;
     }
-    if (0 > pack_msg(_pkt_sbuf, func_id, in_arg, in_len)) {
+    if (-1 == pack_msg(_pkt_sbuf, func_id, in_arg, in_len)) {
         printf("pack_msg failed!\n");
         return -1;
     }
-    ipc->ops->send(ipc, _pkt_sbuf, sizeof(ipc_packet_t) + in_len);
+    if (-1 == ipc->ops->send(ipc, _pkt_sbuf, sizeof(ipc_packet_t) + in_len)) {
+        printf("send msg failed!\n");
+        return -1;
+    }
     if (IS_IPC_MSG_NEED_RETURN(func_id)) {
         struct timeval now;
         struct timespec abs_time;
         uint32_t timeout = 2000;//msec
         gettimeofday(&now, NULL);
-        /* Add our timeout to current time */
         now.tv_usec += (timeout % 1000) * 1000;
         now.tv_sec += timeout / 1000;
-        /* Wrap the second if needed */
         if ( now.tv_usec >= 1000000 ) {
             now.tv_usec -= 1000000;
             now.tv_sec ++;
         }
-        /* Convert to timespec */
         abs_time.tv_sec = now.tv_sec;
         abs_time.tv_nsec = now.tv_usec * 1000;
         if (-1 == push_async_cmd(ipc, func_id)) {
@@ -248,7 +248,7 @@ int find_ipc_handler(uint32_t func_id, ipc_handler_t *handler)
     return -1;
 }
 
-int process_msg(struct ipc *ipc, void *buf, size_t len)
+static int process_msg(struct ipc *ipc, void *buf, size_t len)
 {
     ipc_handler_t handler;
     uint32_t func_id = 0;
@@ -275,17 +275,7 @@ int process_msg(struct ipc *ipc, void *buf, size_t len)
     return 0;
 }
 
-#if 0
-static void on_recv(struct ipc *ipc, void *buf, size_t len)
-{
-    printf("%s:%d xxxx\n", __func__, __LINE__);
-    if (buf != NULL && len > 0) {
-        process_msg(ipc, buf, len);
-    }
-}
-#endif
-
-void on_return(struct ipc *ipc, void *buf, size_t len)
+static int on_return(struct ipc *ipc, void *buf, size_t len)
 {
     uint32_t func_id;
     size_t out_len;
@@ -293,128 +283,52 @@ void on_return(struct ipc *ipc, void *buf, size_t len)
     memset(ipc->resp_buf, 0, MAX_IPC_RESP_BUF_LEN);
     if (-1 == unpack_msg(pkt, &func_id, ipc->resp_buf, &out_len)) {
         printf("unpack_msg failed!\n");
-        return;
+        return -1;
     }
     if (-1 == pop_async_cmd(ipc, func_id)) {
         printf("msg received is not the response of cmd_id!\n");
-        return;
+        return -1;
     }
 
     ipc->resp_len = out_len;
     sem_post(&ipc->sem);
-}
-
-#if 0
-static void on_error(int fd, void *arg)
-{
-    printf("error: %d\n", errno);
-}
-
-static void recv_cb(int fd, void *arg)
-{
-    struct ipc *ipc = (struct ipc *)arg;
-    char buf[1024];
-    printf("%s:%d fd = %d\n", __func__, __LINE__, fd);
-    int len = ipc->ops->recv(ipc, buf, sizeof(buf));
-    printf("%s:%d len = %d\n", __func__, __LINE__, len);
-    process_msg(ipc, buf, len);
-    printf("%s:%d xxxx\n", __func__, __LINE__);
-}
-
-static void on_connect(int fd, void *arg)
-{
-    struct ipc *ipc = (struct ipc *)arg;
-    printf("%s:%d xxxx\n", __func__, __LINE__);
-    ipc->afd = ipc->ops->accept(ipc);
-    if (ipc->afd == -1) {
-        printf("ipc accept faileds\n");
-        return;
-    }
-    printf("%s:%d fd = %d, afd=%d\n", __func__, __LINE__, fd, ipc->afd);
-    struct gevent *e = gevent_create(ipc->afd, recv_cb, NULL, on_error, (void *)ipc);
-    if (-1 == gevent_add(ipc->evbase, e)) {
-        printf("event_add failed!\n");
-    }
-}
-
-static void *event_thread(void *arg)
-{
-    struct ipc *ipc = (struct ipc *)arg;
-    gevent_base_loop(ipc->evbase);
-    return NULL;
-}
-#endif
-
-struct ipc *ipc_server_create(uint16_t port)
-{
-    struct ipc *ipc = CALLOC(1, struct ipc);
-    if (!ipc) {
-        printf("malloc failed!\n");
-        return NULL;
-    }
-    ipc->role = IPC_SERVER;
-    ipc->ops = ipc_ops[IPC_BACKEND_MQ_POSIX];
-    ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
-    if (!ipc->ctx) {
-        printf("init failed!\n");
-        return NULL;
-    }
-    _arg_buf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
-    //ipc->ops->register_recv_cb(ipc, on_recv);
-
-#if 0
-    ipc->evbase = gevent_base_create();
-    if (!ipc->evbase) {
-        printf("gevent_base_create failed!\n");
-        return NULL;
-    }
-
-    struct gevent *e = gevent_create(ipc->fd, on_connect, NULL, on_error, ipc);
-    if (-1 == gevent_add(ipc->evbase, e)) {
-        printf("event_add failed!\n");
-    }
-    pthread_create(&ipc->tid, NULL, event_thread, ipc);
-#endif
-
-    return ipc;
-}
-
-struct ipc *ipc_client_create(uint16_t port)
-{
-    struct ipc *ipc = CALLOC(1, struct ipc);
-    if (!ipc) {
-        printf("malloc failed!\n");
-        return NULL;
-    }
-    ipc->role = IPC_CLIENT;
-    ipc->ops = ipc_ops[IPC_BACKEND_MQ_POSIX];
-    ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
-    if (!ipc->ctx) {
-        printf("init failed!\n");
-        return NULL;
-    }
-    ipc->async_cmd_list = dict_new();
-    if (!ipc->async_cmd_list) {
-        printf("create async_cmd_list failed!\n");
-        return NULL;
-    }
-    ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
-    _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
-    //ipc->ops->register_recv_cb(ipc, on_return);
-    sem_init(&ipc->sem, 0, 0);
-    return ipc;
+    return 0;
 }
 
 struct ipc *ipc_create(enum ipc_role role, uint16_t port)
 {
-    struct ipc *ipc = NULL;
-
-    if (role == IPC_SERVER) {
-        ipc = ipc_server_create(port);
-    } else {//IPC_CLIENT
-        ipc = ipc_client_create(port);
+    struct ipc *ipc = CALLOC(1, struct ipc);
+    if (!ipc) {
+        printf("malloc failed!\n");
+        return NULL;
+    }
+    ipc->role = role;
+    ipc->ops = ipc_ops[IPC_BACKEND_MQ_POSIX];
+    ipc->ctx = ipc->ops->init(ipc, port, ipc->role);
+    if (!ipc->ctx) {
+        printf("init failed!\n");
+        goto failed;
+    }
+    if (ipc->role == IPC_SERVER) {
+        _arg_buf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
+        ipc->ops->register_recv_cb(ipc, process_msg);
+    } else if (ipc->role == IPC_CLIENT) {
+        ipc->async_cmd_list = dict_new();
+        if (!ipc->async_cmd_list) {
+            printf("create async_cmd_list failed!\n");
+            goto failed;
+        }
+        ipc->resp_buf = calloc(1, MAX_IPC_RESP_BUF_LEN);
+        _pkt_sbuf = (struct ipc_packet *)calloc(1, MAX_IPC_MESSAGE_SIZE);
+        ipc->ops->register_recv_cb(ipc, on_return);
+        sem_init(&ipc->sem, 0, 0);
     }
     return ipc;
+failed:
+    if (ipc) {
+        free(ipc);
+    }
+    return NULL;
 }
 
 void ipc_destroy(struct ipc *ipc)

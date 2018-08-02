@@ -1,0 +1,13 @@
+
+version 1.0.1
+- add libhal
+- add libfilewatcher
+- add librtsp (unfinished)
+- refactor libipc
+- fix libvector
+
+version 1.0.0
+- add libconfig++
+- add libmp4parser
+- add libvector
+- fixed liblog
