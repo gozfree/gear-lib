@@ -15,12 +15,12 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libgevent.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
 #include <signal.h>
-#include "libgevent.h"
 
 struct gevent_base *evbase = NULL;
 

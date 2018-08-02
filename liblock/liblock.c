@@ -1,10 +1,21 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    liblock.c
- * author:  gozfree <gozfree@163.com>
- * created: 2016-06-22 14:09:11
- * updated: 2016-06-22 14:09:11
- *****************************************************************************/
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "liblock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,8 +24,6 @@
 #include <sched.h>
 #include <pthread.h>
 #include <semaphore.h>
-
-#include "liblock.h"
 
 /******************************************************************************
  * spin lock APIs
@@ -28,24 +37,12 @@
 #define atomic_cmp_set(lock, old, set) \
     __sync_bool_compare_and_swap(lock, old, set)
 
-static long g_ncpu = 1;
-
-spin_lock_t *spin_lock_init()
-{
-    spin_lock_t *lock = (spin_lock_t *)calloc(1, sizeof(spin_lock_t));
-    if (!lock) {
-        printf("malloc spin_lock_t failed:%d\n", errno);
-        return NULL;
-    }
-    g_ncpu = sysconf(_SC_NPROCESSORS_ONLN);
-    return lock;
-}
-
 int spin_lock(spin_lock_t *lock)
 {
     int spin = 2048;
     int value = 1;
     int i, n;
+    long g_ncpu = sysconf(_SC_NPROCESSORS_ONLN);
     for ( ;; ) {
         if (*lock == 0 && atomic_cmp_set(lock, 0, value)) {
             return 0;
@@ -76,28 +73,13 @@ int spin_trylock(spin_lock_t *lock)
     return (*(lock) == 0 && atomic_cmp_set(lock, 0, 1));
 }
 
-void spin_lock_deinit(spin_lock_t *lock)
-{
-    if (!lock) {
-        return;
-    }
-    free(lock);
-}
-
 /******************************************************************************
  * mutex lock APIs
  *****************************************************************************/
-
-mutex_lock_t *mutex_lock_init()
+int mutex_lock_init(mutex_lock_t *lock)
 {
-    pthread_mutex_t *lock = (pthread_mutex_t *)calloc(1,
-                                               sizeof(pthread_mutex_t));
-    if (!lock) {
-        printf("malloc pthread_mutex_t failed:%d\n", errno);
-        return NULL;
-    }
     pthread_mutex_init(lock, NULL);
-    return lock;
+    return 0;
 }
 
 void mutex_lock_deinit(mutex_lock_t *ptr)
@@ -117,7 +99,6 @@ void mutex_lock_deinit(mutex_lock_t *ptr)
             break;
         }
     }
-    free(lock);
 }
 
 int mutex_trylock(mutex_lock_t *ptr)
@@ -192,16 +173,15 @@ int mutex_unlock(mutex_lock_t *ptr)
     return ret;
 }
 
-mutex_cond_t *mutex_cond_init()
+int mutex_cond_init(mutex_cond_t *cond)
 {
-    pthread_cond_t *cond = (pthread_cond_t *)calloc(1, sizeof(pthread_cond_t));
     if (!cond) {
         printf("malloc pthread_cond_t failed:%d\n", errno);
-        return NULL;
+        return -1;
     }
     //never return an error code
     pthread_cond_init(cond, NULL);
-    return cond;
+    return 0;
 }
 
 void mutex_cond_deinit(mutex_cond_t *ptr)
@@ -221,7 +201,6 @@ void mutex_cond_deinit(mutex_cond_t *ptr)
             break;
         }
     }
-    free(cond);
 }
 
 int mutex_cond_wait(mutex_lock_t *mutexp, mutex_cond_t *condp, int64_t ms)
@@ -289,13 +268,11 @@ void mutex_cond_signal_all(mutex_cond_t *ptr)
 /******************************************************************************
  * read-write lock APIs
  *****************************************************************************/
-rw_lock_t *rwlock_init()
+int rwlock_init(rw_lock_t *lock)
 {
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)calloc(1,
-                                               sizeof(pthread_rwlock_t));
     if (!lock) {
         printf("malloc pthread_rwlock_t failed:%d\n", errno);
-        return NULL;
+        return -1;
     }
     int ret = pthread_rwlock_init(lock, NULL);
     if (ret != 0) {
@@ -316,13 +293,11 @@ rw_lock_t *rwlock_init()
             printf("pthread_rwlock_init failed:%d\n", ret);
             break;
         }
-        free(lock);
         lock = NULL;
     }
 
-    return lock;
+    return 0;
 }
-
 
 void rwlock_deinit(rw_lock_t *ptr)
 {
@@ -333,7 +308,6 @@ void rwlock_deinit(rw_lock_t *ptr)
     if (0 != pthread_rwlock_destroy(lock)) {
         printf("pthread_rwlock_destroy failed!\n");
     }
-    free(lock);
 }
 
 int rwlock_rdlock(rw_lock_t *ptr)
@@ -439,8 +413,6 @@ int rwlock_trywrlock(rw_lock_t *ptr)
     return ret;
 }
 
-
-
 int rwlock_unlock(rw_lock_t *ptr)
 {
     if (!ptr) {
@@ -461,20 +433,14 @@ int rwlock_unlock(rw_lock_t *ptr)
 /******************************************************************************
  * sem lock APIs
  *****************************************************************************/
-sem_lock_t *sem_lock_init()
+int sem_lock_init(sem_lock_t *lock)
 {
-    sem_t *lock = (sem_t *)calloc(1, sizeof(sem_t));
-    if (!lock) {
-        printf("malloc sem_t failed:%d\n", errno);
-        return NULL;
-    }
     int pshared = 0;//0: threads, 1: processes
     if (0 != sem_init(lock, pshared, 0)) {
         printf("sem_init failed %d:%s\n", errno, strerror(errno));
-        free(lock);
-        lock = NULL;
+        return -1;
     }
-    return lock;
+    return 0;
 }
 
 void sem_lock_deinit(sem_lock_t *ptr)
@@ -486,7 +452,6 @@ void sem_lock_deinit(sem_lock_t *ptr)
     if (0 != sem_destroy(lock)) {
         printf("sem_destroy %d:%s\n", errno , strerror(errno));
     }
-    free(lock);
 }
 
 int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
@@ -569,4 +534,3 @@ int sem_lock_signal(sem_lock_t *ptr)
     }
     return ret;
 }
-

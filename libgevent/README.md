@@ -1,7 +1,7 @@
-##libgevent
-The libgevent is a simple event library refered to libevent,
+## libgevent
+This is a simple libgevent library.
 
-##How To Use
+## How To Use
 Just like libevent, but more easily to use.
 ```
 	base = gevent_base_create()
@@ -10,7 +10,7 @@ Just like libevent, but more easily to use.
 	gevent_base_loop()
 ```
 
-##TODO
+## TODO
   now select/poll backend can't be used until the fd/event hash table achieved
 
   event timer

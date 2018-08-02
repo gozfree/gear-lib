@@ -1,10 +1,21 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    test_liblock.c
- * author:  gozfree <gozfree@163.com>
- * created: 2016-06-22 14:09:11
- * updated: 2016-06-22 14:09:11
- *****************************************************************************/
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "liblock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -13,10 +24,9 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <sys/time.h>
-#include "liblock.h"
 
-static spin_lock_t *spin = NULL;
-static mutex_lock_t *mutex = NULL;
+static spin_lock_t spin;
+static mutex_lock_t mutex;
 
 static int64_t value = 0;
 struct thread_arg {
@@ -46,19 +56,19 @@ static void *print_mutex_lock(void *arg)
     printf("c = %d\n", c);
     for (i = 0; i < n; ++ i) {
         if (c) {
-            mutex_lock(mutex);
+            mutex_lock(&mutex);
             ++ value;
             if (!(i % 100) && 0) {
                 printf("tid=%d, c=%d, value = %"PRId64"\n", (int)tid, c, value);
             }
-            mutex_unlock(mutex);
+            mutex_unlock(&mutex);
         } else {
-            mutex_lock(mutex);
+            mutex_lock(&mutex);
             -- value;
             if (!(i % 100) && 0) {
                 printf("tid=%d, c=%d, value = %"PRId64"\n", (int)tid, c, value);
             }
-            mutex_unlock(mutex);
+            mutex_unlock(&mutex);
         }
     }
     return NULL;
@@ -74,19 +84,19 @@ static void *print_spin_lock(void *arg)
     printf("c = %d\n", c);
     for (i = 0; i < n; ++ i) {
         if (c) {
-            spin_lock(spin);
+            spin_lock(&spin);
             ++ value;
             if (!(i % 100) && 0) {
                 printf("tid=%d, c=%d, value = %"PRId64"\n", (int)tid, c, value);
             }
-            spin_unlock(spin);
+            spin_unlock(&spin);
         } else {
-            spin_lock(spin);
+            spin_lock(&spin);
             -- value;
             if (!(i % 100) && 0) {
                 printf("tid=%d, c=%d, value = %"PRId64"\n", (int)tid, c, value);
             }
-            spin_unlock(spin);
+            spin_unlock(&spin);
         }
     }
     return NULL;
@@ -107,12 +117,11 @@ int main(int argc, char **argv)
     arg2.count = times;
     if (!strcmp(argv[1], "spin")) {
         gettimeofday(&start, NULL);
-        spin = spin_lock_init();
         pthread_create(&tid1, NULL, print_spin_lock, (void *)&arg1);
         pthread_create(&tid2, NULL, print_spin_lock, (void *)&arg2);
     } else if (!strcmp(argv[1], "mutex")) {
         gettimeofday(&start, NULL);
-        mutex = mutex_lock_init();
+        mutex_lock_init(&mutex);
         pthread_create(&tid1, NULL, print_mutex_lock, (void *)&arg1);
         pthread_create(&tid2, NULL, print_mutex_lock, (void *)&arg2);
     }
@@ -129,12 +138,7 @@ int main(int argc, char **argv)
         fprintf(stdout, "Value is %" PRIu64 ", Used %" PRIu64 "us:%" PRIu64 "\n",
                 value, (endUs - startUs) / 1000000, (endUs - startUs) % 1000000);
     }
-    if (mutex) {
-        mutex_lock_deinit(mutex);
-    }
-    if (spin) {
-        spin_lock_deinit(spin);
-    }
+    mutex_lock_deinit(&mutex);
 
     return 0;
 }

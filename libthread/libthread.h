@@ -1,10 +1,20 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libthread.h
- * author:  gozfree <gozfree@163.com>
- * created: 2015-08-15 22:57
- * updated: 2016-01-03 15:38
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #ifndef LIBTHREAD_H
 #define LIBTHREAD_H
 
@@ -17,34 +27,28 @@
 extern "C" {
 #endif
 
-#define PTHREAD_NAME_LEN    16
 typedef struct thread {
     pthread_t tid;
-    spin_lock_t *spin;
-    mutex_lock_t *mutex;
-    mutex_cond_t *cond;
-    sem_lock_t *sem;
-    char name[PTHREAD_NAME_LEN];
+    enum lock_type type;
+    union {
+        spin_lock_t spin;
+        mutex_lock_t mutex;
+        mutex_cond_t cond;
+        sem_lock_t sem;
+    } lock;
     void *(*func)(struct thread *, void *);
-    char *fmt;
     void *arg;
 } thread_t;
 
-struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg);
-
+struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...);
 void thread_destroy(struct thread *t);
 
-int thread_spin_lock(struct thread *t);
-int thread_spin_unlock(struct thread *t);
+int thread_lock(struct thread *t);
+int thread_unlock(struct thread *t);
 
-int thread_sem_wait(struct thread *t, int64_t ms);
-int thread_sem_signal(struct thread *t);
-
-int thread_mutex_lock(struct thread *t);
-int thread_mutex_unlock(struct thread *t);
-int thread_cond_wait(struct thread *t, int64_t ms);
-int thread_cond_signal(struct thread *t);
-int thread_cond_signal_all(struct thread *t);
+int thread_wait(struct thread *t, int64_t ms);
+int thread_signal(struct thread *t);
+int thread_signal_all(struct thread *t);
 
 
 #ifdef __cplusplus

@@ -15,6 +15,7 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +23,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/epoll.h>
-#include "libgevent.h"
 
 #ifdef __ANDROID__
 #define EPOLLRDHUP      (0x2000)

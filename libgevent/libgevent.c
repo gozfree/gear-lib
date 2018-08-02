@@ -15,12 +15,12 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libgevent.h"
+#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <libmacro.h>
-#include "libgevent.h"
 
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;

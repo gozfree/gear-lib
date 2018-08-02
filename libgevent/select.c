@@ -15,14 +15,14 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libgevent.h"
+#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/select.h>
-#include <libmacro.h>
-#include "libgevent.h"
 
 #define SELECT_MAX_FD	1024
 

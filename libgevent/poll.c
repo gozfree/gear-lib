@@ -15,6 +15,7 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +23,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
-#include "libgevent.h"
 
 #define POLL_MAX_FD                 (1024)
 #define MAX_SECONDS_IN_MSEC_LONG    (((LONG_MAX) - 999) / 1000)
