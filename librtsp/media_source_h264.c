@@ -96,7 +96,7 @@ static int h264_parser_frame(struct h264_source_ctx *c)
         struct h264_frame frame;
         frame.addr = nalu;
         frame.bytes = bytes;
-        frame.time = 40 * count++;
+        frame.time = 90000 * count++;
         frame.type = nal_unit_type;
         vector_push_back(c->frame, frame);
 #if 0

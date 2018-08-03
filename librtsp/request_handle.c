@@ -33,20 +33,24 @@
 
 #define RTSP_RESPONSE_LEN_MAX   (8192)
 
-#define  ALLOWED_COMMAND \
-    "OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, GET_PARAMETER, SET_PARAMETER\r\n\r\n"
+#define ALLOWED_COMMAND                         \
+        "OPTIONS,"                              \
+        "DESCRIBE,"                             \
+        "SETUP,"                                \
+        "TEARDOWN,"                             \
+        "PLAY,"                                 \
+        "GET_PARAMETER,"                        \
+        "SET_PARAMETER\r\n\r\n"
 
-#define RESP_DESCRIBE_FMT   ((const char *)     \
+#define RESP_DESCRIBE_FMT                       \
         "Content-Base: %s\r\n"                  \
         "Content-Type: application/sdp\r\n"     \
         "Content-Length: %u\r\n\r\n"            \
-        "%s")
+        "%s"
 
-#define RESP_SETUP_FMT      ((const char *)     \
+#define RESP_SETUP_FMT                          \
         "Transport: %s\r\n"                     \
-        "Session: %08X\r\n\r\n")
-
-
+        "Session: %08X\r\n\r\n"
 
 static char *strcat_url(char *dest, char *prefix, char *suffix)
 {
@@ -118,19 +122,12 @@ static int on_options(struct rtsp_request *req, char *url)
 
 static int on_describe(struct rtsp_request *req, char *url)
 {
-    //char sdp[RTSP_RESPONSE_LEN_MAX];
     char buf[RTSP_RESPONSE_LEN_MAX];
     struct media_source *ms = media_source_lookup(url);
     if (!ms) {
         loge("media_source %s not found\n", url);
         return handle_rtsp_response(req, 404, NULL);
     }
-#if 0
-    if (-1 == get_sdp(ms, sdp, sizeof(sdp))) {
-        loge("get_sdp failed!\n");
-        return handle_rtsp_response(req, 404, NULL);
-    }
-#endif
     ms->sdp_generate(ms);
     snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
                  req->url_origin,
@@ -157,8 +154,7 @@ static int on_setup(struct rtsp_request *req, char *url)
         ts = transport_session_create(rc->transport_session_pool, &req->transport);
         if (!ts) {
             loge("transport_session_create failed\n");
-            handle_rtsp_response(req, 500, NULL);
-            return -1;
+            return handle_rtsp_response(req, 500, NULL);
         }
     }
 
@@ -184,9 +180,7 @@ static int on_setup(struct rtsp_request *req, char *url)
     default:
         break;
     }
-    snprintf(buf, sizeof(buf), RESP_SETUP_FMT,
-             transport, ts->session_id);
-
+    snprintf(buf, sizeof(buf), RESP_SETUP_FMT, transport, ts->session_id);
     return handle_rtsp_response(req, 200, buf);
 }
 
@@ -245,7 +239,7 @@ int handle_rtsp_request(struct rtsp_request *req)
     case 's':
     case 'S':
         if (strcasecmp(req->cmd, "SETUP") == 0)
-            return on_setup(req, url);
+            return on_setup(req, url);//ok
         else if (strcasecmp(req->cmd, "SET_PARAMETER") == 0)
             loge("SET_PARAMETER not support!\n");
         break;
@@ -257,7 +251,7 @@ int handle_rtsp_request(struct rtsp_request *req)
     case 'p':
     case 'P':
         if (strcasecmp(req->cmd, "PLAY") == 0)
-            return on_play(req, url);
+            return on_play(req, url);//ok
         else if (strcasecmp(req->cmd, "PAUSE") == 0)
             return on_pause(req, url);
         break;

@@ -92,6 +92,7 @@ struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, 
 
     t->arg = arg;
     t->func = func;
+    t->run = true;
     if (0 != pthread_create(&t->tid, NULL, __thread_func, t)) {
         printf("pthread_create failed(%d): %s\n", errno, strerror(errno));
         goto err;
@@ -110,6 +111,7 @@ void thread_destroy(struct thread *t)
     if (!t) {
         return;
     }
+    t->run = false;
     switch (t->type) {
     case LOCK_SPIN:
         break;

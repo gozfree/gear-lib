@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <liblock.h>
 
@@ -36,6 +37,7 @@ typedef struct thread {
         mutex_cond_t cond;
         sem_lock_t sem;
     } lock;
+    bool run;
     void *(*func)(struct thread *, void *);
     void *arg;
 } thread_t;

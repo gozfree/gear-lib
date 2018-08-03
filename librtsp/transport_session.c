@@ -81,7 +81,7 @@ static void *send_thread(struct thread *t, void *ptr)
 	unsigned int ssrc = (unsigned int)rtp_ssrc();
     uint64_t pts = time_get_msec();
     unsigned int seq = ssrc;
-    while (1) {
+    while (t->run) {
         if (-1 == ms->read(ms, &data, &len)) {
             loge("read failed!\n");
             sleep(1);
