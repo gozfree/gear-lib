@@ -123,7 +123,8 @@ static void *rtsp_thread_event(struct thread *t, void *arg)
 
 static void media_source_default(struct rtsp_server_ctx *c)
 {
-    const char *name = "H264";
+    //const char *name = "H264";
+    const char *name = "uvc";
     logi("rtsp://%s:%d/%s\n", strlen(c->host.ip_str)?c->host.ip_str:LOCAL_HOST, c->host.port, name);
 }
 

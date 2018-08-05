@@ -93,7 +93,7 @@ static void *send_thread(struct thread *t, void *ptr)
         pts += 3000;
         seq = pkt->header.seq;
         rtp_packet_destroy(pkt);
-        usleep(500*1000);
+        //usleep(500*1000);
 
     }
     return NULL;

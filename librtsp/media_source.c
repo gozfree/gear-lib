@@ -49,6 +49,7 @@ void media_source_register_all(void)
     registered = 1;
 
     REGISTER_MEDIA_SOURCE(h264);
+    REGISTER_MEDIA_SOURCE(uvc);
 }
 
 struct media_source *media_source_lookup(char *name)

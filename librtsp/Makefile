@@ -56,7 +56,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread -lfile -lskt -lgevent -llog -ldict -lthread -llock -ltime \
-	   -lvector
+	   -lvector -luvc -lx264
 
 ###############################################################################
 # target
