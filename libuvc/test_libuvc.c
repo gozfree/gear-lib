@@ -15,13 +15,25 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libuvc.h"
+#include <libfile.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "libuvc.h"
+#include <string.h>
 
 int main(int argc, char **argv)
 {
+    int flen = 2 * 640 * 480;
+    int size = 0;
+    void *frm = calloc(1, flen);
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
+    struct file *fp = file_open("uvc.yuv", F_CREATE);
+    for (int i = 0; i < 20; ++i) {
+        memset(frm, 0, flen);
+        size = uvc_read(uvc, frm, flen);
+        file_write(fp, frm, size);
+    }
+    file_close(fp);
     uvc_close(uvc);
     return 0;
 }
