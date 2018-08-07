@@ -325,14 +325,13 @@ static int live_read(struct media_source *ms, void **data, size_t *len)
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
     int flen = 2 * 640 * 480;
     void *frm = calloc(1, flen);
-    uvc_read(c->uvc, frm, flen);
+    int size = uvc_read(c->uvc, frm, flen);
     struct iovec in, out;
     in.iov_base = frm;
-    in.iov_len = flen;
+    in.iov_len = size;
     x264_encode(c->x264, &in, &out);
     *data = out.iov_base;
     *len = out.iov_len;
-    loge("len = %d\n", *len);
     return 0;
 }
 
