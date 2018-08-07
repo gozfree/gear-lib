@@ -1,4 +1,4 @@
-libraries [中文说明](README.cn.md) [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
+libraries [中文说明](README.cn.md) [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries) [![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases) [![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
 =========
 This is a collection of basic libraries.
 * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
