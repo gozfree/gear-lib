@@ -82,7 +82,7 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
                     req->cseq,
                     get_date_string(),
                     msg?msg:"\r\n");
-    logd("rtsp response[%d]:\n%s\n", len, buf);
+    logd("rtsp response[%d]:\n<<<<<<<<\n%s\n", len, buf);
     return skt_send(req->fd, buf, len);
 }
 

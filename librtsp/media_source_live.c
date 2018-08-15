@@ -26,6 +26,7 @@ struct x264_ctx {
     int encode_format;
     int input_format;
     struct iovec sei;
+    struct iovec pkt;
     x264_param_t *param;
     x264_t *handle;
     x264_picture_t *picture;
@@ -35,7 +36,7 @@ struct x264_ctx {
 
 struct live_source_ctx {
     const char name[32];
-    struct iovec *data;
+    struct iovec data;
     struct uvc_ctx *uvc;
     int width;
     int height;
@@ -77,10 +78,9 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
     c->param->i_fps_num = (int)m_frameRate;
     c->param->i_fps_den = 1;
     c->param->i_keyint_max = 25;
-    c->param->i_log_level = X264_LOG_DEBUG;
+    c->param->i_log_level = X264_LOG_ERROR;
     x264_param_apply_profile(c->param, "high422");
     c->handle = x264_encoder_open(c->param);
-    loge("c->handle = %p\n", c->handle);
     if (c->handle == 0) {
         loge("x264_encoder_open failed!\n");
         goto failed;
@@ -96,6 +96,8 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
     c->width = cc->width;
     c->height = cc->height;
     //c->input_format = YUV422P;
+    c->pkt.iov_len = 0;
+    c->pkt.iov_base = NULL;
 
     if (1) {//flags & AV_CODEC_FLAG_GLOBAL_HEADER) {
         x264_nal_t *nal;
@@ -150,10 +152,15 @@ static int encode_nals(struct x264_ctx *c, struct iovec *pkt,
     for (i = 0; i < nnal; i++)
         size += nals[i].i_payload;
 
-    p = (uint8_t *)calloc(1, size);
+    if (c->pkt.iov_len < size) {
+        c->pkt.iov_len = size;
+        c->pkt.iov_base = realloc(c->pkt.iov_base, size);
+    }
+    p = c->pkt.iov_base;
     if (!p) {
         return -1;
     }
+
     pkt->iov_base = p;
     pkt->iov_len = 0;
 
@@ -194,19 +201,6 @@ static int x264_encode(struct x264_ctx *c, struct iovec *in, struct iovec *out)
     uint8_t *v = c->picture->img.plane[2];
 
     int widthStep422 = c->param->i_width * 2;
-
-#if 0
-    if (c->input_format == YUV420) {
-        struct iovec in_tmp;
-        in_tmp.iov_len = in->iov_len;
-        in_tmp.iov_base = calloc(1, in->iov_len);
-        conv_yuv420pto422(in_tmp.iov_base, in->iov_base, c->width, c->height);
-        for (i = 0; i < (int)in->iov_len; i++) {//8 byte copy
-            *((char *)in->iov_base + i) = *((char *)in_tmp.iov_base + i);
-        }
-        free(in_tmp.iov_base);
-    }
-#endif
 
     for(i = 0; i < c->param->i_height; i += 2) {
         p422 = (uint8_t *)in->iov_base + i * widthStep422;
@@ -268,7 +262,6 @@ static uint32_t get_random_number()
 static int live_open(struct media_source *ms, const char *name)
 {
     struct live_source_ctx *c = CALLOC(1, struct live_source_ctx);
-    loge("xxx\n");
     c->width = 640;
     c->height = 480;
     c->uvc = uvc_open("/dev/video0", c->width, c->height);
@@ -282,12 +275,15 @@ static int live_open(struct media_source *ms, const char *name)
         loge("x264_open failed!\n");
         return -1;
     }
+    c->data.iov_base = calloc(1, 2*c->width*c->height);
+    c->data.iov_len = 2*c->width*c->height;
     return 0;
 }
 
 static void live_close(struct media_source *ms)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
+    free(c->data.iov_base);
     x264_close(c->x264);
     uvc_close(c->uvc);
 }
@@ -323,11 +319,10 @@ static int sdp_generate(struct media_source *ms)
 static int live_read(struct media_source *ms, void **data, size_t *len)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    int flen = 2 * 640 * 480;
-    void *frm = calloc(1, flen);
-    int size = uvc_read(c->uvc, frm, flen);
+    memset(c->data.iov_base, 0, c->data.iov_len);
+    int size = uvc_read(c->uvc, c->data.iov_base, c->data.iov_len);
     struct iovec in, out;
-    in.iov_base = frm;
+    in.iov_base = c->data.iov_base;
     in.iov_len = size;
     x264_encode(c->x264, &in, &out);
     *data = out.iov_base;

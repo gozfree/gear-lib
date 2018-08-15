@@ -63,7 +63,7 @@ int parse_rtsp_request(struct rtsp_request *req)
     const char *rtsp_prefix = "rtsp://";
     int rtsp_prefix_len = sizeof(rtsp_prefix);
 
-    logd("rtsp request[%d]:\n%s\n", len, str);
+    logd("rtsp request[%d]:\n>>>>>>>>\n%s\n", len, str);
 
     // "Be liberal in what you accept": Skip over any whitespace at the start of the request:
     for (cur = 0; cur < len; ++cur) {
@@ -366,7 +366,7 @@ int parse_transport(struct transport_header *t, char *buf, int len)
         if (*fields == '\0' || *fields == '\r' || *fields == '\n') break;
     }
     free(field);
-    logi("client_port1 = %d, client_port2 = %d\n", t->rtp.u.client_port1, t->rtp.u.client_port2);
+    logd("client_port1 = %d, client_port2 = %d\n", t->rtp.u.client_port1, t->rtp.u.client_port2);
     return 0;
 }
 

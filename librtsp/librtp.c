@@ -298,7 +298,7 @@ struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char*
             if (src_ip) {
                 strcpy(s->ip, src_ip);
             }
-            loge("bind rtp port %d %d\n", s->rtp_src_port, s->rtcp_src_port);
+            logd("bind rtp port %d %d\n", s->rtp_src_port, s->rtcp_src_port);
             break;
         } while(1);
         break;
