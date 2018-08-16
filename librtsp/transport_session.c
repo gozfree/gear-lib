@@ -114,5 +114,6 @@ int transport_session_start(struct transport_session *ts, struct media_source *m
 #endif
     ts->media_source = ms;
     ts->thread = thread_create(send_thread, ts);
+    logi("session_id = %d\n", ts->session_id);
     return 0;
 }

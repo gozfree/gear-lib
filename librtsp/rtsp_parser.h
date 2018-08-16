@@ -92,6 +92,7 @@ typedef struct rtsp_request {
     struct transport_header transport;//maybe multi
     struct session_header session;
     struct range_header range;
+    struct gevent *event;
     struct rtsp_server_ctx *rtsp_server_ctx;
 } rtsp_request_t;
 

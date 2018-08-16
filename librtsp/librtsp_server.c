@@ -26,6 +26,7 @@
 #include <liblog.h>
 #include <libgevent.h>
 #include <libthread.h>
+#include <libdict.h>
 #include "librtsp.h"
 #include "media_source.h"
 #include "transport_session.h"
@@ -36,19 +37,8 @@
 
 #define RTSP_REQUEST_LEN_MAX	(1024)
 
-static struct iovec *iovec_create(size_t len)
-{
-    struct iovec *vec = CALLOC(1, struct iovec);
-    vec->iov_len = len;
-    vec->iov_base = calloc(1, len);
-    return vec;
-}
-
-static void on_disconnect(int fd)
-{
-    loge("fd = %d\n", fd);
-    skt_close(fd);
-}
+static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t ip, uint16_t port);
+static void rtsp_connect_destroy(struct rtsp_server_ctx *rtsp, int fd);
 
 static void on_recv(int fd, void *arg)
 {
@@ -70,12 +60,11 @@ static void on_recv(int fd, void *arg)
         }
     } else if (rlen == 0) {
         loge("peer connect shutdown\n");
-        on_disconnect(fd);
+        rtsp_connect_destroy(req->rtsp_server_ctx, fd);
     } else {
         loge("something error\n");
     }
 }
-
 
 static void on_error(int fd, void *arg)
 {
@@ -84,6 +73,7 @@ static void on_error(int fd, void *arg)
 
 static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t ip, uint16_t port)
 {
+    char key[9];
     struct rtsp_request *req = CALLOC(1, struct rtsp_request);
     req->fd = fd;
     req->client.ip = ip;
@@ -91,10 +81,27 @@ static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t i
     req->rtsp_server_ctx = rtsp;
     req->raw = iovec_create(RTSP_REQUEST_LEN_MAX);
     skt_set_noblk(fd, 1);
-    struct gevent *e = gevent_create(fd, on_recv, NULL, on_error, req);
-    if (-1 == gevent_add(rtsp->evbase, e)) {
+    req->event = gevent_create(fd, on_recv, NULL, on_error, req);
+    if (-1 == gevent_add(rtsp->evbase, req->event)) {
         loge("event_add failed!\n");
     }
+    snprintf(key, sizeof(key), "%d", fd);
+    dict_add(rtsp->connect_pool, key, (char *)req);
+    logi("fd = %d, req=%p\n", fd, req);
+}
+
+static void rtsp_connect_destroy(struct rtsp_server_ctx *rtsp, int fd)
+{
+    char key[9];
+    snprintf(key, sizeof(key), "%d", fd);
+    struct rtsp_request *req = (struct rtsp_request *)dict_get(rtsp->connect_pool, key, NULL);
+    logi("fd = %d, req=%p\n", fd, req);
+    dict_del(rtsp->connect_pool, key);
+    gevent_del(rtsp->evbase, req->event);
+    gevent_destroy(req->event);
+    iovec_destroy(req->raw);
+    skt_close(fd);
+    free(req);
 }
 
 static void on_connect(int fd, void *arg)
@@ -128,6 +135,26 @@ static void media_source_default(struct rtsp_server_ctx *c)
     logi("rtsp://%s:%d/%s\n", strlen(c->host.ip_str)?c->host.ip_str:LOCAL_HOST, c->host.port, name);
 }
 
+static void *connect_pool_create()
+{
+    return (void *)dict_new();
+}
+
+void connect_pool_destroy(void *pool)
+{
+    int rank = 0;
+    char *key, *val;
+    while (1) {
+        rank = dict_enumerate((dict *)pool, rank, &key, &val);
+        if (rank < 0) {
+            break;
+        }
+        free(val);
+    }
+    dict_free((dict *)pool);
+}
+
+
 static int master_thread_create(struct rtsp_server_ctx *c)
 {
     struct gevent *e = NULL;
@@ -137,6 +164,7 @@ static int master_thread_create(struct rtsp_server_ctx *c)
     }
     media_source_register_all();
     c->transport_session_pool = transport_session_pool_create();
+    c->connect_pool = connect_pool_create();
     media_source_default(c);
     c->listen_fd = fd;
     c->evbase = gevent_base_create();
@@ -167,6 +195,7 @@ failed:
 
 static void destroy_master_thread(struct rtsp_server_ctx *c)
 {
+    connect_pool_destroy(c->connect_pool);
 
 }
 
