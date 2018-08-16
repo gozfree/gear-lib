@@ -1,7 +1,7 @@
 #!/bin/sh
 major=0
 minor=1
-patch=0
+patch=1
 
 libname=$1
 output=version.h

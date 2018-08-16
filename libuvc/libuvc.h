@@ -32,6 +32,7 @@ struct uvc_ctx {
 };
 
 struct uvc_ctx *uvc_open(const char *dev, int width, int height);
+int uvc_print_info(struct uvc_ctx *c);
 int uvc_read(struct uvc_ctx *c, void *buf, size_t len);
 void uvc_close(struct uvc_ctx *c);
 

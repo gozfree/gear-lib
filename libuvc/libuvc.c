@@ -61,8 +61,6 @@ struct frame {
 struct v4l2_ctx {
     int fd;
     char *name;
-    int on_read_fd;
-    int on_write_fd;
     int width;
     int height;
     struct iovec buf[MAX_V4L_BUF];
@@ -188,8 +186,9 @@ static void v4l2_get_cid(struct v4l2_ctx *vc)
     }
 }
 
-static int v4l2_get_info(struct v4l2_ctx *vc)
+int uvc_print_info(struct uvc_ctx *c)
 {
+    struct v4l2_ctx *vc = (struct v4l2_ctx *)c->opaque;
     v4l2_get_input(vc);
     v4l2_get_cap(vc);
     v4l2_get_fmt(vc);
@@ -218,29 +217,18 @@ static int v4l2_set_format(struct v4l2_ctx *vc)
         printf("%s ioctl(VIDIOC_S_FMT) failed: %d\n", __func__, errno);
         return -1;
     }
-    printf("[V4L2 Current Setting]: palette %c%c%c%c (%dx%d) "
-           "bytesperlines %d sizeimage %d colorspace %08x\n",
-         fmt.fmt.pix.pixelformat >> 0,
-         fmt.fmt.pix.pixelformat >> 8,
-         fmt.fmt.pix.pixelformat >> 16,
-         fmt.fmt.pix.pixelformat >> 24,
-         vc->width,
-         vc->height, fmt.fmt.pix.bytesperline,
-         fmt.fmt.pix.sizeimage,
-         fmt.fmt.pix.colorspace);
     return 0;
 }
 
 static int v4l2_req_buf(struct v4l2_ctx *vc)
 {
     int i;
-    struct v4l2_requestbuffers req;
     enum v4l2_buf_type type;
-    char notify = '1';
-    memset(&req, 0, sizeof(req));
-    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    req.count = MAX_V4L_REQBUF_CNT;
-    req.memory = V4L2_MEMORY_MMAP;
+    struct v4l2_requestbuffers req = {
+        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+        .count = MAX_V4L_REQBUF_CNT,
+        .memory = V4L2_MEMORY_MMAP
+    };
     //request buffer
     if (-1 == ioctl(vc->fd, VIDIOC_REQBUFS, &req)) {
         printf("%s ioctl(VIDIOC_REQBUFS) failed: %d\n", __func__, errno);
@@ -282,29 +270,17 @@ static int v4l2_req_buf(struct v4l2_ctx *vc)
         printf("%s ioctl(VIDIOC_STREAMON) failed: %d\n", __func__, errno);
         return -1;
     }
-    if (write(vc->on_write_fd, &notify, 1) != 1) {
-        printf("Failed writing to notify pipe\n");
-        return -1;
-    }
     return 0;
 }
 
 static struct v4l2_ctx *v4l2_open(const char *dev, int width, int height)
 {
     int fd = -1;
-    int fds[2] = {0};
     struct v4l2_ctx *vc = CALLOC(1, struct v4l2_ctx);
     if (!vc) {
         printf("malloc v4l2_ctx failed!\n");
         return NULL;
     }
-    if (pipe(fds)) {
-        printf("create pipe failed: %d\n", errno);
-        goto failed;
-    }
-    vc->on_read_fd = fds[0];
-    vc->on_write_fd = fds[1];
-
     fd = open(dev, O_RDWR);
     if (fd == -1) {
         printf("open %s failed: %d\n", dev, errno);
@@ -314,10 +290,7 @@ static struct v4l2_ctx *v4l2_open(const char *dev, int width, int height)
     vc->fd = fd;
     vc->width = width;
     vc->height = height;
-    if (v4l2_get_info(vc) < 0) {
-        printf("v4l2_get_info failed!\n");
-        goto failed;
-    }
+
     if (-1 == v4l2_set_format(vc)) {
         printf("v4l2_set_format failed\n");
         goto failed;
@@ -338,28 +311,19 @@ failed:
     if (vc) {
         free(vc);
     }
-    if (fds[0] != -1 || fds[1] != -1) {
-        close(fds[0]);
-        close(fds[1]);
-    }
     return NULL;
 }
 
 static int v4l2_buf_enqueue(struct v4l2_ctx *vc)
 {
-    struct v4l2_buffer buf;
-    char notify = '1';
-    memset(&buf, 0, sizeof(buf));
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
-    buf.index = vc->buf_index;
+    struct v4l2_buffer buf = {
+        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+        .memory = V4L2_MEMORY_MMAP,
+        .index = vc->buf_index
+    };
 
     if (-1 == ioctl(vc->fd, VIDIOC_QBUF, &buf)) {
         printf("%s ioctl(VIDIOC_QBUF) failed: %d\n", __func__, errno);
-        return -1;
-    }
-    if (write(vc->on_write_fd, &notify, 1) != 1) {
-        printf("Failed writing to notify pipe: %d\n", errno);
         return -1;
     }
     return 0;
@@ -373,8 +337,9 @@ static int v4l2_buf_dequeue(struct v4l2_ctx *vc, struct frame *f)
     while (1) {
         if (-1 == ioctl(vc->fd, VIDIOC_DQBUF, &buf)) {
             printf("%s ioctl(VIDIOC_DQBUF) failed: %d\n", __func__, errno);
-            if (errno == EINTR || errno == EAGAIN)
+            if (errno == EINTR || errno == EAGAIN) {
                 continue;
+            }
             else
                 return -1;
         }
@@ -384,21 +349,13 @@ static int v4l2_buf_dequeue(struct v4l2_ctx *vc, struct frame *f)
     f->index = buf.index;
     f->buf.iov_base = vc->buf[buf.index].iov_base;
     f->buf.iov_len = buf.bytesused;
-    //printf("v4l2 frame buffer addr = %p, len = %zu, index = %d\n",
-    //f->buf.iov_base, f->buf.iov_len, f->index);
-
     return f->buf.iov_len;
 }
 
 static int v4l2_read(struct v4l2_ctx *vc, void *buf, int len)
 {
     struct frame f;
-    int i, flen;
-    char notify;
-
-    if (read(vc->on_read_fd, &notify, sizeof(notify)) != 1) {
-        perror("Failed read from notify pipe");
-    }
+    int flen;
 
     flen = v4l2_buf_dequeue(vc, &f);
     if (flen == -1) {
@@ -414,9 +371,7 @@ static int v4l2_read(struct v4l2_ctx *vc, void *buf, int len)
         printf("error occur!\n");
         return -1;
     }
-    for (i = 0; i < (int)f.buf.iov_len; i++) {//8 byte copy
-        *((char *)buf + i) = *((char *)f.buf.iov_base + i);
-    }
+    memcpy(buf, f.buf.iov_base, f.buf.iov_len);
     return f.buf.iov_len;
 }
 
@@ -439,8 +394,6 @@ static void v4l2_close(struct v4l2_ctx *vc)
     }
     free(vc->name);
     close(vc->fd);
-    close(vc->on_read_fd);
-    close(vc->on_write_fd);
     free(vc);
 }
 
@@ -479,4 +432,5 @@ void uvc_close(struct uvc_ctx *uvc)
     }
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
     v4l2_close(vc);
+    free(uvc);
 }
