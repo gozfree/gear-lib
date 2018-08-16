@@ -28,3 +28,19 @@ void *memdup(void *src, size_t len)
     }
     return dst;
 }
+
+struct iovec *iovec_create(size_t len)
+{
+    struct iovec *vec = CALLOC(1, struct iovec);
+    vec->iov_len = len;
+    vec->iov_base = calloc(1, len);
+    return vec;
+}
+
+void iovec_destroy(struct iovec *vec)
+{
+    if (!vec || !vec->iov_base)
+        return;
+    free(vec->iov_base);
+    free(vec);
+}

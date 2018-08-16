@@ -19,6 +19,7 @@
 #define LIBMACRO_H
 
 #include <stdio.h>
+#include <sys/uio.h>
 #include "kernel_list.h"
 
 #ifdef __cplusplus
@@ -68,6 +69,8 @@ extern "C" {
 #define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
 
 void *memdup(void *src, size_t len);
+struct iovec *iovec_create(size_t len);
+void iovec_destroy(struct iovec *);
 
 
 #ifdef __cplusplus
