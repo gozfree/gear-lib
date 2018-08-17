@@ -49,6 +49,7 @@ typedef struct transport_session {
 
     int track; // mp4 track
     struct thread *thread;
+    struct thread *ev_thread;
     struct media_source *media_source;
 
 } transport_session_t;

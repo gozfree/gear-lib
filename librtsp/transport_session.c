@@ -7,7 +7,10 @@
 #include <libdict.h>
 #include <libmacro.h>
 #include <libatomic.h>
-#include <strings.h>
+#include <libgevent.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -98,21 +101,48 @@ static void *send_thread(struct thread *t, void *ptr)
     return NULL;
 }
 
+static void on_recv(int fd, void *arg)
+{
+    char buf[2048];
+    memset(buf, 0, sizeof(buf));
+    int ret = skt_recv(fd, buf, 2048);
+    if (ret > 0) {
+        loge("recv len= %d\n", ret);
+        rtcp_parse(buf, ret);
+    } else if (ret == 0) {
+        loge("delete connection fd:%d\n", fd);
+    } else if (ret < 0) {
+        loge("recv failed!\n");
+    }
+}
+
+static void on_error(int fd, void *arg)
+{
+    loge("error: %d\n", errno);
+}
+
+static void *event_thread(struct thread *t, void *ptr)
+{
+    struct transport_session *ts = (struct transport_session *)ptr;
+    gevent_base_loop(ts->evbase);
+    return NULL;
+}
+
 int transport_session_start(struct transport_session *ts, struct media_source *ms)
 {
-#if 0
-    struct gevent *e = NULL;
     ts->evbase = gevent_base_create();
     if (!ts->evbase) {
-        goto failed;
+        return -1;
     }
-    e = gevent_create(ts->rtp.sock.rtcp_fd, on_connect, NULL, on_error, NULL);
+    skt_set_noblk(ts->rtp->sock->rtcp_fd, true);
+    struct gevent *e = gevent_create(ts->rtp->sock->rtcp_fd, on_recv, NULL, on_error, NULL);
     if (-1 == gevent_add(ts->evbase, e)) {
         loge("event_add failed!\n");
         gevent_destroy(e);
     }
-#endif
+    loge("rtcp_fd = %d\n", ts->rtp->sock->rtcp_fd);
     ts->media_source = ms;
+    ts->ev_thread = thread_create(event_thread, ts);
     ts->thread = thread_create(send_thread, ts);
     logi("session_id = %d\n", ts->session_id);
     return 0;

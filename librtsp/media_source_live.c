@@ -38,11 +38,14 @@ struct live_source_ctx {
     const char name[32];
     struct iovec data;
     struct uvc_ctx *uvc;
+    bool uvc_opened;
     int width;
     int height;
     struct x264_ctx *x264;
     struct iovec extradata;
 };
+
+static struct live_source_ctx g_live = {.uvc_opened = false};
 
 #define AV_INPUT_BUFFER_PADDING_SIZE 32
 
@@ -261,14 +264,19 @@ static uint32_t get_random_number()
 
 static int live_open(struct media_source *ms, const char *name)
 {
-    struct live_source_ctx *c = CALLOC(1, struct live_source_ctx);
+    struct live_source_ctx *c = &g_live;
     c->width = 640;
     c->height = 480;
+    if (c->uvc_opened) {
+        logi("uvc already opened!\n");
+        return 0;
+    }
     c->uvc = uvc_open("/dev/video0", c->width, c->height);
     if (!c->uvc) {
         loge("uvc open failed!\n");
         return -1;
     }
+    c->uvc_opened = true;
     ms->opaque = c;
     c->x264 = x264_open(c);
     if (!c->x264) {
@@ -286,6 +294,7 @@ static void live_close(struct media_source *ms)
     free(c->data.iov_base);
     x264_close(c->x264);
     uvc_close(c->uvc);
+    c->uvc_opened = false;
 }
 
 static int sdp_generate(struct media_source *ms)

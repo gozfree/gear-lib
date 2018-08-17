@@ -21,6 +21,7 @@
 #include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
@@ -298,7 +299,7 @@ struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char*
             if (src_ip) {
                 strcpy(s->ip, src_ip);
             }
-            logd("bind rtp port %d %d\n", s->rtp_src_port, s->rtcp_src_port);
+            logi("bind %s rtp port %d %d\n", src_ip, s->rtp_src_port, s->rtcp_src_port);
             break;
         } while(1);
         break;
@@ -566,4 +567,109 @@ int rtp_payload_find(int payload, const char* encoding, struct rtp_payload_deleg
 #endif
 
 	return 0;
+}
+
+#if 0
+void rtcp_rr_unpack(struct rtp_context *ctx, rtcp_header_t *header, const uint8_t* ptr)
+{
+	uint32_t ssrc, i;
+	rtcp_rb_t *rb;
+	struct rtp_member *receiver;
+
+	assert(24 == sizeof(rtcp_rb_t) && 4 == sizeof(rtcp_rr_t));
+	if (header->length * 4 < 4/*sizeof(rtcp_rr_t)*/ + header->rc * 24/*sizeof(rtcp_rb_t)*/) // RR SSRC + Report Block
+	{
+		assert(0);
+		return;
+	}
+	ssrc = nbo_r32(ptr);
+
+	receiver = rtp_member_fetch(ctx, ssrc);
+	if(!receiver) return; // error
+
+	assert(receiver != ctx->self);
+	assert(receiver->rtcp_sr.ssrc == ssrc);
+	assert(receiver->rtcp_rb.ssrc == ssrc);
+	receiver->rtcp_clock = rtpclock(); // last received clock, for keep-alive
+
+	ptr += 4;
+	// report block
+	for(i = 0; i < header->rc; i++, ptr+=24/*sizeof(rtcp_rb_t)*/) 
+	{
+		ssrc = nbo_r32(ptr);
+		if(ssrc != ctx->self->ssrc)
+			continue; // ignore
+
+		rb = &receiver->rtcp_rb;
+		rb->fraction = ptr[4];
+		rb->cumulative = (((uint32_t)ptr[5])<<16) | (((uint32_t)ptr[6])<<8)| ptr[7];
+		rb->exthsn = nbo_r32(ptr+8);
+		rb->jitter = nbo_r32(ptr+12);
+		rb->lsr = nbo_r32(ptr+16);
+		rb->dlsr = nbo_r32(ptr+20);
+	}
+}
+#endif
+int rtcp_parse(/*struct rtp_context *ctx, */char* data, size_t bytes)
+{
+	uint32_t rtcphd;
+	rtcp_header_t header;
+
+	rtcphd = nbo_r32((uint8_t *)data);
+
+	header.v = RTCP_V(rtcphd);
+	header.p = RTCP_P(rtcphd);
+	header.rc = RTCP_RC(rtcphd);
+	header.pt = RTCP_PT(rtcphd);
+	header.length = RTCP_LEN(rtcphd);
+    loge("v=%d, p=%d, rc=%d, pt=%d, length=%d\n", header.v, header.p, header.rc, header.pt, header.length);
+	
+	if (header.length * 4 + 4 > bytes)
+	{
+        loge("xxx\n");
+		return -1;
+	}
+
+	// 1. RTP version field must equal 2 (p69)
+	// 2. The payload type filed of the first RTCP packet in a compound packet must be SR or RR (p69)
+	// 3. padding only valid at the last packet
+
+	if(1 == header.p)
+	{
+		header.length -= *(data + header.length - 1) * 4;
+        loge("xxx\n");
+	}
+
+	switch(header.pt)
+	{
+	case RTCP_SR:
+        loge("RTCP_SR\n");
+		//rtcp_sr_unpack(ctx, &header, data+4);
+		break;
+
+	case RTCP_RR:
+        loge("RTCP_RR\n");
+		//rtcp_rr_unpack(ctx, &header, data+4);
+		break;
+
+	case RTCP_SDES:
+        loge("RTCP_SDES\n");
+		//rtcp_sdes_unpack(ctx, &header, data+4);
+		break;
+
+	case RTCP_BYE:
+        loge("RTCP_BYE\n");
+		//rtcp_bye_unpack(ctx, &header, data+4);
+		break;
+
+	case RTCP_APP:
+        loge("RTCP_APP\n");
+		//rtcp_app_unpack(ctx, &header, data+4);
+		break;
+
+	default:
+		break;
+	}
+
+	return (header.length+1)*4;
 }
