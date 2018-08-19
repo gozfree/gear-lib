@@ -1,7 +1,7 @@
 
 #include "transport_session.h"
 #include "media_source.h"
-#include "librtp.h"
+#include "rtp.h"
 #include <liblog.h>
 #include <libtime.h>
 #include <libdict.h>
@@ -107,7 +107,6 @@ static void on_recv(int fd, void *arg)
     memset(buf, 0, sizeof(buf));
     int ret = skt_recv(fd, buf, 2048);
     if (ret > 0) {
-        loge("recv len= %d\n", ret);
         rtcp_parse(buf, ret);
     } else if (ret == 0) {
         loge("delete connection fd:%d\n", fd);

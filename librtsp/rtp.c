@@ -15,7 +15,7 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#include "librtp.h"
+#include "rtp.h"
 #include <liblog.h>
 #include <libskt.h>
 #include <libmacro.h>
@@ -569,107 +569,126 @@ int rtp_payload_find(int payload, const char* encoding, struct rtp_payload_deleg
 	return 0;
 }
 
-#if 0
-void rtcp_rr_unpack(struct rtp_context *ctx, rtcp_header_t *header, const uint8_t* ptr)
+void rtcp_rr_unpack(rtcp_header_t *header, const uint8_t* ptr)
 {
-	uint32_t ssrc, i;
-	rtcp_rb_t *rb;
-	struct rtp_member *receiver;
+    uint32_t ssrc, i;
+    rtcp_rb_t rb;
 
-	assert(24 == sizeof(rtcp_rb_t) && 4 == sizeof(rtcp_rr_t));
-	if (header->length * 4 < 4/*sizeof(rtcp_rr_t)*/ + header->rc * 24/*sizeof(rtcp_rb_t)*/) // RR SSRC + Report Block
-	{
-		assert(0);
-		return;
-	}
-	ssrc = nbo_r32(ptr);
+    if (header->length * 4 < sizeof(rtcp_rr_t) + header->rc * sizeof(rtcp_rb_t)) {
+        loge("error occur\n");
+        return;
+    }
+    ssrc = nbo_r32(ptr);
+    logi("Received RTCP packet from %08X\n", ssrc);
 
-	receiver = rtp_member_fetch(ctx, ssrc);
-	if(!receiver) return; // error
-
-	assert(receiver != ctx->self);
-	assert(receiver->rtcp_sr.ssrc == ssrc);
-	assert(receiver->rtcp_rb.ssrc == ssrc);
-	receiver->rtcp_clock = rtpclock(); // last received clock, for keep-alive
-
-	ptr += 4;
-	// report block
-	for(i = 0; i < header->rc; i++, ptr+=24/*sizeof(rtcp_rb_t)*/) 
-	{
-		ssrc = nbo_r32(ptr);
-		if(ssrc != ctx->self->ssrc)
-			continue; // ignore
-
-		rb = &receiver->rtcp_rb;
-		rb->fraction = ptr[4];
-		rb->cumulative = (((uint32_t)ptr[5])<<16) | (((uint32_t)ptr[6])<<8)| ptr[7];
-		rb->exthsn = nbo_r32(ptr+8);
-		rb->jitter = nbo_r32(ptr+12);
-		rb->lsr = nbo_r32(ptr+16);
-		rb->dlsr = nbo_r32(ptr+20);
-	}
+    ptr += sizeof(rtcp_rr_t);
+    for (i = 0; i < header->rc; i++, ptr += sizeof(rtcp_rb_t)) {
+        rb.ssrc = nbo_r32(ptr);
+        rb.fraction = ptr[4];
+        rb.cumulative = (((uint32_t)ptr[5])<<16) | (((uint32_t)ptr[6])<<8)| ptr[7];
+        rb.exthsn = nbo_r32(ptr+8);
+        rb.jitter = nbo_r32(ptr+12);
+        rb.lsr = nbo_r32(ptr+16);
+        rb.dlsr = nbo_r32(ptr+20);
+        logi("\n      Received RR of source: %08X"
+             "\n              Fraction Lost: %hhu"
+             "\n         Total Packets Lost: %d"
+             "\nReceived Packets Seq Number: %u"
+             "\n        Interarrival Jitter: %u"
+             "\n                    Last SR: %u"
+             "\n        Delay Since Last SR: %u\n",
+             rb.ssrc, rb.fraction, rb.cumulative,
+             rb.exthsn, rb.jitter, rb.lsr, rb.dlsr);
+    }
 }
-#endif
-int rtcp_parse(/*struct rtp_context *ctx, */char* data, size_t bytes)
+
+void rtcp_sr_unpack(rtcp_header_t *header, const uint8_t* ptr)
 {
-	uint32_t rtcphd;
-	rtcp_header_t header;
+    uint32_t i;
+    rtcp_sr_t sr;
+    rtcp_rb_t rb;
 
-	rtcphd = nbo_r32((uint8_t *)data);
+    if (header->length * 4 < sizeof(rtcp_sr_t) + header->rc * sizeof(rtcp_rb_t)) {
+        loge("error occur\n");
+        return;
+    }
+    sr.ssrc = nbo_r32(ptr);
+    sr.ntpmsw = nbo_r32(ptr + 4);
+    sr.ntplsw = nbo_r32(ptr + 8);
+    sr.rtpts = nbo_r32(ptr + 12);
+    sr.spc = nbo_r32(ptr + 16);
+    sr.soc = nbo_r32(ptr + 20);
 
-	header.v = RTCP_V(rtcphd);
-	header.p = RTCP_P(rtcphd);
-	header.rc = RTCP_RC(rtcphd);
-	header.pt = RTCP_PT(rtcphd);
-	header.length = RTCP_LEN(rtcphd);
-    loge("v=%d, p=%d, rc=%d, pt=%d, length=%d\n", header.v, header.p, header.rc, header.pt, header.length);
-	
-	if (header.length * 4 + 4 > bytes)
-	{
+    logi("\nReceived SR sender info of SSRC %08X:"
+         "\n           NTP  Timestamp MSW: %u"
+         "\n           NTP  Timestamp LSW: %u"
+         "\n                RTP Timestamp: %u"
+         "\n        Sender's packet count: %u"
+         "\n         Sender's octet count: %u",
+         sr.ssrc, sr.ntpmsw, sr.ntplsw, sr.rtpts, sr.spc, sr.soc);
+    ptr += sizeof(rtcp_sr_t);
+    for (i = 0; i < header->rc; i++, ptr+=sizeof(rtcp_rb_t)) {
+        rb.ssrc = nbo_r32(ptr);
+        rb.fraction = ptr[4];
+        rb.cumulative = (((uint32_t)ptr[5])<<16) | (((uint32_t)ptr[6])<<8)| ptr[7];
+        rb.exthsn = nbo_r32(ptr+8);
+        rb.jitter = nbo_r32(ptr+12);
+        rb.lsr = nbo_r32(ptr+16);
+        rb.dlsr = nbo_r32(ptr+20);
+        logi("\n      Received SR of source: %08X"
+             "\n              Fraction Lost: %hhu"
+             "\n         Total Packets Lost: %d"
+             "\nReceived Packets Seq Number: %u"
+             "\n        Interarrival Jitter: %u"
+             "\n                    Last SR: %u"
+             "\n        Delay Since Last SR: %u\n",
+             rb.ssrc, rb.fraction, rb.cumulative,
+             rb.exthsn, rb.jitter, rb.lsr, rb.dlsr);
+    }
+}
+int rtcp_parse(char* data, size_t bytes)
+{
+    rtcp_header_t header;
+    uint32_t rtcphd = nbo_r32((uint8_t *)data);
+    header.v = RTCP_V(rtcphd);
+    header.p = RTCP_P(rtcphd);
+    header.rc = RTCP_RC(rtcphd);
+    header.pt = RTCP_PT(rtcphd);
+    header.length = RTCP_LEN(rtcphd);
+
+    if (header.length * 4 + 4 > bytes) {
         loge("xxx\n");
-		return -1;
-	}
+        return -1;
+    }
 
-	// 1. RTP version field must equal 2 (p69)
-	// 2. The payload type filed of the first RTCP packet in a compound packet must be SR or RR (p69)
-	// 3. padding only valid at the last packet
-
-	if(1 == header.p)
-	{
-		header.length -= *(data + header.length - 1) * 4;
+    if (1 == header.p) {
+        header.length -= *(data + header.length - 1) * 4;
         loge("xxx\n");
-	}
+    }
 
-	switch(header.pt)
-	{
-	case RTCP_SR:
-        loge("RTCP_SR\n");
-		//rtcp_sr_unpack(ctx, &header, data+4);
-		break;
-
-	case RTCP_RR:
-        loge("RTCP_RR\n");
-		//rtcp_rr_unpack(ctx, &header, data+4);
-		break;
-
-	case RTCP_SDES:
+    switch (header.pt) {
+    case RTCP_SR:
+        rtcp_sr_unpack(&header, (uint8_t *)data+4);
+        break;
+    case RTCP_RR:
+        rtcp_rr_unpack(&header, (uint8_t *)data+4);
+        break;
+    case RTCP_SDES:
         loge("RTCP_SDES\n");
-		//rtcp_sdes_unpack(ctx, &header, data+4);
-		break;
-
-	case RTCP_BYE:
+        //rtcp_sdes_unpack(ctx, &header, data+4);
+        break;
+    case RTCP_BYE:
         loge("RTCP_BYE\n");
-		//rtcp_bye_unpack(ctx, &header, data+4);
-		break;
-
-	case RTCP_APP:
+        //rtcp_bye_unpack(ctx, &header, data+4);
+        break;
+    case RTCP_APP:
         loge("RTCP_APP\n");
-		//rtcp_app_unpack(ctx, &header, data+4);
-		break;
+        //rtcp_app_unpack(ctx, &header, data+4);
+        break;
+    default:
+        loge("xxxx\n");
+        break;
+    }
 
-	default:
-		break;
-	}
-
-	return (header.length+1)*4;
+    return 0;
 }

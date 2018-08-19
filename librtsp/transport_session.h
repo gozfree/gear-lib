@@ -20,7 +20,7 @@
 
 #include "media_source.h"
 #include "rtsp_parser.h"
-#include "librtp.h"
+#include "rtp.h"
 #include <libthread.h>
 #include <stdint.h>
 #include <stddef.h>
