@@ -78,7 +78,20 @@ int spin_trylock(spin_lock_t *lock)
  *****************************************************************************/
 int mutex_lock_init(mutex_lock_t *lock)
 {
+    pthread_mutexattr_t  attr;
+
+    if (0 != pthread_mutexattr_init(&attr)) {
+        printf("pthread_mutexattr_init failed\n");
+        return -1;
+    }
+    if (0 != pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK)) {
+        printf("pthread_mutexattr_settype (PTHREAD_MUTEX_ERRORCHECK) failed\n");
+        return -1;
+    }
     pthread_mutex_init(lock, NULL);
+    if (0 != pthread_mutexattr_destroy(&attr)) {
+        printf("pthread_mutexattr_destroy failed\n");
+    }
     return 0;
 }
 
