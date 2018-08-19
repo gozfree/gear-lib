@@ -30,6 +30,7 @@ extern "C" {
 
 typedef struct thread {
     pthread_t tid;
+    pthread_attr_t attr;
     enum lock_type type;
     union {
         spin_lock_t spin;
@@ -44,6 +45,7 @@ typedef struct thread {
 
 struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...);
 void thread_destroy(struct thread *t);
+void thread_info(struct thread *t);
 
 int thread_lock(struct thread *t);
 int thread_unlock(struct thread *t);

@@ -57,8 +57,7 @@ struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, 
     }
     t->type = type;
 
-    pthread_attr_t attr;
-    if (0 != pthread_attr_init(&attr)) {
+    if (0 != pthread_attr_init(&t->attr)) {
         printf("pthread_attr_init() failed\n");
         goto err;
     }
@@ -93,7 +92,7 @@ struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, 
     t->arg = arg;
     t->func = func;
     t->run = true;
-    if (0 != pthread_create(&t->tid, NULL, __thread_func, t)) {
+    if (0 != pthread_create(&t->tid, &t->attr, __thread_func, t)) {
         printf("pthread_create failed(%d): %s\n", errno, strerror(errno));
         goto err;
     }
@@ -130,7 +129,55 @@ void thread_destroy(struct thread *t)
         break;
     }
     pthread_join(t->tid, NULL);
+    pthread_attr_destroy(&t->attr);
     free(t);
+}
+
+void thread_info(struct thread *t)
+{
+    int i;
+    size_t v;
+    void *stkaddr;
+    struct sched_param sp;
+
+    printf("thread attribute info:\n");
+    if (0 == pthread_attr_getdetachstate(&t->attr, &i)) {
+        printf("detach state = %s\n",
+            (i == PTHREAD_CREATE_DETACHED) ? "PTHREAD_CREATE_DETACHED" :
+            (i == PTHREAD_CREATE_JOINABLE) ? "PTHREAD_CREATE_JOINABLE" :
+            "???");
+    }
+    if (0 == pthread_attr_getscope(&t->attr, &i)) {
+        printf("scope = %s\n",
+            (i == PTHREAD_SCOPE_SYSTEM) ? "PTHREAD_SCOPE_SYSTEM" :
+            (i == PTHREAD_SCOPE_PROCESS) ? "PTHREAD_SCOPE_PROCESS" :
+            "???");
+    }
+    if (0 == pthread_attr_getinheritsched(&t->attr, &i)) {
+        printf("inherit scheduler = %s\n",
+            (i == PTHREAD_INHERIT_SCHED) ? "PTHREAD_INHERIT_SCHED" :
+            (i == PTHREAD_EXPLICIT_SCHED) ? "PTHREAD_EXPLICIT_SCHED" :
+            "???");
+    }
+    if (0 == pthread_attr_getschedpolicy(&t->attr, &i)) {
+        printf("scheduling policy = %s\n",
+            (i == SCHED_OTHER) ? "SCHED_OTHER" :
+            (i == SCHED_FIFO) ? "SCHED_FIFO" :
+            (i == SCHED_RR) ? "SCHED_RR" :
+            "???");
+    }
+
+    if (0 == pthread_attr_getschedparam(&t->attr, &sp)) {
+        printf("scheduling priority = %d\n", sp.sched_priority);
+    }
+
+    if (0 == pthread_attr_getguardsize(&t->attr, &v)) {
+        printf("guard size = %zu bytes\n", v);
+    }
+
+    if (0 == pthread_attr_getstack(&t->attr, &stkaddr, &v)) {
+        printf("stack address = %p, size = %zu\n", stkaddr, v);
+    }
 }
 
 int thread_lock(struct thread *t)

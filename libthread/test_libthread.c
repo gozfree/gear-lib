@@ -57,6 +57,7 @@ void foo()
 void foo2()
 {
     struct thread *t1 = thread_create(thread, NULL);
+    thread_info(t1);
     thread_destroy(t1);
 }
 
