@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
 #include <sys/uio.h>
 
 #ifdef __cplusplus
@@ -33,7 +34,17 @@ typedef enum file_open_mode {
     F_RDWR,
     F_CREATE,
     F_WRCLEAR,
+    F_APPEND,
 } file_open_mode_t;
+
+typedef enum file_type {
+    F_NORMAL,
+    F_DIR,
+    F_LINK,
+    F_SOCKET,
+    F_DEVICE,
+
+} file_type_t;
 
 struct file_desc {
     union {
@@ -50,8 +61,10 @@ typedef struct file {
 } file;
 
 typedef struct file_info {
-    struct timespec time_modify;
-    struct timespec time_access;
+    uint64_t modify_sec;
+    uint64_t access_sec;
+    enum file_type type;
+    char path[PATH_MAX];
     uint64_t size;
 } file_info;
 
@@ -79,8 +92,9 @@ typedef enum file_backend_type {
 
 void file_backend(file_backend_type type);
 int file_create(const char *path);
-void file_delete(const char *path);
+int file_delete(const char *path);
 bool file_exist(const char *path);
+
 struct file *file_open(const char *path, file_open_mode_t mode);
 void file_close(struct file *file);
 ssize_t file_read(struct file *file, void *data, size_t size);
@@ -89,9 +103,11 @@ ssize_t file_write(struct file *file, const void *data, size_t size);
 ssize_t file_write_path(const char *path, const void *data, size_t size);
 ssize_t file_size(struct file *file);
 ssize_t file_get_size(const char *path);
+int file_get_info(const char *path, struct file_info *info);
 struct iovec *file_dump(const char *path);
 int file_sync(struct file *file);
 off_t file_seek(struct file *file, off_t offset, int whence);
+
 struct file_systat *file_get_systat(const char *path);
 char *file_path_pwd();
 char *file_path_suffix(char *path);

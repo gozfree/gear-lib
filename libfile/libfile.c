@@ -15,6 +15,7 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libfile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -29,7 +30,6 @@
 #include <limits.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#include "libfile.h"
 
 /*
  * Most of these MAGIC constants are defined in /usr/include/linux/magic.h,
@@ -112,6 +112,21 @@ static char local_path[PATH_MAX];
 void file_backend(file_backend_type type)
 {
     backend = type;
+}
+
+int file_create(const char *path)
+{
+    struct file *fp = file_open(path, F_CREATE);
+    if (!fp) {
+        return -1;
+    }
+    file_close(fp);
+    return 0;
+}
+
+int file_delete(const char *path)
+{
+    return remove(path);
 }
 
 struct file *file_open(const char *path, file_open_mode_t mode)
@@ -395,6 +410,7 @@ int file_dir_tree(const char *path)
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
     int ret;
+
     pdir = opendir(path);
     if (!pdir) {
         printf("can not open path: %s\n", path);
@@ -417,6 +433,7 @@ int file_dir_tree(const char *path)
                 closedir(pdir);
                 return ret;
             }
+            printf("%s\n", full_path);
         }
     }
     closedir(pdir);
@@ -484,4 +501,37 @@ int file_num_in_dir(const char *path)
     }
     closedir(dir);
     return num;
+}
+
+int file_get_info(const char *path, struct file_info *info)
+{
+    struct stat st;
+    if (-1 == stat(path, &st)) {
+        printf("stat %s failed!\n", path);
+        return -1;
+    }
+    switch (st.st_mode & S_IFMT) {
+    case S_IFSOCK:
+        info->type = F_SOCKET;
+        break;
+    case S_IFLNK:
+        info->type = F_LINK;
+        break;
+    case S_IFBLK:
+    case S_IFCHR:
+        info->type = F_DEVICE;
+        break;
+    case S_IFREG:
+        info->type = F_NORMAL;
+        break;
+    case S_IFDIR:
+        info->type = F_DIR;
+        break;
+    default:
+        break;
+    }
+    info->size = st.st_size;
+    info->access_sec = st.st_atim.tv_sec;
+    info->modify_sec = st.st_ctim.tv_sec;//using change, not modify
+    return 0;
 }

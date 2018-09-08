@@ -15,15 +15,15 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libfile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "libfile.h"
+#define MAX_RETRY_CNT   (3)
 
-#define MAX_RETRY_CNT	(3)
 static struct file_desc *fio_open(const char *path, file_open_mode_t mode)
 {
     struct file_desc *file = (struct file_desc *)calloc(1,
@@ -34,22 +34,25 @@ static struct file_desc *fio_open(const char *path, file_open_mode_t mode)
     }
     const char *flags = NULL;
     switch(mode) {
-      case F_RDONLY:
+    case F_RDONLY:
         flags = "r";
         break;
-      case F_WRONLY:
+    case F_WRONLY:
         flags = "w";
         break;
-      case F_RDWR:
+    case F_RDWR:
         flags = "r+";
         break;
-      case F_CREATE:
+    case F_CREATE:
         flags = "w+";
         break;
-      case F_WRCLEAR:
+    case F_WRCLEAR:
         flags = "w+";
         break;
-      default:
+    case F_APPEND:
+        flags = "a+";
+        break;
+    default:
         printf("unsupport file mode!\n");
         break;
     }
@@ -98,25 +101,25 @@ static ssize_t fio_read(struct file_desc *file, void *buf, size_t len)
     return (len - left);
 }
 
-static ssize_t fio_write(struct file_desc *file, const void *buf, size_t count)
+static ssize_t fio_write(struct file_desc *file, const void *buf, size_t len)
 {
     ssize_t n;
-    char *cursor = (char *)buf;
+    char *p = (char *)buf;
     int retry = 0;
-    if (file == NULL || buf == NULL || count == 0) {
+    if (file == NULL || buf == NULL || len == 0) {
         printf("%s paraments invalid!\n", __func__);
         return -1;
     }
     FILE *fp = file->fp;
     size_t step = 1024 * 1024;
-    size_t remain = count;
-    while (remain > 0) {
-        if (remain < step)
-            step = remain;
-        n = fwrite((void *)cursor, 1, step, fp);
+    size_t left = len;
+    while (left > 0) {
+        if (left < step)
+            step = left;
+        n = fwrite((void *)p, 1, step, fp);
         if (n > 0) {
-            cursor += n;
-            remain -= n;
+            p += n;
+            left -= n;
             continue;
         } else {
             if (errno == EINTR || errno == EAGAIN) {
@@ -131,7 +134,7 @@ static ssize_t fio_write(struct file_desc *file, const void *buf, size_t count)
             }
         }
     }
-    return (count - remain);
+    return (len - left);
 }
 
 static off_t fio_seek(struct file_desc *file, off_t offset, int whence)
