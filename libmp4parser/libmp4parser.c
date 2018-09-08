@@ -24,9 +24,9 @@
 
 struct mp4_parser *mp4_parser_create(const char *file)
 {
-    stream_t *stream = create_file_stream();
-    if (stream_open(stream, file, MODE_READ) == 0) {
-        printf("stream_open %s failed\n", file);
+    stream_t *stream = create_file_stream(file);
+    if (!stream) {
+        printf("create_file_stream failed!\n");
         return NULL;
     }
     struct mp4_parser *mp = (struct mp4_parser *)calloc(1, sizeof(struct mp4_parser));
@@ -43,7 +43,6 @@ void mp4_parser_destroy(struct mp4_parser *mp)
     stream_t *stream = (stream_t *)mp->opaque_stream;
     MP4_Box_t *root = (MP4_Box_t *)mp->opaque_root;
     MP4_BoxFree(stream, root);
-    stream_close(stream);
     destory_file_stream(stream);
     free(mp);
 }

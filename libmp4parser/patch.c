@@ -99,12 +99,14 @@ void msg_log(int log_lvl, const char *fmt, ...)
     vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
     switch (log_lvl) {
+#ifdef MP4_VERBOSE
     case MSG_DGB:
-        //printf("debug: %s\n", buf);
+        printf("debug: %s\n", buf);
         break;
     case MSG_WARN:
-        //printf("warn: %s\n", buf);
+        printf("warn: %s\n", buf);
         break;
+#endif
     case MSG_ERR:
         printf("err: %s\n", buf);
         break;
@@ -113,102 +115,64 @@ void msg_log(int log_lvl, const char *fmt, ...)
     }
 }
 
-static void* file_open(stream_t *stream_s, const char* filename, int mode)
+int stream_Read(stream_t *s, void* buf, int size)
 {
-    FILE* file = NULL;
-    const char* mode_fopen = NULL;
-    if ((mode & MODE_READWRITEFILTER) == MODE_READ) {
-        mode_fopen = "rb";
-    } else if (mode & MODE_EXISTING) {
-        mode_fopen = "r+b";
-    } else if (mode & MODE_CREATE) {
-        mode_fopen = "wb";
-    }
-    if ((filename != NULL) && (mode_fopen != NULL)) {
-        file = fopen(filename, mode_fopen);
-    }
-    stream_s->opaque = (void*)file;
-    return file;
+    return fread(buf, 1, size, s->fp);
 }
 
-static int file_read(stream_t *stream_s, void* buf, int size)
+uint64_t stream_Seek(stream_t *s, int64_t offset)
 {
-    FILE* file = (FILE*)stream_s->opaque;
-    return fread(buf, 1, size, file);
+    return fseek(s->fp, offset, SEEK_SET);
 }
 
-static int file_write(stream_t *stream_s, void *buf, int size)
+int64_t stream_Tell(stream_t *s)
 {
-    FILE* file = (FILE*)stream_s->opaque;
-    return fwrite(buf, 1, size, file);
+    return ftell(s->fp);
 }
 
-static uint64_t file_seek(stream_t *stream_s, int64_t offset, int whence)
+int stream_Peek(stream_t *s, const uint8_t **buf, int size)
 {
-    FILE* file = (FILE*)stream_s->opaque;
-    return fseek(file, offset, whence);
-}
-
-static int64_t file_tell(stream_t *stream_s)
-{
-    FILE* file = (FILE*)stream_s->opaque;
-    return ftell(file);
-}
-
-static int file_peek(stream_t *stream_s, const uint8_t **buf, int size)
-{
-    uint32_t offset = file_tell(stream_s);
+    uint32_t offset = stream_Tell(s);
     *buf = (uint8_t *)calloc(1, size);
-    stream_s->priv_buf_num++;
-    stream_s->priv_buf = (void **)realloc(stream_s->priv_buf, stream_s->priv_buf_num * sizeof(uint8_t*));
-    stream_s->priv_buf[stream_s->priv_buf_num-1] = (void *)*buf;
-    int ret = file_read(stream_s, (void *)*buf, size);
-    file_seek(stream_s, offset, SEEK_SET);
+    s->priv_buf_num++;
+    s->priv_buf = (void **)realloc(s->priv_buf, s->priv_buf_num * sizeof(uint8_t*));
+    s->priv_buf[s->priv_buf_num-1] = (void *)*buf;
+    int ret = stream_Read(s, (void *)*buf, size);
+    stream_Seek(s, offset);
     return ret;
 }
 
-static int64_t file_size(stream_t *stream_s)
+int64_t stream_Size(stream_t *s)
 {
-    FILE* file = (FILE*)stream_s->opaque;
     long size;
-    long tmp = ftell(file);
-    fseek(file, 0L, SEEK_END);
-    size = ftell(file);
-    fseek(file, tmp, SEEK_SET);
-    return (size_t)size;
+    long tmp = ftell(s->fp);
+    fseek(s->fp, 0L, SEEK_END);
+    size = ftell(s->fp);
+    fseek(s->fp, tmp, SEEK_SET);
+    return (int64_t)size;
 }
 
-static int file_close(stream_t *stream_s)
-{
-    FILE* file = (FILE*)stream_s->opaque;
-    return fclose(file);
-}
-
-stream_t* create_file_stream()
+stream_t* create_file_stream(const char *filename)
 {
     stream_t* s = (stream_t*)calloc(1, sizeof(stream_t));
-    s->open = file_open;
-    s->read = file_read;
-    s->write = file_write;
-    s->peek = file_peek;
-    s->seek = file_seek;
-    s->tell = file_tell;
-    s->size = file_size;
-    s->close = file_close;
     s->priv_buf_num = 0;
     s->priv_buf = (void **)calloc(1, sizeof(uint32_t));
+    s->fp = fopen(filename, "rb");
+    if (!s->fp) {
+        printf("fopen %s failed!\n", filename);
+        free(s);
+        return NULL;
+    }
     return s;
 }
 
-void destory_file_stream(stream_t* stream_s)
+void destory_file_stream(stream_t* s)
 {
     int i;
-    for (i = 0; i < stream_s->priv_buf_num; i++) {
-        free(stream_s->priv_buf[i]);
+    fclose(s->fp);
+    for (i = 0; i < s->priv_buf_num; i++) {
+        free(s->priv_buf[i]);
     }
-    free(stream_s->priv_buf);
-    free(stream_s);
+    free(s->priv_buf);
+    free(s);
 }
-
-
-

@@ -187,15 +187,7 @@ static inline uint64_t U64_AT (const void *p)
 
 
 typedef struct stream {
-    void *(*open)(struct stream *stream_s, const char *filename, int mode);
-    int (*read)(struct stream *stream_s, void *buf, int size);
-    int (*write)(struct stream *stream_s, void *buf, int size);
-    int (*peek)(struct stream *stream_s, const uint8_t **buf, int size);
-    uint64_t (*seek)(struct stream *stream_s, int64_t offset, int whence);
-    int64_t (*tell)(struct stream *stream_s);
-    int64_t (*size)(struct stream *stream_s);
-    int (*close)(struct stream *stream_s);
-    void *opaque;
+    FILE *fp;
     void **priv_buf;//store peek malloc buffer
     int priv_buf_num;
 } stream_t;
@@ -203,14 +195,11 @@ typedef struct stream {
 stream_t* create_file_stream();
 void destory_file_stream(stream_t* stream_s);
 
-#define stream_open(s, filename, mode) ((stream_t*)s)->open(((stream_t*)s), filename, mode)
-#define stream_close(s) ((stream_t*)s)->close(((stream_t*)s))
-#define stream_Read(s, buf, size) ((stream_t*)s)->read(((stream_t*)s), buf, size)
-#define stream_write(s, buf, size) ((stream_t*)s)->write(((stream_t*)s), buf, size)
-#define stream_Peek(s, buf, size) ((stream_t*)s)->peek(((stream_t*)s), buf, size)
-#define stream_Seek(s, offset) ((stream_t*)s)->seek(((stream_t*)s), offset, SEEK_SET)
-#define stream_Tell(s) ((stream_t*)s)->tell(((stream_t*)s))
-#define stream_Size(s) ((stream_t*)s)->size(((stream_t*)s))
+int stream_Read(stream_t *stream_s, void* buf, int size);
+int stream_Peek(stream_t *stream_s, const uint8_t **buf, int size);
+uint64_t stream_Seek(stream_t *stream_s, int64_t offset);
+int64_t stream_Tell(stream_t *stream_s);
+int64_t stream_Size(stream_t *stream_s);
 
 bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
                                   bool *b_mactables );

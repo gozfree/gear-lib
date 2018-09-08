@@ -26,8 +26,12 @@ int main(int argc, char* argv[])
     }
     struct mp4_parser *mp = mp4_parser_create(argv[1]);
     uint64_t duration = 0;
+    uint32_t w, h;
     mp4_get_duration(mp, &duration);
     printf("duration = %lu\n", duration);
+    mp4_get_resolution(mp, &w, &h);
+    printf("resolution = %dx%d\n", (int)w, (int)h);
+    mp4_parser_destroy(mp);
     return 0;
 }
 
