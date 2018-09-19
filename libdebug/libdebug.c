@@ -72,7 +72,6 @@ static int signals_all[] = {
     SIGIO,     /* 29 I/O now possible (4.2 BSD).  */
     SIGPWR,    /* 30 Power failure restart (System V).  */
     SIGSYS,    /* 31 Bad system call.  */
-    SIGUNUSED, /* 31 */
 };
 
 static int signals_trace[] =

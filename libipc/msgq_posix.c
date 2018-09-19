@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <signal.h>
 #include <mqueue.h>
 #include <semaphore.h>
 
