@@ -247,7 +247,7 @@ static void on_read(int fd, void *arg)
 
     if (r->state == rpc_inited) {
         r->send_pkt.header.uuid_src = *(uint32_t *)pkt->payload;
-        thread_sem_signal(r->dispatch_thread);
+        thread_signal(r->dispatch_thread);
         r->state = rpc_connected;
     } else if (r->state == rpc_connected) {
         struct iovec buf;
@@ -255,7 +255,7 @@ static void on_read(int fd, void *arg)
         buf.iov_base = pkt->payload;
         process_msg(r, &buf);
         //free(pkt->payload);
-        thread_sem_signal(r->dispatch_thread);
+        thread_signal(r->dispatch_thread);
     }
 }
 
@@ -313,7 +313,7 @@ struct rpc *rpc_create(const char *host, uint16_t port)
     r->dispatch_thread = thread_create(rpc_dispatch_thread, r);
 
     r->state = rpc_inited;
-    if (thread_sem_wait(r->dispatch_thread, 2000) == -1) {
+    if (thread_wait(r->dispatch_thread, 2000) == -1) {
         loge("wait response failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }
@@ -459,7 +459,7 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
         return -1;
     }
     if (IS_RPC_MSG_NEED_RETURN(msg_id)) {
-        if (thread_sem_wait(r->dispatch_thread, 2000) == -1) {
+        if (thread_wait(r->dispatch_thread, 2000) == -1) {
             loge("wait response failed %d:%s\n", errno, strerror(errno));
             return -1;
         }
