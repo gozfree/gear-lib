@@ -19,7 +19,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void *mymalloc(size_t size)
+{
+    static int malloc_index = 0;
+    malloc_index++;
+    printf("malloc prev, malloc_index = %d\n", ++malloc_index);
+    void *ptr = CALL(malloc, size);
+    printf("malloc post\n");
+    return ptr;
+}
+
+void foo()
+{
+    void *p = mymalloc(10);
+    UNUSED(p);
+}
+
+void foo2()
+{
+    char *cmd = "date";
+    char buf[64];
+    system_with_result(cmd, buf, sizeof(buf));
+    printf("buf = %s\n", buf);
+}
+
 int main(int argc, char **argv)
 {
+    foo();
+    foo2();
     return 0;
 }
