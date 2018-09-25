@@ -191,6 +191,12 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
     return size;
 }
 
+#if defined (__WIN32__)
+static int get_proc_name(char *name, size_t len)
+{
+    return -1;
+}
+#else
 static int get_proc_name(char *name, size_t len)
 {
     int i, ret;
@@ -219,6 +225,7 @@ static int get_proc_name(char *name, size_t len)
     strncpy(name, ptr, ret - i);
     return 0;
 }
+#endif
 
 #if defined (__APPLE__)
 #define _gettid	getpid

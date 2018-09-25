@@ -253,8 +253,8 @@ static int process_msg(struct ipc *ipc, void *buf, size_t len)
     ipc_handler_t handler;
     uint32_t func_id = 0;
     char out_arg[1024];
-    size_t out_len;
-    size_t ret_len;
+    size_t out_len = 0;
+    size_t ret_len = 0;
     struct ipc_packet *pkt = (struct ipc_packet *)buf;
     if (-1 == unpack_msg(pkt, &func_id, &out_arg, &out_len)) {
         printf("unpack_msg failed!\n");
