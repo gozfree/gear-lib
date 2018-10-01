@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
@@ -138,6 +139,7 @@ struct gevent *gevent_create(int fd,
     evcb->ev_in = ev_in;
     evcb->ev_out = ev_out;
     evcb->ev_err = ev_err;
+    evcb->ev_timer = NULL;
     evcb->args = args;
     if (ev_in) {
         flags |= EVENT_READ;
@@ -154,6 +156,63 @@ struct gevent *gevent_create(int fd,
     e->evcb = evcb;
 
     return e;
+}
+
+struct gevent *gevent_timer_create(time_t msec,
+        enum gevent_timer_type type,
+        void (ev_timer)(int, void *),
+        void *args)
+{
+    enum gevent_flags flags = 0;
+    struct gevent *e = CALLOC(1, struct gevent);
+    if (!e) {
+        printf("malloc gevent failed!\n");
+        goto failed;
+    }
+    struct gevent_cbs *evcb = CALLOC(1, struct gevent_cbs);
+    if (!evcb) {
+        printf("malloc gevent failed!\n");
+        goto failed;
+    }
+    evcb->ev_timer = ev_timer;
+    evcb->ev_in = NULL;
+    evcb->ev_out = NULL;
+    evcb->ev_err = NULL;
+    evcb->args = args;
+    flags = EVENT_READ;
+    if (type == TIMER_PERSIST) {
+        flags |= EVENT_PERSIST;
+    } else if (type == TIMER_ONESHOT) {
+        flags &= ~EVENT_PERSIST;
+    }
+
+    int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+    if (fd == -1) {
+        printf("timerfd_create failed %d\n", errno);
+        goto failed;
+    }
+
+    time_t sec = msec/1000;
+    long nsec = (msec-sec*1000)*1000000;
+
+    evcb->itimer.it_value.tv_sec = sec;
+    evcb->itimer.it_value.tv_nsec = nsec;
+    evcb->itimer.it_interval.tv_sec = sec;
+    evcb->itimer.it_interval.tv_nsec = nsec;
+    if (0 != timerfd_settime(fd, 0, &evcb->itimer, NULL)) {
+        printf("timerfd_settime failed!\n");
+        goto failed;
+    }
+
+    e->evfd = fd;
+    e->flags = flags;
+    e->evcb = evcb;
+    return e;
+
+failed:
+    if (e->evcb) free(e->evcb);
+    if (e) free(e);
+    return NULL;
 }
 
 void gevent_destroy(struct gevent *e)

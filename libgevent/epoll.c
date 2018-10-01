@@ -83,6 +83,11 @@ static int epoll_add(struct gevent_base *eb, struct gevent *e)
         epev.events |= EPOLLOUT;
     if (e->flags & EVENT_ERROR)
         epev.events |= EPOLLERR;
+    if (0 == (e->flags & EVENT_PERSIST))
+        epev.events |= EPOLLONESHOT;
+    else
+        epev.events &= ~EPOLLONESHOT;
+
     epev.events |= EPOLLET;
     epev.data.ptr = (void *)e;
 
@@ -136,12 +141,24 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
 
         if (what & (EPOLLHUP|EPOLLERR)) {
         } else {
-            if (what & EPOLLIN)
-                e->evcb->ev_in(e->evfd, (void *)e->evcb->args);
+            if (what & EPOLLIN) {
+                if (e->evcb->ev_in)
+                    e->evcb->ev_in(e->evfd, e->evcb->args);
+                if (e->evcb->ev_timer) {
+                    e->evcb->ev_timer(e->evfd, e->evcb->args);
+                    if (0 == (what & EPOLLONESHOT)) {
+                        time_t elapse = 0;
+                        read(e->evfd, &elapse, sizeof(elapse));//XXX trigger timer
+                    }
+                }
+
+            }
             if (what & EPOLLOUT)
-                e->evcb->ev_out(e->evfd, (void *)e->evcb->args);
+                if (e->evcb->ev_out)
+                    e->evcb->ev_out(e->evfd, e->evcb->args);
             if (what & EPOLLRDHUP)
-                e->evcb->ev_err(e->evfd, (void *)e->evcb->args);
+                if (e->evcb->ev_err)
+                    e->evcb->ev_err(e->evfd, e->evcb->args);
         }
     }
     return 0;

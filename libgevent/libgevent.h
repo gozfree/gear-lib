@@ -20,10 +20,16 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/timerfd.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum gevent_timer_type {
+    TIMER_ONESHOT = 0,
+    TIMER_PERSIST,
+};
 
 enum gevent_flags {
     EVENT_TIMEOUT  = 1<<0,
@@ -42,6 +48,8 @@ struct gevent_cbs {
     void (*ev_in)(int fd, void *arg);
     void (*ev_out)(int fd, void *arg);
     void (*ev_err)(int fd, void *arg);
+    void (*ev_timer)(int fd, void *arg);
+    struct itimerspec itimer;
     void *args;
 };
 
@@ -85,6 +93,10 @@ struct gevent *gevent_create(int fd,
 void gevent_destroy(struct gevent *e);
 int gevent_add(struct gevent_base *eb, struct gevent *e);
 int gevent_del(struct gevent_base *eb, struct gevent *e);
+struct gevent *gevent_timer_create(time_t msec,
+        enum gevent_timer_type type,
+        void (ev_timer)(int, void *),
+        void *args);
 
 #ifdef __cplusplus
 }

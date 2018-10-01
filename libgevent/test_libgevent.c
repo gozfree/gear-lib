@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 #include "libgevent.h"
+#include <liblog.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -26,28 +27,37 @@ struct gevent_base *evbase = NULL;
 
 static void on_input(int fd, void *arg)
 {
-    printf("input %d", fd);
+    logi("on_input fd = %d\n", fd);
 }
 
 static int foo(void)
 {
-    int fd = 0;
     evbase = gevent_base_create();
     if (!evbase) {
         printf("gevent_base_create failed!\n");
         return -1;
     }
-    struct gevent *event = gevent_create(fd, on_input, NULL, NULL, NULL);
-    if (!event) {
+    struct gevent *event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_input, NULL);
+    if (!event_2000) {
         printf("gevent_create failed!\n");
         return -1;
     }
-    if (-1 == gevent_add(evbase, event)) {
+    struct gevent *event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_input, NULL);
+    if (!event_1500) {
+        printf("gevent_create failed!\n");
+        return -1;
+    }
+    if (-1 == gevent_add(evbase, event_2000)) {
+        printf("gevent_add failed!\n");
+        return -1;
+    }
+    if (-1 == gevent_add(evbase, event_1500)) {
         printf("gevent_add failed!\n");
         return -1;
     }
     gevent_base_loop(evbase);
-    gevent_del(evbase, event);
+    gevent_del(evbase, event_1500);
+    gevent_del(evbase, event_2000);
     gevent_base_destroy(evbase);
 
     return 0;
