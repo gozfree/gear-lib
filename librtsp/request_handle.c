@@ -129,7 +129,7 @@ static int on_describe(struct rtsp_request *req, char *url)
         return handle_rtsp_response(req, 404, NULL);
     }
     ms->sdp_generate(ms);
-    snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
+    snprintf(buf, sizeof(buf)+sizeof(ms->sdp), RESP_DESCRIBE_FMT,
                  req->url_origin,
                  (uint32_t)strlen(ms->sdp),
                  ms->sdp);//XXX: sdp line can't using "\r\n" as ending!!!
@@ -147,6 +147,15 @@ static int on_setup(struct rtsp_request *req, char *url)
     }
     if (-1 == parse_session(&req->session, (char *)req->raw->iov_base, req->raw->iov_len)) {
         loge("parse_session failed!\n");
+    }
+    if (0 == strlen(req->transport.source)) {
+        //set local ipaddr to source
+        struct skt_addr addr;
+        skt_getaddr_by_fd(req->fd, &addr);
+        strncpy(req->transport.source, addr.ip_str, sizeof(addr.ip_str));
+    }
+    if (0 == strlen(req->transport.destination)) {
+        skt_addr_ntop(req->transport.destination, req->client.ip);
     }
 
     struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);

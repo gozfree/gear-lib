@@ -20,7 +20,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#if defined (__linux__)
 #include <sys/uio.h>
+#elif defined (__WIN32__)
+#include "win.h"
+#endif
 #include "kernel_list.h"
 
 #ifdef __cplusplus

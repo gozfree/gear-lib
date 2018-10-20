@@ -49,7 +49,7 @@ struct transport_session *transport_session_create(void *pool, struct transport_
     s->session_id = get_random_number();
     snprintf(key, sizeof(key), "%08X", s->session_id);
     s->rtp = rtp_create(90000, 0);
-    s->rtp->sock = rtp_socket_create(t->mode, 0, NULL);
+    s->rtp->sock = rtp_socket_create(t->mode, 0, t->source, t->destination);
     s->rtp->sock->rtp_dst_port = t->rtp.u.client_port1;
     s->rtp->sock->rtcp_dst_port = t->rtp.u.client_port2;
     dict_add((dict *)pool, key, (char *)s);

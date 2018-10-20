@@ -543,7 +543,7 @@ static int _log_print(int lvl, const char *tag,
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_PIDTID_BIT)) {
         snprintf(s_pname, sizeof(s_pname), "[%s ", _proc_name);
         snprintf(s_pid, sizeof(s_pid), "pid:%d ", getpid());
-        snprintf(s_tid, sizeof(s_tid), "tid:%d]", _gettid());
+        snprintf(s_tid, sizeof(s_tid), "tid:%d]", (int)_gettid());
         snprintf(s_tag, sizeof(s_tag), "[%s]", tag);
         snprintf(s_file, sizeof(s_file), "[%s:%d: %s] ", file, line, func);
     }

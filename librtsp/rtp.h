@@ -153,6 +153,7 @@ struct rtp_socket {
     uint16_t rtp_dst_port;
     uint16_t rtcp_dst_port;
     char ip[INET_ADDRSTRLEN];
+    char dst_ip[INET_ADDRSTRLEN];
     int rtp_fd;
     int rtcp_fd;
     int tcp_fd;
@@ -170,7 +171,7 @@ int rtp_packet_get_info(struct rtp_packet *pkt, uint16_t* seq, uint32_t* timesta
 void rtp_packet_setsize(int bytes);
 int rtp_packet_getsize();
 
-struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char* src_ip);
+struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char* src_ip, const char *dst_ip);
 void rtp_socket_destroy(struct rtp_socket *s);
 
 ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len);

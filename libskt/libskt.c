@@ -15,6 +15,7 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libskt.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,9 +32,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
-#include <libmacro.h>
 
-#include "libskt.h"
 
 #define LISTEN_MAX_BACKLOG  (128)
 #define MTU                 (1500 - 42 - 200)
@@ -52,7 +51,7 @@ static struct skt_connection *_skt_connect(int type,
         printf("invalid paraments\n");
         return NULL;
     }
-    sc = CALLOC(1, struct skt_connection);
+    sc = (struct skt_connection* )calloc(1, sizeof(struct skt_connection));
     if (sc == NULL) {
         printf("malloc failed!\n");
         return NULL;

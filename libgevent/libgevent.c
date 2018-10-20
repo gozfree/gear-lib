@@ -151,6 +151,7 @@ struct gevent *gevent_create(int fd,
         flags |= EVENT_ERROR;
     }
 
+    flags |= EVENT_PERSIST;
     e->evfd = fd;
     e->flags = flags;
     e->evcb = evcb;

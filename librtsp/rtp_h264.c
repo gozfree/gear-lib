@@ -91,7 +91,7 @@ static int rtp_h264_pack_nalu(struct rtp_socket *sock, struct rtp_packet *pkt, c
     }
 
     ++pkt->header.seq;
-    rtp_sendto(sock, NULL, 0, rtp, n);
+    rtp_sendto(sock, sock->dst_ip, sock->rtp_dst_port, rtp, n);
     free(rtp);
     return 0;
 }
@@ -133,7 +133,7 @@ static int rtp_h264_pack_fu_a(struct rtp_socket *sock, struct rtp_packet *pkt, c
         rtp[n + 0] = fu_indicator;
         rtp[n + 1] = fu_header;
         memcpy(rtp + n + N_FU_HEADER, pkt->payload, pkt->payloadlen);
-        rtp_sendto(sock, NULL, 0, rtp, n + N_FU_HEADER + pkt->payloadlen);
+        rtp_sendto(sock, sock->dst_ip, sock->rtp_dst_port, rtp, n + N_FU_HEADER + pkt->payloadlen);
         free(rtp);
 
         bytes -= pkt->payloadlen;

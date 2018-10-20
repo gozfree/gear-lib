@@ -1,10 +1,21 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    test_libskt.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-05-03 18:27
- * updated: 2015-07-11 20:01
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libskt.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,7 +27,6 @@
 #include <libgevent.h>
 #include <libthread.h>
 #include <libmacro.h>
-#include "libskt.h"
 
 struct skt_connection *g_sc = NULL;
 
@@ -267,37 +277,5 @@ void ctrl_c_op(int signo)
 
 int main(int argc, char **argv)
 {
-    uint16_t port;
-    const char *ip;
-    skt_get_local_info();
-    if (argc < 2) {
-        usage();
-        exit(0);
-    }
-    signal(SIGINT, ctrl_c_op);
-    if (!strcmp(argv[1], "-s")) {
-        if (argc == 3)
-            port = atoi(argv[2]);
-        else
-            port = 0;
-        //tcp_server(port);
-        udp_server(port);
-    } else if (!strcmp(argv[1], "-c")) {
-        if (argc == 3) {
-            ip = "127.0.0.1";
-            port = atoi(argv[2]);
-        } else if (argc == 4) {
-            ip = argv[2];
-            port = atoi(argv[3]);
-        }
-        //tcp_client(ip, port);
-        udp_client(ip, port);
-    }
-    if (!strcmp(argv[1], "-t")) {
-        addr_test();
-    }
-    if (!strcmp(argv[1], "-d")) {
-        domain_test();
-    }
     return 0;
 }

@@ -1,4 +1,6 @@
-
+###############################################################################
+# common
+###############################################################################
 #ARCH: linux/pi/android/ios/
 ARCH		?= linux
 CROSS_PREFIX	?=
@@ -27,32 +29,36 @@ CP_V	= $(CP)
 RM_V	= $(RM)
 endif
 
-########
+###############################################################################
+# target and object
+###############################################################################
 LIBNAME		= libskt
+VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
+VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
+TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
+###############################################################################
+# cflags and ldflags
+###############################################################################
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
-CFLAGS	+= -I../libmacro/
 
 SHARED	:= -shared
 
-LDFLAGS	:=
-LDFLAGS += -L$(OUTPUT)/lib -llog
-LDFLAGS += -L$(OUTPUT)/lib -lgevent
-LDFLAGS += -L$(OUTPUT)/lib -lthread
-LDFLAGS += -L$(OUTPUT)/lib -llock
+LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
-LDFLAGS	+= -lrt
-LDFLAGS	+= $($(ARCH)_LDFLAGS)
 
+###############################################################################
+# target
+###############################################################################
 .PHONY : all clean
 
 TGT	:= $(TGT_LIB_A)
@@ -70,22 +76,29 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(CC_V) -o $@ $^ $(SHARED)
+	$(LD_V) -o $@ $^ $(SHARED)
+	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
+	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -lgevent -lthread -llock
 
 clean:
 	$(RM_V) -f $(OBJS)
 	$(RM_V) -f $(TGT)
+	$(RM_V) -f version.h
+	$(RM_V) -f $(TGT_LIB_SO)*
+	$(RM_V) -f $(TGT_LIB_SO_VER)
 
 install:
 	$(MAKEDIR_OUTPUT)
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
 	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
 	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
 
 uninstall:
 	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
 	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO_VER)
