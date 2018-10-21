@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include <sys/vfs.h>
 #include <errno.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 
 static void foo(void)
@@ -62,9 +64,9 @@ static void foo(void)
 static void foo2(void)
 {
     struct file_systat *stat = file_get_systat("./Makefile");
-    printf("total = %zuMB\n", stat->size_total/(1024*1024));
-    printf("avail = %zuMB\n", stat->size_avail/(1024*1024));
-    printf("free = %zuMB\n", stat->size_free/(1024*1024));
+    printf("total = %" PRIu64 "MB\n", stat->size_total/(1024*1024));
+    printf("avail = %" PRIu64 "MB\n", stat->size_avail/(1024*1024));
+    printf("free = %" PRIu64 "MB\n", stat->size_free/(1024*1024));
     printf("fs type name = %s\n", stat->fs_type_name);
 }
 
@@ -93,17 +95,17 @@ static void foo5(void)
 {
     struct file_info info;
     file_get_info("/tmp/lsusb", &info);
-    printf("info->size = %zu\n", info.size);
+    printf("info->size = %" PRIu64 "\n", info.size);
     printf("info->type = %d\n", info.type);
-    printf("info->time_modify = %ld\n", info.modify_sec);
-    printf("info->time_access = %ld\n", info.access_sec);
+    printf("info->time_modify = %" PRIu64 "\n", info.modify_sec);
+    printf("info->time_access = %" PRIu64 "\n", info.access_sec);
 }
 
 int main(int argc, char **argv)
 {
     uint64_t size = 1000;
     file_dir_size("./", &size);
-    printf("folder_size=%zu\n", size);
+    printf("folder_size=%" PRIu64 "\n", size);
     file_dir_tree("./");
 
     foo5();
