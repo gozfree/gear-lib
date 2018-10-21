@@ -277,5 +277,37 @@ void ctrl_c_op(int signo)
 
 int main(int argc, char **argv)
 {
+    uint16_t port;
+    const char *ip;
+    skt_get_local_info();
+    if (argc < 2) {
+        usage();
+        exit(0);
+    }
+    signal(SIGINT, ctrl_c_op);
+    if (!strcmp(argv[1], "-s")) {
+        if (argc == 3)
+            port = atoi(argv[2]);
+        else
+            port = 0;
+        //tcp_server(port);
+        udp_server(port);
+    } else if (!strcmp(argv[1], "-c")) {
+        if (argc == 3) {
+            ip = "127.0.0.1";
+            port = atoi(argv[2]);
+        } else if (argc == 4) {
+            ip = argv[2];
+            port = atoi(argv[3]);
+        }
+        //tcp_client(ip, port);
+        udp_client(ip, port);
+    }
+    if (!strcmp(argv[1], "-t")) {
+        addr_test();
+    }
+    if (!strcmp(argv[1], "-d")) {
+        domain_test();
+    }
     return 0;
 }
