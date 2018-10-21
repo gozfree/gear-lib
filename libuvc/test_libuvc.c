@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     int size = 0;
     void *frm = calloc(1, flen);
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
+    uvc_print_info(uvc);
     struct file *fp = file_open("uvc.yuv", F_CREATE);
     for (int i = 0; i < 20; ++i) {
         memset(frm, 0, flen);

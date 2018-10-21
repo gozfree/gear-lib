@@ -115,14 +115,30 @@ static int v4l2_get_cap(struct v4l2_ctx *vc)
     return 0;
 }
 
+static char *v4l2_fourcc_parse(char *buf, int len, uint32_t pix)
+{
+    if (len < 5) {
+        return NULL;
+    }
+    snprintf(buf, len, "%c%c%c%c",
+                (pix&0x000000FF),
+                (pix&0x0000FF00)>>8,
+                (pix&0x00FF0000)>>16,
+                (pix&0xFF000000)>>24);
+    return buf;
+}
+
 static void v4l2_get_fmt(struct v4l2_ctx *vc)
 {
     struct v4l2_fmtdesc fmtdesc;
+    char pixel[5] = {0};
     fmtdesc.index = 0;
     fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     printf("[V4L2 Support Format]:\n");
     while (-1 != ioctl(vc->fd, VIDIOC_ENUM_FMT, &fmtdesc)) {
-        printf("\t%d. %s\n", fmtdesc.index, fmtdesc.description);
+        printf("\t%d. [%s] \"%s\"\n", fmtdesc.index,
+               v4l2_fourcc_parse(pixel, sizeof(pixel), fmtdesc.pixelformat),
+               fmtdesc.description);
         ++fmtdesc.index;
     }
 }
@@ -200,10 +216,17 @@ static int v4l2_set_format(struct v4l2_ctx *vc)
 {
     struct v4l2_format fmt;
     struct v4l2_pix_format *pix = &fmt.fmt.pix;
+    char pixel[5] = {0};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (-1 == ioctl(vc->fd, VIDIOC_G_FMT, &fmt)) {
         printf("%s ioctl(VIDIOC_G_FMT) failed: %d\n", __func__, errno);
         return -1;
+    }
+    if (pix->pixelformat != V4L2_PIX_FMT_YUYV) {
+        pix->pixelformat = V4L2_PIX_FMT_YUYV;
+        printf("change pixel format from %s to %s\n",
+                v4l2_fourcc_parse(pixel, sizeof(pixel), pix->pixelformat),
+                v4l2_fourcc_parse(pixel, sizeof(pixel), V4L2_PIX_FMT_YUYV));
     }
     if (vc->width > 0 || vc->height > 0) {
         //set v4l2 pixel format
