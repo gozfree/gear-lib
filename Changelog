@@ -1,3 +1,15 @@
+version 1.1.1
+- libgevent add event timer
+- librtsp on pi is ok
+- libuvc fix format
+- other bugs fix
+
+version 1.1.0
+- add libbase64
+- update librtsp
+- update libuvc
+- other bugs fix
+
 
 version 1.0.1
 - add libhal
