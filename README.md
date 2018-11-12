@@ -20,6 +20,15 @@ This is a collection of basic libraries.
 |[libringbuffer](libringbuffer)|c ringbuffer|[libworkq](libworkq)|Work queue in userspace|[libvector](libvector)|c vector
 |[libuvc](libuvc)|USB video class (V4L2)
 
+|type|name|
+|----|----|
+|data struct|libdict libhash libringbuffer libqueue librbtree libsort libvector libmacro
+|network|librtsp libskt libptcp libp2p libstun librpc libipc
+|async|libgevent libworkq libthread liblock libatomic
+|I/O parser|libbase64 libconfig libconfig++ liblog libfile libfilewatcher libstrex libcmd
+|multi-media|libuvc libjpeg-ex libmp4parser
+|misc|libdebug libhal libplugin libtime
+
 ## How To Build
 Recommend Ubuntu14.04 gcc-4.8.4+
   * linux platform (32/64 bit)  
