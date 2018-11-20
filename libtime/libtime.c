@@ -27,7 +27,6 @@
 
 #define TIME_FORMAT "%Y%m%d%H%M%S"
 
-// uint32_t time_get_sec()
 uint64_t time_get_sec()
 {
     time_t t;
