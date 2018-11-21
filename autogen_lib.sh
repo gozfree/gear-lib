@@ -177,7 +177,7 @@ ${S}(TGT_LIB_A): ${S}(OBJS_LIB)
 	${S}(AR_V) rcs ${S}@ $^
 
 ${S}(TGT_LIB_SO): ${S}(OBJS_LIB)
-	${S}(LD_V) -o ${S}@ $^ ${S}(SHARED)
+	${S}(CC_V) -o ${S}@ $^ ${S}(SHARED)
 	@mv ${S}(TGT_LIB_SO) ${S}(TGT_LIB_SO_VER)
 	@ln -sf ${S}(TGT_LIB_SO_VER) ${S}(TGT_LIB_SO)
 

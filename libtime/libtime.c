@@ -246,8 +246,8 @@ int time_set_info(struct time_info *ti)
 bool time_passed_sec(int sec)
 {
     bool ret = false;
-    static uint32_t last_sec = 0;
-    static uint32_t now_sec = 0;
+    static uint64_t last_sec = 0;
+    static uint64_t now_sec = 0;
     now_sec = time_get_sec();
     if (last_sec == 0) {
         last_sec = now_sec;
