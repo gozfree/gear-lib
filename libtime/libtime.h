@@ -43,7 +43,7 @@ struct time_info {
 /*
  * accuracy second
  */
-uint32_t time_get_sec();
+uint64_t time_get_sec();
 char *time_get_sec_str();
 char *time_get_str_human(char *str, int len);
 char *time_get_str_human_by_utc(uint32_t utc, char *str, int len);
