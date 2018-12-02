@@ -26,13 +26,17 @@
 
 struct item *item_alloc(struct queue *q, void *data, size_t len)
 {
+    if (!q) {
+        return NULL;
+    }
     struct item *item = CALLOC(1, struct item);
     if (!item) {
         printf("malloc failed!\n");
         return NULL;
     }
     if (q->alloc_hook) {
-        item->opaque = (q->alloc_hook)(data, len);
+        item->opaque.iov_base = (q->alloc_hook)(data, len);
+        item->opaque.iov_len = len;
     } else {
         item->data.iov_base = memdup(data, len);
         item->data.iov_len = len;
@@ -42,11 +46,15 @@ struct item *item_alloc(struct queue *q, void *data, size_t len)
 
 void item_free(struct queue *q, struct item *item)
 {
+    if (!q) {
+        return;
+    }
     if (!item) {
         return;
     }
     if (q->free_hook) {
-        (q->free_hook)(item->opaque);
+        (q->free_hook)(item->opaque.iov_base);
+        item->opaque.iov_len = 0;
     } else {
         free(item->data.iov_base);
     }
@@ -55,12 +63,18 @@ void item_free(struct queue *q, struct item *item)
 
 int queue_set_mode(struct queue *q, enum queue_mode mode)
 {
+    if (!q) {
+        return -1;
+    }
     q->mode = mode;
     return 0;
 }
 
 int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb)
 {
+    if (!q) {
+        return -1;
+    }
     q->alloc_hook = alloc_cb;
     q->free_hook = free_cb;
     return 0;
@@ -68,6 +82,9 @@ int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb)
 
 int queue_set_depth(struct queue *q, int depth)
 {
+    if (!q) {
+        return -1;
+    }
     q->max_depth = depth;
     return 0;
 }
@@ -92,6 +109,9 @@ struct queue *queue_create()
 
 int queue_flush(struct queue *q)
 {
+    if (!q) {
+        return -1;
+    }
     struct item *item, *next;
     pthread_mutex_lock(&q->lock);
     list_for_each_entry_safe(item, next, &q->head, entry) {

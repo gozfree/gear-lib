@@ -36,11 +36,12 @@ enum queue_mode {
 struct item {
     struct iovec data;
     struct list_head entry;
-    void *opaque;
+    struct iovec opaque;
 };
 
 typedef void *(alloc_hook)(void *data, size_t len);
 typedef void (free_hook)(void *data);
+
 
 struct queue {
     struct list_head head;
@@ -59,12 +60,12 @@ void item_free(struct queue *q, struct item *item);
 struct queue *queue_create();
 void queue_destroy(struct queue *q);
 int queue_set_depth(struct queue *q, int depth);
+int queue_get_depth(struct queue *q);
 int queue_set_mode(struct queue *q, enum queue_mode mode);
 int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb);
 struct item *queue_pop(struct queue *q);
 int queue_push(struct queue *q, struct item *item);
 int queue_flush(struct queue *q);
-int queue_get_depth(struct queue *q);
 
 #ifdef __cplusplus
 }
