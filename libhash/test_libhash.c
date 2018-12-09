@@ -1,17 +1,27 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    test_libhash.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-29 00:45
- * updated: 2015-04-29 00:45
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "libhash.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
-#include "libhash.h"
 
-#define PALIGN   "%15s: %6.4f\n"
+#define PALIGN   "%15s: %6.4f sec\n"
 #define NKEYS   1024*1024
 //#define NKEYS   10240
 
@@ -35,6 +45,7 @@ int main(int argc, char * argv[])
     printf("%15s: %d\n", "values", nkeys);
     buffer = (char *)malloc(9 * nkeys);
 
+    //                10000000
     d = hash_create(2097152);
     t1 = epoch_double();
     for(i = 0; i < nkeys; i++) {
