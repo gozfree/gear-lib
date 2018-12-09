@@ -15,18 +15,22 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#include <string.h>
-#include <sys/time.h>
-#include <sys/uio.h>
+#include "librpc.h"
 #include <libmacro.h>
-#include <liblog.h>
 #include <libgevent.h>
-#include <libdict.h>
+#include <libhash.h>
 #include <libskt.h>
 #include <libthread.h>
-#include "librpc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+#include <sys/time.h>
+#include <sys/uio.h>
 
-static dict *_msg_map_registered = NULL;
+static struct hash *_msg_map_registered = NULL;
 
 void dump_buffer(void *buf, int len)
 {
@@ -41,22 +45,22 @@ void dump_buffer(void *buf, int len)
 
 void dump_packet(struct rpc_packet *r)
 {
-    logi("packet header:\n");
+    printf("packet header:\n");
     dump_buffer(&r->header, (int)sizeof(struct rpc_header));
-    logi("packet data:\n");
+    printf("packet data:\n");
     dump_buffer(r->payload, r->header.payload_len);
 }
 
 void print_packet(struct rpc_packet *pkt)
 {
-    logi("rpc_packet[%p]:\n", pkt);
-    logi("header.uuid_dst    = 0x%08x\n", pkt->header.uuid_dst);
-    logi("header.uuid_src    = 0x%08x\n", pkt->header.uuid_src);
-    logi("header.msg_id      = 0x%08x\n", pkt->header.msg_id);
-    logi("header.time_stamp  = 0x%08x\n", pkt->header.time_stamp);
-    logi("header.payload_len = %d\n", pkt->header.payload_len);
-    logi("header.checksum    = 0x%08x\n", pkt->header.checksum);
-    logi("rpc_packet.payload:\n");
+    printf("rpc_packet[%p]:\n", pkt);
+    printf("header.uuid_dst    = 0x%08x\n", pkt->header.uuid_dst);
+    printf("header.uuid_src    = 0x%08x\n", pkt->header.uuid_src);
+    printf("header.msg_id      = 0x%08x\n", pkt->header.msg_id);
+    printf("header.time_stamp  = %" PRIu64 "\n", pkt->header.time_stamp);
+    printf("header.payload_len = %d\n", pkt->header.payload_len);
+    printf("header.checksum    = 0x%08x\n", pkt->header.checksum);
+    printf("rpc_packet.payload:\n");
     dump_buffer(pkt->payload, pkt->header.payload_len);
 }
 
@@ -67,7 +71,7 @@ static size_t pack_msg(struct rpc_packet *pkt, uint32_t msg_id,
     struct timeval curtime;
     size_t pkt_len;
     if (!pkt) {
-        loge("invalid paraments!\n");
+        printf("invalid paraments!\n");
         return 0;
     }
     gettimeofday(&curtime, NULL);
@@ -93,7 +97,7 @@ static size_t unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
     size_t pkt_len;
     struct rpc_header *hdr;
     if (!pkt || !out_arg || !out_len) {
-        loge("invalid paraments!\n");
+        printf("invalid paraments!\n");
         return -1;
     }
     hdr = &(pkt->header);
@@ -122,12 +126,12 @@ int rpc_send(struct rpc *r, const void *buf, size_t len)
     head_size = sizeof(rpc_header_t);
     ret = skt_send(r->fd, (void *)&pkt->header, head_size);
     if (ret != head_size) {
-        loge("skt_send failed!\n");
+        printf("skt_send failed!\n");
         return -1;
     }
     ret = skt_send(r->fd, pkt->payload, pkt->header.payload_len);
     if (ret != (int)pkt->header.payload_len) {
-        loge("skt_send failed!\n");
+        printf("skt_send failed!\n");
         return -1;
     }
     return (head_size + ret);
@@ -144,29 +148,29 @@ struct iovec *rpc_recv_buf(struct rpc *r)
 
     ret = skt_recv(r->fd, (void *)&recv_pkt->header, head_size);
     if (ret == 0) {
-        //loge("peer connect closed\n");
+        //printf("peer connect closed\n");
         goto err;
     } else if (ret != head_size) {
-        loge("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
+        printf("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
         goto err;
     }
     uuid_src = r->recv_pkt.header.uuid_src;
     uuid_dst = r->send_pkt.header.uuid_src;
     if (uuid_src != 0 && uuid_dst != 0 && uuid_src != uuid_dst) {
-        logw("uuid_src(0x%08x) is diff from received uuid_dst(0x%08x)\n", uuid_src, uuid_dst);
-        logw("this maybe a peer call\n");
+        printf("uuid_src(0x%08x) is diff from received uuid_dst(0x%08x)\n", uuid_src, uuid_dst);
+        printf("this maybe a peer call\n");
     } else {
-        //loge("uuid match.\n");
+        //printf("uuid match.\n");
     }
     buf->iov_len = recv_pkt->header.payload_len;
     buf->iov_base = calloc(1, buf->iov_len);
     recv_pkt->payload = buf->iov_base;
     ret = skt_recv(r->fd, buf->iov_base, buf->iov_len);
     if (ret == 0) {
-        loge("peer connect closed\n");
+        printf("peer connect closed\n");
         goto err;
     } else if (ret != (int)buf->iov_len) {
-        loge("skt_recv failed: rlen=%d, ret=%d\n", buf->iov_len, ret);
+        printf("skt_recv failed: rlen=%zu, ret=%d\n", buf->iov_len, ret);
         goto err;
     }
     return buf;
@@ -188,25 +192,25 @@ int rpc_recv(struct rpc *r, void *buf, size_t len)
 
     ret = skt_recv(r->fd, (void *)&pkt->header, head_size);
     if (ret == 0) {
-        loge("peer connect closed\n");
+        printf("peer connect closed\n");
         return -1;
     } else if (ret != head_size) {
-        loge("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
+        printf("skt_recv failed, head_size = %d, ret = %d\n", head_size, ret);
         return -1;
     }
     if (r->send_pkt.header.uuid_dst != pkt->header.uuid_dst) {
-        loge("uuid_dst is diff from recved packet.header.uuid_dst!\n");
+        printf("uuid_dst is diff from recved packet.header.uuid_dst!\n");
     }
     if (len < pkt->header.payload_len) {
-        loge("skt_recv pkt.header.len = %d\n", pkt->header.payload_len);
+        printf("skt_recv pkt.header.len = %d\n", pkt->header.payload_len);
     }
     rlen = MIN2(len, pkt->header.payload_len);
     ret = skt_recv(r->fd, buf, rlen);
     if (ret == 0) {
-        loge("peer connect closed\n");
+        printf("peer connect closed\n");
         return -1;
     } else if (ret != rlen) {
-        loge("skt_recv failed: rlen=%d, ret=%d\n", rlen, ret);
+        printf("skt_recv failed: rlen=%d, ret=%d\n", rlen, ret);
         return -1;
     }
     return ret;
@@ -221,7 +225,7 @@ int process_msg(struct rpc *r, struct iovec *buf)
     if (msg_handler) {
         msg_handler->cb(r, buf->iov_base, buf->iov_len);
     } else {
-        //loge("no callback for this MSG ID(0x%08x) in process_msg\n", msg_id);
+        //printf("no callback for this MSG ID(0x%08x) in process_msg\n", msg_id);
     }
     return 0;
 }
@@ -237,13 +241,13 @@ static void on_read(int fd, void *arg)
 
     recv_buf = rpc_recv_buf(r);
     if (!recv_buf) {
-        loge("rpc_recv_buf failed!\n");
+        printf("rpc_recv_buf failed!\n");
         return;
     }
 
     struct rpc_packet *pkt = &r->recv_pkt;
     unpack_msg(pkt, &msg_id, &out_arg, &out_len);
-    logi("msg_id = %08x\n", msg_id);
+    printf("msg_id = %08x\n", msg_id);
 
     if (r->state == rpc_inited) {
         r->send_pkt.header.uuid_src = *(uint32_t *)pkt->payload;
@@ -261,12 +265,12 @@ static void on_read(int fd, void *arg)
 
 static void on_write(int fd, void *arg)
 {
-//    loge("on_write fd= %d\n", fd);
+//    printf("on_write fd= %d\n", fd);
 }
 
 static void on_error(int fd, void *arg)
 {
-//    loge("on_error fd= %d\n", fd);
+//    printf("on_error fd= %d\n", fd);
 }
 
 int rpc_dispatch(struct rpc *r)
@@ -289,24 +293,24 @@ struct rpc *rpc_create(const char *host, uint16_t port)
     char remote_ip[INET_ADDRSTRLEN];
     struct rpc *r = CALLOC(1, struct rpc);
     if (!r) {
-        loge("malloc failed!\n");
+        printf("malloc failed!\n");
         return NULL;
     }
     memset(&r->recv_pkt, 0, sizeof(struct rpc_packet));
     struct skt_connection *connect;
     connect = skt_tcp_connect(host, port);
     if (!connect) {
-        loge("connect failed!\n");
+        printf("connect failed!\n");
         return NULL;
     }
     r->fd = connect->fd;
     if (-1 == skt_set_block(r->fd)) {
-        loge("skt_set_block failed!\n");
+        printf("skt_set_block failed!\n");
     }
 
     r->evbase = gevent_base_create();
     if (!r->evbase) {
-        loge("gevent_base_create failed!\n");
+        printf("gevent_base_create failed!\n");
         return NULL;
     }
     rpc_set_cb(r, on_read, on_write, on_error, r);
@@ -314,15 +318,15 @@ struct rpc *rpc_create(const char *host, uint16_t port)
 
     r->state = rpc_inited;
     if (thread_wait(r->dispatch_thread, 2000) == -1) {
-        loge("wait response failed %d:%s\n", errno, strerror(errno));
+        printf("wait response failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }
 
     skt_addr_ntop(local_ip, connect->local.ip);
     skt_addr_ntop(remote_ip, connect->remote.ip);
-    logi("rpc[%08x] connect information:\n", r->send_pkt.header.uuid_src);
-    logi("local addr = %s:%d\n", local_ip, connect->local.port);
-    logi("remote addr = %s:%d\n", remote_ip, connect->remote.port);
+    printf("rpc[%08x] connect information:\n", r->send_pkt.header.uuid_src);
+    printf("local addr = %s:%d\n", local_ip, connect->local.port);
+    printf("remote addr = %s:%d\n", remote_ip, connect->remote.port);
 
     return r;
 }
@@ -352,15 +356,15 @@ int rpc_set_cb(struct rpc *r,
         void (*cbe)(int fd, void *arg),  void *arg)
 {
     if (!r) {
-        loge("invalid parament!\n");
+        printf("invalid parament!\n");
         return -1;
     }
     struct gevent *e = gevent_create(r->fd, cbr, cbw, cbe, arg);
     if (!e) {
-        loge("gevent_create failed!\n");
+        printf("gevent_create failed!\n");
     }
     if (-1 == gevent_add(r->evbase, e)) {
-        loge("event_add failed!\n");
+        printf("event_add failed!\n");
     }
     return 0;
 }
@@ -379,27 +383,27 @@ static int register_msg_proc(msg_handler_t *handler)
     char *msg_proc;
 
     if (!handler) {
-        loge("Cannot register null msg proc\n");
+        printf("Cannot register null msg proc\n");
         return -1;
     }
     msg_id = handler->msg_id;
     snprintf(msg_id_str, sizeof(msg_id_str), "0x%08x", msg_id);
     msg_id_str[10] = '\0';
     if (!_msg_map_registered) {
-            _msg_map_registered = dict_new();
+            _msg_map_registered = hash_create(10240);
             if (!_msg_map_registered) {
-                    loge("create message map table failed!\n");
+                    printf("create message map table failed!\n");
                     return -1;
             }
     }
-    msg_proc = dict_get(_msg_map_registered, msg_id_str, NULL);
+    msg_proc = hash_get(_msg_map_registered, msg_id_str);
     if (msg_proc) {//force update
-        if (0 != dict_del(_msg_map_registered, msg_id_str)) {
-            loge("dict_del failed!\n");
+        if (0 != hash_del(_msg_map_registered, msg_id_str)) {
+            printf("hash_del failed!\n");
         }
     }
-    if (0 != dict_add(_msg_map_registered, msg_id_str, (char *)handler)) {
-        loge("dict_add failed!\n");
+    if (0 != hash_set(_msg_map_registered, msg_id_str, (char *)handler)) {
+        printf("hash_add failed!\n");
     }
     return 0;
 }
@@ -410,19 +414,19 @@ int register_msg_map(msg_handler_t *map, int num_entry)
     int ret;
 
     if (map == NULL) {
-        loge("register_msg_map: null map \n");
+        printf("register_msg_map: null map \n");
         return -1;
     }
 
     if (num_entry <= 0) {
-        loge("register_msg_map:invalid num_entry %d \n", num_entry);
+        printf("register_msg_map:invalid num_entry %d \n", num_entry);
         return -1;
     }
 
     for (i = 0; i < num_entry; i++) {
         ret = register_msg_proc(&map[i]);
         if (ret < 0) {
-            loge("register_msg_map:register failed  at %d \n", i);
+            printf("register_msg_map:register failed  at %d \n", i);
             return -1;
         }
     }
@@ -436,7 +440,7 @@ msg_handler_t *find_msg_handler(uint32_t msg_id)
     msg_handler_t *handler;
     snprintf(msg_id_str, sizeof(msg_id_str), "0x%08x", msg_id);
     msg_id_str[10] = '\0';
-    handler = (msg_handler_t *)dict_get(_msg_map_registered, msg_id_str, NULL);
+    handler = (msg_handler_t *)hash_get(_msg_map_registered, msg_id_str);
     return handler;
 
 }
@@ -446,24 +450,24 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
                 void *out_arg, size_t out_len)
 {
     if (!r) {
-        loge("invalid parament!\n");
+        printf("invalid parament!\n");
         return -1;
     }
     size_t pkt_len = pack_msg(&r->send_pkt, msg_id, in_arg, in_len);
     if (pkt_len == 0) {
-        loge("pack_msg failed!\n");
+        printf("pack_msg failed!\n");
         return -1;
     }
     if (0 > rpc_send(r, in_arg, in_len)) {
-        loge("skt_send failed, fd = %d!\n", r->fd);
+        printf("skt_send failed, fd = %d!\n", r->fd);
         return -1;
     }
     if (IS_RPC_MSG_NEED_RETURN(msg_id)) {
         if (thread_wait(r->dispatch_thread, 2000) == -1) {
-            loge("wait response failed %d:%s\n", errno, strerror(errno));
+            printf("wait response failed %d:%s\n", errno, strerror(errno));
             return -1;
         }
-        logi("recv_pkt.len = %d\n", r->recv_pkt.header.payload_len);
+        printf("recv_pkt.len = %d\n", r->recv_pkt.header.payload_len);
         memcpy(out_arg, r->recv_pkt.payload, out_len);
     } else {
 

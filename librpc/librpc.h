@@ -19,15 +19,8 @@
 #define LIBRPC_H
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/uio.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <libgevent.h>
-#include <libthread.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

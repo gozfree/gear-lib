@@ -1,12 +1,4 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2016-01-17 22:17
-#  updated: 2016-01-17 22:17
-###############################################################################
-
-###############################################################################
 # common
 ###############################################################################
 #ARCH: linux/pi/android/ios/
@@ -59,14 +51,13 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
-CFLAGS	+= -I../libmacro/
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-LDFLAGS	+= -L$(OUTPUT)/lib -ldict
+LDFLAGS	+= -L$(OUTPUT)/lib -lhash
 LDFLAGS	+= -L$(OUTPUT)/lib -lskt
 LDFLAGS	+= -L$(OUTPUT)/lib -lthread
 LDFLAGS	+= -L$(OUTPUT)/lib -llock

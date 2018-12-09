@@ -15,8 +15,10 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include "librpc.h"
+#include "librpc.h"
+#include "librpc_stub.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -24,10 +26,6 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <libdict.h>
-#include <liblog.h>
-#include "librpc.h"
-#include "librpc_stub.h"
 
 #define MAX_UUID_LEN                (21)
 static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
@@ -35,12 +33,12 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
     char *ptr;
     int num = 0;
     len = r->recv_pkt.header.payload_len;
-    logi("strlen = %d, %s\n", strlen((const char *)arg), arg);
-    logi("on_get_connect_list, len = %d\n", r->recv_pkt.header.payload_len);
+    printf("strlen = %zu, %s\n", strlen((const char *)arg), (char *)arg);
+    printf("on_get_connect_list, len = %d\n", r->recv_pkt.header.payload_len);
     num = len / MAX_UUID_LEN;
     printf("\n");
     for (ptr = (char *)arg; num > 0; --num) {
-        logi("uuid list: %s\n", (char *)ptr);
+        printf("uuid list: %s\n", (char *)ptr);
         len = MAX_UUID_LEN;
         ptr += len;
     }
@@ -49,14 +47,14 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 
 static int on_test_resp(struct rpc *r, void *arg, int len)
 {
-    logi("on_test_resp\n");
+    printf("on_test_resp\n");
     return 0;
 }
 
 static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
 {
-    //logi("on_peer_post_msg_resp len = %d\n", len);
-    logi("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
+    //printf("on_peer_post_msg_resp len = %d\n", len);
+    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
     return 0;
 }
 
@@ -179,7 +177,6 @@ static void *raw_data_thread(void *arg)
 
 int main(int argc, char **argv)
 {
-//116.228.149.106
     uint16_t port;
     char *ip;
     pthread_t tid;
