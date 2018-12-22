@@ -15,8 +15,10 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-
 #include "libfile.h"
+#ifdef ENABLE_FILEWATCHER
+#include "libfilewatcher.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,6 +103,60 @@ static void foo5(void)
     printf("info->time_access = %" PRIu64 "\n", info.access_sec);
 }
 
+#ifdef ENABLE_FILEWATCHER
+#define ROOT_DIR		"./"
+static struct fw *_fw = NULL;
+
+
+void on_change(struct fw *fw, enum fw_type type, char *path)
+{
+    switch (type) {
+    case FW_CREATE_DIR:
+        printf("[CREATE DIR] %s\n", path);
+        break;
+    case FW_CREATE_FILE:
+        printf("[CREATE FILE] %s\n", path);
+        break;
+    case FW_DELETE_DIR:
+        printf("[DELETE DIR] %s\n", path);
+        break;
+    case FW_DELETE_FILE:
+        printf("[DELETE FILE] %s\n", path);
+        break;
+    case FW_MOVE_FROM_DIR:
+        printf("[MOVE FROM DIR] %s\n", path);
+        break;
+    case FW_MOVE_TO_DIR:
+        printf("[MOVE TO DIR] %s\n", path);
+        break;
+    case FW_MOVE_FROM_FILE:
+        printf("[MOVE FROM FILE] %s\n", path);
+        break;
+    case FW_MOVE_TO_FILE:
+        printf("[MOVE TO FILE] %s\n", path);
+        break;
+    case FW_MODIFY_FILE:
+        printf("[MODIFY FILE] %s\n", path);
+        break;
+    default:
+        break;
+    }
+}
+
+
+int file_watcher_foo()
+{
+    _fw = fw_init(on_change);
+    if (!_fw) {
+        printf("fw_init failed!\n");
+        return -1;
+    }
+    fw_add_watch_recursive(_fw, ROOT_DIR);
+    fw_dispatch(_fw);
+    return 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
     uint64_t size = 1000;
@@ -116,6 +172,8 @@ int main(int argc, char **argv)
     if (0 != file_create("jjj.c")) {
         printf("file_create failed!\n");
     }
+#ifdef ENABLE_FILEWATCHER
+    file_watcher_foo();
+#endif
     return 0;
 }
-

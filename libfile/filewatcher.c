@@ -15,6 +15,8 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#include <libmacro.h>
+#include "libfilewatcher.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,8 +24,6 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/inotify.h>
-#include <libmacro.h>
-#include "libfilewatcher.h"
 
 #define WATCH_MOVED     1
 #define WATCH_MODIFY    1

@@ -1,12 +1,4 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2016-07-22 14:17:17
-#  updated: 2016-07-22 14:17:17
-###############################################################################
-
-###############################################################################
 # common
 ###############################################################################
 #ARCH: linux/pi/android/ios/
@@ -40,10 +32,14 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
+ENABLE_FILEWATCHER	= 1
 LIBNAME		= libfile
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
+ifeq ($(ENABLE_FILEWATCHER), 1)
+TGT_LIB_H	+= libfilewatcher.h
+endif
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
@@ -51,6 +47,9 @@ TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
 OBJS_LIB	+= io.o fio.o
+ifeq ($(ENABLE_FILEWATCHER), 1)
+OBJS_LIB	+= filewatcher.o
+endif
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -59,11 +58,17 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
+ifeq ($(ENABLE_FILEWATCHER), 1)
+CFLAGS	+= -DENABLE_FILEWATCHER
+endif
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
+ifeq ($(ENABLE_FILEWATCHER), 1)
+LDFLAGS	+= -ldict -lgevent
+endif
 
 ###############################################################################
 # target
