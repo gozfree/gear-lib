@@ -124,6 +124,7 @@ typedef struct rpc {
     struct gevent *ev;
     struct thread *dispatch_thread;
     enum rpc_state state;
+    void *opaque;
 } rpc_t;
 
 typedef int (*rpc_callback)(struct rpc *r, void *arg, int len);
