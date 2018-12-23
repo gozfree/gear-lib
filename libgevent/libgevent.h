@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <sys/timerfd.h>
 
 #ifdef __cplusplus
@@ -74,12 +75,15 @@ struct gevent_base {
     int loop;
     int rfd;
     int wfd;
+    pthread_t tid;
     const struct gevent_ops *evop;
 };
 
 struct gevent_base *gevent_base_create();
 void gevent_base_destroy(struct gevent_base *);
 int gevent_base_loop(struct gevent_base *);
+int gevent_base_loop_start(struct gevent_base *eb);
+int gevent_base_loop_stop(struct gevent_base *eb);
 void gevent_base_loop_break(struct gevent_base *);
 int gevent_base_wait(struct gevent_base *eb);
 void gevent_base_signal(struct gevent_base *eb);

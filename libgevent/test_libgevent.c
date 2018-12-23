@@ -19,7 +19,6 @@
 #include <liblog.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <sys/sysinfo.h>
 #include <signal.h>
 
@@ -55,7 +54,9 @@ static int foo(void)
         printf("gevent_add failed!\n");
         return -1;
     }
-    gevent_base_loop(evbase);
+    gevent_base_loop_start(evbase);
+    sleep(30);
+    gevent_base_loop_stop(evbase);
     gevent_del(evbase, event_1500);
     gevent_del(evbase, event_2000);
     gevent_base_destroy(evbase);

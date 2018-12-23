@@ -61,6 +61,7 @@ struct gevent_base *gevent_base_create(void)
     eb->loop = 1;
     eb->rfd = fds[0];
     eb->wfd = fds[1];
+    eb->tid = 0;
     fcntl(fds[0], F_SETFL, fcntl(fds[0], F_GETFL) | O_NONBLOCK);
     struct gevent *e = gevent_create(eb->rfd, event_in, NULL, NULL, NULL);
     gevent_add(eb, e);
@@ -79,6 +80,12 @@ void gevent_base_destroy(struct gevent_base *eb)
     free(eb);
 }
 
+int gevent_base_wait(struct gevent_base *eb)
+{
+    const struct gevent_ops *evop = eb->evop;
+    return evop->dispatch(eb, NULL);
+}
+
 int gevent_base_loop(struct gevent_base *eb)
 {
     const struct gevent_ops *evop = eb->evop;
@@ -87,17 +94,29 @@ int gevent_base_loop(struct gevent_base *eb)
         ret = evop->dispatch(eb, NULL);
         if (ret == -1) {
             printf("dispatch failed\n");
-//            return -1;
         }
     }
-
     return 0;
 }
 
-int gevent_base_wait(struct gevent_base *eb)
+static void *_gevent_base_loop(void *arg)
 {
-    const struct gevent_ops *evop = eb->evop;
-    return evop->dispatch(eb, NULL);
+    struct gevent_base *eb = (struct gevent_base *)arg;
+    gevent_base_loop(eb);
+    return NULL;
+}
+
+int gevent_base_loop_start(struct gevent_base *eb)
+{
+    pthread_create(&eb->tid, NULL, _gevent_base_loop, eb);
+    return 0;
+}
+
+int gevent_base_loop_stop(struct gevent_base *eb)
+{
+    gevent_base_loop_break(eb);
+    pthread_join(eb->tid, NULL);
+    return 0;
 }
 
 void gevent_base_loop_break(struct gevent_base *eb)
