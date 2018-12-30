@@ -1,12 +1,4 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2015-12-16 00:18
-#  updated: 2015-12-16 00:18
-###############################################################################
-
-###############################################################################
 # common
 ###############################################################################
 #ARCH: linux/pi/android/ios/
@@ -21,7 +13,9 @@ ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
 endif
 
-CC	= $(CROSS_PREFIX)g++
+ENABLE_LUA	= 0
+
+CC	= $(CROSS_PREFIX)gcc
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
@@ -29,7 +23,11 @@ AR	= $(CROSS_PREFIX)ar
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
 else
+ifeq ($(ENABLE_LUA), 1)
+CC_V	= $(CXX)
+else
 CC_V	= $(CC)
+endif
 CXX_V	= $(CXX)
 LD_V	= $(LD)
 AR_V	= $(AR)
@@ -53,10 +51,13 @@ OBJS_INI	= ini/iniparser.o \
 		  ini/dictionary.o \
 		  ini/ini_config.o
 
-OBJS_JSON	= json/json_config.o
+OBJS_JSON	= json/json_config.o \
+		  json/cJSON.o
 
+ifeq ($(ENABLE_LUA), 1)
 OBJS_LUA	= lua/luatables.o \
 		  lua/lua_config.o
+endif
 
 OBJS_LIB	= $(LIBNAME).o \
 		  $(OBJS_INI) \
@@ -68,21 +69,21 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS_LUA	= `pkg-config --cflags lua5.2`
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
-CFLAGS	+= $(CFLAGS_LUA)
+ifeq ($(ENABLE_LUA), 1)
+CFLAGS	+= `pkg-config --cflags lua5.2`
+CFLAGS	+= -DENABLE_LUA
+endif
 
 SHARED	:= -shared
 
-LDFLAGS_LUA	= `pkg-config --libs lua5.2`
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS += -L$(OUTPUT)/lib -llog
-LDFLAGS	+= -lc
-LDFLAGS	+= -pthread
-LDFLAGS	+= -ljansson
-LDFLAGS	+= $(LDFLAGS_LUA)
+LDFLAGS += -L$(OUTPUT)/lib -lmacro
+ifeq ($(ENABLE_LUA), 1)
+LDFLAGS	+= `pkg-config --libs lua5.2`
+endif
 
 ###############################################################################
 # target

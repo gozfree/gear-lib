@@ -1,19 +1,28 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libconfig.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-09-29 23:51
- * updated: 2015-09-29 23:51
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libconfig.h"
+#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <libmacro.h>
-#include <liblog.h>
-#include "libconfig.h"
 
 
 extern struct config_ops ini_ops;
@@ -28,7 +37,9 @@ struct config_ops_list {
 };
 
 static struct config_ops_list conf_ops_list[] = {
+#ifdef ENABLE_LUA
     {"lua", &lua_ops},
+#endif
     {"json", &json_ops},
     {"ini", &ini_ops}
 };
@@ -46,14 +57,14 @@ static char *get_file_suffix(const char *name)
 static struct config_ops *find_backend(const char *name)
 {
     if (!name) {
-        loge("config name can not be NULL\n");
+        printf("config name can not be NULL\n");
         return NULL;
     }
     int i = 0;
-    int max_list = (sizeof(conf_ops_list)/sizeof(config_ops_list));
+    int max_list = SIZEOF(conf_ops_list);
     char *suffix = get_file_suffix(name);
     if (!suffix) {
-        loge("there is no suffix in config name\n");
+        printf("there is no suffix in config name\n");
         return NULL;
     }
     for (i = 0; i < max_list; i++) {
@@ -62,7 +73,7 @@ static struct config_ops *find_backend(const char *name)
         }
     }
     if (i == max_list) {
-        loge("the %s file is not supported\n", suffix);
+        printf("the %s file is not supported\n", suffix);
         return NULL;
     }
     return conf_ops_list[i].ops;
@@ -72,12 +83,12 @@ struct config *conf_load(const char *name)
 {
     struct config_ops *ops = find_backend(name);
     if (!ops) {
-        loge("can not find valid config backend\n");
+        printf("can not find valid config backend\n");
         return NULL;
     }
     struct config *c = CALLOC(1, struct config);
     if (!c) {
-        loge("malloc failed!\n");
+        printf("malloc failed!\n");
         return NULL;
     }
     c->ops = ops;
