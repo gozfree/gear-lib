@@ -1,10 +1,28 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libp2p.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-05-20 00:01
- * updated: 2015-05-20 00:01
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libp2p.h"
+#include "libstun.h"
+#include "libptcp.h"
+#include <libmacro.h>
+#include <libskt.h>
+#include <librpc.h>
+#include <librpc_stub.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,15 +32,9 @@
 #include <pthread.h>
 #include <errno.h>
 #include <sys/time.h>
-
-#include <libmacro.h>
-#include <liblog.h>
-#include <libstun.h>
-#include <libskt.h>
-#include <librpc.h>
-#include <librpc_stub.h>
-#include <libptcp.h>
-#include "libp2p.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 static uint16_t _rpc_port = 12345;
 static char _local_ip[INET_ADDRSTRLEN];
@@ -37,10 +49,10 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 {
     char *ptr;
     int num = 0;
-    //logi("on_get_connect_list, len = %d\n", len);
+    //printf("on_get_connect_list, len = %d\n", len);
     num = len / MAX_UUID_LEN;
     for (ptr = (char *)arg; num > 0; --num) {
-        logi("uuid list: %s\n", ptr);
+        printf("uuid list: %s\n", ptr);
         len = MAX_UUID_LEN;
         ptr += len;
     }
@@ -49,7 +61,7 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
 
 static int on_test_resp(struct rpc *r, void *arg, int len)
 {
-    logi("on_test_resp\n");
+    printf("on_test_resp\n");
     return 0;
 }
 
@@ -61,34 +73,34 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
     char localip[MAX_ADDR_STRING];
     char reflectip[MAX_ADDR_STRING];
     struct sockaddr_in si;
-    logi("on_peer_post_msg_resp len = %d\n", len);
+    printf("on_peer_post_msg_resp len = %d\n", len);
     struct nat_info *nat = (struct nat_info *)arg;
-    logi("get nat info from peer\n");
-    logi("nat.uuid = 0x%08x\n", nat->uuid);
+    printf("get nat info from peer\n");
+    printf("nat.uuid = 0x%08x\n", nat->uuid);
     skt_addr_ntop(localip, nat->local.ip);
     skt_addr_ntop(reflectip, nat->reflect.ip);
-    logi("nat.type = %d\n", nat->type);
-    logi("nat.local_addr %s:%d\n", localip, nat->local.port);
-    logi("nat.reflect_addr %s:%d\n", reflectip, nat->reflect.port);
+    printf("nat.type = %d\n", nat->type);
+    printf("nat.local_addr %s:%d\n", localip, nat->local.port);
+    printf("nat.reflect_addr %s:%d\n", reflectip, nat->reflect.port);
     p2p->ps = ptcp_socket_by_fd(p2p->nat.fd);
     if (p2p->ps == NULL) {
-        loge("error!\n");
+        printf("error!\n");
         return -1;
     }
     if (p2p->rpc_state == P2P_RPC_SYN_SENT) {//client
-        logi("as p2p client\n");
+        printf("as p2p client\n");
         sleep(1);
         if (_p2p_connect(p2p, localip, nat->local.port)) {
-            loge("_p2p_connect nat.local failed, try nat.reflect\n");
+            printf("_p2p_connect nat.local failed, try nat.reflect\n");
             if (_p2p_connect(p2p, reflectip, nat->reflect.port)) {
-                logi("_p2p_connect nat.reflect failed too\n");
+                printf("_p2p_connect nat.reflect failed too\n");
                 return -1;
             }
         }
         return 0;
     }
 //server
-    logi("as p2p server\n");
+    printf("as p2p server\n");
     peer_id = nat->uuid;
     p2p_connect(p2p, peer_id);
 
@@ -96,7 +108,7 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
     si.sin_addr.s_addr = inet_addr(_local_ip);
     si.sin_port = htons(_local_port);
 
-    logi("ptcp_bind %s:%d\n", _local_ip, _local_port);
+    printf("ptcp_bind %s:%d\n", _local_ip, _local_port);
     ptcp_bind(p2p->ps, (struct sockaddr*)&si, sizeof(si));
     ptcp_listen(p2p->ps, 0);
     pthread_create(&tid, NULL, tmp_thread, p2p);
@@ -150,12 +162,12 @@ int _p2p_connect(struct p2p *p2p, char *ip, uint16_t port)
     si.sin_family = AF_INET;
     si.sin_addr.s_addr = inet_addr(ip);
     si.sin_port = htons(port);
-    logi("ptcp_connect %s:%d\n", ip, port);
+    printf("ptcp_connect %s:%d\n", ip, port);
     if (0 != ptcp_connect(p2p->ps, (struct sockaddr*)&si, sizeof(si))) {
-        logi("ptcp_connect timeout\n");
+        printf("ptcp_connect timeout\n");
         return -1;
     } else {
-        logi("ptcp_connect success\n");
+        printf("ptcp_connect success\n");
     }
     return 0;
 }
@@ -169,9 +181,9 @@ void *tmp_thread(void *arg)
         memset(buf, 0, sizeof(buf));
         len = ptcp_recv(p2p->ps, buf, sizeof(buf));
         if (len > 0) {
-            logi("ptcp_recv len=%d, buf=%s\n", len, buf);
+            printf("ptcp_recv len=%d, buf=%s\n", len, buf);
         } else if (ptcp_is_closed(p2p->ps)) {
-            logi("ptcp is closed\n");
+            printf("ptcp is closed\n");
         } else if (EWOULDBLOCK == ptcp_get_error(p2p->ps)){
             //printf("ptcp is error: %d\n", ptcp_get_error(p2p->ps));
             usleep(100 * 1000);
@@ -186,7 +198,7 @@ static void on_rpc_read(int fd, void *arg)
     struct rpc *r = p2p->rpc;
     struct iovec *buf = rpc_recv_buf(r);
     if (!buf) {
-        logi("rpc_recv_buf failed!\n");
+        printf("rpc_recv_buf failed!\n");
         return;
     }
     process_msg(r, buf);
@@ -281,13 +293,13 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
     static stun_addr _mapped;
     struct p2p *p2p = CALLOC(1, struct p2p);
     if (!p2p) {
-        loge("malloc failed: %d\n", errno);
+        printf("malloc failed: %d\n", errno);
         return NULL;
     }
 
     p2p->rpc = rpc_create(rpc_srv, _rpc_port);
     if (!p2p->rpc) {
-        loge("rpc_create failed\n");
+        printf("rpc_create failed\n");
         return NULL;
     }
     RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
@@ -295,7 +307,7 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
     skt_getaddr_by_fd(p2p->rpc->fd, &tmpaddr);
     skt_addr_ntop(_local_ip, tmpaddr.ip);
     //_local_port = tmpaddr.port;
-    //logi("_local_port = %d\n", _local_port);
+    //printf("_local_port = %d\n", _local_port);
 
     stun_init(stun_srv);
     p2p->nat.type = stun_nat_type();
@@ -309,10 +321,10 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
     skt_addr_ntop(ip, _mapped.addr);
     p2p->nat.reflect.ip = _mapped.addr;
     p2p->nat.reflect.port = _mapped.port;
-    logi("get nat info from local\n");
-    logi("nat.type = %d\n", p2p->nat.type);
-    logi("nat.local_addr %s:%d\n", _local_ip, p2p->nat.local.port);
-    logi("nat.reflect_addr %s:%d\n", ip, p2p->nat.reflect.port);
+    printf("get nat info from local\n");
+    printf("nat.type = %d\n", p2p->nat.type);
+    printf("nat.local_addr %s:%d\n", _local_ip, p2p->nat.local.port);
+    printf("nat.reflect_addr %s:%d\n", ip, p2p->nat.reflect.port);
     p2p->rpc_state = P2P_RPC_INIT;
     _p2p = p2p;
     return p2p;

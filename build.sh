@@ -21,7 +21,7 @@ BASIC_LIBS="libmacro libatomic libtime liblog libgevent libworkq libdict libsort
 	    librbtree libringbuffer liblock libthread libconfig libvector libbase64 \
             libdebug libfile libuvc libmp4parser libqueue "
 FRAMEWORK_LIBS="libipc"
-NETWORK_LIBS="libskt libstun libptcp librpc libp2p librtsp"
+NETWORK_LIBS="libskt librpc libp2p librtsp"
 
 usage()
 {

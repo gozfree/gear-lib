@@ -15,45 +15,22 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#ifndef LIBP2P_H
-#define LIBP2P_H
-
-#include <libskt.h>
-#include <librpc.h>
-#include "libptcp.h"
+#ifndef LIBSTUN_H
+#define LIBSTUN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct nat_info {
-    int fd;
-    int type;
-    struct skt_addr local;
-    struct skt_addr reflect;
-    uint32_t uuid;
-} nat_info_t;
+typedef struct {
+    uint16_t port;
+    uint32_t addr;
+} stun_addr;
 
-typedef enum p2p_rpc_state {
-    P2P_RPC_INIT,
-    P2P_RPC_SYN_SENT,
-} p2p_rpc_state_t;
-
-
-typedef struct p2p {
-    struct rpc *rpc;
-    struct nat_info nat;
-    ptcp_socket_t *ps;
-    enum p2p_rpc_state rpc_state;
-} p2p_t;
-
-struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv);
-void p2p_get_peer_list(struct p2p *p2p);
-int p2p_connect(struct p2p *p2p, uint32_t peer_id);
-int p2p_dispatch(struct p2p *p2p);
-int p2p_send(struct p2p *p2p, void *buf, int len);
-int p2p_recv(struct p2p *p2p, void *buf, int len);
-void p2p_deinit(struct p2p *p);
+int stun_init(const char *ip);
+int stun_socket(const char *ip, uint16_t port, stun_addr *map);
+int stun_nat_type();
+void stun_keep_alive(int fd);
 
 
 #ifdef __cplusplus

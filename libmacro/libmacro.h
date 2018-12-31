@@ -100,7 +100,11 @@ void *dl_override(const char *name);
     ({__typeof__(func) *sym = (__typeof__(func) *)dl_override(#func); sym(__VA_ARGS__);}) \
 
 
-int is_little_endian(void);
+bool is_little_endian(void);
+
+#define is_character(c) \
+    (((c)<='z'&&(c)>='a') || ((c)<='Z'&&(c)>='A'))
+
 int system_noblock(char **argv);
 ssize_t system_with_result(const char *cmd, void *buf, size_t count);
 ssize_t system_noblock_with_result(char **argv, void *buf, size_t count);

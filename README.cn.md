@@ -15,11 +15,10 @@ libraries是一组通用的Ｃ基础库
 |[libhal](libhal)|硬件抽象层|[libhash](libhash)|linux内核原生哈希库|[libipc](libipc)|进程间通信
 |[liblog](liblog)|日志库|[libmacro](libmacro)|通用宏定义|[libmp4parser](libmp4parser)|MP4解析库
 |[liblock](liblock)|锁操作|[libthread](libthread)|线程|[libp2p](libp2p)|p2p穿透传输
-|[libplugin](libplugin)|动态加载库|[libptcp](libptcp)|TCP协议封装|[librbtree](librbtree)|内核rbtree
-|[librpc](librpc)|远程过程调用库|[librtsp](librtsp)|RTSP协议|[libskt](libskt)|Socket封装
-|[libstun](libstun)|STUN协议库|[libtime](libtime)|时间库|[libqueue](libqueue)|数据队列
-|[libringbuffer](libringbuffer)|循环缓冲|[libworkq](libworkq)|工作队列|[libvector](libvector) |容器库
-|[libuvc](libuvc)|USB摄像头库
+|[libplugin](libplugin)|动态加载库|[librbtree](librbtree)|内核rbtree|[librpc](librpc)|远程过程调用库
+|[librtsp](librtsp)|RTSP协议|[libskt](libskt)|Socket封装|[libtime](libtime)|时间库
+|[libqueue](libqueue)|数据队列|[libringbuffer](libringbuffer)|循环缓冲|[libworkq](libworkq)|工作队列
+|[libvector](libvector) |容器库|[libuvc](libuvc)|USB摄像头库
 
 ## 编译方法
 推荐 Ubuntu14.04 gcc-4.8.4+ 及以上版本

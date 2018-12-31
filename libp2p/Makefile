@@ -1,12 +1,4 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2016-01-17 23:56
-#  updated: 2016-01-17 23:56
-###############################################################################
-
-###############################################################################
 # common
 ###############################################################################
 #ARCH: linux/pi/android/ios/
@@ -47,9 +39,10 @@ TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
-TGT_UNIT_TEST	= test_$(LIBNAME)
+TGT_UNIT_TEST	= test_$(LIBNAME) test_libstun test_libptcp
 
 OBJS_LIB	= $(LIBNAME).o
+OBJS_LIB	+= libstun.o libptcp.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -62,15 +55,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTPUT)/lib -llog
-LDFLAGS	+= -L$(OUTPUT)/lib -lrpc
-LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-LDFLAGS	+= -L$(OUTPUT)/lib -lskt
-LDFLAGS	+= -L$(OUTPUT)/lib -lstun
-LDFLAGS	+= -L$(OUTPUT)/lib -lptcp
-LDFLAGS	+= -L$(OUTPUT)/lib -ldict
-LDFLAGS	+= -L$(OUTPUT)/lib -lthread
-LDFLAGS	+= -L$(OUTPUT)/lib -llock
+LDFLAGS	+= -L$(OUTPUT)/lib -lrpc -lhash -lgevent -lskt -lthread -llock
 LDFLAGS	+= -L$(PLATFORM_LIB) -pthread
 ifeq ($(ARCH), pi)
 LDFLAGS	+= -lgcc_s

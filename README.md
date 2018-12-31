@@ -14,16 +14,15 @@ This is a collection of basic libraries.
 |[libhal](libhal)|hardware Abstraction Layer|[libhash](libhash)|Hash key-value based on hlist|[libipc](libipc)|Support mqueue/netlink/shm
 |[liblog](liblog)|Support console/file/rsyslog|[libmacro](libmacro)|Basic Macro define|[libmp4parser](libmp4parser)|MP4 format parser
 |[liblock](liblock)|Lock/mutex/sem wrapper|[libthread](libthread)|Thread wrapper|[libp2p](libp2p)|p2p punch hole and transfer
-|[libplugin](libplugin)|Dynamic link plugin|[libptcp](libptcp)|Pseudo Tcp Socket over UDP|[librbtree](librbtree)|linux kernel rbtree
-|[librpc](librpc)|Remote Procedure Call|[librtsp](librtsp)|Rtsp wrapper|[libskt](libskt)|Socket wrapper
-|[libstun](libstun)|STUN protocol wrapper|[libtime](libtime)|Time wrapper|[libqueue](libqueue)|support memory hook
-|[libringbuffer](libringbuffer)|c ringbuffer|[libworkq](libworkq)|Work queue in userspace|[libvector](libvector)|c vector
-|[libuvc](libuvc)|USB video class (V4L2)
+|[libplugin](libplugin)|Dynamic link plugin|[librbtree](librbtree)|linux kernel rbtree|[librpc](librpc)|Remote Procedure Call
+|[librtsp](librtsp)|Rtsp wrapper|[libskt](libskt)|Socket wrapper|[libtime](libtime)|Time wrapper
+|[libqueue](libqueue)|support memory hook|[libringbuffer](libringbuffer)|c ringbuffer|[libworkq](libworkq)|Work queue in userspace
+|[libvector](libvector)|c vector|[libuvc](libuvc)|USB video class (V4L2)
 
 |type|name|
 |----|----|
 |data struct|libdict libhash libringbuffer libqueue librbtree libsort libvector libmacro
-|network|librtsp libskt libptcp libp2p libstun librpc libipc
+|network|librtsp libskt libp2p librpc libipc
 |async|libgevent libworkq libthread liblock libatomic
 |I/O parser|libbase64 libconfig libconfig++ liblog libfile libfilewatcher libstrex libcmd
 |multi-media|libuvc libjpeg-ex libmp4parser
