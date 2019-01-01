@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,8 +56,6 @@ void conf_dump(struct config *c);
 int conf_save(struct config *c);
 void conf_dump_to_file(FILE *f, struct config *c);
 void conf_unload(struct config *c);
-
-
 
 
 #ifdef __cplusplus

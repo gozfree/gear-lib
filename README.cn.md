@@ -1,11 +1,15 @@
-libraries [English](README.md) [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries) [![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases) [![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
-=========
+# LightWeight Libraries
 
-libraries是一组通用的Ｃ基础库
+[English](README.md) | 简体中文
+
+[![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
+[![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
+[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
+
+这是一组通用的Ｃ基础库
 * 全部用POSIX C实现，目标是为了跨平台兼容x86, arm, android, ios.
-* 每个库尽可能各自独立，而且API容易使用
-* 尽量不依赖任何第三方库
-* 目标是为减少重复造轮子
+* 每个库都是一个独立工程，使用时，只需要把真正用到的库加入你的项目中即可，无需导入整个工程
+* 适用于嵌入式，以及网络服务开发等场景
 
 |name|descript|name|descript|name|descript|
 |----|--------|----|--------|----|--------|

@@ -74,7 +74,7 @@ std::string get_file_directory (const char* filename) {
 
 // char encoded serialize function that is available in plaintext in
 // utils/serialize.lua. Converted using lua auto.lua serialize.lua
-#include "utils/serialize.lua.h"
+#include "serialize.lua.h"
 
 //
 // Lua Helper Functions
@@ -184,8 +184,10 @@ std::vector<LuaKey> LuaTableNode::getKeyStack() {
 
 	do {
 		result.push_back (node_ptr->key);
+		node_ptr->luaTable->stackDepth--;
 		node_ptr = node_ptr->parent;
-	} while (node_ptr != NULL);
+
+	} while (node_ptr != NULL && node_ptr->luaTable->stackDepth > 0);
 
 	return result;	
 }
@@ -457,6 +459,28 @@ template<> void LuaTableNode::set<std::string>(const std::string &value) {
 	lua_settable (luaTable->L, -3);
 
 	stackRestore();
+}
+
+LuaTableNode LuaTableNode::operator[](const char *child_str) {
+	LuaTableNode child_node;
+
+	luaTable->stackDepth++;
+	child_node.luaTable = luaTable;
+	child_node.parent = this;
+	child_node.key = LuaKey (child_str);
+
+	return child_node;
+}
+
+LuaTableNode LuaTableNode::operator[](int child_index) {
+	LuaTableNode child_node;
+
+	luaTable->stackDepth++;
+	child_node.luaTable = luaTable;
+	child_node.parent = this;
+	child_node.key = LuaKey (child_index);
+
+	return child_node;
 }
 
 //

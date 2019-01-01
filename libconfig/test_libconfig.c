@@ -69,11 +69,11 @@ static int lua_test(void)
     printf("[type_2][index] = %d\n", conf_get_int(conf, "type_2", "index"));
     printf("[type_2][my] = %s\n", conf_get_string(conf, "type_2", "my"));
 
+    printf("yuv_path= %s\n", conf_get_string(conf, "yuv_path"));
 
     printf("md_source_type= %s\n", conf_get_string(conf, "md_source_type"));
     printf("md_enable = %d\n", conf_get_boolean(conf, "md_enable"));
     printf("fps= %f\n", conf_get_double(conf, "fps"));
-    printf("yuv_path= %s\n", conf_get_string(conf, "yuv_path"));
     conf_save(conf);
     conf_unload(conf);
 #endif

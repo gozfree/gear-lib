@@ -1,10 +1,15 @@
-libraries [中文说明](README.cn.md) [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries) [![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases) [![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
-=========
+# LightWeight Libraries
+
+English | [简体中文](README.cn.md)
+
+[![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
+[![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
+[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
+
 This is a collection of basic libraries.
 * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
-* Each of library is as independently as possible, and the APIs are easily to use.
-* Depend on none of open source third party libraries.
-* Aim to reduce duplication of the wheel.
+* Each of library is independent project, only include the needed library to your project instead of the whole libraries
+* Aim to reuse for embedded and network service development
 
 |name|descript|name|descript|name|descript|
 |----|--------|----|--------|----|--------|

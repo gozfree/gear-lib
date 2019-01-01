@@ -16,7 +16,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 #include <libmacro.h>
-#include "../libconfig.h"
+#include "libconfig.h"
+#include "config_util.h"
 #include "luatables.h"
 #include <iostream>
 #include <cstdlib>
@@ -29,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 
 using namespace std;
 
@@ -138,117 +140,145 @@ static int lua_get_int(struct config *c, ...)
 static char *lua_get_string(struct config *c, ...)
 {
     LuaConfig *lt = (LuaConfig *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
+    lt = lt;
+    LuaTableNode *node;
+    LuaTable tbl;
     char *ret = NULL;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = (char *)(*lt)[key[0]].getDefault<string>("").c_str();
-        break;
-    case 2:
-        ret = (char *)(*lt)[key[0]][key[1]].getDefault<string>("").c_str();
-        break;
-    case 3:
-        ret = (char *)(*lt)[key[0]][key[1]][key[2]].getDefault<string>("").c_str();
-        break;
-    case 4:
-        ret = (char *)(*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<string>("").c_str();
-        break;
-    case 5:
-        ret = (char *)(*lt)[key[0]][key[1]][key[2]][key[3]][key[4]].getDefault<string>("").c_str();
-        break;
-    case 0:
-    default:
-        break;
+    node = new LuaTableNode[cnt];
+    if (cnt > 0) {
+        if (type_list[0].type == TYPE_INT) {
+            node[0] = (*lt)[type_list[0].ival-1];
+        } else if (type_list[0].type == TYPE_CHARP) {
+            node[0] = (*lt)[type_list[0].cval];
+        }
     }
-    free(key);
-    return strdup(ret);
+
+    for (int i = 1; i < cnt; i++) {
+        switch (type_list[i].type) {
+        case TYPE_INT:
+            node[i] = node[i-1][type_list[i].ival-1];
+            break;
+        case TYPE_CHARP:
+            node[i] = node[i-1][type_list[i].cval];
+            break;
+        default:
+            break;
+        }
+    }
+    free(type_list);
+    ret = (char *)node[cnt-1].getDefault<string>("").c_str();
+    delete []node;
+    return ret;
 }
+
 
 static double lua_get_double(struct config *c, ...)
 {
     LuaConfig *lt = (LuaConfig *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
+    lt = lt;
+    LuaTableNode *node;
+    LuaTable tbl;
     double ret;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = (*lt)[key[0]].getDefault<double>(0);
-        break;
-    case 2:
-        ret = (*lt)[key[0]][key[1]].getDefault<double>(0);
-        break;
-    case 3:
-        ret = (*lt)[key[0]][key[1]][key[2]].getDefault<double>(0);
-        break;
-    case 4:
-        ret = (*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<double>(0);
-        break;
-    case 0:
-    default:
-        break;
+    node = new LuaTableNode[cnt];
+    if (cnt > 0) {
+        if (type_list[0].type == TYPE_INT) {
+            node[0] = (*lt)[type_list[0].ival-1];
+        } else if (type_list[0].type == TYPE_CHARP) {
+            node[0] = (*lt)[type_list[0].cval];
+        }
     }
-    free(key);
+
+    for (int i = 1; i < cnt; i++) {
+        switch (type_list[i].type) {
+        case TYPE_INT:
+            node[i] = node[i-1][type_list[i].ival-1];
+            break;
+        case TYPE_CHARP:
+            node[i] = node[i-1][type_list[i].cval];
+            break;
+        default:
+            break;
+        }
+    }
+    free(type_list);
+    ret = node[cnt-1].getDefault<double>(0);
+    delete []node;
     return ret;
 }
 
 static int lua_get_boolean(struct config *c, ...)
 {
     LuaConfig *lt = (LuaConfig *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
-    int ret = 0;
+    lt = lt;
+    LuaTableNode *node;
+    LuaTable tbl;
+    int ret;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = (*lt)[key[0]].getDefault<bool>(false);
-        break;
-    case 2:
-        ret = (*lt)[key[0]][key[1]].getDefault<bool>(false);
-        break;
-    case 3:
-        ret = (*lt)[key[0]][key[1]][key[2]].getDefault<bool>(false);
-        break;
-    case 4:
-        ret = (*lt)[key[0]][key[1]][key[2]][key[3]].getDefault<bool>(false);
-        break;
-    case 0:
-    default:
-        break;
+    node = new LuaTableNode[cnt];
+    if (cnt > 0) {
+        if (type_list[0].type == TYPE_INT) {
+            node[0] = (*lt)[type_list[0].ival-1];
+        } else if (type_list[0].type == TYPE_CHARP) {
+            node[0] = (*lt)[type_list[0].cval];
+        }
     }
-    free(key);
+
+    for (int i = 1; i < cnt; i++) {
+        switch (type_list[i].type) {
+        case TYPE_INT:
+            node[i] = node[i-1][type_list[i].ival-1];
+            break;
+        case TYPE_CHARP:
+            node[i] = node[i-1][type_list[i].cval];
+            break;
+        default:
+            break;
+        }
+    }
+    free(type_list);
+    ret = node[cnt-1].getDefault<bool>(false);
+    delete []node;
     return ret;
 }
 

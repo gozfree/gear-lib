@@ -13,9 +13,13 @@ ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
 endif
 
-ENABLE_LUA	= 0
+ENABLE_LUA	= 1
 
+ifeq ($(ENABLE_LUA), 1)
+CC	= $(CROSS_PREFIX)g++
+else
 CC	= $(CROSS_PREFIX)gcc
+endif
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
@@ -23,17 +27,14 @@ AR	= $(CROSS_PREFIX)ar
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
 else
-ifeq ($(ENABLE_LUA), 1)
-CC_V	= $(CXX)
-else
 CC_V	= $(CC)
-endif
 CXX_V	= $(CXX)
 LD_V	= $(LD)
 AR_V	= $(AR)
 CP_V	= $(CP)
 RM_V	= $(RM)
 endif
+
 
 ###############################################################################
 # target and object
@@ -71,7 +72,7 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include -I./
 ifeq ($(ENABLE_LUA), 1)
 CFLAGS	+= `pkg-config --cflags lua5.2`
 CFLAGS	+= -DENABLE_LUA
