@@ -204,6 +204,7 @@ struct config_ops ini_ops = {
     .get_int     = ini_get_int,
     .get_double  = ini_get_double,
     .get_boolean = ini_get_boolean,
+    .get_length  = NULL,
     .del         = ini_del,
     .dump        = ini_dump,
     .save        = ini_save,
