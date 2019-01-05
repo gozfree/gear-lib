@@ -18,7 +18,10 @@
 #ifndef LIBUVC_H
 #define LIBUVC_H
 
-#include <stddef.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,12 +31,28 @@ struct uvc_ctx {
     int fd;
     int width;
     int height;
+    struct timeval timestamp;
     void *opaque;
 };
+
+struct video_cap {
+    uint8_t desc[32];
+    uint32_t version;
+};
+
+struct video_ctrl {
+    uint32_t cmd;
+    uint32_t val;
+};
+
+#define UVC_GET_CAP  _IOWR('V',  0, struct video_cap)
+#define UVC_SET_CTRL _IOWR('V',  1, struct video_ctrl)
+
 
 struct uvc_ctx *uvc_open(const char *dev, int width, int height);
 int uvc_print_info(struct uvc_ctx *c);
 int uvc_read(struct uvc_ctx *c, void *buf, size_t len);
+int uvc_ioctl(struct uvc_ctx *c, uint32_t cmd, void *buf, int len);
 void uvc_close(struct uvc_ctx *c);
 
 

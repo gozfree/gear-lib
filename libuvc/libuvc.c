@@ -66,9 +66,11 @@ struct v4l2_ctx {
     struct iovec buf[MAX_V4L_BUF];
     int buf_index;
     int req_count;
+    bool qbuf_done;
     struct v4l2_capability cap;
     uint32_t ctrl_flags;
     struct v4l2_queryctrl controls[MAX_V4L2_CID];
+    struct uvc_ctx *parent;
 };
 
 static int v4l2_get_cap(struct v4l2_ctx *vc)
@@ -120,11 +122,10 @@ static char *v4l2_fourcc_parse(char *buf, int len, uint32_t pix)
     if (len < 5) {
         return NULL;
     }
-    snprintf(buf, len, "%c%c%c%c",
-                (pix&0x000000FF),
-                (pix&0x0000FF00)>>8,
-                (pix&0x00FF0000)>>16,
-                (pix&0xFF000000)>>24);
+    snprintf(buf, len, "%c%c%c%c", (pix&0x000000FF),
+                                   (pix&0x0000FF00)>>8,
+                                   (pix&0x00FF0000)>>16,
+                                   (pix&0xFF000000)>>24);
     return buf;
 }
 
@@ -185,14 +186,12 @@ static void v4l2_get_cid(struct v4l2_ctx *vc)
         qctrl = &vc->controls[i];
         qctrl->id = v4l2_cid_supported[i];
         if (-1 == ioctl(vc->fd, VIDIOC_QUERYCTRL, qctrl)) {
-            //printf("\t%s is not supported!\n", qctrl->name);
             continue;
         }
         vc->ctrl_flags |= 1 << i;
         memset(&control, 0, sizeof (control));
         control.id = v4l2_cid_supported[i];
         if (-1 == ioctl(vc->fd, VIDIOC_G_CTRL, &control)) {
-            //printf("ioctl VIDIOC_G_CTRL %s failed!\n", qctrl->name);
             continue;
         }
         printf("\t%s, range: [%d, %d], default: %d, current: %d\n",
@@ -229,7 +228,6 @@ static int v4l2_set_format(struct v4l2_ctx *vc)
                 v4l2_fourcc_parse(pixel, sizeof(pixel), V4L2_PIX_FMT_YUYV));
     }
     if (vc->width > 0 || vc->height > 0) {
-        //set v4l2 pixel format
         pix->width = vc->width;
         pix->height = vc->height;
     } else {
@@ -287,6 +285,7 @@ static int v4l2_req_buf(struct v4l2_ctx *vc)
             return -1;
         }
     }
+    vc->qbuf_done = true;
     //stream on
     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     if (-1 == ioctl(vc->fd, VIDIOC_STREAMON, &type)) {
@@ -345,18 +344,27 @@ static int v4l2_buf_enqueue(struct v4l2_ctx *vc)
         .index = vc->buf_index
     };
 
+    if (vc->qbuf_done) {
+        return 0;
+    }
     if (-1 == ioctl(vc->fd, VIDIOC_QBUF, &buf)) {
         printf("%s ioctl(VIDIOC_QBUF) failed: %d\n", __func__, errno);
         return -1;
     }
+    vc->qbuf_done = true;
     return 0;
 }
 
 static int v4l2_buf_dequeue(struct v4l2_ctx *vc, struct frame *f)
 {
     struct v4l2_buffer buf;
+    memset(&buf, 0, sizeof(buf));
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
+    if (!vc->qbuf_done) {
+        printf("v4l2 need VIDIOC_QBUF first!\n");
+        return -1;
+    }
     while (1) {
         if (-1 == ioctl(vc->fd, VIDIOC_DQBUF, &buf)) {
             printf("%s ioctl(VIDIOC_DQBUF) failed: %d\n", __func__, errno);
@@ -368,7 +376,9 @@ static int v4l2_buf_dequeue(struct v4l2_ctx *vc, struct frame *f)
         }
         break;
     }
+    vc->qbuf_done = false;
     vc->buf_index = buf.index;
+    memcpy(&vc->parent->timestamp, &buf.timestamp, sizeof(struct timeval));
     f->index = buf.index;
     f->buf.iov_base = vc->buf[buf.index].iov_base;
     f->buf.iov_len = buf.bytesused;
@@ -432,6 +442,7 @@ struct uvc_ctx *uvc_open(const char *dev, int width, int height)
         printf("v4l2_open %s failed!\n", dev);
         goto failed;
     }
+    vc->parent = uvc;
     uvc->width = width;
     uvc->height = height;
     uvc->opaque = vc;
@@ -444,8 +455,66 @@ failed:
 int uvc_read(struct uvc_ctx *uvc, void *buf, size_t len)
 {
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
-    v4l2_write(vc);
+    if (-1 == v4l2_write(vc)) {
+        return -1;
+    }
     return v4l2_read(vc, buf, len);
+}
+
+static int v4l2_set_control(struct v4l2_ctx *vc, uint32_t cid, int value)
+{
+    int i;
+    struct v4l2_control control;
+    int ret = -1;
+    for (i = 0; v4l2_cid_supported[i]; i++) {
+        if (!(vc->ctrl_flags & (1 << i))) {
+            continue;
+        }
+        if (cid != v4l2_cid_supported[i]) {
+            continue;
+        }
+        struct v4l2_queryctrl *ctrl = &vc->controls[i];
+
+        memset(&control, 0, sizeof (control));
+        control.id = v4l2_cid_supported[i];
+        switch (ctrl->type) {
+        case V4L2_CTRL_TYPE_INTEGER://0~255
+            value = control.value =
+                    (value * (ctrl->maximum - ctrl->minimum) / 256) + ctrl->minimum;
+            ret = ioctl(vc->fd, VIDIOC_S_CTRL, &control);
+            break;
+
+        case V4L2_CTRL_TYPE_BOOLEAN:
+            value = control.value = value ? 1 : 0;
+            ret = ioctl(vc->fd, VIDIOC_S_CTRL, &control);
+            break;
+
+        default:
+            printf("control type not supported yet");
+            return -1;
+        }
+        printf("setting %s to %d\n", ctrl->name, value);
+    }
+    return ret;
+}
+
+int uvc_ioctl(struct uvc_ctx *c, uint32_t cmd, void *buf, int len)
+{
+    struct v4l2_ctx *vc = (struct v4l2_ctx *)c->opaque;
+    struct video_ctrl *vctrl;
+    switch (cmd) {
+    case UVC_GET_CAP:
+        v4l2_get_cap(vc);
+        break;
+    case UVC_SET_CTRL:
+        vctrl = (struct video_ctrl *)buf;
+        v4l2_set_control(vc, vctrl->cmd, vctrl->val);
+        break;
+    default:
+        printf("cmd %d not supported yet!\n", cmd);
+        break;
+    }
+    return 0;
 }
 
 void uvc_close(struct uvc_ctx *uvc)
