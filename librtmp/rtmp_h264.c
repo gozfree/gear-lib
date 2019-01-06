@@ -147,7 +147,6 @@ static int parse_exp_codes(uint8_t *buf, int* value, uint8_t *bit_pos, uint8_t t
 static int parse_scaling_list(uint8_t *buf, int sizeofScalingList, uint8_t *bit_pos)
 {
     int* scalingList = (int *)calloc(1, sizeofScalingList*sizeof(int));
-    unsigned char useDefaultScalingMatrixFlag;
     int lastScale = 8;
     int nextScale = 8;
     int delta_scale;
@@ -156,8 +155,6 @@ static int parse_scaling_list(uint8_t *buf, int sizeofScalingList, uint8_t *bit_
         if (nextScale != 0){
             i += parse_se(buf, &delta_scale,bit_pos);
             nextScale = (lastScale+ delta_scale + 256)%256;
-            useDefaultScalingMatrixFlag = ( j == 0 && nextScale == 0 );
-            useDefaultScalingMatrixFlag = useDefaultScalingMatrixFlag;
         }
         scalingList[j] = ( nextScale == 0 ) ? lastScale : nextScale;
         lastScale = scalingList[j];

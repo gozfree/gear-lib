@@ -57,7 +57,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -L$(OUTPUT)/lib -lqueue -lmacro -lthread -llock
-LDFLAGS	+= -pthread
+LDFLAGS	+= -pthread -ldl
 
 ###############################################################################
 # target
