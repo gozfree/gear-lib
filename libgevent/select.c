@@ -1,19 +1,28 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    select.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-27 00:59
- * updated: 2015-07-12 00:41
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libgevent.h"
+#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/select.h>
-#include <libmacro.h>
-#include <liblog.h>
-#include "libgevent.h"
 
 #define SELECT_MAX_FD	1024
 
@@ -28,14 +37,14 @@ static void *select_init(void)
 {
     struct select_ctx *sc = CALLOC(1, struct select_ctx);
     if (!sc) {
-        loge("malloc select_ctx failed!\n");
+        printf("malloc select_ctx failed!\n");
         return NULL;
     }
     fd_set *rfds = CALLOC(1, fd_set);
     fd_set *wfds = CALLOC(1, fd_set);
     fd_set *efds = CALLOC(1, fd_set);
     if (!rfds || !wfds || !efds) {
-        loge("malloc fd_set failed!\n");
+        printf("malloc fd_set failed!\n");
         return NULL;
     }
     sc->rfds = rfds;
@@ -98,11 +107,11 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
 
     n = select(nfds, sc->rfds, sc->wfds, sc->efds, tv);
     if (-1 == n) {
-        loge("errno=%d %s\n", errno, strerror(errno));
+        printf("errno=%d %s\n", errno, strerror(errno));
         return -1;
     }
     if (0 == n) {
-        loge("select timeout\n");
+        printf("select timeout\n");
         return 0;
     }
     for (i = 0; i < nfds; i++) {

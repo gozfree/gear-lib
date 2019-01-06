@@ -1,17 +1,27 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libdict.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-20 02:11
- * updated: 2015-07-13 03:31
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libdict.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
 
-#include "libdict.h"
 
 /** Minimum dictionary size to start with */
 #define DICT_MIN_SZ     64
@@ -89,7 +99,6 @@ static uint32_t dict_hash_murmur(char *key, size_t len)
     uint32_t r = 24;//magic number
 
     if (!key || !len) {
-        printf("%s: invalid paraments!\n", __func__);
         return 0;
     }
 
@@ -132,7 +141,6 @@ static keypair *dict_lookup(dict *d, char *key, uint32_t hash)
     uint32_t perturb;
 
     if (!d || !key) {
-        printf("%s: invalid paraments!\n", __func__);
         return NULL;
     }
 
@@ -180,7 +188,6 @@ static int dict_add_p(dict *d, char *key, char *val)
     keypair * slot;
 
     if (!d || !key) {
-        printf("%s: invalid paraments!\n", __func__);
         return -1;
     }
 
@@ -211,7 +218,6 @@ int dict_add(dict *d, char *key, char *val)
     keypair *slot;
 
     if (!d || !key) {
-        printf("%s: invalid paraments!\n", __func__);
         return -1;
     }
 
@@ -339,7 +345,6 @@ char *dict_get(dict *d, char *key, char *defval)
     uint32_t hash;
 
     if (!d || !key) {
-        printf("%s: invalid paraments!\n", __func__);
         return defval;
     }
 
@@ -358,7 +363,6 @@ int dict_del(dict *d, char *key)
     keypair *kp;
 
     if (!d || !key) {
-        printf("%s: invalid paraments!\n", __func__);
         return -1;
     }
 
@@ -382,7 +386,6 @@ int dict_del(dict *d, char *key)
 int dict_enumerate(dict * d, int rank, char ** key, char ** val)
 {
     if (!d || !key || !val || (rank<0)) {
-        printf("%s: invalid paraments!\n", __func__);
         return -1 ;
     }
 
@@ -410,7 +413,6 @@ void dict_dump(dict * d, FILE * out)
     int rank = 0;
 
     if (!d || !out) {
-        printf("%s: invalid paraments!\n", __func__);
         return;
     }
 

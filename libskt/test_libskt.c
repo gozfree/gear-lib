@@ -1,10 +1,21 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    test_libskt.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-05-03 18:27
- * updated: 2015-07-11 20:01
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libskt.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -15,11 +26,28 @@
 #include <sys/socket.h>
 #include <libgevent.h>
 #include <libthread.h>
-#include "libskt.h"
+#include <libmacro.h>
 
 struct skt_connection *g_sc = NULL;
 
 static struct gevent_base *g_evbase;
+
+static uint8_t socket_id = -1;
+void on_read(int fd, void *arg)
+{
+    char buf[14];
+    memset(buf, 0, sizeof(buf));
+    int ret = skt_recv(fd, buf, sizeof(buf));
+    if (ret > 0) {
+        DUMP_BUFFER(buf, sizeof(buf));
+        socket_id = buf[6];
+        printf("socket_id = %d\n", socket_id);
+    } else if (ret == 0) {
+        printf("delete connection fd:%d\n", fd);
+    } else if (ret < 0) {
+        printf("recv failed!\n");
+    }
+}
 void on_recv(int fd, void *arg)
 {
     char buf[2048];
@@ -68,6 +96,7 @@ int tcp_client(const char *host, uint16_t port)
         printf("connect failed!\n");
         return -1;
     }
+    on_read(g_sc->fd, NULL);
     skt_addr_ntop(str_ip, g_sc->local.ip);
     printf("local ip = %s, port = %d\n", str_ip, g_sc->local.port);
     skt_addr_ntop(str_ip, g_sc->remote.ip);
@@ -110,6 +139,14 @@ int tcp_client(const char *host, uint16_t port)
     }
 }
 
+int udp_client(const char *host, uint16_t port)
+{
+    struct skt_connection *sc = skt_udp_connect(host, port);
+    int ret = skt_send(sc->fd, "aaa", 4);
+    printf("fd = %d, ret = %d\n", sc->fd, ret);
+    return 0;
+}
+
 
 void on_connect(int fd, void *arg)
 {
@@ -134,6 +171,27 @@ void on_connect(int fd, void *arg)
     }
 }
 
+int udp_server(uint16_t port)
+{
+    int fd;
+    fd = skt_udp_bind(NULL, port);
+    if (fd == -1) {
+        return -1;
+    }
+    g_evbase = gevent_base_create();
+    if (!g_evbase) {
+        return -1;
+    }
+
+    skt_set_noblk(fd, true);
+    struct gevent *e = gevent_create(fd, on_recv, NULL, on_error, NULL);
+    if (-1 == gevent_add(g_evbase, e)) {
+        printf("event_add failed!\n");
+    }
+    gevent_base_loop(g_evbase);
+
+    return 0;
+}
 
 int tcp_server(uint16_t port)
 {
@@ -142,6 +200,9 @@ int tcp_server(uint16_t port)
     if (fd == -1) {
         return -1;
     }
+    struct skt_addr addr;
+    skt_getaddr_by_fd(fd, &addr);
+    printf("addr = %s\n", addr.ip_str);
     g_evbase = gevent_base_create();
     if (!g_evbase) {
         return -1;
@@ -218,6 +279,7 @@ int main(int argc, char **argv)
 {
     uint16_t port;
     const char *ip;
+    skt_get_local_info();
     if (argc < 2) {
         usage();
         exit(0);
@@ -228,7 +290,8 @@ int main(int argc, char **argv)
             port = atoi(argv[2]);
         else
             port = 0;
-        tcp_server(port);
+        //tcp_server(port);
+        udp_server(port);
     } else if (!strcmp(argv[1], "-c")) {
         if (argc == 3) {
             ip = "127.0.0.1";
@@ -237,7 +300,8 @@ int main(int argc, char **argv)
             ip = argv[2];
             port = atoi(argv[3]);
         }
-        tcp_client(ip, port);
+        //tcp_client(ip, port);
+        udp_client(ip, port);
     }
     if (!strcmp(argv[1], "-t")) {
         addr_test();

@@ -5,8 +5,8 @@
  * created: 2016-04-24 16:22:04
  * updated: 2016-04-24 16:22:04
  *****************************************************************************/
-#ifndef _LIBATOMIC_H_
-#define _LIBATOMIC_H_
+#ifndef LIBATOMIC_H
+#define LIBATOMIC_H
 
 #ifdef __cplusplus
 extern "C" {

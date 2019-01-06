@@ -1,2 +1,0 @@
-libworq is a simple workqueue refer to kernel.
-Depend on libgevent

@@ -1,5 +1,5 @@
-##libdict
-This is a simple hash key-value dictonary library.
+## libdict
+This is a simple libdict library.
 
 The key-value store type is string:string.
 

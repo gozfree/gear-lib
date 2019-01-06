@@ -1,2 +1,3 @@
-##libthread
-This is a simple thread library.
+## libthread
+This is a simple libthread library.
+

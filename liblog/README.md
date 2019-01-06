@@ -1,9 +1,9 @@
-##liblog
+## liblog
 This is a simple log library.
 
 Support linux(x86, arm), android, ios, and support write log to stderr, file or rsyslog.
 
-##How To Use
+## How To Use
 For console usage, no need to rebuild for setting log level, only to set bash env as follows:
 
  $ `export LIBLOG_LEVEL=verbose`
@@ -20,7 +20,7 @@ For console usage, no need to rebuild for setting log level, only to set bash en
 
  enable timestamp
 
-##How To Build
+## How To Build
 * x86/arm build
   $ `make clean`
 
@@ -39,10 +39,10 @@ For console usage, no need to rebuild for setting log level, only to set bash en
 
   and for android the liblog will be installed in ../android_jni_libs/obj/local/armeabi/
 
-##Code Parser
+## Code Parser
   $ `sparse *.c`
 
-##Stability
+## Stability
   $ `valgrind --leak-check=full ./test_liblog`
 
   $ `valgrind --tool=helgrind ./test_liblog`

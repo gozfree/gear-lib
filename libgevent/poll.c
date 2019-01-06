@@ -1,10 +1,21 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    poll.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-27 00:59
- * updated: 2015-07-12 00:41
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,8 +23,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <poll.h>
-#include <liblog.h>
-#include "libgevent.h"
 
 #define POLL_MAX_FD                 (1024)
 #define MAX_SECONDS_IN_MSEC_LONG    (((LONG_MAX) - 999) / 1000)
@@ -31,12 +40,12 @@ static void *poll_init(void)
     struct pollfd *fds;
     pc = (struct poll_ctx *)calloc(1, sizeof(struct poll_ctx));
     if (!pc) {
-        loge("malloc poll_ctx failed!\n");
+        printf("malloc poll_ctx failed!\n");
         return NULL;
     }
     fds = (struct pollfd *)calloc(POLL_MAX_FD, sizeof(struct pollfd));
     if (!fds) {
-        loge("malloc pollfd failed!\n");
+        printf("malloc pollfd failed!\n");
         return NULL;
     }
     pc->fds = fds;
@@ -93,11 +102,11 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
 
     n = poll(pc->fds, pc->nfds, timeout);
     if (-1 == n) {
-        loge("errno=%d %s\n", errno, strerror(errno));
+        printf("errno=%d %s\n", errno, strerror(errno));
         return -1;
     }
     if (0 == n) {
-        loge("poll timeout\n");
+        printf("poll timeout\n");
         return 0;
     }
     for (i = 0; i < n; i++) {

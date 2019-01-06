@@ -1,10 +1,20 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    libdebug.c
- * author:  gozfree <gozfree@163.com>
- * created: 2016-06-17 16:53:13
- * updated: 2016-06-17 16:53:13
- *****************************************************************************/
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #ifndef __cplusplus
 #define _GNU_SOURCE
 #endif
@@ -15,7 +25,9 @@
 #include <signal.h>
 #include <unistd.h>
 #include <stdint.h>
+#if !defined(__UCLIBC__)
 #include <execinfo.h>
+#endif
 
 #include "libdebug.h"
 
@@ -25,7 +37,44 @@
 /*
  * from /usr/include/bits/signum.h
  */
-static uint32_t signum[] =
+static int signals_all[] = {
+    SIGHUP,    /* 1 Hangup (POSIX).  */
+    SIGINT,    /* 2 Interrupt (ANSI).  */
+    SIGQUIT,   /* 3 Quit (POSIX).  */
+    SIGILL,    /* 4 Illegal instruction (ANSI).  */
+    SIGTRAP,   /* 5 Trace trap (POSIX).  */
+    SIGABRT,   /* 6 Abort (ANSI).  */
+    SIGIOT,    /* 6 IOT trap (4.2 BSD).  */
+    SIGBUS,    /* 7 BUS error (4.2 BSD).  */
+    SIGFPE,    /* 8 Floating-point exception (ANSI).  */
+    SIGKILL,   /* 9 Kill, unblockable (POSIX).  */
+    SIGUSR1,   /* 10 User-defined signal 1 (POSIX).  */
+    SIGSEGV,   /* 11 Segmentation violation (ANSI).  */
+    SIGUSR2,   /* 12 User-defined signal 2 (POSIX).  */
+    SIGPIPE,   /* 13 Broken pipe (POSIX).  */
+    SIGALRM,   /* 14 Alarm clock (POSIX).  */
+    SIGTERM,   /* 15 Termination (ANSI).  */
+    SIGSTKFLT, /* 16 Stack fault.  */
+    SIGCLD,    /* 17 Same as SIGCHLD (System V).  */
+    SIGCHLD,   /* 17 Child status has changed (POSIX).  */
+    SIGCONT,   /* 18 Continue (POSIX).  */
+    SIGSTOP,   /* 19 Stop, unblockable (POSIX).  */
+    SIGTSTP,   /* 20 Keyboard stop (POSIX).  */
+    SIGTTIN,   /* 21 Background read from tty (POSIX).  */
+    SIGTTOU,   /* 22 Background write to tty (POSIX).  */
+    SIGURG,    /* 23 Urgent condition on socket (4.2 BSD).  */
+    SIGXCPU,   /* 24 CPU limit exceeded (4.2 BSD).  */
+    SIGXFSZ,   /* 25 File size limit exceeded (4.2 BSD).  */
+    SIGVTALRM, /* 26 Virtual alarm clock (4.2 BSD).  */
+    SIGPROF,   /* 27 Profiling alarm clock (4.2 BSD).  */
+    SIGWINCH,  /* 28 Window size change (4.3 BSD, Sun).  */
+    SIGPOLL,   /* 29 Pollable event occurred (System V).  */
+    SIGIO,     /* 29 I/O now possible (4.2 BSD).  */
+    SIGPWR,    /* 30 Power failure restart (System V).  */
+    SIGSYS,    /* 31 Bad system call.  */
+};
+
+static int signals_trace[] =
 {
     SIGILL,  /* Illegal instruction (ANSI).  */
     SIGABRT, /* Abort (ANSI).  */
@@ -34,6 +83,7 @@ static uint32_t signum[] =
     SIGSEGV, /* Segmentation violation (ANSI).  */
 };
 
+#if !defined(__UCLIBC__)
 static void *get_uc_mcontext_pc(ucontext_t *uc)
 {
 #if defined(__APPLE__) && !defined(MAC_OS_X_VERSION_10_6)
@@ -62,12 +112,18 @@ static void *get_uc_mcontext_pc(ucontext_t *uc)
     return (void*) uc->uc_mcontext.sc_ip;
     #elif defined(__arm__)
     return (void*) uc->uc_mcontext.arm_pc;
+    #elif defined(__aarch64__)
+    return (void*) uc->uc_mcontext.pc;
+    #else
+    return NULL;
     #endif
 #else
     return NULL;
 #endif
 }
+#endif
 
+#if !defined(__UCLIBC__)
 static void backtrace_symbols_detail(void *array[], int size)
 {
     int i;
@@ -90,9 +146,11 @@ static void backtrace_symbols_detail(void *array[], int size)
     }
     fclose(fp);
 }
+#endif
 
 static void backtrace_handler(int sig_num, siginfo_t *info, void *ucontext)
 {
+#if !defined(__UCLIBC__)
     void *array[BT_SIZE];
     int i, size = 0;
     char **strings = NULL;
@@ -108,21 +166,23 @@ static void backtrace_handler(int sig_num, siginfo_t *info, void *ucontext)
         fprintf(stderr, "#%d  %s\n", i, strings[i]);
     }
     backtrace_symbols_detail(array, size);
+#endif
 
     exit(EXIT_FAILURE);
 }
 
 int debug_backtrace_init(void)
 {
-    struct sigaction sigact;
-    sigact.sa_sigaction = backtrace_handler;
-    sigact.sa_flags = SA_RESTART | SA_SIGINFO;
+    int i;
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
+    sa.sa_sigaction = backtrace_handler;
+    sa.sa_flags = SA_RESTART | SA_SIGINFO;
     int ret = 0;
-    for (uint32_t i = 0; i < (sizeof(signum) / sizeof(uint32_t)); ++i) {
-        if (sigaction(signum[i], &sigact, NULL) != 0) {
-            fprintf(stderr, "Failed to set signal handler for %s(%d)!",
-                  strsignal(signum[i]),
-                  signum[i]);
+    for (i = 0; i < (sizeof(signals_trace) / sizeof(int)); ++i) {
+        if (sigaction(signals_trace[i], &sa, NULL) != 0) {
+            fprintf(stderr, "backtrace failed to set signal handler for %s(%d)!\n",
+                    strsignal(signals_trace[i]), signals_trace[i]);
             ret = -1;
             break;
         }
@@ -132,7 +192,102 @@ int debug_backtrace_init(void)
 
 void debug_backtrace_dump(void)
 {
+#if !defined(__UCLIBC__)
     void* buffer[BT_SIZE];
     int size = backtrace(buffer, BT_SIZE);
     backtrace_symbols_detail(buffer, size);
+#endif
+}
+
+static void debug_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
+{
+    fprintf(stderr, "signal %d (%s) received from %d\n",
+                      signo, strsignal(signo), siginfo->si_pid);
+
+    switch (signo) {
+    case SIGHUP:
+        break;
+    case SIGINT:
+        break;
+    case SIGQUIT:
+        break;
+    case SIGILL:
+        break;
+    case SIGTRAP:
+        break;
+    case SIGABRT://same as SIGIOT:
+        break;
+    case SIGBUS:
+        break;
+    case SIGFPE:
+        break;
+    case SIGKILL:
+        break;
+    case SIGUSR1:
+        break;
+    case SIGSEGV:
+        signal(signo, SIG_IGN);
+        break;
+    case SIGUSR2:
+        break;
+    case SIGPIPE:
+        break;
+    case SIGALRM:
+        break;
+    case SIGTERM:
+        break;
+    case SIGSTKFLT:
+        break;
+    case SIGCLD://same as SIGCHLD
+        break;
+    case SIGCONT:
+        break;
+    case SIGSTOP:
+        break;
+    case SIGTSTP:
+        break;
+    case SIGTTIN:
+        break;
+    case SIGTTOU:
+        break;
+    case SIGURG:
+        break;
+    case SIGXCPU:
+        break;
+    case SIGXFSZ:
+        break;
+    case SIGVTALRM:
+        break;
+    case SIGPROF:
+        break;
+    case SIGWINCH:
+        break;
+    case SIGPOLL://same as SIGIO
+        break;
+    case SIGPWR:
+        break;
+    case SIGSYS://same as SIGUNUSED
+        break;
+    default:
+        break;
+    }
+}
+
+int debug_signals_init(void)
+{
+    int i;
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
+    sa.sa_sigaction = debug_signal_handler;
+    sa.sa_flags = SA_RESTART | SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+
+    for (i = 0; i < (sizeof(signals_all) / sizeof(int)); ++i) {
+        if (sigaction(signals_all[i], &sa, NULL) == -1) {
+            fprintf(stderr, "signal failed to set signal handler for %s(%d)!\n",
+                  strsignal(signals_all[i]), signals_all[i]);
+        }
+    }
+
+    return 0;
 }

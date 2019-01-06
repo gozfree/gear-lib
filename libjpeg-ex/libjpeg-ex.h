@@ -5,8 +5,8 @@
  * created: 2015-07-28 16:07
  * updated: 2015-07-28 16:07
  ******************************************************************************/
-#ifndef _LIBJPEG_TURBO_EXT_H_
-#define _LIBJPEG_TURBO_EXT_H_
+#ifndef LIBJPEG_TURBO_EXT_H
+#define LIBJPEG_TURBO_EXT_H
 
 #include <stdio.h>
 #include <stdlib.h>

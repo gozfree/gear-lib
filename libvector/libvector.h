@@ -1,12 +1,22 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libvector.h
- * author:  gozfree <gozfree@163.com>
- * created: 2015-09-16 00:48
- * updated: 2015-09-16 00:48
- *****************************************************************************/
-#ifndef _LIBVECTOR_H_
-#define _LIBVECTOR_H_
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#ifndef LIBVECTOR_H
+#define LIBVECTOR_H
 
 #include <stdint.h>
 #include <sys/uio.h>
@@ -51,6 +61,7 @@ struct vector *_vector_create(size_t size);
 void _vector_push_back(struct vector *v, void *e, size_t type_size);
 vector_iter vector_begin(struct vector *v);
 vector_iter vector_end(struct vector *v);
+vector_iter vector_last(struct vector *v);//last=end-1
 vector_iter vector_next(struct vector *v);
 vector_iter vector_prev(struct vector *v);
 void *_vector_iter_value(struct vector *v, vector_iter iter);
@@ -66,7 +77,7 @@ void vector_pop_back(struct vector *v);
 #define vector_back(v, type_t) \
     ({ \
         type_t tmp; \
-        memcpy(&tmp, vector_end(v), v->type_size); \
+        memcpy(&tmp, vector_last(v), v->type_size); \
         &tmp; \
     })
 

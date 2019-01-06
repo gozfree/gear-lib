@@ -5,8 +5,8 @@
  * created: 2016-04-24 17:57
  * updated: 2016-04-24 17:57
  ******************************************************************************/
-#ifndef _LIBATOMIC_GCC_H_
-#define _LIBATOMIC_GCC_H_
+#ifndef LIBATOMIC_GCC_H
+#define LIBATOMIC_GCC_H
 
 #include <stdint.h>
 #include "libatomic.h"
@@ -15,7 +15,14 @@
 extern "C" {
 #endif
 
+#define GCC_VERSION (__GNUC__*100 + __GNUC_MINOR__*10 + __GNUC_PATCHLEVEL__)
+
+#if GCC_VERSION > 463
 #define HAVE_ATOMIC_COMPARE_EXCHANGE 1
+#else
+#define HAVE_ATOMIC_COMPARE_EXCHANGE 0
+#endif
+
 #define HAVE_SYNC_VAL_COMPARE_AND_SWAP 1
 
 #define atomic_int_get atomic_int_get_gcc

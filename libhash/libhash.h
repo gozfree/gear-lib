@@ -1,46 +1,45 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    libhash.h
- * author:  gozfree <gozfree@163.com>
- * created: 2015-05-10 00:42
- * updated: 2015-05-10 00:42
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
+#ifndef LIBHASH_H
+#define LIBHASH_H
 
-#ifndef _LIBHASH_H_
-#define _LIBHASH_H_
+#include <stdio.h>
+#include <stdint.h>
 
-#include <libmacro.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct hash {
-    char *name;
-    struct hlist_head *list;
-    int bucket_size;
-    void (*destory)(void *value);
+    int bucket;
+    void *opaque_list;
+    void (*destory)(void *val);
 };
 
-struct hash_entry {
-    struct hlist_node entry;
-    char *key;
-    void *value;
-};
+struct hash *hash_create(int bucket);
+void hash_destroy(struct hash *h);
+void hash_set_destory(struct hash *h, void (*destory)(void *val));
 
-void *hash_get(struct hash *dict, const char *key);
-
-void hash_set(struct hash *dict, const char *key, void *value);
-
-void hash_del(struct hash *dict, const char *key);
-
-void *hash_get_and_del(struct hash *dict, const char *key);
-
-struct hash *hash_create(int bucket_size);
-
-void hash_destroy(struct hash *dict);
-
-void hash_set_destory(struct hash *dict, void (*destory)(void *value));
-
+uint32_t hash_gen32(const char *key, size_t len);
+void *hash_get(struct hash *h, const char *key);
+int hash_set(struct hash *h, const char *key, void *val);
+int hash_del(struct hash *h, const char *key);
+void *hash_get_and_del(struct hash *h, const char *key);
 
 #ifdef __cplusplus
 }

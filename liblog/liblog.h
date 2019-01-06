@@ -1,12 +1,22 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    liblog.h
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-20 01:47
- * updated: 2015-07-11 16:09
- *****************************************************************************/
-#ifndef _LIBLOG_H_
-#define _LIBLOG_H_
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#ifndef LIBLOG_H
+#define LIBLOG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +47,8 @@ int log_init(int type, const char *ident);
 void log_deinit();
 
 void log_set_level(int level);
-int log_set_split_size(int size);
+void log_set_split_size(int size);
+void log_set_rotate(int enable);
 int log_set_path(const char *path);
 int log_print(int lvl, const char *tag, const char *file, int line,
         const char *func, const char *fmt, ...);
@@ -48,11 +59,11 @@ int log_print(int lvl, const char *tag, const char *file, int line,
 
 #define LOG_TAG "tag"
 
-#define loge(...) log_print(LOG_ERR, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logw(...) log_print(LOG_WARNING, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logi(...) log_print(LOG_INFO, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logd(...) log_print(LOG_DEBUG, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
-#define logv(...) log_print(LOG_VERB, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__);
+#define loge(...) log_print(LOG_ERR, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define logw(...) log_print(LOG_WARNING, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define logi(...) log_print(LOG_INFO, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define logd(...) log_print(LOG_DEBUG, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define logv(...) log_print(LOG_VERB, LOG_TAG, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #ifdef __ANDROID__
 #ifndef __ANDROID_APP__

@@ -1,16 +1,26 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libvector.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-09-16 00:49
- * updated: 2015-09-16 00:49
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libvector.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include "libvector.h"
 
 #define VECTOR_DEFAULT_BUF_LEN  (1024)
 
@@ -22,7 +32,8 @@ void _vector_push_back(struct vector *v, void *e, size_t type_size)
         printf("%s: paraments invalid!\n", __func__);
         return;
     }
-    if (v->size * v->type_size >= v->capacity) {
+check:
+    if ((v->size + 1) * v->type_size >= v->capacity) {
         resize = v->capacity + VECTOR_DEFAULT_BUF_LEN;
         pnew = realloc(v->buf.iov_base, resize);
         if (!pnew) {
@@ -30,7 +41,9 @@ void _vector_push_back(struct vector *v, void *e, size_t type_size)
             return;
         }
         v->buf.iov_base = pnew;
-        v->capacity += resize;
+        v->buf.iov_len = resize;
+        v->capacity = resize;
+        goto check;
     }
     void *ptop = (uint8_t *)v->buf.iov_base + v->size * v->type_size;
     memcpy(ptop, e, v->type_size);
@@ -56,6 +69,7 @@ int vector_empty(struct vector *v)
         printf("%s: paraments invalid!\n", __func__);
         return -1;
     }
+    v->tmp_cursor = 0;
     return (v->size == 0);
 }
 
@@ -77,13 +91,26 @@ vector_iter vector_end(struct vector *v)
     return (void *)((uint8_t *)v->buf.iov_base + v->size * v->type_size);
 }
 
+vector_iter vector_last(struct vector *v)
+{
+    if (!v) {
+        printf("%s: paraments invalid!\n", __func__);
+        return NULL;
+    }
+    return (void *)((uint8_t *)v->buf.iov_base + (v->size-1) * v->type_size);
+}
+
 vector_iter vector_next(struct vector *v)
 {
     if (!v) {
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
-    v->tmp_cursor++;
+    if (v->tmp_cursor < v->size) {
+        v->tmp_cursor++;
+    } else {
+        return NULL;
+    }
     return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
 }
 

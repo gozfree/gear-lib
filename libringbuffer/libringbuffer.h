@@ -5,8 +5,8 @@
  * created: 2016-06-29 11:42:50
  * updated: 2016-06-29 11:42:50
  *****************************************************************************/
-#ifndef _LIBRINGBUFFER_H_
-#define _LIBRINGBUFFER_H_
+#ifndef LIBRINGBUFFER_H
+#define LIBRINGBUFFER_H
 
 #include <stdlib.h>
 

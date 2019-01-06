@@ -1,0 +1,1399 @@
+#define _XOPEN_XPG3 1
+#define sa_sigaction __sigaction_handler.sa_sigaction
+#define _IO_CURRENTLY_PUTTING 0x800
+#define _SC_CHAR_MIN _SC_CHAR_MIN
+#define SI_TIMER SI_TIMER
+#define __DBL_MIN_EXP__ (-1021)
+#define _IO_peekc_unlocked(_fp) (_IO_BE ((_fp)->_IO_read_ptr >= (_fp)->_IO_read_end, 0) && __underflow (_fp) == EOF ? EOF : *(unsigned char *) (_fp)->_IO_read_ptr)
+#define _SC_XOPEN_UNIX _SC_XOPEN_UNIX
+#define si_timerid _sifields._timer.si_tid
+#define _CS_V6_ENV _CS_V6_ENV
+#define _CS_POSIX_V6_ILP32_OFFBIG_LIBS _CS_POSIX_V6_ILP32_OFFBIG_LIBS
+#define _SC_PII _SC_PII
+#define _POSIX_THREAD_PRIORITY_SCHEDULING 200809L
+#define _POSIX_SHARED_MEMORY_OBJECTS 200809L
+#define __UINT_LEAST16_MAX__ 65535
+#define __ATOMIC_ACQUIRE 2
+#define _CS_XBS5_LPBIG_OFFBIG_LIBS _CS_XBS5_LPBIG_OFFBIG_LIBS
+#define __stub_uselib 
+#define _SC_PII_OSI_COTS _SC_PII_OSI_COTS
+#define _SC_NGROUPS_MAX _SC_NGROUPS_MAX
+#define __FLT_MIN__ 1.17549435082228750796873653722224568e-38F
+#define __NFDBITS (8 * (int) sizeof (__fd_mask))
+#define _SC_SPIN_LOCKS _SC_SPIN_LOCKS
+#define _SC_TIMEOUTS _SC_TIMEOUTS
+#define _IO_UNITBUF 020000
+#define __bswap_16(x) (__extension__ ({ unsigned short int __bsx = (unsigned short int) (x); __bswap_constant_16 (__bsx); }))
+#define si_fd _sifields._sigpoll.si_fd
+#define __UINT_LEAST8_TYPE__ unsigned char
+#define _T_WCHAR_ 
+#define _SC_IPV6 _SC_IPV6
+#define INT_LEAST16_MIN (-32767-1)
+#define _SC_XOPEN_REALTIME _SC_XOPEN_REALTIME
+#define __flexarr []
+#define _SC_LINE_MAX _SC_LINE_MAX
+#define _IO_FLAGS2_USER_WBUF 8
+#define si_arch _sifields._sigsys._arch
+#define __S64_TYPE long int
+#define _POSIX_PRIORITIZED_IO 200809L
+#define _SC_LONG_BIT _SC_LONG_BIT
+#define __stub_fchflags 
+#define __SQUAD_TYPE long int
+#define __SIZEOF_PTHREAD_CONDATTR_T 8
+#define SIGBUS 7
+#define __INTMAX_C(c) c ## L
+#define _SC_LEVEL4_CACHE_SIZE _SC_LEVEL4_CACHE_SIZE
+#define __sigmask(sig) (((unsigned long int) 1) << (((sig) - 1) % (8 * sizeof (unsigned long int))))
+#define _BSD_SIZE_T_DEFINED_ 
+#define _SC_SSIZE_MAX _SC_SSIZE_MAX
+#define __socklen_t_defined 
+#define ILL_ILLTRP ILL_ILLTRP
+#define __TIME_T_TYPE __SLONGWORD_TYPE
+#define __CHAR_BIT__ 8
+#define __FSWORD_T_TYPE __SWORD_TYPE
+#define SIG_HOLD ((__sighandler_t) 2)
+#define _XOPEN_CRYPT 1
+#define _G_HAVE_MREMAP 1
+#define makedev(maj,min) gnu_dev_makedev (maj, min)
+#define _SC_THREAD_SAFE_FUNCTIONS _SC_THREAD_SAFE_FUNCTIONS
+#define SIGTTIN 21
+#define __UINT8_MAX__ 255
+#define _POSIX_CLOCK_SELECTION 200809L
+#define _POSIX_TYPED_MEMORY_OBJECTS -1
+#define _SC_COLL_WEIGHTS_MAX _SC_COLL_WEIGHTS_MAX
+#define _SC_TYPED_MEMORY_OBJECTS _SC_TYPED_MEMORY_OBJECTS
+#define __WINT_MAX__ 4294967295U
+#define _SC_TTY_NAME_MAX _SC_TTY_NAME_MAX
+#define si_pid _sifields._kill.si_pid
+#define __sigset_t_defined 
+#define __SIZEOF_PTHREAD_ATTR_T 64
+#define _SC_XOPEN_XPG2 _SC_XOPEN_XPG2
+#define INT8_MAX (127)
+#define CLD_TRAPPED CLD_TRAPPED
+#define UINT_LEAST64_MAX (__UINT64_C(18446744073709551615))
+#define stderr stderr
+#define __GLIBC_PREREQ(maj,min) ((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
+#define _CS_LFS64_LDFLAGS _CS_LFS64_LDFLAGS
+#define _CS_POSIX_V7_LP64_OFF64_LINTFLAGS _CS_POSIX_V7_LP64_OFF64_LINTFLAGS
+#define _XOPEN_SOURCE 700
+#define _SC_PII_SOCKET _SC_PII_SOCKET
+#define ITIMER_VIRTUAL ITIMER_VIRTUAL
+#define _SC_V7_ILP32_OFF32 _SC_V7_ILP32_OFF32
+#define __OFF_T_MATCHES_OFF64_T 1
+#define __ORDER_LITTLE_ENDIAN__ 1234
+#define __SIZE_MAX__ 18446744073709551615UL
+#define __stub_putmsg 
+#define __WCHAR_MAX__ 4294967295U
+#define _SC_2_C_DEV _SC_2_C_DEV
+#define __WAIT_INT(status) (__extension__ (((union { __typeof(status) __in; int __i; }) { .__in = (status) }).__i))
+#define __stub___kernel_rem_pio2l 
+#define _SC_LEVEL3_CACHE_LINESIZE _SC_LEVEL3_CACHE_LINESIZE
+#define INT16_MAX (32767)
+#define __BLKCNT_T_TYPE __SLONGWORD_TYPE
+#define WIFEXITED(status) __WIFEXITED (__WAIT_INT (status))
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 1
+#define __DBL_DENORM_MIN__ ((double)4.94065645841246544176568792868221372e-324L)
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8 1
+#define __GCC_ATOMIC_CHAR_LOCK_FREE 2
+#define SIGTTOU 22
+#define _IO_flockfile(_fp) 
+#define _IOFBF 0
+#define __USE_BSD 1
+#define __FLT_EVAL_METHOD__ 0
+#define _SC_NPROCESSORS_CONF _SC_NPROCESSORS_CONF
+#define _SC_SPORADIC_SERVER _SC_SPORADIC_SERVER
+#define _IO_USER_LOCK 0x8000
+#define _IO_NO_WRITES 8
+#define __ASMNAME2(prefix,cname) __STRING (prefix) cname
+#define _SC_SYSTEM_DATABASE _SC_SYSTEM_DATABASE
+#define __unix__ 1
+#define _SC_XOPEN_STREAMS _SC_XOPEN_STREAMS
+#define _SC_THREAD_PRIO_INHERIT _SC_THREAD_PRIO_INHERIT
+#define _SC_NPROCESSORS_ONLN _SC_NPROCESSORS_ONLN
+#define _CS_POSIX_V7_ILP32_OFF32_CFLAGS _CS_POSIX_V7_ILP32_OFF32_CFLAGS
+#define __ASM_HWCAP_H 
+#define _G_HAVE_ST_BLKSIZE defined (_STATBUF_ST_BLKSIZE)
+#define _XOPEN_VERSION 700
+#define __stub_setlogin 
+#define __GCC_ATOMIC_CHAR32_T_LOCK_FREE 2
+#define w_termsig __wait_terminated.__w_termsig
+#define __FLOAT_WORD_ORDER __BYTE_ORDER
+#define INT8_MIN (-128)
+#define _SC_LEVEL1_DCACHE_LINESIZE _SC_LEVEL1_DCACHE_LINESIZE
+#define _SC_2_CHAR_TERM _SC_2_CHAR_TERM
+#define _CS_LFS_CFLAGS _CS_LFS_CFLAGS
+#define _SC_TRACE_USER_EVENT_MAX _SC_TRACE_USER_EVENT_MAX
+#define SIGPROF 27
+#define _SC_CPUTIME _SC_CPUTIME
+#define __UINT_FAST64_MAX__ 18446744073709551615UL
+#define __SIG_ATOMIC_TYPE__ int
+#define __COMPAR_FN_T 
+#define __GID_T_TYPE __U32_TYPE
+#define si_ptr _sifields._rt.si_sigval.sival_ptr
+#define POLL_MSG POLL_MSG
+#define _SC_THREAD_PRIO_PROTECT _SC_THREAD_PRIO_PROTECT
+#define __sigandset(dest,left,right) (__extension__ ({ int __cnt = _SIGSET_NWORDS; sigset_t *__dest = (dest); const sigset_t *__left = (left); const sigset_t *__right = (right); while (--__cnt >= 0) __dest->__val[__cnt] = (__left->__val[__cnt] & __right->__val[__cnt]); 0; }))
+#define __DBL_MIN_10_EXP__ (-307)
+#define INT16_MIN (-32767-1)
+#define __FINITE_MATH_ONLY__ 0
+#define si_overrun _sifields._timer.si_overrun
+#define __id_t_defined 
+#define UINTMAX_C(c) c ## UL
+#define _SC_SCHAR_MAX _SC_SCHAR_MAX
+#define _SC_MEMLOCK_RANGE _SC_MEMLOCK_RANGE
+#define L_cuserid 9
+#define SIGALRM 14
+#define _SC_XBS5_ILP32_OFFBIG _SC_XBS5_ILP32_OFFBIG
+#define __u_char_defined 
+#define _SC_SHARED_MEMORY_OBJECTS _SC_SHARED_MEMORY_OBJECTS
+#define _POSIX_THREAD_SAFE_FUNCTIONS 200809L
+#define __pid_t_defined 
+#define __GNUC_PATCHLEVEL__ 5
+#define _POSIX_TRACE_EVENT_FILTER -1
+#define SIGFPE 8
+#define ELF_NGREG (sizeof (struct user_pt_regs) / sizeof(elf_greg_t))
+#define _IO_pid_t __pid_t
+#define __UINT_FAST8_MAX__ 255
+#define __LEAF , __leaf__
+#define __LDBL_REDIR1(name,proto,alias) name proto
+#define __size_t 
+#define INT_FAST8_MAX (127)
+#define __DEC64_MAX_EXP__ 385
+#define _WCHAR_T_DEFINED 
+#define _POSIX_V7_LP64_OFF64 1
+#define _XOPEN_XCU_VERSION 4
+#define __ino64_t_defined 
+#define _SC_FILE_ATTRIBUTES _SC_FILE_ATTRIBUTES
+#define __INT8_C(c) c
+#define WCHAR_MAX __WCHAR_MAX
+#define _SYS_TIME_H 1
+#define NSIG _NSIG
+#define _CS_PATH _CS_PATH
+#define __stub_putpmsg 
+#define __UINT_LEAST64_MAX__ 18446744073709551615UL
+#define _IO_FLAGS2_MMAP 1
+#define htobe16(x) __bswap_16 (x)
+#define _XBS5_LPBIG_OFFBIG -1
+#define _SC_BC_SCALE_MAX _SC_BC_SCALE_MAX
+#define __always_inline __inline __attribute__ ((__always_inline__))
+#define NFDBITS __NFDBITS
+#define __SHRT_MAX__ 32767
+#define w_stopval __wait_stopped.__w_stopval
+#define __LDBL_MAX__ 1.18973149535723176508575932662800702e+4932L
+#define _SC_PII_INTERNET_DGRAM _SC_PII_INTERNET_DGRAM
+#define ILL_ILLOPC ILL_ILLOPC
+#define __stub_get_kernel_syms 
+#define ILL_ILLOPN ILL_ILLOPN
+#define _SC_CHARCLASS_NAME_MAX _SC_CHARCLASS_NAME_MAX
+#define _SC_SCHAR_MIN _SC_SCHAR_MIN
+#define __daddr_t_defined 
+#define SIGSTKFLT 16
+#define SIGSTKSZ 8192
+#define _IOS_BIN 128
+#define __fortify_function __extern_always_inline __attribute_artificial__
+#define sigmask(sig) __sigmask(sig)
+#define PSR_c 0x000000ff
+#define PSR_f 0xff000000
+#define PSR_s 0x00ff0000
+#define PSR_x 0x0000ff00
+#define _CS_GNU_LIBPTHREAD_VERSION _CS_GNU_LIBPTHREAD_VERSION
+#define _IO_MAGIC_MASK 0xFFFF0000
+#define _POSIX_JOB_CONTROL 1
+#define __UINT_LEAST8_MAX__ 255
+#define __GCC_ATOMIC_BOOL_LOCK_FREE 2
+#define _SC_THREAD_STACK_MIN _SC_THREAD_STACK_MIN
+#define _SC_V6_LP64_OFF64 _SC_V6_LP64_OFF64
+#define _SC_JOB_CONTROL _SC_JOB_CONTROL
+#define htobe64(x) __bswap_64 (x)
+#define _SC_SYMLOOP_MAX _SC_SYMLOOP_MAX
+#define __UINTMAX_TYPE__ long unsigned int
+#define _CS_POSIX_V6_ILP32_OFFBIG_LINTFLAGS _CS_POSIX_V6_ILP32_OFFBIG_LINTFLAGS
+#define _SC_SEM_VALUE_MAX _SC_SEM_VALUE_MAX
+#define __ASM_GENERIC_BITS_PER_LONG 
+#define _PC_ASYNC_IO _PC_ASYNC_IO
+#define INT_FAST8_MIN (-128)
+#define _POSIX_THREAD_CPUTIME 0
+#define __linux 1
+#define __DEC32_EPSILON__ 1E-6DF
+#define WCHAR_MIN __WCHAR_MIN
+#define __stub_sigreturn 
+#define _BITS_TYPES_H 1
+#define _IO_cleanup_region_end(_Doit) 
+#define si_int _sifields._rt.si_sigval.sival_int
+#define _IO_DONT_CLOSE 0100000
+#define __CHAR_UNSIGNED__ 1
+#define __UINT32_MAX__ 4294967295U
+#define __UID_T_TYPE __U32_TYPE
+#define _POSIX_READER_WRITER_LOCKS 200809L
+#define getc(_fp) _IO_getc (_fp)
+#define __AARCH64_CMODEL_SMALL__ 1
+#define __SIZE_T 
+#define FD_SETSIZE __FD_SETSIZE
+#define SIGUSR1 10
+#define __LDBL_MAX_EXP__ 16384
+#define _BITS_POSIX_OPT_H 1
+#define _CS_V5_WIDTH_RESTRICTED_ENVS _CS_V5_WIDTH_RESTRICTED_ENVS
+#define _SC_USHRT_MAX _SC_USHRT_MAX
+#define _SC_DEVICE_SPECIFIC_R _SC_DEVICE_SPECIFIC_R
+#define _ATFILE_SOURCE 1
+#define __stub_getpmsg 
+#define UINT_FAST16_MAX (18446744073709551615UL)
+#define _IO_ssize_t __ssize_t
+#define _SC_NETWORKING _SC_NETWORKING
+#define __WINT_MIN__ 0U
+#define WUNTRACED 2
+#define _SC_SHELL _SC_SHELL
+#define __SIZEOF_PTHREAD_RWLOCKATTR_T 8
+#define __linux__ 1
+#define UINT16_C(c) c
+#define _IOS_OUTPUT 2
+#define _POSIX_RAW_SOCKETS 200809L
+#define _PC_PRIO_IO _PC_PRIO_IO
+#define EXIT_FAILURE 1
+#define _SIZE_T_DEFINED_ 
+#define _SC_PII_OSI_M _SC_PII_OSI_M
+#define __LDBL_REDIR_NTH(name,proto) name proto __THROW
+#define __SCHAR_MAX__ 127
+#define _POSIX_SPIN_LOCKS 200809L
+#define INT_LEAST64_MAX (__INT64_C(9223372036854775807))
+#define __USING_NAMESPACE_STD(name) 
+#define _IO_UNIFIED_JUMPTABLES 1
+#define __WCHAR_MIN__ 0U
+#define _SC_MB_LEN_MAX _SC_MB_LEN_MAX
+#define _POSIX_SYNCHRONIZED_IO 200809L
+#define __KERNEL_STRICT_NAMES 
+#define _IO_stderr ((_IO_FILE*)(&_IO_2_1_stderr_))
+#define _IO_ferror_unlocked(__fp) (((__fp)->_flags & _IO_ERR_SEEN) != 0)
+#define __INT64_C(c) c ## L
+#define _SC_TIMERS _SC_TIMERS
+#define __NTH(fct) __attribute__ ((__nothrow__ __LEAF)) fct
+#define SA_SIGINFO 4
+#define __DBL_DIG__ 15
+#define _CS_XBS5_LP64_OFF64_LDFLAGS _CS_XBS5_LP64_OFF64_LDFLAGS
+#define SA_ONSTACK 0x08000000
+#define __GCC_ATOMIC_POINTER_LOCK_FREE 2
+#define WSTOPPED 2
+#define _SYS_USER_H 1
+#define _CS_POSIX_V6_LPBIG_OFFBIG_CFLAGS _CS_POSIX_V6_LPBIG_OFFBIG_CFLAGS
+#define _CS_POSIX_V6_ILP32_OFFBIG_CFLAGS _CS_POSIX_V6_ILP32_OFFBIG_CFLAGS
+#define _SC_2_C_BIND _SC_2_C_BIND
+#define _SC_THREAD_THREADS_MAX _SC_THREAD_THREADS_MAX
+#define _SC_2_UPE _SC_2_UPE
+#define _POSIX_SOURCE 1
+#define __SIZEOF_INT__ 4
+#define __SIZEOF_POINTER__ 8
+#define _SC_PII_OSI_CLTS _SC_PII_OSI_CLTS
+#define _LINUX_POSIX_TYPES_H 
+#define si_addr _sifields._sigfault.si_addr
+#define __attribute_used__ __attribute__ ((__used__))
+#define _STDIO_USES_IOSTREAM 
+#define _IO_IN_BACKUP 0x100
+#define _XOPEN_REALTIME_THREADS 1
+#define _ASM_GENERIC_INT_LL64_H 
+#define _SC_VERSION _SC_VERSION
+#define _UCONTEXT_H 1
+#define _SC_RE_DUP_MAX _SC_RE_DUP_MAX
+#define __USER_LABEL_PREFIX__ 
+#define _EXTERN_INLINE __extern_inline
+#define __GLIBC__ 2
+#define _SC_POLL _SC_POLL
+#define __END_DECLS 
+#define _POSIX_V6_LPBIG_OFFBIG -1
+#define __CONCAT(x,y) x ## y
+#define _SC_RTSIG_MAX _SC_RTSIG_MAX
+#define WCONTINUED 8
+#define UINT8_MAX (255)
+#define __STDC_HOSTED__ 1
+#define _SC_GETPW_R_SIZE_MAX _SC_GETPW_R_SIZE_MAX
+#define __WAIT_STATUS_DEFN int *
+#define __BITS_PER_LONG 64
+#define __LDBL_HAS_INFINITY__ 1
+#define __SLONG32_TYPE int
+#define PSR_Z_BIT 0x40000000
+#define _SC_2_PBS_MESSAGE _SC_2_PBS_MESSAGE
+#define _SYS_SELECT_H 1
+#define _IO_LINE_BUF 0x200
+#define _IOS_NOCREATE 32
+#define _XOPEN_ENH_I18N 1
+#define UINT64_MAX (__UINT64_C(18446744073709551615))
+#define SIGURG 23
+#define _SC_TZNAME_MAX _SC_TZNAME_MAX
+#define _CS_POSIX_V6_LPBIG_OFFBIG_LDFLAGS _CS_POSIX_V6_LPBIG_OFFBIG_LDFLAGS
+#define __GNU_LIBRARY__ 6
+#define _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS _CS_POSIX_V7_LPBIG_OFFBIG_CFLAGS
+#define _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS _CS_POSIX_V7_ILP32_OFFBIG_CFLAGS
+#define _SC_TRACE_EVENT_FILTER _SC_TRACE_EVENT_FILTER
+#define __stub_query_module 
+#define _G_BUFSIZ 8192
+#define __FLT_EPSILON__ 1.19209289550781250000000000000000000e-7F
+#define SS_DISABLE SS_DISABLE
+#define _IO_EOF_SEEN 0x10
+#define _POSIX_SPAWN 200809L
+#define TMP_MAX 238328
+#define si_status _sifields._sigchld.si_status
+#define __SSIZE_T_TYPE __SWORD_TYPE
+#define __DEV_T_TYPE __UQUAD_TYPE
+#define __SI_MAX_SIZE 128
+#define _CS_POSIX_V7_ILP32_OFFBIG_LIBS _CS_POSIX_V7_ILP32_OFFBIG_LIBS
+#define SIGIO 29
+#define _IO_SKIPWS 01
+#define _IO_SCIENTIFIC 04000
+#define ILL_ILLADR ILL_ILLADR
+#define __LDBL_MIN__ 3.36210314311209350626267781732175260e-4932L
+#define __nonnull(params) __attribute__ ((__nonnull__ params))
+#define SIGQUIT 3
+#define le32toh(x) (x)
+#define __DEC32_MAX__ 9.999999E96DF
+#define _IO_SHOWPOS 02000
+#define UINT64_C(c) c ## UL
+#define __WCOREDUMP(status) ((status) & __WCOREFLAG)
+#define _WCHAR_T_ 
+#define SIGPOLL SIGIO
+#define _SC_MEMLOCK _SC_MEMLOCK
+#define _SC_PII_OSI _SC_PII_OSI
+#define __INT32_MAX__ 2147483647
+#define _CS_POSIX_V6_ILP32_OFFBIG_LDFLAGS _CS_POSIX_V6_ILP32_OFFBIG_LDFLAGS
+#define __SIZEOF_PTHREAD_COND_T 48
+#define _POSIX_V7_LPBIG_OFFBIG -1
+#define __SIZEOF_LONG__ 8
+#define _IONBF 2
+#define _IO_getc_unlocked(_fp) (_IO_BE ((_fp)->_IO_read_ptr >= (_fp)->_IO_read_end, 0) ? __uflow (_fp) : *(unsigned char *) (_fp)->_IO_read_ptr++)
+#define _SYS_UCONTEXT_H 1
+#define __STDC_IEC_559__ 1
+#define SIGEV_NONE SIGEV_NONE
+#define __STDC_ISO_10646__ 201103L
+#define _SC_NL_NMAX _SC_NL_NMAX
+#define __UINT16_C(c) c
+#define _SC_C_LANG_SUPPORT_R _SC_C_LANG_SUPPORT_R
+#define __SIZEOF_PTHREAD_BARRIER_T 32
+#define _IO_PENDING_OUTPUT_COUNT(_fp) ((_fp)->_IO_write_ptr - (_fp)->_IO_write_base)
+#define SIGCLD SIGCHLD
+#define __DECIMAL_DIG__ 36
+#define __USE_FORTIFY_LEVEL 0
+#define _SC_NL_TEXTMAX _SC_NL_TEXTMAX
+#define __gnu_linux__ 1
+#define _SC_T_IOV_MAX _SC_T_IOV_MAX
+#define _LARGEFILE_SOURCE 1
+#define _SC_GETGR_R_SIZE_MAX _SC_GETGR_R_SIZE_MAX
+#define _ENDIAN_H 1
+#define INT_FAST16_MAX (9223372036854775807L)
+#define __attribute_warn_unused_result__ __attribute__ ((__warn_unused_result__))
+#define _SC_2_SW_DEV _SC_2_SW_DEV
+#define _PC_FILESIZEBITS _PC_FILESIZEBITS
+#define PTRDIFF_MAX (9223372036854775807L)
+#define FPSIMD_MAGIC 0x46508001
+#define _IO_LEFT 02
+#define _XBS5_ILP32_OFF32 -1
+#define __ASM_SIGCONTEXT_H 
+#define _SC_UINT_MAX _SC_UINT_MAX
+#define F_OK 0
+#define __LDBL_HAS_QUIET_NAN__ 1
+#define INT64_C(c) c ## L
+#define __USE_ISOC11 1
+#define _CS_POSIX_V6_LPBIG_OFFBIG_LINTFLAGS _CS_POSIX_V6_LPBIG_OFFBIG_LINTFLAGS
+#define __attribute_const__ __attribute__ ((__const__))
+#define L_XTND SEEK_END
+#define _PC_PATH_MAX _PC_PATH_MAX
+#define __THROW __attribute__ ((__nothrow__ __LEAF))
+#define _SC_XOPEN_VERSION _SC_XOPEN_VERSION
+#define _POSIX_REGEXP 1
+#define htobe32(x) __bswap_32 (x)
+#define __GLIBC_HAVE_LONG_LONG 1
+#define L_tmpnam 20
+#define ___int_wchar_t_h 
+#define WIFCONTINUED(status) __WIFCONTINUED (__WAIT_INT (status))
+#define __GNUC__ 4
+#define __SYSCALL_ULONG_TYPE __ULONGWORD_TYPE
+#define __timespec_defined 1
+#define L_ctermid 9
+#define __OFF64_T_TYPE __SQUAD_TYPE
+#define FD_SET(fd,fdsetp) __FD_SET (fd, fdsetp)
+#define __FLT_HAS_DENORM__ 1
+#define __SIZEOF_LONG_DOUBLE__ 16
+#define __aligned_u64 __u64 __attribute__((aligned(8)))
+#define _SC_ARG_MAX _SC_ARG_MAX
+#define __USE_SVID 1
+#define INT_FAST16_MIN (-9223372036854775807L-1)
+#define _SC_TRACE_NAME_MAX _SC_TRACE_NAME_MAX
+#define _CS_LFS_LINTFLAGS _CS_LFS_LINTFLAGS
+#define _SC_USER_GROUPS_R _SC_USER_GROUPS_R
+#define __LDBL_REDIR1_NTH(name,proto,alias) name proto __THROW
+#define SEEK_CUR 1
+#define __BIGGEST_ALIGNMENT__ 16
+#define _SC_BC_STRING_MAX _SC_BC_STRING_MAX
+#define PTRDIFF_MIN (-9223372036854775807L-1)
+#define sa_handler __sigaction_handler.sa_handler
+#define STDERR_FILENO 2
+#define _POSIX_CHOWN_RESTRICTED 0
+#define __USE_ISOC95 1
+#define __USE_ISOC99 1
+#define SA_NODEFER 0x40000000
+#define __ASMNAME(cname) __ASMNAME2 (__USER_LABEL_PREFIX__, cname)
+#define WTERMSIG(status) __WTERMSIG (__WAIT_INT (status))
+#define _IO_uid_t __uid_t
+#define _SC_XOPEN_REALTIME_THREADS _SC_XOPEN_REALTIME_THREADS
+#define _STDIO_H 1
+#define FPE_FLTDIV FPE_FLTDIV
+#define __DBL_MAX__ ((double)1.79769313486231570814527423731704357e+308L)
+#define _SC_LEVEL1_ICACHE_SIZE _SC_LEVEL1_ICACHE_SIZE
+#define SI_QUEUE SI_QUEUE
+#define _CS_LFS64_CFLAGS _CS_LFS64_CFLAGS
+#define __INT_FAST32_MAX__ 9223372036854775807L
+#define _CS_XBS5_ILP32_OFFBIG_CFLAGS _CS_XBS5_ILP32_OFFBIG_CFLAGS
+#define __DBL_HAS_INFINITY__ 1
+#define PSR_MODE_EL1h 0x00000005
+#define __SIZEOF_PTHREAD_MUTEX_T 48
+#define ELF_PRARGSZ (80)
+#define _PC_SYMLINK_MAX _PC_SYMLINK_MAX
+#define ITIMER_PROF ITIMER_PROF
+#define _CS_XBS5_ILP32_OFF32_CFLAGS _CS_XBS5_ILP32_OFF32_CFLAGS
+#define _PC_CHOWN_RESTRICTED _PC_CHOWN_RESTRICTED
+#define __USE_LARGEFILE 1
+#define __intN_t(N,MODE) typedef int int ##N ##_t __attribute__ ((__mode__ (MODE)))
+#define __USE_XOPEN 1
+#define __SIZEOF_PTHREAD_RWLOCK_T 56
+#define stdin stdin
+#define __USE_XOPEN2K 1
+#define w_stopsig __wait_stopped.__w_stopsig
+#define _SC_CLK_TCK _SC_CLK_TCK
+#define _SC_2_VERSION _SC_2_VERSION
+#define _POSIX2_CHAR_TERM 200809L
+#define __DEC32_MIN_EXP__ (-94)
+#define __DADDR_T_TYPE __S32_TYPE
+#define __END_NAMESPACE_C99 
+#define _ISOC11_SOURCE 1
+#define _POSIX_THREAD_SPORADIC_SERVER -1
+#define _SC_SYSTEM_DATABASE_R _SC_SYSTEM_DATABASE_R
+#define __FD_SETSIZE 1024
+#define be32toh(x) __bswap_32 (x)
+#define __attribute_format_strfmon__(a,b) __attribute__ ((__format__ (__strfmon__, a, b)))
+#define _IO_MAGIC 0xFBAD0000
+#define _PC_REC_MAX_XFER_SIZE _PC_REC_MAX_XFER_SIZE
+#define __INT_FAST16_TYPE__ long int
+#define _XBS5_LP64_OFF64 1
+#define _SIZE_T_DEFINED 
+#define _POSIX_PRIORITY_SCHEDULING 200809L
+#define SI_USER SI_USER
+#define _WCHAR_T_DEFINED_ 
+#define _POSIX_NO_TRUNC 1
+#define _SC_V6_ILP32_OFF32 _SC_V6_ILP32_OFF32
+#define UINT_LEAST8_MAX (255)
+#define __USE_POSIX199506 1
+#define _FEATURES_H 1
+#define __LDBL_HAS_DENORM__ 1
+#define _SC_LEVEL2_CACHE_SIZE _SC_LEVEL2_CACHE_SIZE
+#define __stub_getmsg 
+#define _SC_ASYNCHRONOUS_IO _SC_ASYNCHRONOUS_IO
+#define _IO_FIXED 010000
+#define _SC_SHRT_MIN _SC_SHRT_MIN
+#define __stub_fattach 
+#define _POSIX_SPORADIC_SERVER -1
+#define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
+#define _STRUCT_TIMEVAL 1
+#define __INT_LEAST32_MAX__ 2147483647
+#define SIGABRT 6
+#define _IO_UNBUFFERED 2
+#define _GCC_WRAP_STDINT_H 
+#define CLD_CONTINUED CLD_CONTINUED
+#define _IO_INTERNAL 010
+#define _POSIX_MEMORY_PROTECTION 200809L
+#define HWCAP_ASIMD (1 << 1)
+#define __DEC32_MIN__ 1E-95DF
+#define SA_RESETHAND 0x80000000
+#define __dev_t_defined 
+#define _SC_XOPEN_CRYPT _SC_XOPEN_CRYPT
+#define _SC_RAW_SOCKETS _SC_RAW_SOCKETS
+#define __S32_TYPE int
+#define _CS_POSIX_V6_LP64_OFF64_LINTFLAGS _CS_POSIX_V6_LP64_OFF64_LINTFLAGS
+#define _POSIX2_LOCALEDEF __POSIX2_THIS_VERSION
+#define __glibc_unlikely(cond) __builtin_expect((cond), 0)
+#define __DBL_MAX_EXP__ 1024
+#define _SYS_PROCFS_H 1
+#define _SC_THREAD_SPORADIC_SERVER _SC_THREAD_SPORADIC_SERVER
+#define _BITS_WCHAR_H 1
+#define __DEC128_EPSILON__ 1E-33DL
+#define _POSIX_TIMERS 200809L
+#define __FSFILCNT_T_TYPE __ULONGWORD_TYPE
+#define PDP_ENDIAN __PDP_ENDIAN
+#define _SC_OPEN_MAX _SC_OPEN_MAX
+#define __PTRDIFF_MAX__ 9223372036854775807L
+#define _SC_STREAM_MAX _SC_STREAM_MAX
+#define BUS_OBJERR BUS_OBJERR
+#define _IO_LINKED 0x80
+#define SEGV_MAPERR SEGV_MAPERR
+#define _IO_HAVE_ST_BLKSIZE _G_HAVE_ST_BLKSIZE
+#define __STDC_NO_THREADS__ 1
+#define __bounded 
+#define timerisset(tvp) ((tvp)->tv_sec || (tvp)->tv_usec)
+#define __USECONDS_T_TYPE __U32_TYPE
+#define _IO_DELETE_DONT_CLOSE 0x40
+#define __BEGIN_NAMESPACE_STD 
+#define __OFF_T_TYPE __SLONGWORD_TYPE
+#define __WIFSIGNALED(status) (((signed char) (((status) & 0x7f) + 1) >> 1) > 0)
+#define FPE_FLTOVF FPE_FLTOVF
+#define _T_WCHAR 
+#define _PC_VDISABLE _PC_VDISABLE
+#define __LONG_LONG_MAX__ 9223372036854775807LL
+#define SI_SIGIO SI_SIGIO
+#define __SIZEOF_SIZE_T__ 8
+#define __SIZEOF_PTHREAD_COND_COMPAT_T 48
+#define _SC_BARRIERS _SC_BARRIERS
+#define _SC_XOPEN_LEGACY _SC_XOPEN_LEGACY
+#define __WEXITSTATUS(status) (((status) & 0xff00) >> 8)
+#define _WCHAR_T 
+#define SIG_BLOCK 0
+#define __FD_ZERO(s) do { unsigned int __i; fd_set *__arr = (s); for (__i = 0; __i < sizeof (fd_set) / sizeof (__fd_mask); ++__i) __FDS_BITS (__arr)[__i] = 0; } while (0)
+#define _LINUX_TYPES_H 
+#define _CS_POSIX_V7_ILP32_OFF32_LIBS _CS_POSIX_V7_ILP32_OFF32_LIBS
+#define SIZE_MAX (18446744073709551615UL)
+#define __SIZEOF_WINT_T__ 4
+#define _SC_BASE _SC_BASE
+#define __stub_bdflush 
+#define __u_intN_t(N,MODE) typedef unsigned int u_int ##N ##_t __attribute__ ((__mode__ (MODE)))
+#define INT32_MIN (-2147483647-1)
+#define __U16_TYPE unsigned short int
+#define CLD_EXITED CLD_EXITED
+#define _GCC_WCHAR_T 
+#define WINT_MAX (4294967295u)
+#define UINTPTR_MAX (18446744073709551615UL)
+#define _SIGSET_NWORDS (1024 / (8 * sizeof (unsigned long int)))
+#define __ptrvalue 
+#define __GXX_ABI_VERSION 1002
+#define si_uid _sifields._kill.si_uid
+#define __WTERMSIG(status) ((status) & 0x7f)
+#define __ASM_GENERIC_POSIX_TYPES_H 
+#define _SC_PAGESIZE _SC_PAGESIZE
+#define _SC_XOPEN_XCU_VERSION _SC_XOPEN_XCU_VERSION
+#define _CS_POSIX_V6_LPBIG_OFFBIG_LIBS _CS_POSIX_V6_LPBIG_OFFBIG_LIBS
+#define __USE_GNU 1
+#define __FLT_MIN_EXP__ (-125)
+#define _SC_READER_WRITER_LOCKS _SC_READER_WRITER_LOCKS
+#define __FD_CLR(d,s) ((void) (__FDS_BITS (s)[__FD_ELT(d)] &= ~__FD_MASK(d)))
+#define WEXITED 4
+#define _PC_LINK_MAX _PC_LINK_MAX
+#define _IO_NO_READS 4
+#define ITIMER_REAL ITIMER_REAL
+#define UINT32_MAX (4294967295U)
+#define _POSIX_SHELL 1
+#define _SC_XBS5_LPBIG_OFFBIG _SC_XBS5_LPBIG_OFFBIG
+#define WNOHANG 1
+#define alloca(size) __builtin_alloca (size)
+#define _XOPEN_SHM 1
+#define __stub_create_module 
+#define SEGV_ACCERR SEGV_ACCERR
+#define __extern_always_inline extern __always_inline
+#define _PC_SOCK_MAXBUF _PC_SOCK_MAXBUF
+#define _SC_WORD_BIT _SC_WORD_BIT
+#define _SC_ULONG_MAX _SC_ULONG_MAX
+#define _SC_TRACE_EVENT_NAME_MAX _SC_TRACE_EVENT_NAME_MAX
+#define _SC_LEVEL2_CACHE_LINESIZE _SC_LEVEL2_CACHE_LINESIZE
+#define _POSIX_ADVISORY_INFO 200809L
+#define __sigword(sig) (((sig) - 1) / (8 * sizeof (unsigned long int)))
+#define _CS_XBS5_ILP32_OFF32_LIBS _CS_XBS5_ILP32_OFF32_LIBS
+#define __INT_FAST64_TYPE__ long int
+#define _NSIG 65
+#define F_LOCK 1
+#define _SC_MQ_OPEN_MAX _SC_MQ_OPEN_MAX
+#define __FP_FAST_FMAF 1
+#define _POSIX2_SW_DEV __POSIX2_THIS_VERSION
+#define __DBL_MIN__ ((double)2.22507385850720138309023271733240406e-308L)
+#define __key_t_defined 
+#define _XOPEN_XPG2 1
+#define _XOPEN_XPG4 1
+#define __LITTLE_ENDIAN 1234
+#define _CS_POSIX_V6_LP64_OFF64_LDFLAGS _CS_POSIX_V6_LP64_OFF64_LDFLAGS
+#define __USE_XOPEN2KXSI 1
+#define __WCOREFLAG 0x80
+#define _XOPEN_LEGACY 1
+#define _CS_XBS5_LPBIG_OFFBIG_LDFLAGS _CS_XBS5_LPBIG_OFFBIG_LDFLAGS
+#define __REDIRECT(name,proto,alias) name proto __asm__ (__ASMNAME (#alias))
+#define __SIGEV_MAX_SIZE 64
+#define __LP64__ 1
+#define _IO_off64_t __off64_t
+#define _POSIX_IPV6 200809L
+#define __USE_UNIX98 1
+#define __aligned_be64 __be64 __attribute__((aligned(8)))
+#define __MODE_T_TYPE __U32_TYPE
+#define SIGTRAP 5
+#define __have_sigevent_t 1
+#define __LEAF_ATTR __attribute__ ((__leaf__))
+#define _POSIX_THREAD_ATTR_STACKSIZE 200809L
+#define PSR_I_BIT 0x00000080
+#define __RLIM64_T_TYPE __UQUAD_TYPE
+#define _IOS_ATEND 4
+#define _SC_V7_LP64_OFF64 _SC_V7_LP64_OFF64
+#define INT_LEAST8_MAX (127)
+#define FPE_INTDIV FPE_INTDIV
+#define SEEK_DATA 3
+#define __aarch64__ 1
+#define _IO_BOOLALPHA 0200000
+#define timerclear(tvp) ((tvp)->tv_sec = (tvp)->tv_usec = 0)
+#define __FDS_BITS(set) ((set)->fds_bits)
+#define PSR_MODE_EL3h 0x0000000d
+#define _SC_FILE_LOCKING _SC_FILE_LOCKING
+#define __DEC128_MIN__ 1E-6143DL
+#define __REGISTER_PREFIX__ 
+#define __UINT16_MAX__ 65535
+#define _IOS_NOREPLACE 64
+#define __DBL_HAS_DENORM__ 1
+#define INT_LEAST32_MAX (2147483647)
+#define FPE_FLTSUB FPE_FLTSUB
+#define _PC_NAME_MAX _PC_NAME_MAX
+#define _CS_XBS5_ILP32_OFFBIG_LIBS _CS_XBS5_ILP32_OFFBIG_LIBS
+#define _IO_TIED_PUT_GET 0x400
+#define _CS_XBS5_ILP32_OFFBIG_LDFLAGS _CS_XBS5_ILP32_OFFBIG_LDFLAGS
+#define _PC_MAX_CANON _PC_MAX_CANON
+#define __USE_POSIX2 1
+#define __UINT8_TYPE__ unsigned char
+#define _SC_BC_BASE_MAX _SC_BC_BASE_MAX
+#define __SLONGWORD_TYPE long int
+#define _SC_LEVEL2_CACHE_ASSOC _SC_LEVEL2_CACHE_ASSOC
+#define __REDIRECT_LDBL(name,proto,alias) __REDIRECT (name, proto, alias)
+#define __NO_INLINE__ 1
+#define _POSIX_V7_ILP32_OFF32 -1
+#define TIMEVAL_TO_TIMESPEC(tv,ts) { (ts)->tv_sec = (tv)->tv_sec; (ts)->tv_nsec = (tv)->tv_usec * 1000; }
+#define _SC_LEVEL1_ICACHE_ASSOC _SC_LEVEL1_ICACHE_ASSOC
+#define __warndecl(name,msg) extern void name (void) __attribute__((__warning__ (msg)))
+#define _SC_REALTIME_SIGNALS _SC_REALTIME_SIGNALS
+#define SIGEV_THREAD SIGEV_THREAD
+#define __FLT_MANT_DIG__ 24
+#define INT_LEAST8_MIN (-128)
+#define __VERSION__ "4.8.5"
+#define FD_ZERO(fdsetp) __FD_ZERO (fdsetp)
+#define __stub_ustat 
+#define __UINT64_C(c) c ## UL
+#define _SYS_CDEFS_H 1
+#define _CS_LFS_LIBS _CS_LFS_LIBS
+#define ILL_BADSTK ILL_BADSTK
+#define _SC_XOPEN_ENH_I18N _SC_XOPEN_ENH_I18N
+#define PSR_V_BIT 0x10000000
+#define LIBDEBUG_H 
+#define _POSIX_VERSION 200809L
+#define SV_RESETHAND (1 << 2)
+#define _STDC_PREDEF_H 1
+#define INT_LEAST32_MIN (-2147483647-1)
+#define __PTHREAD_MUTEX_HAVE_PREV 1
+#define __INT_WCHAR_T_H 
+#define _IO_file_flags _flags
+#define __USE_XOPEN2K8 1
+#define _SC_NL_MSGMAX _SC_NL_MSGMAX
+#define _ALLOCA_H 1
+#define __have_siginfo_t 1
+#define _SC_EXPR_NEST_MAX _SC_EXPR_NEST_MAX
+#define _PC_REC_INCR_XFER_SIZE _PC_REC_INCR_XFER_SIZE
+#define WEXITSTATUS(status) __WEXITSTATUS (__WAIT_INT (status))
+#define __bitwise 
+#define _SC_CLOCK_SELECTION _SC_CLOCK_SELECTION
+#define __W_EXITCODE(ret,sig) ((ret) << 8 | (sig))
+#define _BSD_SOURCE 1
+#define _CS_XBS5_LP64_OFF64_LIBS _CS_XBS5_LP64_OFF64_LIBS
+#define __STRING(x) #x
+#define __GCC_ATOMIC_INT_LOCK_FREE 2
+#define FPE_FLTRES FPE_FLTRES
+#define SIGVTALRM 26
+#define timercmp(a,b,CMP) (((a)->tv_sec == (b)->tv_sec) ? ((a)->tv_usec CMP (b)->tv_usec) : ((a)->tv_sec CMP (b)->tv_sec))
+#define __unbounded 
+#define _SC_NL_LANGMAX _SC_NL_LANGMAX
+#define __INO_T_TYPE __ULONGWORD_TYPE
+#define _CS_XBS5_LP64_OFF64_CFLAGS _CS_XBS5_LP64_OFF64_CFLAGS
+#define F_ULOCK 0
+#define _SC_TRACE _SC_TRACE
+#define _SC_2_PBS_TRACK _SC_2_PBS_TRACK
+#define __ssize_t_defined 
+#define __GNUC_PREREQ(maj,min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#define TRAP_TRACE TRAP_TRACE
+#define _SC_FSYNC _SC_FSYNC
+#define _SYS_SIZE_T_H 
+#define FPE_INTOVF FPE_INTOVF
+#define __FLOAT_WORD_ORDER__ __ORDER_LITTLE_ENDIAN__
+#define __FSBLKCNT64_T_TYPE __UQUAD_TYPE
+#define _IO_feof_unlocked(__fp) (((__fp)->_flags & _IO_EOF_SEEN) != 0)
+#define _POSIX_THREAD_PROCESS_SHARED 200809L
+#define __SUSECONDS_T_TYPE __SLONGWORD_TYPE
+#define _POSIX_TRACE_INHERIT -1
+#define __SIZE_T__ 
+#define _CS_POSIX_V6_ILP32_OFF32_LINTFLAGS _CS_POSIX_V6_ILP32_OFF32_LINTFLAGS
+#define __stub_gtty 
+#define _SC_2_LOCALEDEF _SC_2_LOCALEDEF
+#define si_value _sifields._rt.si_sigval
+#define __NLINK_T_TYPE __U32_TYPE
+#define SIG_ATOMIC_MAX (2147483647)
+#define __uint32_t_defined 
+#define __need_clockid_t 
+#define __nlink_t_defined 
+#define si_utime _sifields._sigchld.si_utime
+#define _SC_SHRT_MAX _SC_SHRT_MAX
+#define _IO_SHOWPOINT 0400
+#define INT32_MAX (2147483647)
+#define _SC_DEVICE_IO _SC_DEVICE_IO
+#define _CS_POSIX_V7_ILP32_OFF32_LINTFLAGS _CS_POSIX_V7_ILP32_OFF32_LINTFLAGS
+#define _CS_POSIX_V6_ILP32_OFF32_LDFLAGS _CS_POSIX_V6_ILP32_OFF32_LDFLAGS
+#define _SC_THREAD_ATTR_STACKSIZE _SC_THREAD_ATTR_STACKSIZE
+#define __stub_sstk 
+#define __wur 
+#define _SC_THREAD_ROBUST_PRIO_INHERIT _SC_THREAD_ROBUST_PRIO_INHERIT
+#define __STDC_IEC_559_COMPLEX__ 1
+#define _G_HAVE_MMAP 1
+#define _IO_OCT 040
+#define PSR_MODE_MASK 0x0000000f
+#define SIG_UNBLOCK 1
+#define __off64_t_defined 
+#define __INT32_C(c) c
+#define __DEC64_EPSILON__ 1E-15DD
+#define __ORDER_PDP_ENDIAN__ 3412
+#define __DEC128_MIN_EXP__ (-6142)
+#define __PDP_ENDIAN 3412
+#define _POSIX_MEMLOCK 200809L
+#define _ISOC95_SOURCE 1
+#define SIGSEGV 11
+#define BYTE_ORDER __BYTE_ORDER
+#define _SC_MESSAGE_PASSING _SC_MESSAGE_PASSING
+#define _UNISTD_H 1
+#define __INT_FAST32_TYPE__ long int
+#define __have_pthread_attr_t 1
+#define _BITS_TYPESIZES_H 1
+#define _SC_C_LANG_SUPPORT _SC_C_LANG_SUPPORT
+#define ILL_COPROC ILL_COPROC
+#define _SC_MULTI_PROCESS _SC_MULTI_PROCESS
+#define htole32(x) (x)
+#define SIG_DFL ((__sighandler_t) 0)
+#define __SYSCALL_SLONG_TYPE __SLONGWORD_TYPE
+#define PSR_MODE_EL0t 0x00000000
+#define WSTOPSIG(status) __WSTOPSIG (__WAIT_INT (status))
+#define __UINT_LEAST16_TYPE__ short unsigned int
+#define _POSIX_THREAD_ATTR_STACKADDR 200809L
+#define __WIFEXITED(status) (__WTERMSIG(status) == 0)
+#define _SC_MONOTONIC_CLOCK _SC_MONOTONIC_CLOCK
+#define RAND_MAX 2147483647
+#define PSR_MODE_EL1t 0x00000004
+#define unix 1
+#define SS_ONSTACK SS_ONSTACK
+#define PSR_MODE_EL2h 0x00000009
+#define _SC_TIMER_MAX _SC_TIMER_MAX
+#define PSR_MODE_EL2t 0x00000008
+#define _SC_PIPE _SC_PIPE
+#define _SC_2_C_VERSION _SC_2_C_VERSION
+#define __INT16_MAX__ 32767
+#define __THROWNL __attribute__ ((__nothrow__))
+#define _BSD_SIZE_T_ 
+#define __SIZE_TYPE__ long unsigned int
+#define __UINT64_MAX__ 18446744073709551615UL
+#define __va_arg_pack_len() __builtin_va_arg_pack_len ()
+#define __ULONGWORD_TYPE unsigned long int
+#define _SIZE_T_DECLARED 
+#define _POSIX_THREADS 200809L
+#define PSR_MODE_EL3t 0x0000000c
+#define _PC_NO_TRUNC _PC_NO_TRUNC
+#define _SC_UCHAR_MAX _SC_UCHAR_MAX
+#define _SC_SINGLE_PROCESS _SC_SINGLE_PROCESS
+#define _IO_SHOWBASE 0200
+#define _CS_POSIX_V7_ILP32_OFF32_LDFLAGS _CS_POSIX_V7_ILP32_OFF32_LDFLAGS
+#define __INT8_TYPE__ signed char
+#define _CS_XBS5_LP64_OFF64_LINTFLAGS _CS_XBS5_LP64_OFF64_LINTFLAGS
+#define _SC_PRIORITIZED_IO _SC_PRIORITIZED_IO
+#define _CS_POSIX_V5_WIDTH_RESTRICTED_ENVS _CS_V5_WIDTH_RESTRICTED_ENVS
+#define __ELF__ 1
+#define SI_TKILL SI_TKILL
+#define _SIGSET_H_types 1
+#define _SC_V6_ILP32_OFFBIG _SC_V6_ILP32_OFFBIG
+#define _CS_POSIX_V6_ILP32_OFF32_CFLAGS _CS_POSIX_V6_ILP32_OFF32_CFLAGS
+#define _SC_TRACE_LOG _SC_TRACE_LOG
+#define _BITS_BYTESWAP_H 1
+#define __ID_T_TYPE __U32_TYPE
+#define F_TLOCK 2
+#define _CS_POSIX_V6_WIDTH_RESTRICTED_ENVS _CS_V6_WIDTH_RESTRICTED_ENVS
+#define __warnattr(msg) __attribute__((__warning__ (msg)))
+#define _IO_funlockfile(_fp) 
+#define __FLT_RADIX__ 2
+#define __INT_LEAST16_TYPE__ short int
+#define SA_NOMASK SA_NODEFER
+#define __LDBL_EPSILON__ 1.92592994438723585305597794258492732e-34L
+#define INTPTR_MAX (9223372036854775807L)
+#define __UINTMAX_C(c) c ## UL
+#define minor(dev) gnu_dev_minor (dev)
+#define _POSIX_C_SOURCE 200809L
+#define _G_IO_IO_FILE_VERSION 0x20001
+#define _CS_POSIX_V7_WIDTH_RESTRICTED_ENVS _CS_V7_WIDTH_RESTRICTED_ENVS
+#define _SC_LEVEL3_CACHE_ASSOC _SC_LEVEL3_CACHE_ASSOC
+#define __long_double_t long double
+#define _PC_PIPE_BUF _PC_PIPE_BUF
+#define _SC_THREADS _SC_THREADS
+#define BUS_ADRALN BUS_ADRALN
+#define __uid_t_defined 
+#define __SIZEOF_PTHREAD_BARRIERATTR_T 8
+#define _SC_XOPEN_XPG3 _SC_XOPEN_XPG3
+#define _SC_XOPEN_XPG4 _SC_XOPEN_XPG4
+#define __LDBL_REDIR(name,proto) name proto
+#define __SIG_ATOMIC_MAX__ 2147483647
+#define _SC_PRIORITY_SCHEDULING _SC_PRIORITY_SCHEDULING
+#define _SC_FD_MGMT _SC_FD_MGMT
+#define F_TEST 3
+#define SIGCONT 18
+#define __blksize_t_defined 
+#define SIGEV_THREAD_ID SIGEV_THREAD_ID
+#define _SC_SELECT _SC_SELECT
+#define _POSIX_TIMEOUTS 200809L
+#define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 2
+#define _IO_IS_FILEBUF 0x2000
+#define _LFS64_LARGEFILE 1
+#define __bswap_constant_16(x) ((unsigned short int)((((x) >> 8) & 0xffu) | (((x) & 0xffu) << 8)))
+#define SIGPIPE 13
+#define __WCHAR_MAX (2147483647)
+#define _SC_THREAD_ROBUST_PRIO_PROTECT _SC_THREAD_ROBUST_PRIO_PROTECT
+#define _SC_THREAD_PROCESS_SHARED _SC_THREAD_PROCESS_SHARED
+#define __SIZEOF_PTRDIFF_T__ 8
+#define _LFS64_ASYNCHRONOUS_IO 1
+#define SEEK_SET 0
+#define _LFS64_STDIO 1
+#define __bswap_constant_32(x) ((((x) & 0xff000000u) >> 24) | (((x) & 0x00ff0000u) >> 8) | (((x) & 0x0000ff00u) << 8) | (((x) & 0x000000ffu) << 24))
+#define __sig_atomic_t_defined 
+#define _IO_FLAGS2_NOTCANCEL 2
+#define __errordecl(name,msg) extern void name (void) __attribute__((__error__ (msg)))
+#define _XOPEN_SOURCE_EXTENDED 1
+#define __restrict_arr __restrict
+#define INTPTR_MIN (-9223372036854775807L-1)
+#define INT8_C(c) c
+#define _SIGNAL_H 
+#define _PC_MAX_INPUT _PC_MAX_INPUT
+#define _SC_DELAYTIMER_MAX _SC_DELAYTIMER_MAX
+#define strndupa(s,n) (__extension__ ({ const char *__old = (s); size_t __len = strnlen (__old, (n)); char *__new = (char *) __builtin_alloca (__len + 1); __new[__len] = '\0'; (char *) memcpy (__new, __old, __len); }))
+#define __attribute_artificial__ __attribute__ ((__artificial__))
+#define __USE_MISC 1
+#define __UWORD_TYPE unsigned long int
+#define TRAP_BRKPT TRAP_BRKPT
+#define _SC_V7_ILP32_OFFBIG _SC_V7_ILP32_OFFBIG
+#define W_OK 2
+#define _POSIX_ASYNCHRONOUS_IO 200809L
+#define _SIZE_T_ 
+#define __bswap_constant_64(x) (__extension__ ((((x) & 0xff00000000000000ull) >> 56) | (((x) & 0x00ff000000000000ull) >> 40) | (((x) & 0x0000ff0000000000ull) >> 24) | (((x) & 0x000000ff00000000ull) >> 8) | (((x) & 0x00000000ff000000ull) << 8) | (((x) & 0x0000000000ff0000ull) << 24) | (((x) & 0x000000000000ff00ull) << 40) | (((x) & 0x00000000000000ffull) << 56)))
+#define _IO_putc_unlocked(_ch,_fp) (_IO_BE ((_fp)->_IO_write_ptr >= (_fp)->_IO_write_end, 0) ? __overflow (_fp, (unsigned char) (_ch)) : (unsigned char) (*(_fp)->_IO_write_ptr++ = (_ch)))
+#define __AARCH64EL__ 1
+#define __DEC32_SUBNORMAL_MIN__ 0.000001E-95DF
+#define _IO_iconv_t _G_iconv_t
+#define _IO_USER_BUF 1
+#define UINT_FAST32_MAX (18446744073709551615UL)
+#define strdupa(s) (__extension__ ({ const char *__old = (s); size_t __len = strlen (__old) + 1; char *__new = (char *) __builtin_alloca (__len); (char *) memcpy (__new, __old, __len); }))
+#define _WCHAR_T_H 
+#define _SC_SAVED_IDS _SC_SAVED_IDS
+#define _CS_POSIX_V7_LPBIG_OFFBIG_LIBS _CS_POSIX_V7_LPBIG_OFFBIG_LIBS
+#define POLL_OUT POLL_OUT
+#define __INT_FAST16_MAX__ 9223372036854775807L
+#define __stub_revoke 
+#define __timer_t_defined 1
+#define __WCLONE 0x80000000
+#define _CS_XBS5_ILP32_OFF32_LINTFLAGS _CS_XBS5_ILP32_OFF32_LINTFLAGS
+#define INT_LEAST64_MIN (-__INT64_C(9223372036854775807)-1)
+#define major(dev) gnu_dev_major (dev)
+#define _POSIX_MONOTONIC_CLOCK 0
+#define _SC_2_PBS_ACCOUNTING _SC_2_PBS_ACCOUNTING
+#define _IO_off_t __off_t
+#define __WCHAR_MIN (-2147483647 - 1)
+#define _SC_XBS5_LP64_OFF64 _SC_XBS5_LP64_OFF64
+#define __UINT_FAST32_MAX__ 18446744073709551615UL
+#define __UINT_LEAST64_TYPE__ long unsigned int
+#define _SC_SEMAPHORES _SC_SEMAPHORES
+#define MINSIGSTKSZ 2048
+#define __U64_TYPE unsigned long int
+#define __FLT_HAS_QUIET_NAN__ 1
+#define UINTMAX_MAX (__UINT64_C(18446744073709551615))
+#define _SC_THREAD_ATTR_STACKADDR _SC_THREAD_ATTR_STACKADDR
+#define _SC_PII_INTERNET_STREAM _SC_PII_INTERNET_STREAM
+#define _IO_STDIO_H 
+#define INT32_C(c) c
+#define __FLT_MAX_10_EXP__ 38
+#define __FD_MASK(d) ((__fd_mask) 1 << ((d) % __NFDBITS))
+#define _SC_HOST_NAME_MAX _SC_HOST_NAME_MAX
+#define __LONG_MAX__ 9223372036854775807L
+#define UINT_LEAST16_MAX (65535)
+#define __WCHAR_T__ 
+#define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
+#define _PC_SYNC_IO _PC_SYNC_IO
+#define SIGWINCH 28
+#define PSR_N_BIT 0x80000000
+#define _CS_POSIX_V6_LP64_OFF64_CFLAGS _CS_POSIX_V6_LP64_OFF64_CFLAGS
+#define _SC_SEM_NSEMS_MAX _SC_SEM_NSEMS_MAX
+#define __FLT_HAS_INFINITY__ 1
+#define __WSTOPSIG(status) __WEXITSTATUS(status)
+#define L_INCR SEEK_CUR
+#define __unix 1
+#define SIGXFSZ 25
+#define __LONG_LONG_PAIR(HI,LO) LO, HI
+#define SIGHUP 1
+#define __UINT_FAST16_TYPE__ long unsigned int
+#define __bos0(ptr) __builtin_object_size (ptr, 0)
+#define __DEC64_MAX__ 9.999999999999999E384DD
+#define WIFSTOPPED(status) __WIFSTOPPED (__WAIT_INT (status))
+#define NULL ((void *)0)
+#define __CHAR16_TYPE__ short unsigned int
+#define __PRAGMA_REDEFINE_EXTNAME 1
+#define PSR_F_BIT 0x00000040
+#define SIGRTMAX (__libc_current_sigrtmax ())
+#define __USING_NAMESPACE_C99(name) 
+#define __sigisemptyset(set) (__extension__ ({ int __cnt = _SIGSET_NWORDS; const sigset_t *__set = (set); int __ret = __set->__val[--__cnt]; while (!__ret && --__cnt >= 0) __ret = __set->__val[__cnt]; __ret == 0; }))
+#define BIG_ENDIAN __BIG_ENDIAN
+#define SI_MESGQ SI_MESGQ
+#define _VA_LIST_DEFINED 
+#define __BLKSIZE_T_TYPE __S32_TYPE
+#define _IO_size_t size_t
+#define __INT_LEAST16_MAX__ 32767
+#define __stub_lchmod 
+#define _SC_THREAD_DESTRUCTOR_ITERATIONS _SC_THREAD_DESTRUCTOR_ITERATIONS
+#define __ASM_PTRACE_H 
+#define __DEC64_MANT_DIG__ 16
+#define __INT64_MAX__ 9223372036854775807L
+#define _CS_XBS5_ILP32_OFF32_LDFLAGS _CS_XBS5_ILP32_OFF32_LDFLAGS
+#define __UINT_LEAST32_MAX__ 4294967295U
+#define _SC_LEVEL4_CACHE_LINESIZE _SC_LEVEL4_CACHE_LINESIZE
+#define _PC_REC_XFER_ALIGN _PC_REC_XFER_ALIGN
+#define __GCC_ATOMIC_LONG_LOCK_FREE 2
+#define si_stime _sifields._sigchld.si_stime
+#define _SC_MEMORY_PROTECTION _SC_MEMORY_PROTECTION
+#define _SC_THREAD_KEYS_MAX _SC_THREAD_KEYS_MAX
+#define __INT_LEAST64_TYPE__ long int
+#define INT64_MAX (__INT64_C(9223372036854775807))
+#define htole16(x) (x)
+#define SIGCHLD 17
+#define __INT16_TYPE__ short int
+#define __INT_LEAST8_TYPE__ signed char
+#define __DEC32_MAX_EXP__ 97
+#define _SIZET_ 
+#define SEEK_HOLE 4
+#define _SC_UIO_MAXIOV _SC_UIO_MAXIOV
+#define __INT_FAST8_MAX__ 127
+#define __PMT(args) args
+#define __INTPTR_MAX__ 9223372036854775807L
+#define _SYS_TYPES_H 1
+#define _OLD_STDIO_MAGIC 0xFABC0000
+#define __sigfillset(set) (__extension__ ({ int __cnt = _SIGSET_NWORDS; sigset_t *__set = (set); while (--__cnt >= 0) __set->__val[__cnt] = ~0UL; 0; }))
+#define SIGSYS 31
+#define linux 1
+#define SIGSTOP 19
+#define _IOS_APPEND 8
+#define _SC_LEVEL3_CACHE_SIZE _SC_LEVEL3_CACHE_SIZE
+#define _CS_V6_WIDTH_RESTRICTED_ENVS _CS_V6_WIDTH_RESTRICTED_ENVS
+#define _SC_THREAD_CPUTIME _SC_THREAD_CPUTIME
+#define SA_NOCLDSTOP 1
+#define __int8_t_defined 
+#define ____FILE_defined 1
+#define _IOLBF 1
+#define ILL_PRVREG ILL_PRVREG
+#define SIGRTMIN (__libc_current_sigrtmin ())
+#define htole64(x) (x)
+#define FPE_FLTINV FPE_FLTINV
+#define _IO_UPPERCASE 01000
+#define SA_INTERRUPT 0x20000000
+#define WIFSIGNALED(status) __WIFSIGNALED (__WAIT_INT (status))
+#define _XLOCALE_H 1
+#define _SC_LEVEL1_DCACHE_SIZE _SC_LEVEL1_DCACHE_SIZE
+#define _SC_EQUIV_CLASS_MAX _SC_EQUIV_CLASS_MAX
+#define __KEY_T_TYPE __S32_TYPE
+#define sigev_notify_function _sigev_un._sigev_thread._function
+#define _CS_GNU_LIBC_VERSION _CS_GNU_LIBC_VERSION
+#define __WORDSIZE 64
+#define INT64_MIN (-__INT64_C(9223372036854775807)-1)
+#define __BEGIN_DECLS 
+#define _SC_PII_XTI _SC_PII_XTI
+#define __LDBL_MANT_DIG__ 113
+#define _PC_REC_MIN_XFER_SIZE _PC_REC_MIN_XFER_SIZE
+#define __USE_ANSI 1
+#define __SIZEOF_PTHREAD_MUTEXATTR_T 8
+#define CLD_STOPPED CLD_STOPPED
+#define __DBL_HAS_QUIET_NAN__ 1
+#define _IO_BAD_SEEN 0x4000
+#define POLL_HUP POLL_HUP
+#define _SC_FILE_SYSTEM _SC_FILE_SYSTEM
+#define _STRING_H 1
+#define __GNUC_VA_LIST 
+#define SA_STACK SA_ONSTACK
+#define BUS_ADRERR BUS_ADRERR
+#define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
+#define _SC_AIO_LISTIO_MAX _SC_AIO_LISTIO_MAX
+#define _XOPEN_REALTIME 1
+#define __RLIM_T_TYPE __ULONGWORD_TYPE
+#define _POSIX_V7_ILP32_OFFBIG -1
+#define le64toh(x) (x)
+#define FILENAME_MAX 4096
+#define _SC_PII_INTERNET _SC_PII_INTERNET
+#define __ino_t_defined 
+#define __INTPTR_TYPE__ long int
+#define __UINT16_TYPE__ short unsigned int
+#define __WCHAR_TYPE__ unsigned int
+#define __CLOCKID_T_TYPE __S32_TYPE
+#define __SIZEOF_FLOAT__ 4
+#define _IOS_TRUNC 16
+#define __HAVE_COLUMN 
+#define _POSIX_MEMLOCK_RANGE 200809L
+#define __stub_fdetach 
+#define __UINTPTR_MAX__ 18446744073709551615UL
+#define __DEC64_MIN_EXP__ (-382)
+#define __stub_chflags 
+#define putc(_ch,_fp) _IO_putc (_ch, _fp)
+#define __UQUAD_TYPE unsigned long int
+#define __SI_PAD_SIZE ((__SI_MAX_SIZE / sizeof (int)) - 4)
+#define SI_ASYNCIO SI_ASYNCIO
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#define __USE_POSIX 1
+#define __INT_FAST64_MAX__ 9223372036854775807L
+#define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
+#define BUFSIZ _IO_BUFSIZ
+#define __FLT_DIG__ 6
+#define __FSID_T_TYPE struct { int __val[2]; }
+#define __malloc_and_calloc_defined 
+#define INT_FAST32_MAX (9223372036854775807L)
+#define _SC_NL_SETMAX _SC_NL_SETMAX
+#define _WCHAR_T_DECLARED 
+#define _SC_SS_REPL_MAX _SC_SS_REPL_MAX
+#define __UINT_FAST64_TYPE__ long unsigned int
+#define WNOWAIT 0x01000000
+#define EXIT_SUCCESS 0
+#define __LDBL_REDIR_DECL(name) 
+#define _SC_2_PBS _SC_2_PBS
+#define STDIN_FILENO 0
+#define UINT_FAST8_MAX (255)
+#define __INT_MAX__ 2147483647
+#define w_retcode __wait_terminated.__w_retcode
+#define _CS_POSIX_V7_ILP32_OFFBIG_LINTFLAGS _CS_POSIX_V7_ILP32_OFFBIG_LINTFLAGS
+#define w_coredump __wait_terminated.__w_coredump
+#define si_band _sifields._sigpoll.si_band
+#define __S16_TYPE short int
+#define __bos(ptr) __builtin_object_size (ptr, __USE_FORTIFY_LEVEL > 1)
+#define SI_ASYNCNL SI_ASYNCNL
+#define _T_SIZE_ 
+#define _POSIX_THREAD_ROBUST_PRIO_INHERIT 200809L
+#define __FD_SET(d,s) ((void) (__FDS_BITS (s)[__FD_ELT(d)] |= __FD_MASK(d)))
+#define INT16_C(c) c
+#define __SIGRTMAX (_NSIG - 1)
+#define __WNOTHREAD 0x20000000
+#define _G_va_list __gnuc_va_list
+#define _IOS_INPUT 1
+#define __USE_LARGEFILE64 1
+#define __INT64_TYPE__ long int
+#define __FLT_MAX_EXP__ 128
+#define _CS_V7_ENV _CS_V7_ENV
+#define _SC_NL_ARGMAX _SC_NL_ARGMAX
+#define _SC_AIO_PRIO_DELTA_MAX _SC_AIO_PRIO_DELTA_MAX
+#define __gid_t_defined 
+#define _SC_PHYS_PAGES _SC_PHYS_PAGES
+#define _SC_ADVISORY_INFO _SC_ADVISORY_INFO
+#define UINT32_C(c) c ## U
+#define __ORDER_BIG_ENDIAN__ 4321
+#define __aligned_le64 __le64 __attribute__((aligned(8)))
+#define _SC_THREAD_PRIORITY_SCHEDULING _SC_THREAD_PRIORITY_SCHEDULING
+#define _SC_REGEX_VERSION _SC_REGEX_VERSION
+#define __ptr_t void *
+#define __DBL_MANT_DIG__ 53
+#define ___int_size_t_h 
+#define __TIMER_T_TYPE void *
+#define _POSIX_REALTIME_SIGNALS 200809L
+#define _POSIX_V6_LP64_OFF64 1
+#define __WIFCONTINUED(status) ((status) == __W_CONTINUED)
+#define _POSIX_V6_ILP32_OFF32 -1
+#define __INT_LEAST64_MAX__ 9223372036854775807L
+#define __GCC_ATOMIC_CHAR16_T_LOCK_FREE 2
+#define _POSIX_TRACE -1
+#define UINT_FAST64_MAX (__UINT64_C(18446744073709551615))
+#define __clock_t_defined 1
+#define PSR_A_BIT 0x00000100
+#define INT_FAST32_MIN (-9223372036854775807L-1)
+#define __GLIBC_MINOR__ 17
+#define __DEC64_MIN__ 1E-383DD
+#define __WINT_TYPE__ unsigned int
+#define __UINT_LEAST32_TYPE__ unsigned int
+#define _POSIX_FSYNC 200809L
+#define __SIZEOF_SHORT__ 2
+#define STDOUT_FILENO 1
+#define _XBS5_ILP32_OFFBIG -1
+#define __intptr_t_defined 
+#define __LDBL_MIN_EXP__ (-16381)
+#define _IO_va_list __gnuc_va_list
+#define _CS_XBS5_ILP32_OFFBIG_LINTFLAGS _CS_XBS5_ILP32_OFFBIG_LINTFLAGS
+#define __BIT_TYPES_DEFINED__ 1
+#define _POSIX_VDISABLE '\0'
+#define si_syscall _sifields._sigsys._syscall
+#define __bitwise__ 
+#define UINT16_MAX (65535)
+#define _SC_XBS5_ILP32_OFF32 _SC_XBS5_ILP32_OFF32
+#define __have_sigval_t 1
+#define stdout stdout
+#define __REDIRECT_NTHNL(name,proto,alias) name proto __asm__ (__ASMNAME (#alias)) __THROWNL
+#define _POSIX_THREAD_PRIO_INHERIT 200809L
+#define EOF (-1)
+#define __INT_LEAST8_MAX__ 127
+#define __extern_inline extern __inline
+#define __USE_POSIX199309 1
+#define SIGUSR2 12
+#define ____mbstate_t_defined 1
+#define __SIGRTMIN 32
+#define SV_ONSTACK (1 << 0)
+#define SIGTSTP 20
+#define __SIZEOF_INT128__ 16
+#define _SC_2_FORT_RUN _SC_2_FORT_RUN
+#define __BLKCNT64_T_TYPE __SQUAD_TYPE
+#define __LDBL_MAX_10_EXP__ 4932
+#define _POSIX_SEMAPHORES 200809L
+#define __W_CONTINUED 0xffff
+#define __ATOMIC_RELAXED 0
+#define __FSBLKCNT_T_TYPE __ULONGWORD_TYPE
+#define __DBL_EPSILON__ ((double)2.22044604925031308084726333618164062e-16L)
+#define _SC_ATEXIT_MAX _SC_ATEXIT_MAX
+#define SA_ONESHOT SA_RESETHAND
+#define __stub_stty 
+#define le16toh(x) (x)
+#define _SC_USER_GROUPS _SC_USER_GROUPS
+#define _PC_ALLOC_SIZE_MIN _PC_ALLOC_SIZE_MIN
+#define _SVID_SOURCE 1
+#define _LP64 1
+#define __REDIRECT_NTH_LDBL(name,proto,alias) __REDIRECT_NTH (name, proto, alias)
+#define _SC_MQ_PRIO_MAX _SC_MQ_PRIO_MAX
+#define __UINT8_C(c) c
+#define SIGKILL 9
+#define PSR_MODE32_BIT 0x00000010
+#define _CS_XBS5_LPBIG_OFFBIG_CFLAGS _CS_XBS5_LPBIG_OFFBIG_CFLAGS
+#define __INT_LEAST32_TYPE__ int
+#define _SC_REGEXP _SC_REGEXP
+#define PSR_D_BIT 0x00000200
+#define _LFS_LARGEFILE 1
+#define __wchar_t__ 
+#define SEEK_END 2
+#define __SIZEOF_WCHAR_T__ 4
+#define __UINT64_TYPE__ long unsigned int
+#define _ISOC99_SOURCE 1
+#define __REDIRECT_NTH(name,proto,alias) name proto __asm__ (__ASMNAME (#alias)) __THROW
+#define _IO_RIGHT 04
+#define __END_NAMESPACE_STD 
+#define _SC_IOV_MAX _SC_IOV_MAX
+#define _SC_PASS_MAX _SC_PASS_MAX
+#define _LARGEFILE64_SOURCE 1
+#define _XOPEN_UNIX 1
+#define _POSIX_MAPPED_FILES 200809L
+#define MB_CUR_MAX (__ctype_get_mb_cur_max ())
+#define SIGXCPU 24
+#define be64toh(x) __bswap_64 (x)
+#define _CS_POSIX_V6_ILP32_OFF32_LIBS _CS_POSIX_V6_ILP32_OFF32_LIBS
+#define _SC_LOGIN_NAME_MAX _SC_LOGIN_NAME_MAX
+#define SA_RESTART 0x10000000
+#define _SC_MAPPED_FILES _SC_MAPPED_FILES
+#define __INT_FAST8_TYPE__ signed char
+#define _POSIX_CPUTIME 0
+#define __PID_T_TYPE __S32_TYPE
+#define _SC_AIO_MAX _SC_AIO_MAX
+#define __sigorset(dest,left,right) (__extension__ ({ int __cnt = _SIGSET_NWORDS; sigset_t *__dest = (dest); const sigset_t *__left = (left); const sigset_t *__right = (right); while (--__cnt >= 0) __dest->__val[__cnt] = (__left->__val[__cnt] | __right->__val[__cnt]); 0; }))
+#define _POSIX_THREAD_ROBUST_PRIO_PROTECT -1
+#define P_tmpdir "/tmp"
+#define __attribute_pure__ __attribute__ ((__pure__))
+#define _SC_CHILD_MAX _SC_CHILD_MAX
+#define _POSIX_MESSAGE_PASSING 200809L
+#define _IO_stdin ((_IO_FILE*)(&_IO_2_1_stdin_))
+#define INTMAX_MAX (__INT64_C(9223372036854775807))
+#define _IO_cleanup_region_start(_fct,_fp) 
+#define R_OK 4
+#define _BITS_SIGTHREAD_H 1
+#define _IO_DEC 020
+#define __DBL_DECIMAL_DIG__ 17
+#define SV_INTERRUPT (1 << 1)
+#define CLD_DUMPED CLD_DUMPED
+#define __DEC_EVAL_METHOD__ 2
+#define _SIZE_T 
+#define _POSIX2_VERSION __POSIX2_THIS_VERSION
+#define _IO_ERR_SEEN 0x20
+#define SIGEV_SIGNAL SIGEV_SIGNAL
+#define __WIFSTOPPED(status) (((status) & 0xff) == 0x7f)
+#define __ULONG32_TYPE unsigned int
+#define _G_config_h 1
+#define TEMP_FAILURE_RETRY(expression) (__extension__ ({ long int __result; do __result = (long int) (expression); while (__result == -1L && errno == EINTR); __result; }))
+#define FOPEN_MAX 16
+#define __BIG_ENDIAN 4321
+#define __suseconds_t_defined 
+#define SIGUNUSED 31
+#define __W_STOPCODE(sig) ((sig) << 8 | 0x7f)
+#define _IO_STDIO 040000
+#define __off_t_defined 
+#define _IO_IS_APPENDING 0x1000
+#define SI_KERNEL SI_KERNEL
+#define _SC_LEVEL1_DCACHE_ASSOC _SC_LEVEL1_DCACHE_ASSOC
+#define PSR_Q_BIT 0x08000000
+#define SIGPWR 30
+#define _POSIX_REENTRANT_FUNCTIONS 1
+#define _SC_DEVICE_SPECIFIC _SC_DEVICE_SPECIFIC
+#define __mode_t_defined 
+#define _GCC_SIZE_T 
+#define _POSIX_THREAD_PRIO_PROTECT 200809L
+#define __INO64_T_TYPE __UQUAD_TYPE
+#define _SC_AVPHYS_PAGES _SC_AVPHYS_PAGES
+#define L_SET SEEK_SET
+#define __USE_XOPEN2K8XSI 1
+#define __UINT32_C(c) c ## U
+#define __INTMAX_MAX__ 9223372036854775807L
+#define _POSIX_V6_ILP32_OFFBIG -1
+#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
+#define _SC_INT_MAX _SC_INT_MAX
+#define __size_t__ 
+#define _CS_LFS_LDFLAGS _CS_LFS_LDFLAGS
+#define _IO_BUFSIZ _G_BUFSIZ
+#define __FLT_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F
+#define sigev_notify_attributes _sigev_un._sigev_thread._attribute
+#define _SC_SYNCHRONIZED_IO _SC_SYNCHRONIZED_IO
+#define INTMAX_MIN (-__INT64_C(9223372036854775807)-1)
+#define __BEGIN_NAMESPACE_C99 
+#define _SC_TRACE_INHERIT _SC_TRACE_INHERIT
+#define _CS_LFS64_LIBS _CS_LFS64_LIBS
+#define sigcontext_struct sigcontext
+#define __INT8_MAX__ 127
+#define _SC_LEVEL4_CACHE_ASSOC _SC_LEVEL4_CACHE_ASSOC
+#define _SC_XOPEN_SHM _SC_XOPEN_SHM
+#define SIG_ERR ((__sighandler_t) -1)
+#define _CS_POSIX_V6_LP64_OFF64_LIBS _CS_POSIX_V6_LP64_OFF64_LIBS
+#define __UINT_FAST32_TYPE__ long unsigned int
+#define FD_ISSET(fd,fdsetp) __FD_ISSET (fd, fdsetp)
+#define _SC_PAGE_SIZE _SC_PAGESIZE
+#define POLL_ERR POLL_ERR
+#define __INO_T_MATCHES_INO64_T 1
+#define _IO_fpos_t _G_fpos_t
+#define __CHAR32_TYPE__ unsigned int
+#define PSR_C_BIT 0x20000000
+#define _CS_POSIX_V7_LP64_OFF64_CFLAGS _CS_POSIX_V7_LP64_OFF64_CFLAGS
+#define __FLT_MAX__ 3.40282346638528859811704183484516925e+38F
+#define WINT_MIN (0u)
+#define __fsfilcnt_t_defined 
+#define __blkcnt_t_defined 
+#define INT_FAST64_MAX (__INT64_C(9223372036854775807))
+#define __FP_FAST_FMA 1
+#define _SC_SIGQUEUE_MAX _SC_SIGQUEUE_MAX
+#define UINT_LEAST32_MAX (4294967295U)
+#define SA_NOCLDWAIT 2
+#define _SC_2_PBS_LOCATE _SC_2_PBS_LOCATE
+#define __attribute_format_arg__(x) __attribute__ ((__format_arg__ (x)))
+#define __lldiv_t_defined 1
+#define _POSIX_ASYNC_IO 1
+#define POLL_PRI POLL_PRI
+#define _SC_2_FORT_DEV _SC_2_FORT_DEV
+#define _CS_POSIX_V7_LPBIG_OFFBIG_LINTFLAGS _CS_POSIX_V7_LPBIG_OFFBIG_LINTFLAGS
+#define _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS _CS_POSIX_V7_LPBIG_OFFBIG_LDFLAGS
+#define SIGILL 4
+#define __INT32_TYPE__ int
+#define __SIZEOF_DOUBLE__ 8
+#define __FLT_MIN_10_EXP__ (-37)
+#define __time_t_defined 1
+#define _SYS_SYSMACROS_H 1
+#define __sigemptyset(set) (__extension__ ({ int __cnt = _SIGSET_NWORDS; sigset_t *__set = (set); while (--__cnt >= 0) __set->__val[__cnt] = 0; 0; }))
+#define _SC_INT_MIN _SC_INT_MIN
+#define _IO_BE(expr,res) __builtin_expect ((expr), res)
+#define __SWORD_TYPE long int
+#define __INTMAX_TYPE__ long int
+#define be16toh(x) __bswap_16 (x)
+#define SIGINT 2
+#define _SC_V6_LPBIG_OFFBIG _SC_V6_LPBIG_OFFBIG
+#define __DEC128_MAX_EXP__ 6145
+#define _T_SIZE 
+#define SIGIOT 6
+#define UINT8_C(c) c
+#define __va_arg_pack() __builtin_va_arg_pack ()
+#define BT_SIZE 100
+#define _CS_POSIX_V7_LP64_OFF64_LDFLAGS _CS_POSIX_V7_LP64_OFF64_LDFLAGS
+#define _POSIX2_C_BIND __POSIX2_THIS_VERSION
+#define __ATOMIC_CONSUME 1
+#define HWCAP_FP (1 << 0)
+#define _IO_stdout ((_IO_FILE*)(&_IO_2_1_stdout_))
+#define __GNUC_MINOR__ 8
+#define __UINTMAX_MAX__ 18446744073709551615UL
+#define _SC_LEVEL1_ICACHE_LINESIZE _SC_LEVEL1_ICACHE_LINESIZE
+#define _SC_TRACE_SYS_MAX _SC_TRACE_SYS_MAX
+#define __DEC32_MANT_DIG__ 7
+#define LITTLE_ENDIAN __LITTLE_ENDIAN
+#define _SIGSET_H_fns 1
+#define INTMAX_C(c) c ## L
+#define ILL_PRVOPC ILL_PRVOPC
+#define _SC_SIGNALS _SC_SIGNALS
+#define si_call_addr _sifields._sigsys._call_addr
+#define INT_FAST64_MIN (-__INT64_C(9223372036854775807)-1)
+#define _POSIX2_C_DEV __POSIX2_THIS_VERSION
+#define _STDINT_H 1
+#define TIMESPEC_TO_TIMEVAL(tv,ts) { (tv)->tv_sec = (ts)->tv_sec; (tv)->tv_usec = (ts)->tv_nsec / 1000; }
+#define __DBL_MAX_10_EXP__ 308
+#define __FILE_defined 1
+#define _BITS_PTHREADTYPES_H 1
+#define __LDBL_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966L
+#define _CS_V7_WIDTH_RESTRICTED_ENVS _CS_V7_WIDTH_RESTRICTED_ENVS
+#define _CS_LFS64_LINTFLAGS _CS_LFS64_LINTFLAGS
+#define _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS
+#define __USE_XOPEN_EXTENDED 1
+#define __ASM_BITSPERLONG_H 
+#define _POSIX_TRACE_LOG -1
+#define __INT16_C(c) c
+#define POLL_IN POLL_IN
+#define __U32_TYPE unsigned int
+#define _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS _CS_POSIX_V7_ILP32_OFFBIG_LDFLAGS
+#define timeradd(a,b,result) do { (result)->tv_sec = (a)->tv_sec + (b)->tv_sec; (result)->tv_usec = (a)->tv_usec + (b)->tv_usec; if ((result)->tv_usec >= 1000000) { ++(result)->tv_sec; (result)->tv_usec -= 1000000; } } while (0)
+#define FD_CLR(fd,fdsetp) __FD_CLR (fd, fdsetp)
+#define SIG_IGN ((__sighandler_t) 1)
+#define _CS_POSIX_V7_LP64_OFF64_LIBS _CS_POSIX_V7_LP64_OFF64_LIBS
+#define timersub(a,b,result) do { (result)->tv_sec = (a)->tv_sec - (b)->tv_sec; (result)->tv_usec = (a)->tv_usec - (b)->tv_usec; if ((result)->tv_usec < 0) { --(result)->tv_sec; (result)->tv_usec += 1000000; } } while (0)
+#define __STDC__ 1
+#define __attribute_malloc__ __attribute__ ((__malloc__))
+#define __PTRDIFF_TYPE__ long int
+#define sv_onstack sv_flags
+#define __clockid_t_defined 1
+#define __attribute_noinline__ __attribute__ ((__noinline__))
+#define _IO_HEX 0100
+#define __ATOMIC_SEQ_CST 5
+#define _SC_2_PBS_CHECKPOINT _SC_2_PBS_CHECKPOINT
+#define __CLOCK_T_TYPE __SLONGWORD_TYPE
+#define _IO_fpos64_t _G_fpos64_t
+#define __UINT32_TYPE__ unsigned int
+#define __stub_sysctl 
+#define __UINTPTR_TYPE__ long unsigned int
+#define __SIGEV_PAD_SIZE ((__SIGEV_MAX_SIZE / sizeof (int)) - 4)
+#define _EXECINFO_H 1
+#define CLD_KILLED CLD_KILLED
+#define SIGTERM 15
+#define __DEC64_SUBNORMAL_MIN__ 0.000000000000001E-383DD
+#define _PC_2_SYMLINKS _PC_2_SYMLINKS
+#define __FSFILCNT64_T_TYPE __UQUAD_TYPE
+#define __DEC128_MANT_DIG__ 34
+#define __LDBL_MIN_10_EXP__ (-4931)
+#define _SC_FIFO _SC_FIFO
+#define __useconds_t_defined 
+#define __FD_ELT(d) ((d) / __NFDBITS)
+#define _SC_V7_LPBIG_OFFBIG _SC_V7_LPBIG_OFFBIG
+#define __attribute_deprecated__ __attribute__ ((__deprecated__))
+#define _SC_SPAWN _SC_SPAWN
+#define _SC_CHAR_MAX _SC_CHAR_MAX
+#define _LFS_ASYNCHRONOUS_IO 1
+#define CMD_SIZE 1024
+#define _IO_wint_t wint_t
+#define SIG_SETMASK 2
+#define __SIZEOF_LONG_LONG__ 8
+#define __USE_ATFILE 1
+#define __GCC_ATOMIC_LLONG_LOCK_FREE 2
+#define __LDBL_DIG__ 33
+#define _SC_NZERO _SC_NZERO
+#define __FLT_DECIMAL_DIG__ 9
+#define __UINT_FAST16_MAX__ 18446744073709551615UL
+#define SIG_ATOMIC_MIN (-2147483647-1)
+#define _SC_STREAMS _SC_STREAMS
+#define __GNUC_GNU_INLINE__ 1
+#define __POSIX2_THIS_VERSION 200809L
+#define __WALL 0x40000000
+#define __ldiv_t_defined 1
+#define _SC_BC_DIM_MAX _SC_BC_DIM_MAX
+#define X_OK 1
+#define __GCC_ATOMIC_SHORT_LOCK_FREE 2
+#define _SC_CHAR_BIT _SC_CHAR_BIT
+#define _ASM_GENERIC_TYPES_H 
+#define INT_LEAST16_MAX (32767)
+#define _IO_ftrylockfile(_fp) 
+#define __FD_ISSET(d,s) ((__FDS_BITS (s)[__FD_ELT (d)] & __FD_MASK (d)) != 0)
+#define __UINT_FAST8_TYPE__ unsigned char
+#define _GNU_SOURCE 
+#define _POSIX_SAVED_IDS 1
+#define __P(args) args
+#define _POSIX_BARRIERS 200809L
+#define __ATOMIC_ACQ_REL 4
+#define __WCHAR_T 
+#define __ATOMIC_RELEASE 3
+#define __fsblkcnt_t_defined 
+#define FPE_FLTUND FPE_FLTUND
+#define _STDLIB_H 1
+#define _IO_peekc(_fp) _IO_peekc_unlocked (_fp)

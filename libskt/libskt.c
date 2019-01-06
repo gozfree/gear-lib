@@ -1,10 +1,21 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    libskt.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-05-03 18:27
- * updated: 2016-01-03 14:59
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#include "libskt.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,14 +32,13 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
-#include <libmacro.h>
-#include <liblog.h>
 
-#include "libskt.h"
 
 #define LISTEN_MAX_BACKLOG  (128)
 #define MTU                 (1500 - 42 - 200)
 #define MAX_RETRY_CNT       (3)
+
+#define USE_IPV6    0
 
 static struct skt_connection *_skt_connect(int type,
                 const char *host, uint16_t port)
@@ -38,17 +48,17 @@ static struct skt_connection *_skt_connect(int type,
     struct sockaddr_in si;
     struct skt_connection *sc = NULL;
     if (type < 0 || strlen(host) == 0 || port >= 0xFFFF) {
-        loge("invalid paraments\n");
+        printf("invalid paraments\n");
         return NULL;
     }
-    sc = CALLOC(1, struct skt_connection);
+    sc = (struct skt_connection* )calloc(1, sizeof(struct skt_connection));
     if (sc == NULL) {
-        loge("malloc failed!\n");
+        printf("malloc failed!\n");
         return NULL;
     }
     sc->fd = socket(domain, type, protocol);
     if (-1 == sc->fd) {
-        loge("socket: %s\n", strerror(errno));
+        printf("socket: %s\n", strerror(errno));
         goto fail;
     }
 
@@ -56,14 +66,14 @@ static struct skt_connection *_skt_connect(int type,
     si.sin_addr.s_addr = inet_addr(host);
     si.sin_port = htons(port);
     if (-1 == connect(sc->fd, (struct sockaddr*)&si, sizeof(si))) {
-        loge("connect failed: %s\n", strerror(errno));
+        printf("connect failed: %s\n", strerror(errno));
         goto fail;
     }
     sc->remote.ip = inet_addr(host);
     sc->remote.port = port;
     sc->type = type;
     if (-1 == skt_getaddr_by_fd(sc->fd, &sc->local)) {
-        loge("skt_getaddr_by_fd failed: %s\n", strerror(errno));
+        printf("skt_getaddr_by_fd failed: %s\n", strerror(errno));
         goto fail;
 
     }
@@ -94,22 +104,26 @@ int skt_tcp_bind_listen(const char *host, uint16_t port)
     struct sockaddr_in si;
     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (-1 == fd) {
-        loge("socket failed: %s\n", strerror(errno));
+        printf("socket failed: %s\n", strerror(errno));
         goto fail;
     }
     if (-1 == skt_set_reuse(fd, 1)) {
-        loge("skt_set_reuse failed: %s\n", strerror(errno));
+        printf("skt_set_reuse failed: %s\n", strerror(errno));
         goto fail;
     }
     si.sin_family = AF_INET;
-    si.sin_addr.s_addr = host ? inet_addr(host) : INADDR_ANY;
+    if (!host || strlen(host) == 0) {
+        si.sin_addr.s_addr = INADDR_ANY;
+    } else {
+        si.sin_addr.s_addr = inet_addr(host);
+    }
     si.sin_port = htons(port);
     if (-1 == bind(fd, (struct sockaddr*)&si, sizeof(si))) {
-        loge("bind failed: %s\n", strerror(errno));
+        printf("bind failed: %s\n", strerror(errno));
         goto fail;
     }
     if (-1 == listen(fd, SOMAXCONN)) {
-        loge("listen failed: %s\n", strerror(errno));
+        printf("listen failed: %s\n", strerror(errno));
         goto fail;
     }
     return fd;
@@ -130,16 +144,16 @@ int skt_udp_bind(const char *host, uint16_t port)
     si.sin_port = htons(port);
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (-1 == fd) {
-        loge("socket: %s\n", strerror(errno));
+        printf("socket: %s\n", strerror(errno));
         return -1;
     }
     if (-1 == skt_set_reuse(fd, 1)) {
-        loge("skt_set_reuse failed!\n");
+        printf("skt_set_reuse failed!\n");
         close(fd);
         return -1;
     }
     if (-1 == bind(fd, (struct sockaddr*)&si, sizeof(si))) {
-        loge("bind: %s\n", strerror(errno));
+        printf("bind: %s\n", strerror(errno));
         close(fd);
         return -1;
     }
@@ -152,7 +166,7 @@ int skt_accept(int fd, uint32_t *ip, uint16_t *port)
     socklen_t len = sizeof(si);
     int afd = accept(fd, (struct sockaddr *)&si, &len);
     if (afd == -1) {
-        loge("accept: %s\n", strerror(errno));
+        printf("accept: %s\n", strerror(errno));
         return -1;
     } else {
         *ip = si.sin_addr.s_addr;
@@ -181,7 +195,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
     skt_addr_list_t *ap, *an;
 
     if (-1 == getifaddrs(&ifs)) {
-        loge("getifaddrs: %s\n", strerror(errno));
+        printf("getifaddrs: %s\n", strerror(errno));
         return -1;
     }
 
@@ -235,17 +249,18 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
     return 0;
 }
 
-int skt_get_remote_addr(struct skt_addr *addr, int fd)
+int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr)
 {
     struct sockaddr_in si;
     socklen_t len = sizeof(si);
 
     if (-1 == getpeername(fd, (struct sockaddr *)&(si.sin_addr), &len)) {
-        loge("getpeername: %s\n", strerror(errno));
+        printf("getpeername: %s\n", strerror(errno));
         return -1;
     }
     addr->ip = si.sin_addr.s_addr;
     addr->port = ntohs(si.sin_port);
+    skt_addr_ntop(addr->ip_str, addr->ip);
     return 0;
 }
 
@@ -256,12 +271,13 @@ int skt_getaddr_by_fd(int fd, struct skt_addr *addr)
     memset(&si, 0, len);
 
     if (-1 == getsockname(fd, (struct sockaddr *)&si, &len)) {
-        loge("getsockname: %s\n", strerror(errno));
+        printf("getsockname: %s\n", strerror(errno));
         return -1;
     }
 
     addr->ip = si.sin_addr.s_addr;
     addr->port = ntohs(si.sin_port);
+    skt_addr_ntop(addr->ip_str, addr->ip);
 
     return 0;
 }
@@ -273,10 +289,10 @@ uint32_t skt_addr_pton(const char *ip)
 
     ret = inet_pton(AF_INET, ip, &ia);
     if (ret == -1) {
-        loge("inet_pton: %s\n", strerror(errno));
+        printf("inet_pton: %s\n", strerror(errno));
         return -1;
     } else if (ret == 0) {
-        loge("inet_pton not in presentation format\n");
+        printf("inet_pton not in presentation format\n");
         return -1;
     }
     return ia.s_addr;
@@ -289,7 +305,7 @@ int skt_addr_ntop(char *str, uint32_t ip)
 
     ia.s_addr = ip;
     if (NULL == inet_ntop(AF_INET, &ia, tmp, INET_ADDRSTRLEN)) {
-        loge("inet_ntop: %s\n", strerror(errno));
+        printf("inet_ntop: %s\n", strerror(errno));
         return -1;
     }
     strncpy(str, tmp, INET_ADDRSTRLEN);
@@ -303,14 +319,18 @@ int skt_getaddrinfo(skt_addr_list_t **al, const char *domain, const char *port)
     skt_addr_list_t *ap, *an;
 
     memset(&hints, 0, sizeof(struct addrinfo));
+#if USE_IPV6
     hints.ai_family = AF_UNSPEC;   /* Allows IPv4 or IPv6 */
+#else
+    hints.ai_family = AF_INET;   /* Allows IPv4 or IPv6 */
+#endif
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_CANONNAME;
 
     ret = getaddrinfo(domain, port, &hints, &ai_list);
     if (ret != 0) {
-        loge("getaddrinfo: %s\n", gai_strerror(ret));
+        printf("getaddrinfo: %s\n", gai_strerror(ret));
         return -1;
     }
 
@@ -330,7 +350,7 @@ int skt_getaddrinfo(skt_addr_list_t **al, const char *domain, const char *port)
         }
     }
     if (al == NULL) {
-        loge("Could not get ip address of %s!\n", domain);
+        printf("Could not get ip address of %s!\n", domain);
         return -1;
     }
     freeaddrinfo(ai_list);
@@ -368,15 +388,108 @@ int skt_gethostbyname(skt_addr_list_t **al, const char *name)
             ap = ap->next;
         }
         if (al == NULL) {
-            loge("Could not get ip address of %s!\n", name);
+            printf("Could not get ip address of %s!\n", name);
             return -1;
         }
     }
-    logd("hostname: %s\n", host->h_name);
+    printf("hostname: %s\n", host->h_name);
 
     for (p = host->h_aliases; *p != NULL; p++) {
-        logd("alias: %s\n", *p);
+        printf("alias: %s\n", *p);
     }
+    return 0;
+}
+
+int skt_get_local_info(void)
+{
+    int fd;
+    int interfaceNum = 0;
+    struct ifreq buf[16];
+    struct ifconf ifc;
+    struct ifreq ifrcopy;
+    char mac[16] = {0};
+    char ip[32] = {0};
+    char broadAddr[32] = {0};
+    char subnetMask[32] = {0};
+
+    if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("socket");
+        close(fd);
+        return -1;
+    }
+
+    ifc.ifc_len = sizeof(buf);
+    ifc.ifc_buf = (caddr_t)buf;
+    if (!ioctl(fd, SIOCGIFCONF, (char *)&ifc)) {
+        interfaceNum = ifc.ifc_len / sizeof(struct ifreq);
+        printf("interface num = %d\n", interfaceNum);
+        while (interfaceNum-- > 0) {
+            printf("\ndevice name: %s\n", buf[interfaceNum].ifr_name);
+
+            //ignore the interface that not up or not runing
+            ifrcopy = buf[interfaceNum];
+            if (ioctl(fd, SIOCGIFFLAGS, &ifrcopy)) {
+                printf("ioctl: %s [%s:%d]\n", strerror(errno), __FILE__, __LINE__);
+                close(fd);
+                return -1;
+            }
+
+            //get the mac of this interface
+            if (!ioctl(fd, SIOCGIFHWADDR, (char *)(&buf[interfaceNum]))) {
+                memset(mac, 0, sizeof(mac));
+                snprintf(mac, sizeof(mac), "%02x%02x%02x%02x%02x%02x",
+                    (unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[0],
+                    (unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[1],
+                    (unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[2],
+                    (unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[3],
+                    (unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[4],
+                    (unsigned char)buf[interfaceNum].ifr_hwaddr.sa_data[5]);
+                printf("device mac: %s\n", mac);
+            } else {
+                printf("ioctl: %s [%s:%d]\n", strerror(errno), __FILE__, __LINE__);
+                close(fd);
+                return -1;
+            }
+
+            //get the IP of this interface
+            if (!ioctl(fd, SIOCGIFADDR, (char *)&buf[interfaceNum])) {
+                snprintf(ip, sizeof(ip), "%s",
+                    (char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_addr))->sin_addr));
+                printf("device ip: %s\n", ip);
+            } else {
+                printf("ioctl: %s [%s:%d]\n", strerror(errno), __FILE__, __LINE__);
+                close(fd);
+                return -1;
+            }
+
+            //get the broad address of this interface
+            if (!ioctl(fd, SIOCGIFBRDADDR, &buf[interfaceNum])) {
+                snprintf(broadAddr, sizeof(broadAddr), "%s",
+                    (char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_broadaddr))->sin_addr));
+                printf("device broadAddr: %s\n", broadAddr);
+            } else {
+                printf("ioctl: %s [%s:%d]\n", strerror(errno), __FILE__, __LINE__);
+                close(fd);
+                return -1;
+            }
+
+            //get the subnet mask of this interface
+            if (!ioctl(fd, SIOCGIFNETMASK, &buf[interfaceNum])) {
+                snprintf(subnetMask, sizeof(subnetMask), "%s",
+                    (char *)inet_ntoa(((struct sockaddr_in *)&(buf[interfaceNum].ifr_netmask))->sin_addr));
+                printf("device subnetMask: %s\n", subnetMask);
+            } else {
+                printf("ioctl: %s [%s:%d]\n", strerror(errno), __FILE__, __LINE__);
+                close(fd);
+                return -1;
+            }
+        }
+    } else {
+        printf("ioctl: %s [%s:%d]\n", strerror(errno), __FILE__, __LINE__);
+        close(fd);
+        return -1;
+    }
+    close(fd);
     return 0;
 }
 
@@ -385,7 +498,7 @@ int skt_set_noblk(int fd, int enable)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
-        loge("fcntl: %s\n", strerror(errno));
+        printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
     if (enable) {
@@ -394,7 +507,7 @@ int skt_set_noblk(int fd, int enable)
         flag &= ~O_NONBLOCK;
     }
     if (-1 == fcntl(fd, F_SETFL, flag)) {
-        loge("fcntl: %s\n", strerror(errno));
+        printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
     return 0;
@@ -405,12 +518,12 @@ int skt_set_block(int fd)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
-        loge("fcntl: %s\n", strerror(errno));
+        printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
     flag &= ~O_NONBLOCK;
     if (-1 == fcntl(fd, F_SETFL, flag)) {
-        loge("fcntl: %s\n", strerror(errno));
+        printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
     return 0;
@@ -421,12 +534,12 @@ int skt_set_nonblock(int fd)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
-        loge("fcntl: %s\n", strerror(errno));
+        printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
     flag |= O_NONBLOCK;
     if (-1 == fcntl(fd, F_SETFL, flag)) {
-        loge("fcntl: %s\n", strerror(errno));
+        printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
     return 0;
@@ -437,13 +550,13 @@ int skt_set_reuse(int fd, int enable)
 
 #ifdef SO_REUSEPORT
     if (-1 == setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on))) {
-        loge("setsockopt SO_REUSEPORT: %s\n", strerror(errno));
+        printf("setsockopt SO_REUSEPORT: %s\n", strerror(errno));
         return -1;
     }
 #endif
 #ifdef SO_REUSEADDR
     if (-1 == setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
-        loge("setsockopt SO_REUSEADDR: %s\n", strerror(errno));
+        printf("setsockopt SO_REUSEADDR: %s\n", strerror(errno));
         return -1;
     }
 #endif
@@ -457,7 +570,7 @@ int skt_set_tcp_keepalive(int fd, int enable)
 #ifdef SO_KEEPALIVE
     if (-1 == setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE,
                          (const void*)&on, (socklen_t) sizeof(on))) {
-        loge("setsockopt SO_KEEPALIVE: %s\n", strerror(errno));
+        printf("setsockopt SO_KEEPALIVE: %s\n", strerror(errno));
         return -1;
     }
 #endif
@@ -479,7 +592,7 @@ int skt_set_buflen(int fd, int size)
     }
 
     if (sz < 1) {
-        loge("setsockopt SO_RCVBUF: %s\n", strerror(errno));
+        printf("setsockopt SO_RCVBUF: %s\n", strerror(errno));
     }
 
     sz = size;
@@ -493,7 +606,7 @@ int skt_set_buflen(int fd, int size)
     }
 
     if (sz < 1) {
-        loge("setsockopt SO_SNDBUF: %s\n", strerror(errno));
+        printf("setsockopt SO_SNDBUF: %s\n", strerror(errno));
     }
     return 0;
 }
@@ -507,7 +620,7 @@ int skt_send(int fd, const void *buf, size_t len)
     int cnt = 0;
 
     if (buf == NULL || len == 0) {//0 length packet no need send
-        loge("%s paraments invalid!\n", __func__);
+        printf("%s paraments invalid!\n", __func__);
         return -1;
     }
 
@@ -525,12 +638,12 @@ int skt_send(int fd, const void *buf, size_t len)
         }
         if (errno == EINTR || errno == EAGAIN) {
             if (++cnt > MAX_RETRY_CNT) {
-                loge("reach max retry count\n");
+                printf("reach max retry count\n");
                 break;
             }
             continue;
         }
-        loge("send failed(%d): %s\n", errno, strerror(errno));
+        printf("send failed(%d): %s\n", errno, strerror(errno));
         return -1;
     }
     return (len - left);
@@ -547,11 +660,11 @@ int skt_sendto(int fd, const char *ip, uint16_t port,
     int cnt = 0;
 
     if (buf == NULL || len == 0) {
-        loge("%s paraments invalid!\n", __func__);
+        printf("%s paraments invalid!\n", __func__);
         return -1;
     }
     sa.sin_family = AF_INET;
-    sa.sin_addr.s_addr = inet_addr(ip);
+    sa.sin_addr.s_addr = ip?inet_addr(ip):INADDR_ANY;
     sa.sin_port = htons(port);
 
     while (left > 0) {
@@ -585,7 +698,7 @@ int skt_recv(int fd, void *buf, size_t len)
     size_t step = MTU;
     int cnt = 0;
     if (buf == NULL || len == 0) {
-        loge("%s paraments invalid!\n", __func__);
+        printf("%s paraments invalid!\n", __func__);
         return -1;
     }
     while (left > 0) {

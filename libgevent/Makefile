@@ -1,12 +1,4 @@
 ###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2016-01-17 20:54
-#  updated: 2016-01-17 20:54
-###############################################################################
-
-###############################################################################
 # common
 ###############################################################################
 #ARCH: linux/pi/android/ios/
@@ -59,12 +51,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
-CFLAGS	+= -I../libmacro/
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS += -L$(OUTPUT)/lib -llog
 LDFLAGS	+= -pthread
 
 ###############################################################################
@@ -92,7 +82,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -llog
 
 clean:
 	$(RM_V) -f $(OBJS)

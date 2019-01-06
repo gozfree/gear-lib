@@ -1,27 +1,44 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    liblog.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-04-20 01:08
- * updated: 2015-07-11 16:09
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
 #include <time.h>
 #include <pthread.h>
 #include <fcntl.h>
-#include <syslog.h>
-#include <sys/uio.h>
+#include <unistd.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <linux/unistd.h>
-
+#include <sys/param.h>
+#if defined (__linux__)
+#include <syslog.h>
+#include <sys/uio.h>
+#include <sys/syscall.h>
+#define USE_SYSLOG
+#elif defined (__WIN32__)
+#include "win.h"
+#endif
 #include "liblog.h"
 #include "color.h"
 
@@ -34,12 +51,12 @@
 #define LOG_TAG_SIZE        (32)
 #define LOG_PNAME_SIZE      (32)
 #define LOG_TEXT_SIZE       (256)
-#define PROC_NAME_LEN	    (512)
 #define LOG_LEVEL_DEFAULT   LOG_INFO
 #define LOG_IO_OPS
 
-/*#define LOG_VERBOSE_ENABLE
-*/
+/*
+ *#define LOG_VERBOSE_ENABLE
+ */
 
 #define LOG_PREFIX_MASK     (0xFFFF)
 #define LOG_FULL_BIT        (1<<31)
@@ -79,6 +96,13 @@
 #define UNLIKELY(x)     (x)
 #endif
 
+#ifndef NAME_MAX
+#define NAME_MAX         255 /* defined in /usr/include/linux/limits.h */
+#endif
+
+#ifndef PATH_SPLIT
+#define PATH_SPLIT       '/'
+#endif
 
 typedef struct log_ops {
     int (*open)(const char *path);
@@ -105,6 +129,8 @@ static const char *_log_level_str[] = {
     NULL
 };
 
+
+#ifdef USE_SYSLOG
 static struct {
     const char     *name;
     const int       value;
@@ -120,6 +146,7 @@ static struct {
     {"local7",  LOG_LOCAL7},
     {NULL, 0}
 };
+#endif
 
 static int _is_log_init = 0;
 static int _log_fd = 0;
@@ -134,72 +161,75 @@ static pthread_mutex_t _log_mutex;
 static int _log_prefix = 0;
 static int _log_output = 0;
 static int _log_use_io = 0;
-static char _proc_name[LOG_PNAME_SIZE];
+static char _proc_name[NAME_MAX];
 static unsigned long long _log_file_size = FILESIZE_LEN;
 static int _log_type;
 static const char *_log_ident;
 
+static int _log_rotate = 0;
 
-static unsigned long get_file_size(const char *path)
+
+static unsigned long long get_file_size(const char *path)
 {
     struct stat buf;
     if (stat(path, &buf) < 0) {
         return 0;
     }
-    return (unsigned long)buf.st_size;
+    return (unsigned long long)buf.st_size;
 }
 
-#if defined (__ANDROID__)
-#define get_file_size_by_fp(...) (unsigned long long)(1024*1024)
-#else
 static unsigned long long get_file_size_by_fp(FILE *fp)
 {
     unsigned long long size;
     if (!fp || fp == stderr) {
         return 0;
     }
+    long tmp = ftell(fp);
     fseek(fp, 0L, SEEK_END);
     size = ftell(fp);
+    fseek(fp, tmp, SEEK_SET);
     return size;
 }
-#endif
 
-#if defined (__ANDROID__)
-#define get_proc_name() (char *)(0)
+#if defined (__WIN32__)
+static int get_proc_name(char *name, size_t len)
+{
+    return -1;
+}
 #else
-static char *get_proc_name(void)
+static int get_proc_name(char *name, size_t len)
 {
     int i, ret;
-    char proc_name[PROC_NAME_LEN];
-    char *proc = NULL;
+    char proc_name[MAXPATHLEN];
     char *ptr = NULL;
-    memset(proc_name, 0, PROC_NAME_LEN);
-    ret = readlink("/proc/self/exe", proc_name, PROC_NAME_LEN);
-    if (ret < 0 || ret >= PROC_NAME_LEN) {
-        fprintf(stderr, "get proc path failed!\n");
-        return NULL;
+    memset(proc_name, 0, sizeof(proc_name));
+    if (-1 == readlink("/proc/self/exe", proc_name, sizeof(proc_name))) {
+        fprintf(stderr, "readlink failed!\n");
+        return -1;
     }
+    ret = strlen(proc_name);
     for (i = ret, ptr = proc_name; i > 0; i--) {
-        if (ptr[i] == '/') {
+        if (ptr[i] == PATH_SPLIT) {
             ptr+= i+1;
             break;
         }
     }
     if (i == 0) {
-        return NULL;
+        fprintf(stderr, "proc path %s is invalid\n", proc_name);
+        return -1;
     }
-    proc = (char *)calloc(1, i);
-    if (proc) {
-        strncpy(proc, ptr, i);
+    if (ret-i > (int)len) {
+        fprintf(stderr, "proc name length %d is larger than %d\n", ret-i, (int)len);
+        return -1;
     }
-
-    return proc;
+    strncpy(name, ptr, ret - i);
+    return 0;
 }
 #endif
 
-#if defined (__ANDROID__)
-#define _gettid()	(0)
-#else
+#if defined (__APPLE__)
+#define _gettid	getpid
+#elif defined (__linux__)
 static pid_t _gettid(void)
 {
     return syscall(__NR_gettid);
@@ -285,6 +315,7 @@ static int mkdir_r(const char *path, mode_t mode)
     free(temp);
     return ret;
 }
+
 static void check_dir(const char *path)
 {
     char *path_org = NULL;
@@ -313,6 +344,18 @@ static int _log_fopen(const char *path)
     return 0;
 }
 
+static int _log_fopen_rewrite(const char *path)
+{
+    check_dir(path);
+    _log_fp = fopen(path, "w");
+    if (!_log_fp) {
+        fprintf(stderr, "fopen %s failed: %s\n", path, strerror(errno));
+        fprintf(stderr, "use stderr as output\n");
+        _log_fp = stderr;
+    }
+    return 0;
+}
+
 static int _log_fclose(void)
 {
     return fclose(_log_fp);
@@ -321,21 +364,33 @@ static int _log_fclose(void)
 static ssize_t _log_fwrite(struct iovec *vec, int n)
 {
     int i, ret;
+    char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size_by_fp(_log_fp);
     if (UNLIKELY(tmp_size > _log_file_size)) {
-        if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
-                    _log_name, tmp_size, _log_file_size);
-        }
-        if (EOF == _log_fclose()) {
-            fprintf(stderr, "_log_fclose errno:%d", errno);
-        }
-        log_get_time(_log_name_time, sizeof(_log_name_time), 1);
-        snprintf(_log_name, sizeof(_log_name), "%s%s_%s",
-                _log_path, _log_name_prefix, _log_name_time);
-        _log_fopen(_log_name);
-        if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "splited file %s\n", _log_name);
+        if (_log_rotate) {
+            if (EOF == _log_fclose()) {
+                fprintf(stderr, "_log_fclose errno:%d", errno);
+            }
+            _log_fopen_rewrite(_log_name);
+        } else {
+            if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
+            fprintf(stderr, "%s size= %" PRIu64 " reach max %" PRIu64 ", splited\n",
+                    _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
+            }
+            if (EOF == _log_fclose()) {
+                fprintf(stderr, "_log_fclose errno:%d", errno);
+            }
+            log_get_time(_log_name_time, sizeof(_log_name_time), 1);
+            snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
+                    _log_path, _log_name_prefix, _log_name_time);
+            if (-1 == rename(_log_name, log_rename)) {
+                fprintf(stderr, "log file splited %s error: %d:%s\n",
+                        log_rename, errno , strerror(errno));
+            }
+            _log_fopen(_log_name);
+            if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
+                fprintf(stderr, "splited file %s\n", log_rename);
+            }
         }
     }
     for (i = 0; i < n; i++) {
@@ -365,6 +420,17 @@ static int _log_open(const char *path)
     return 0;
 }
 
+static int _log_open_rewrite(const char *path)
+{
+    check_dir(path);
+    _log_fd = open(path, O_RDWR|O_CREAT|O_TRUNC, 0644);
+    if (_log_fd == -1) {
+        fprintf(stderr, "open %s failed: %s\n", path, strerror(errno));
+        fprintf(stderr, "use STDERR_FILEIO as output\n");
+        _log_fd = STDERR_FILENO;
+    }
+    return 0;
+}
 static int _log_close(void)
 {
     return close(_log_fd);
@@ -372,19 +438,30 @@ static int _log_close(void)
 
 static ssize_t _log_write(struct iovec *vec, int n)
 {
+    char log_rename[FILENAME_LEN] = {0};
     unsigned long long tmp_size = get_file_size(_log_name);
     if (UNLIKELY(tmp_size > _log_file_size)) {
-        fprintf(stderr, "%s size= %llu reach max %llu, splited\n",
-                _log_name, tmp_size, _log_file_size);
-        if (-1 == _log_close()) {
-            fprintf(stderr, "_log_close errno:%d", errno);
+        if (_log_rotate) {
+            if (-1 == _log_close()) {
+                fprintf(stderr, "_log_close errno:%d", errno);
+            }
+            _log_open_rewrite(_log_name);
+        } else {
+        fprintf(stderr, "%s size= %" PRIu64 " reach max %" PRIu64 ", splited\n",
+                _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
+            if (-1 == _log_close()) {
+                fprintf(stderr, "_log_close errno:%d", errno);
+            }
+            log_get_time(_log_name_time, sizeof(_log_name_time), 1);
+            snprintf(log_rename, sizeof(log_rename), "%s%s_%s",
+                    _log_path, _log_name_prefix, _log_name_time);
+            if (-1 == rename(_log_name, log_rename)) {
+                fprintf(stderr, "log file splited %s error: %d:%s\n",
+                        log_rename, errno , strerror(errno));
+            }
+            _log_open(_log_name);
+            fprintf(stderr, "splited file %s\n", log_rename);
         }
-        log_get_time(_log_name_time, sizeof(_log_name_time), 1);
-        snprintf(_log_name, sizeof(_log_name), "%s%s_%s",
-                _log_path, _log_name_prefix, _log_name_time);
-
-        _log_open(_log_name);
-        fprintf(stderr, "splited file %s\n", _log_name);
     }
 
     return writev(_log_fd, vec, n);
@@ -466,7 +543,7 @@ static int _log_print(int lvl, const char *tag,
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_PIDTID_BIT)) {
         snprintf(s_pname, sizeof(s_pname), "[%s ", _proc_name);
         snprintf(s_pid, sizeof(s_pid), "pid:%d ", getpid());
-        snprintf(s_tid, sizeof(s_tid), "tid:%d]", _gettid());
+        snprintf(s_tid, sizeof(s_tid), "tid:%d]", (int)_gettid());
         snprintf(s_tag, sizeof(s_tag), "[%s]", tag);
         snprintf(s_file, sizeof(s_file), "[%s:%d: %s] ", file, line, func);
     }
@@ -529,9 +606,11 @@ int log_print(int lvl, const char *tag, const char *file,
         fprintf(stderr, "vsnprintf errno:%d\n", errno);
         return -1;
     }
+#ifdef USE_SYSLOG
     if (UNLIKELY(_log_syslog)) {
         syslog(lvl, "%s", buf);
     }
+#endif
     ret = _log_print(lvl, tag, file, line, func, buf);
 
     return ret;
@@ -546,9 +625,9 @@ void log_set_level(int level)
     }
 }
 
-static void log_check_env(void)
+static void log_check_env(int *lvl, int *out)
 {
-    _log_level = LOG_LEVEL_DEFAULT;
+    *lvl = LOG_LEVEL_DEFAULT;
     const char *levelstr = level_str(getenv(LOG_LEVEL_ENV));
     const char *outputstr = output_str(getenv(LOG_OUTPUT_ENV));
     const char *timestr = time_str(getenv(LOG_TIMESTAMP_ENV));
@@ -565,21 +644,21 @@ static void log_check_env(void)
     case 6:
     case 7:
     case 8:
-        _log_level = level;
+        *lvl = level;
         break;
     case 0:
         if (is_str_equal(levelstr, "error")) {
-            _log_level = LOG_ERR;
+            *lvl = LOG_ERR;
         } else if (is_str_equal(levelstr, "warn")) {
-            _log_level = LOG_WARNING;
+            *lvl = LOG_WARNING;
         } else if (is_str_equal(levelstr, "notice")) {
-            _log_level = LOG_NOTICE;
+            *lvl = LOG_NOTICE;
         } else if (is_str_equal(levelstr, "info")) {
-            _log_level = LOG_INFO;
+            *lvl = LOG_INFO;
         } else if (is_str_equal(levelstr, "debug")) {
-            _log_level = LOG_DEBUG;
+            *lvl = LOG_DEBUG;
         } else if (is_str_equal(levelstr, "verbose")) {
-            _log_level = LOG_VERB;
+            *lvl = LOG_VERB;
         }
         break;
     default:
@@ -590,15 +669,15 @@ static void log_check_env(void)
     case 2:
     case 3:
     case 4:
-        _log_output = output;
+        *out = output;
         break;
     case 0:
         if (is_str_equal(outputstr, "stderr")) {
-            _log_output = LOG_STDERR;
+            *out = LOG_STDERR;
         } else if (is_str_equal(outputstr, "file")) {
-            _log_output = LOG_FILE;
+            *out = LOG_FILE;
         } else if (is_str_equal(outputstr, "rsyslog")) {
-            _log_output = LOG_RSYSLOG;
+            *out = LOG_RSYSLOG;
         }
         break;
     default:
@@ -618,22 +697,26 @@ static void log_check_env(void)
     default:
         break;
     }
-    if (_log_level == LOG_DEBUG) {
+    if (*lvl == LOG_DEBUG) {
         UPDATE_LOG_PREFIX(_log_prefix, LOG_FUNCLINE_BIT);
     }
-    if (_log_level == LOG_VERB) {
+    if (*lvl == LOG_VERB) {
         UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
     }
 }
 
-int log_set_split_size(int size)
+void log_set_split_size(int size)
 {
     if ((uint32_t)size > FILESIZE_LEN || size < 0) {
         _log_file_size = FILESIZE_LEN;
     } else {
         _log_file_size = size;
     }
-    return 0;
+}
+
+void log_set_rotate(int enable)
+{
+    _log_rotate = enable;
 }
 
 static int log_init_stderr(const char *ident)
@@ -719,6 +802,7 @@ static void log_deinit_file(void)
     _log_handle->close();
 }
 
+#ifdef USE_SYSLOG
 static int log_init_syslog(const char *facilitiy_str)
 {
     const char *ident = NULL;
@@ -737,8 +821,15 @@ static int log_init_syslog(const char *facilitiy_str)
 
 static void log_deinit_syslog(void)
 {
+    _log_syslog = 0;
     closelog();
 }
+
+static struct log_driver log_rsys_driver = {
+    .init = log_init_syslog,
+    .deinit = log_deinit_syslog,
+};
+#endif
 
 static struct log_driver log_stderr_driver = {
     .init = log_init_stderr,
@@ -750,21 +841,18 @@ static struct log_driver log_file_driver = {
     .deinit = log_deinit_file,
 };
 
-static struct log_driver log_rsys_driver = {
-    .init = log_init_syslog,
-    .deinit = log_deinit_syslog,
-};
-
 static struct log_driver *_log_driver = NULL;
 
-static void __log_init(void)
+pthread_once_t thread_once = PTHREAD_ONCE_INIT;
+
+static void log_init_once(void)
 {
     int type = _log_type;
     const char *ident = _log_ident;
     if (_is_log_init) {
         return;
     }
-    log_check_env();
+    log_check_env(&_log_level, &_log_output);
 #ifdef LOG_VERBOSE_ENABLE
     UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
 #endif
@@ -781,15 +869,11 @@ static void __log_init(void)
 
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
         memset(_proc_name, 0, sizeof(_proc_name));
-        char *proc = get_proc_name();
-        if (proc) {
-            memset(_log_name, 0, sizeof(_log_name));
-            strncpy(_proc_name, proc, strlen(proc));
-            free(proc);
+        if (get_proc_name(_proc_name, sizeof(_proc_name))) {
+            fprintf(stderr, "get_proc_name failed\n");
         }
     }
-    if (type == 0) {
-    } else {
+    if (type != 0) {//if not stdin, set output to type
         _log_output = type;
     }
     switch (_log_output) {
@@ -800,11 +884,18 @@ static void __log_init(void)
         _log_driver = &log_file_driver;
         break;
     case LOG_RSYSLOG:
+#ifdef USE_SYSLOG
         _log_driver = &log_rsys_driver;
+#else
+        _log_driver = NULL;
+#endif
         break;
     default:
         fprintf(stderr, "unsupport log type!\n");
         break;
+    }
+    if (!_log_driver) {
+        return;
     }
     _log_driver->init(ident);
     _is_log_init = 1;
@@ -816,17 +907,21 @@ int log_init(int type, const char *ident)
 {
     _log_type = type;
     _log_ident = ident;
-    __log_init();
+    if (0 != pthread_once(&thread_once, log_init_once)) {
+        fprintf(stderr, "pthread_once failed\n");
+    }
     return 0;
 }
 
 void log_deinit(void)
 {
-    if (!_log_driver) {
+    if (!_is_log_init) {
         return;
     }
-    _log_driver->deinit();
-    _log_driver = NULL;
+    if (_log_driver) {
+        _log_driver->deinit();
+        _log_driver = NULL;
+    }
     _is_log_init = 0;
     pthread_mutex_destroy(&_log_mutex);
 }

@@ -5,8 +5,8 @@
  * created: 2015-08-10 21:42
  * updated: 2015-08-10 21:42
  *****************************************************************************/
-#ifndef _LIBRBTREE_H_
-#define _LIBRBTREE_H_
+#ifndef LIBRBTREE_H
+#define LIBRBTREE_H
 
 #ifdef __cplusplus
 extern "C" {

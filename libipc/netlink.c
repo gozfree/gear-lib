@@ -1,9 +1,19 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    netlink.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-11-10 18:36
- * updated: 2015-11-10 18:36
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +25,6 @@
 #include <linux/netlink.h>
 #include <semaphore.h>
 #include <libmacro.h>
-#include <liblog.h>
 #include <libgevent.h>
 #include <libthread.h>
 #include "libipc.h"
@@ -64,21 +73,22 @@ static const char *nl_dir[] = {
 
 #define nl_debug(ctx, nlhdr) \
     do { \
-        logd("============================\n"); \
-        logd("netlink status connected[%d]\n", ctx->connected); \
-        logd("nl_msg direction: %s\n", nl_dir[nlhdr->nlmsg_type]); \
-        logd("nl_msg sequence number: %d\n", nlhdr->nlmsg_seq); \
-        logd("============================\n"); \
+        printf("============================\n"); \
+        printf("netlink status connected[%d]\n", ctx->connected); \
+        printf("nl_msg direction: %s\n", nl_dir[nlhdr->nlmsg_type]); \
+        printf("nl_msg sequence number: %d\n", nlhdr->nlmsg_seq); \
+        printf("============================\n"); \
     } while (0);
 
 
-static void *nl_init(const char *name, enum ipc_role role)
+static void *nl_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     int ret;
     struct sockaddr_nl saddr;
+    char name[256] = {0};
     int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_USERSOCK);
     if (fd == -1) {
-        loge("socket failed: %d:%s\n", errno, strerror(errno));
+        printf("socket failed: %d:%s\n", errno, strerror(errno));
         return NULL;
     }
     memset(&saddr, 0, sizeof(saddr));
@@ -92,15 +102,15 @@ static void *nl_init(const char *name, enum ipc_role role)
     saddr.nl_pad = 0;
     ret = bind(fd, (struct sockaddr *)&saddr, sizeof(saddr));
     if (ret < 0) {
-        loge("bind failed: %d:%s\n", errno, strerror(errno));
+        printf("bind failed: %d:%s\n", errno, strerror(errno));
         if (errno == EPERM) {
-            loge("using sudo to root\n");
+            printf("using sudo to root\n");
         }
         return NULL;
     }
     struct nl_ctx *ctx = CALLOC(1, struct nl_ctx);
     if (!ctx) {
-        loge("malloc failed!\n");
+        printf("malloc failed!\n");
         return NULL;
     }
     ctx->fd = fd;
@@ -108,19 +118,19 @@ static void *nl_init(const char *name, enum ipc_role role)
     ctx->connected = 0;
     strncpy(ctx->rd_name, name, sizeof(ctx->rd_name));
     if (-1 == sem_init(&ctx->sem, 0, 0)) {
-        loge("sem_init failed %d:%s\n", errno, strerror(errno));
+        printf("sem_init failed %d:%s\n", errno, strerror(errno));
         free(ctx);
         return NULL;
     }
     ctx->evbase = gevent_base_create();
     if (!ctx->evbase) {
-        loge("gevent_base_create failed!\n");
+        printf("gevent_base_create failed!\n");
         free(ctx);
         return NULL;
     }
     _nl_recv_buf = (char *)calloc(1, MAX_IPC_MESSAGE_SIZE);
     if (!_nl_recv_buf) {
-        loge("malloc failed!\n");
+        printf("malloc failed!\n");
         free(ctx);
         return NULL;
     }
@@ -156,19 +166,19 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
         daddr.nl_groups = NETLINK_IPC_GROUP_CLIENT;
         if (ctx->connected) {
             nlhdr->nlmsg_type = SERVER_TO_CLIENT;
-            logd("SERVER_TO_CLIENT\n");
+            printf("SERVER_TO_CLIENT\n");
         } else {
             nlhdr->nlmsg_type = SERVER_TO_SERVER;
-            logd("SERVER_TO_SERVER\n");
+            printf("SERVER_TO_SERVER\n");
         }
     } else if (ctx->role == IPC_CLIENT) {
         daddr.nl_groups = NETLINK_IPC_GROUP_SERVER;
         if (ctx->connected) {
             nlhdr->nlmsg_type = CLIENT_TO_SERVER;
-            logd("CLIENT_TO_SERVER\n");
+            printf("CLIENT_TO_SERVER\n");
         } else {
             nlhdr->nlmsg_type = CLIENT_TO_CLIENT;
-            logd("CLIENT_TO_CLIENT\n");
+            printf("CLIENT_TO_CLIENT\n");
         }
     } else {
     }
@@ -183,10 +193,10 @@ static int nl_send(struct ipc *ipc, const void *buf, size_t len)
     msg.msg_iovlen = 1;
 
     nl_debug(ctx, nlhdr);
-    logd("nlmsg_pid=%d, nlmsg_len=%d\n", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
+    printf("nlmsg_pid=%d, nlmsg_len=%d\n", nlhdr->nlmsg_pid, nlhdr->nlmsg_len);
     ret = sendmsg(ctx->fd, &msg, 0);
     if (ret == -1) {
-        loge("sendmsg failed: %d:%s\n", errno, strerror(errno));
+        printf("sendmsg failed: %d:%s\n", errno, strerror(errno));
     }
     free(nlhdr);
     return ret;
@@ -216,7 +226,7 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
 
     ret = recvmsg(ctx->fd, &msg, 0);
     if (ret == -1) {
-        loge("recvmsg failed %d:%s\n", errno, strerror(errno));
+        printf("recvmsg failed %d:%s\n", errno, strerror(errno));
         return ret;
     }
     len = nlhdr->nlmsg_len - NLMSG_HDRLEN;
@@ -225,14 +235,14 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
     if (ctx->role == IPC_SERVER) {
         if (nlhdr->nlmsg_type == SERVER_TO_CLIENT ||
             nlhdr->nlmsg_type == CLIENT_TO_CLIENT) {
-            logd("ingore msg\n");
+            printf("ingore msg\n");
             return 0;
         }
     }
     if (ctx->role == IPC_CLIENT) {
         if (nlhdr->nlmsg_type == CLIENT_TO_SERVER ||
             nlhdr->nlmsg_type == SERVER_TO_SERVER) {
-            logd("ingore msg\n");
+            printf("ingore msg\n");
             return 0;
         }
     }
@@ -241,7 +251,7 @@ static int nl_recv(struct ipc *ipc, void *buf, size_t len)
 
 static void on_error(int fd, void *arg)
 {
-    logi("error: %d\n", errno);
+    printf("error: %d\n", errno);
 }
 
 static void on_recv(int fd, void *arg)
@@ -250,10 +260,10 @@ static void on_recv(int fd, void *arg)
     int len;
     len = nl_recv(ipc, _nl_recv_buf, MAX_IPC_MESSAGE_SIZE);
     if (len == -1) {
-        loge("nl_recv failed!\n");
+        printf("nl_recv failed!\n");
         return;
     } else if (len == 0) {
-        logd("nl_recv null msg!\n");
+        printf("nl_recv null msg!\n");
         return;
     }
     if (_nl_recv_cb) {
@@ -268,36 +278,36 @@ static void on_conn_resp(int fd, void *arg)
     int len;
     len = nl_recv(ipc, _nl_recv_buf, MAX_IPC_MESSAGE_SIZE);
     if (len == -1) {
-        loge("nl_recv failed!\n");
+        printf("nl_recv failed!\n");
         return;
     } else if (len == 0) {
-        logd("nl_recv null msg!\n");
+        printf("nl_recv null msg!\n");
         return;
     }
-    logd("recv len=%d, buf=%s\n", len, _nl_recv_buf);
+    printf("recv len=%d, buf=%s\n", len, _nl_recv_buf);
     if (_nl_recv_cb) {
         _nl_recv_cb(ipc, _nl_recv_buf, len);
     }
     if (strncmp(_nl_recv_buf, ctx->rd_name, len)) {
-        loge("connect response check failed!\n");
+        printf("connect response check failed!\n");
     }
     gevent_del(ctx->evbase, ev_on_conn_resp);
     ev_on_recv = gevent_create(ctx->fd, on_recv, NULL, on_error, ipc);
     if (-1 == gevent_add(ctx->evbase, ev_on_recv)) {
-        loge("gevent_add failed!\n");
+        printf("gevent_add failed!\n");
         return;
     }
     sem_post(&ctx->sem);
 }
 
-static void *connecting_thread(struct thread *thd, void *arg)
+static void *connecting_thread(void *arg)
 {
 //wait connect response
     struct ipc *ipc = (struct ipc *)arg;
     struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     ev_on_conn_resp = gevent_create(ctx->fd, on_conn_resp, NULL, on_error, ipc);
     if (-1 == gevent_add(ctx->evbase, ev_on_conn_resp)) {
-        loge("gevent_add failed!\n");
+        printf("gevent_add failed!\n");
         return NULL;
     }
     gevent_base_loop(ctx->evbase);
@@ -307,13 +317,14 @@ static void *connecting_thread(struct thread *thd, void *arg)
 
 static int nl_accept(struct ipc *ipc)
 {
+    pthread_t tid;
     struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
-    logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
+    printf("nl_send len=%zu, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     if (-1 == nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name))) {
-        loge("nl_send failed!\n");
+        printf("nl_send failed!\n");
         return -1;
     }
-    thread_create(connecting_thread, ipc);
+    pthread_create(&tid, NULL, connecting_thread, ipc);
     struct timeval now;
     struct timespec abs_time;
     uint32_t timeout = 5000;//msec
@@ -327,9 +338,9 @@ static int nl_accept(struct ipc *ipc)
     /* Convert to timespec */
     abs_time.tv_sec = now.tv_sec;
     abs_time.tv_nsec = now.tv_usec * 1000;
-    logd("nl_accept\n");
+    printf("nl_accept\n");
     if (-1 == sem_timedwait(&ctx->sem, &abs_time)) {
-        loge("accept failed %d: %s\n", errno, strerror(errno));
+        printf("accept failed %d: %s\n", errno, strerror(errno));
         return -1;
     }
     ctx->connected = 1;
@@ -338,10 +349,11 @@ static int nl_accept(struct ipc *ipc)
 
 static int nl_connect(struct ipc *ipc, const char *name)
 {
+    pthread_t tid;
     struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
-    logd("nl_send len=%d, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
+    printf("nl_send len=%zu, buf=%s\n", strlen(ctx->rd_name), ctx->rd_name);
     nl_send(ipc, ctx->rd_name, strlen(ctx->rd_name));
-    thread_create(connecting_thread, ipc);
+    pthread_create(&tid, NULL, connecting_thread, ipc);
     struct timeval now;
     struct timespec abs_time;
     uint32_t timeout = 5000;//msec
@@ -358,7 +370,7 @@ static int nl_connect(struct ipc *ipc, const char *name)
     abs_time.tv_sec = now.tv_sec;
     abs_time.tv_nsec = now.tv_usec * 1000;
     if (-1 == sem_timedwait(&ctx->sem, &abs_time)) {
-        loge("connect %s failed %d: %s\n", name, errno, strerror(errno));
+        printf("connect %s failed %d: %s\n", name, errno, strerror(errno));
         return -1;
     }
     ctx->connected = 1;

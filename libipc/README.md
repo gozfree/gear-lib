@@ -4,14 +4,14 @@ libipc
 This is a simple libipc library.
 ipc no need to transfer big data?
 
-##Frontend
+## Frontend
 
 * Serialize/Deserialize message format
 * async I/O data flow
 * support 1:1 1:n n:m
 
-##Backend
-libipc backend support mqueue, netlink, share memory and unix socket
+## Backend
+libipc backend support posix mqueue, sysv mqueue, netlink, share memory and unix socket
 
 * POSIX message queue  
   usage  
@@ -20,6 +20,11 @@ libipc backend support mqueue, netlink, share memory and unix socket
   if one ipc connection setup, "/dev/mqueue/IPC_SERVER" and "/dev/mqueue/IPC_CLIENT"  
   will be created, each ipc endpoint contain two message queue: mq_rd and mq_wr  
 
+* SYSV message queue  
+  usage  
+  `$ ipcs -q`  
+  `$ ipcrm -q <id>`  
+
 * netlink  
   usage  
   `$ make driver=y`  
@@ -27,7 +32,7 @@ libipc backend support mqueue, netlink, share memory and unix socket
 
 * share memory (coding)
 
-* unix domain socket (TODO)
+* unix domain socket  
 
-##IPC server
+## IPC server
 refer to [ipcd](https://github.com/gozfree/ipcd)

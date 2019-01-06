@@ -1,4 +1,3 @@
-##libvector
-This is a simple vector library.
-
+## libvector
+This is a simple libvector library.
 

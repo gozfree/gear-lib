@@ -85,26 +85,13 @@ class LuaTableNode {
 	LuaTableNode() :
 		parent (NULL),
 		luaTable (NULL),
-		key("")
-	{ }
-	LuaTableNode operator[](const char *child_str) {
-		LuaTableNode child_node;
+		key(""),
+		stackTop(0),
+		stackDepth(0)
+	{}
+	LuaTableNode operator[](int key);
+	LuaTableNode operator[](const char *child_str);
 
-		child_node.luaTable = luaTable;
-		child_node.parent = this;
-		child_node.key = LuaKey (child_str);
-
-		return child_node;
-	}
-	LuaTableNode operator[](int child_index) {
-		LuaTableNode child_node;
-
-		child_node.luaTable = luaTable;
-		child_node.parent = this;
-		child_node.key = LuaKey (child_index);
-
-		return child_node;
-	}
 	bool stackQueryValue();
 	void stackPushKey();
 	void stackCreateValue();
@@ -131,9 +118,15 @@ class LuaTableNode {
 	T get() {
 		if (!exists()) {
 			std::cerr << "Error: could not find value " << keyStackToString() << "." << std::endl;
-			abort();
 		}
 		return getDefault (T());
+	}
+	template<typename T>
+	T get(const T& def_value) {
+		if (!exists()) {
+			std::cerr << "Error: could not find value " << keyStackToString() << "." << std::endl;
+		}
+		return getDefault(def_value);
 	}
 
 	// convenience operators (assignment, conversion, comparison)
@@ -158,6 +151,7 @@ class LuaTableNode {
 	LuaTable *luaTable;
 	LuaKey key;
 	int stackTop;
+	int stackDepth;
 };
 
 template<typename T>
@@ -216,7 +210,8 @@ class LuaTable {
 		luaStateRef (NULL),
 		luaRef(-1),
 		L (NULL),
-		referencesGlobal (false)
+		referencesGlobal (false),
+		stackDepth(0)
 	{}
 	LuaTable (const LuaTable &other);
 	LuaTable& operator= (const LuaTable &other);
@@ -227,6 +222,7 @@ class LuaTable {
 		root_node.key = LuaKey (key);
 		root_node.parent = NULL;
 		root_node.luaTable = this;
+        stackDepth++;
 
 		return root_node;
 	}
@@ -235,6 +231,7 @@ class LuaTable {
 		root_node.key = LuaKey (key);
 		root_node.parent = NULL;
 		root_node.luaTable = this;
+        stackDepth++;
 
 		return root_node;
 	}
@@ -263,6 +260,7 @@ class LuaTable {
 	lua_State *L;
 
 	bool referencesGlobal;
+	int stackDepth;
 };
 
 /* LUATABLES_H */

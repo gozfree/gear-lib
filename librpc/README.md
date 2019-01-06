@@ -1,12 +1,13 @@
-#librpc
+## librpc
 This is a simple RPC(Remote Procedure Call) library.
 
-##Dependency
+## Dependency
 * [liblog](../liblog/)
 * [libgevent](../libgevent/)
-* [libdict](../libdict/)
+* [libhash](../libhash/)
 * [libskt](../libskt/)
 * [libthread](../libthread/)
 
 ##RPC server
 refer to [rpcd](https://github.com/gozfree/rpcd)
+

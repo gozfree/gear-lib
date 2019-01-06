@@ -1,36 +1,37 @@
-libraries [中文说明](README.cn.md) [![Build Status](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
-=========
+# LightWeight Libraries
+
+English | [简体中文](README.cn.md)
+
+[![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
+[![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
+[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
+
 This is a collection of basic libraries.
 * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
-* Each of library is as independently as possible, and the APIs are easily to use.
-* Depend on none of open source third party libraries.
-* Aim to reduce duplication of the wheel.
+* Each of library is independent project, only include the needed library to your project instead of the whole libraries
+* Aim to reuse for embedded and network service development
 
-## Include
+|name|descript|name|descript|name|descript|
+|----|--------|----|--------|----|--------|
+|[libatomic](libatomic)|Atomic operation|[libbase64](libbase64)|Base64/32 encode/decode|[libcmd](libcmd)|Based on readline like bash
+|[libconfig](libconfig)|Support ini/json|[libdebug](libdebug)|Help to trace crash like gdb|[libdict](libdict)|Hash key-value dictonary
+|[libfilewatcher](libfilewatcher)|Watch file/dir on event|[libfile](libfile)|File operations|[libgevent](libgevent) | Reactor event, like libevent
+|[libhal](libhal)|hardware Abstraction Layer|[libhash](libhash)|Hash key-value based on hlist|[libipc](libipc)|Support mqueue/netlink/shm
+|[liblog](liblog)|Support console/file/rsyslog|[libmacro](libmacro)|Basic Macro define|[libmp4parser](libmp4parser)|MP4 format parser
+|[liblock](liblock)|Lock/mutex/sem wrapper|[libthread](libthread)|Thread wrapper|[libp2p](libp2p)|p2p punch hole and transfer
+|[libplugin](libplugin)|Dynamic link plugin|[librbtree](librbtree)|linux kernel rbtree|[librpc](librpc)|Remote Procedure Call
+|[librtsp](librtsp)|Rtsp wrapper|[libskt](libskt)|Socket wrapper|[libtime](libtime)|Time wrapper
+|[libqueue](libqueue)|support memory hook|[libringbuffer](libringbuffer)|c ringbuffer|[libworkq](libworkq)|Work queue in userspace
+|[libvector](libvector)|c vector|[libuvc](libuvc)|USB video class (V4L2)
 
-| Library                 | Note                                                       |
-|-------------------------|------------------------------------------------------------|
-|  [libatomic](libatomic) | Atomic operation library.                                  |
-|  [libcmd](libcmd)       | Based on readline, a bash like library.                    |
-|  [libconfig](libconfig) | Configure library, support ini, json.                      |
-|  [libdict](libdict)     | Hash key-value dictonary library.                          |
-|  [libdlmod](libdlmod)   | Dynamic linking loader wrapper library.                    |
-|  [libgevent](libgevent) | Reactor event library, like libevent                       |
-|  [libhash](libhash)     | Hash key-value library based on hlist from kernel.         |
-|  [libipc](libipc)       | Inter-Process Communication, support mqueue/netlink/shm.   |
-|  [liblog](liblog)       | Log library, support console/file/rsyslog.                 |
-|  [libmacro](libmacro)   | Basic Macro define library, include kernel list and so on. |
-|  [libosal](libosal)     | OSAL(Operating System Abstraction Layer) library.          |
-|  [libp2p](libp2p)       | High level p2p punch hole library, easy API to use.        |
-|  [libptcp](libptcp)     | Pseudo Tcp Socket over UDP, rewrite with C from libjingle. |
-|  [librbtree](librbtree) | Librbtree comes from linux kernel rbtree.                  |
-|  [librpc](librpc)       | Remote Procedure Call library.                             |
-|  [libskt](libskt)       | Socket wrapper library for easy use.                       |
-|  [libstun](libstun)     | STUN protocol wrapper library.                             |
-|  [libtime](libtime)     | Time wrapper library for easy use.                         |
-|  [liblock](liblock)     | Lock/mutex/sem wrapper library for easy use.               |
-|  [libthread](libthread) | Thread wrapper library for easy use.                       |
-|  [libworkq](libworkq)   | Work queue in userspace like work-queue/tasklet in kernel. |
+|type|name|
+|----|----|
+|data struct|libdict libhash libringbuffer libqueue librbtree libsort libvector libmacro
+|network|librtsp libskt libp2p librpc libipc
+|async|libgevent libworkq libthread liblock libatomic
+|I/O parser|libbase64 libconfig libconfig++ liblog libfile libfilewatcher libstrex libcmd
+|multi-media|libuvc libjpeg-ex libmp4parser
+|misc|libdebug libhal libplugin libtime
 
 ## How To Build
 Recommend Ubuntu14.04 gcc-4.8.4+
@@ -70,8 +71,13 @@ Recommend Ubuntu14.04 gcc-4.8.4+
   * "sudo make install" is needed when build libxxx alone.
 
 ## License
-GPL. Please refer to the LICENSE file for detailed information.
+LGPL/GPLv3. Please refer to the LICENSE file for detailed information.
 
 ## Author & Contributing
 Welcome pull request to the libraries.  
-gozfree <gozfree@163.com>
+
+|                                               |                                               |
+|-----------------------------------------------|-----------------------------------------------|
+| [CMShuyuhui](https://github.com/CMShuyuhui)   | [core1011](https://github.com/core1011)       |
+| [elfring](https://github.com/elfring)         | [ktsaou](https://github.com/ktsaou)           |
+| [zh794390558](https://github.com/zh794390558) | [gozfree](https://github.com/gozfree)         |

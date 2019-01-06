@@ -1,20 +1,32 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    libipc.h
- * author:  gozfree <gozfree@163.com>
- * created: 2015-11-10 16:29:41
- * updated: 2015-11-10 16:29:41
- *****************************************************************************/
-#ifndef _LIBIPC_H_
-#define _LIBIPC_H_
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
+#ifndef LIBIPC_H
+#define LIBIPC_H
 
+#include <libdict.h>
+#include <libgevent.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdint.h>
 #include <semaphore.h>
-#include <libdict.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,9 +64,9 @@ typedef struct ipc_packet {
     uint8_t payload[0];
 } ipc_packet_t;
 
-typedef void (ipc_recv_cb)(struct ipc *ipc, void *buf, size_t len);
+typedef int (ipc_recv_cb)(struct ipc *ipc, void *buf, size_t len);
 struct ipc_ops {
-    void *(*init)(const char *name, enum ipc_role role);
+    void *(*init)(struct ipc *ipc, uint16_t port, enum ipc_role role);
     void (*deinit)(struct ipc *ipc);
     int (*accept)(struct ipc *ipc);
     int (*connect)(struct ipc *ipc, const char *name);
@@ -68,6 +80,7 @@ struct ipc_ops {
 typedef struct ipc {
     void *ctx;
     int fd;
+    int afd;
     enum ipc_role role;
     struct ipc_packet packet;
     const struct ipc_ops *ops;
@@ -75,6 +88,8 @@ typedef struct ipc {
     void *resp_buf;//async response buffer;
     int resp_len;
     dict *async_cmd_list;
+    pthread_t tid;
+    struct gevent_base *evbase;
 } ipc_t;
 
 struct ipc *ipc_create(enum ipc_role role, uint16_t port);

@@ -1,10 +1,20 @@
-/*****************************************************************************
- * Copyright (C) 2014-2015
- * file:    test_liblog.c
- * author:  gozfree <gozfree@163.com>
- * created: 2015-05-31 19:42
- * updated: 2015-05-31 19:42
- *****************************************************************************/
+/******************************************************************************
+ * Copyright (C) 2014-2017 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -72,30 +82,17 @@ static void test_file_noname(void)
     log_deinit();
 }
 
-static void test(void)
+static void *test(void *arg)
 {
     int i;
-    log_init(LOG_STDERR, NULL);
+    char *tmp = (char *)arg;
+    log_init(LOG_FILE, NULL);
     for (i = 0; i < 100; i++) {
-        loge("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logw("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logi("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logd("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logv("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-    }
-    log_deinit();
-}
-
-static void *test2(void *arg)
-{
-    int i;
-    log_init(LOG_STDERR, NULL);
-    for (i = 0; i < 1; i++) {
-        loge("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logw("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logi("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logd("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
-        logv("%s:%s:%d: debug msg\n", __FILE__, __func__, __LINE__);
+        loge("%s:%s:%d: error msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logw("%s:%s:%d: warn msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logi("%s:%s:%d: info msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logd("%s:%s:%d: debug msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
+        logv("%s:%s:%d: verbose msg %s %d\n", __FILE__, __func__, __LINE__, tmp, i);
     }
     return NULL;
 }
@@ -103,15 +100,16 @@ static void *test2(void *arg)
 static void test_thread_log(void)
 {
     pthread_t pid;
-    pthread_create(&pid, NULL, test2, NULL);
+    pthread_create(&pid, NULL, test, "test1");
+    pthread_create(&pid, NULL, test, "test2");
+    pthread_create(&pid, NULL, test, "test3");
     pthread_join(pid, NULL);
-    test();
 }
 
 int main(int argc, char **argv)
 {
-    test_file_name();
     test_no_init();
+    test_file_name();
     test_rsyslog();
     test_file_noname();
     test_thread_log();

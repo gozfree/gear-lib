@@ -5,8 +5,8 @@
  * created: 2015-08-09 01:23
  * updated: 2015-08-09 01:23
  *****************************************************************************/
-#ifndef _LIBSORT_H_
-#define _LIBSORT_H_
+#ifndef LIBSORT_H
+#define LIBSORT_H
 
 #include <stddef.h>
 #include <stdint.h>

@@ -1,0 +1,688 @@
+#define _IO_CURRENTLY_PUTTING 0x800
+#define __DBL_MIN_EXP__ (-1021)
+#define _IO_peekc_unlocked(_fp) (_IO_BE ((_fp)->_IO_read_ptr >= (_fp)->_IO_read_end, 0) && __underflow (_fp) == EOF ? EOF : *(unsigned char *) (_fp)->_IO_read_ptr)
+#define __HQ_FBIT__ 15
+#define __UINT_LEAST16_MAX__ 0xffff
+#define __ARM_SIZEOF_WCHAR_T 4
+#define __ATOMIC_ACQUIRE 2
+#define __SFRACT_IBIT__ 0
+#define __FLT_MIN__ 1.1754943508222875e-38F
+#define __GCC_IEC_559_COMPLEX 2
+#define _IO_UNITBUF 020000
+#define __UFRACT_MAX__ 0XFFFFP-16UR
+#define __UINT_LEAST8_TYPE__ unsigned char
+#define _SYS_CDEFS_H 1
+#define __flexarr []
+#define _IO_FLAGS2_USER_WBUF 8
+#define __S64_TYPE __quad_t
+#define __stub_fchflags 
+#define __SQUAD_TYPE __quad_t
+#define __DQ_FBIT__ 63
+#define __INTMAX_C(c) c ## LL
+#define __ARM_FEATURE_SAT 1
+#define _BSD_SIZE_T_DEFINED_ 
+#define __ULFRACT_FBIT__ 32
+#define __SACCUM_EPSILON__ 0x1P-7HK
+#define __CHAR_BIT__ 8
+#define __FSWORD_T_TYPE __SWORD_TYPE
+#define __USQ_IBIT__ 0
+#define __UINT8_MAX__ 0xff
+#define __ACCUM_FBIT__ 15
+#define __WINT_MAX__ 0xffffffffU
+#define stderr stderr
+#define __GLIBC_PREREQ(maj,min) ((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
+#define _XOPEN_SOURCE 700
+#define __USFRACT_FBIT__ 8
+#define __ORDER_LITTLE_ENDIAN__ 1234
+#define __SIZE_MAX__ 0xffffffffU
+#define __stub_putmsg 
+#define __ARM_ARCH_ISA_ARM 1
+#define __WCHAR_MAX__ 0xffffffffU
+#define __BLKCNT_T_TYPE __SLONGWORD_TYPE
+#define __LACCUM_IBIT__ 32
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 1
+#define __DBL_DENORM_MIN__ double(4.9406564584124654e-324L)
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8 1
+#define __GCC_ATOMIC_CHAR_LOCK_FREE 2
+#define __GCC_IEC_559 2
+#define _IO_flockfile(_fp) 
+#define _IOFBF 0
+#define __FLT_EVAL_METHOD__ 0
+#define _IO_USER_LOCK 0x8000
+#define _IO_NO_WRITES 8
+#define __ASMNAME2(prefix,cname) __STRING (prefix) cname
+#define __unix__ 1
+#define __cpp_binary_literals 201304
+#define __LLACCUM_MAX__ 0X7FFFFFFFFFFFFFFFP-31LLK
+#define _G_HAVE_ST_BLKSIZE defined (_STATBUF_ST_BLKSIZE)
+#define __stub_setlogin 
+#define __GCC_ATOMIC_CHAR32_T_LOCK_FREE 2
+#define __FRACT_FBIT__ 15
+#define __UINT_FAST64_MAX__ 0xffffffffffffffffULL
+#define __SIG_ATOMIC_TYPE__ int
+#define __GID_T_TYPE __U32_TYPE
+#define __UACCUM_FBIT__ 16
+#define __DBL_MIN_10_EXP__ (-307)
+#define __FINITE_MATH_ONLY__ 0
+#define __ARMEL__ 1
+#define __attribute_alloc_size__(params) __attribute__ ((__alloc_size__ params))
+#define L_cuserid 9
+#define __ARM_FEATURE_UNALIGNED 1
+#define __LDBL_REDIR_NTH(name,proto) name proto __THROW
+#define __LFRACT_IBIT__ 0
+#define __GNUC_PATCHLEVEL__ 1
+#define __LFRACT_MAX__ 0X7FFFFFFFP-31LR
+#define _IO_pid_t __pid_t
+#define __UINT_FAST8_MAX__ 0xff
+#define __LEAF , __leaf__
+#define __LDBL_REDIR1(name,proto,alias) name proto
+#define __has_include(STR) __has_include__(STR)
+#define __size_t 
+#define __DEC64_MAX_EXP__ 385
+#define __INT8_C(c) c
+#define __stub_putpmsg 
+#define __UINT_LEAST64_MAX__ 0xffffffffffffffffULL
+#define __SA_FBIT__ 15
+#define _IO_FLAGS2_MMAP 1
+#define __always_inline __inline __attribute__ ((__always_inline__))
+#define __SHRT_MAX__ 0x7fff
+#define __LDBL_MAX__ 1.7976931348623157e+308L
+#define __FRACT_MAX__ 0X7FFFP-15R
+#define __thumb2__ 1
+#define __UFRACT_FBIT__ 16
+#define __ARM_FP 12
+#define _IO_EOF_SEEN 0x10
+#define _IOS_BIN 128
+#define __fortify_function __extern_always_inline __attribute_artificial__
+#define _IO_MAGIC_MASK 0xFFFF0000
+#define __UFRACT_MIN__ 0.0UR
+#define __UINT_LEAST8_MAX__ 0xff
+#define __GCC_ATOMIC_BOOL_LOCK_FREE 2
+#define __ptr_t void *
+#define __UINTMAX_TYPE__ long long unsigned int
+#define __LLFRACT_EPSILON__ 0x1P-63LLR
+#define __linux 1
+#define __DEC32_EPSILON__ 1E-6DF
+#define __stub_sigreturn 
+#define _BITS_TYPES_H 1
+#define _IO_cleanup_region_end(_Doit) 
+#define _IO_DONT_CLOSE 0100000
+#define __CHAR_UNSIGNED__ 1
+#define __UINT32_MAX__ 0xffffffffU
+#define __UID_T_TYPE __U32_TYPE
+#define __ULFRACT_MAX__ 0XFFFFFFFFP-32ULR
+#define getc(_fp) _IO_getc (_fp)
+#define __TA_IBIT__ 64
+#define __SIZE_T 
+#define __LDBL_MAX_EXP__ 1024
+#define _ATFILE_SOURCE 1
+#define __stub_getpmsg 
+#define _IO_ssize_t __ssize_t
+#define __WINT_MIN__ 0U
+#define __ARM_ASM_SYNTAX_UNIFIED__ 1
+#define __linux__ 1
+#define _IOS_OUTPUT 2
+#define _SIZE_T_DEFINED_ 
+#define __ULLFRACT_MIN__ 0.0ULLR
+#define __SCHAR_MAX__ 0x7f
+#define __USING_NAMESPACE_STD(name) 
+#define _IO_UNIFIED_JUMPTABLES 1
+#define __WCHAR_MIN__ 0U
+#define __KERNEL_STRICT_NAMES 
+#define _IO_stderr ((_IO_FILE*)(&_IO_2_1_stderr_))
+#define _IO_ferror_unlocked(__fp) (((__fp)->_flags & _IO_ERR_SEEN) != 0)
+#define __INT64_C(c) c ## LL
+#define __NTH(fct) __LEAF_ATTR fct throw ()
+#define __DBL_DIG__ 15
+#define __GCC_ATOMIC_POINTER_LOCK_FREE 2
+#define __LLACCUM_MIN__ (-0X1P31LLK-0X1P31LLK)
+#define _POSIX_SOURCE 1
+#define __SIZEOF_INT__ 4
+#define __SIZEOF_POINTER__ 4
+#define _DEFAULT_SOURCE 1
+#define __attribute_used__ __attribute__ ((__used__))
+#define _STDIO_USES_IOSTREAM 
+#define _IO_IN_BACKUP 0x100
+#define __GCC_ATOMIC_CHAR16_T_LOCK_FREE 2
+#define __USACCUM_IBIT__ 8
+#define __USER_LABEL_PREFIX__ 
+#define __GLIBC__ 2
+#define __END_DECLS }
+#define __CONCAT(x,y) x ## y
+#define __STDC_HOSTED__ 1
+#define __LDBL_HAS_INFINITY__ 1
+#define __SLONG32_TYPE long int
+#define _IO_LINE_BUF 0x200
+#define _IOS_NOCREATE 32
+#define __stub_get_kernel_syms 
+#define __LFRACT_MIN__ (-0.5LR-0.5LR)
+#define __HA_IBIT__ 8
+#define __GNU_LIBRARY__ 6
+#define __ARM_NEON_FP 4
+#define __TQ_IBIT__ 0
+#define __stub_query_module 
+#define _G_BUFSIZ 8192
+#define __FLT_EPSILON__ 1.1920928955078125e-7F
+#define __APCS_32__ 1
+#define __GXX_WEAK__ 1
+#define TMP_MAX 238328
+#define __SSIZE_T_TYPE __SWORD_TYPE
+#define __DEV_T_TYPE __UQUAD_TYPE
+#define __USFRACT_IBIT__ 0
+#define _IO_SKIPWS 01
+#define _IO_SCIENTIFIC 04000
+#define __LDBL_MIN__ 2.2250738585072014e-308L
+#define __nonnull(params) __attribute__ ((__nonnull__ params))
+#define __FRACT_MIN__ (-0.5R-0.5R)
+#define __DEC32_MAX__ 9.999999E96DF
+#define _IO_SHOWPOS 02000
+#define __DA_IBIT__ 32
+#define __ARM_SIZEOF_MINIMAL_ENUM 4
+#define __INT32_MAX__ 0x7fffffff
+#define __UQQ_FBIT__ 8
+#define __SIZEOF_LONG__ 4
+#define __UACCUM_MAX__ 0XFFFFFFFFP-16UK
+#define _IO_getc_unlocked(_fp) (_IO_BE ((_fp)->_IO_read_ptr >= (_fp)->_IO_read_end, 0) ? __uflow (_fp) : *(unsigned char *) (_fp)->_IO_read_ptr++)
+#define __STDC_IEC_559__ 1
+#define __STDC_ISO_10646__ 201103L
+#define __UINT16_C(c) c
+#define _IO_PENDING_OUTPUT_COUNT(_fp) ((_fp)->_IO_write_ptr - (_fp)->_IO_write_base)
+#define __DECIMAL_DIG__ 17
+#define __LFRACT_EPSILON__ 0x1P-31LR
+#define __USE_FORTIFY_LEVEL 0
+#define __ULFRACT_MIN__ 0.0ULR
+#define __gnu_linux__ 1
+#define _LARGEFILE_SOURCE 1
+#define __has_include_next(STR) __has_include_next__(STR)
+#define __ARM_PCS_VFP 1
+#define _IO_LEFT 02
+#define __LDBL_HAS_QUIET_NAN__ 1
+#define __USE_ISOC11 1
+#define __ULACCUM_IBIT__ 32
+#define __attribute_const__ __attribute__ ((__const__))
+#define __THROW throw ()
+#define __UACCUM_EPSILON__ 0x1P-16UK
+#define L_tmpnam 20
+#define __GNUC__ 5
+#define __SYSCALL_ULONG_TYPE __ULONGWORD_TYPE
+#define __ULLACCUM_MAX__ 0XFFFFFFFFFFFFFFFFP-32ULLK
+#define __GXX_RTTI 1
+#define __HQ_IBIT__ 0
+#define L_ctermid 9
+#define __OFF64_T_TYPE __SQUAD_TYPE
+#define __FLT_HAS_DENORM__ 1
+#define __SIZEOF_LONG_DOUBLE__ 8
+#define __LDBL_REDIR1_NTH(name,proto,alias) name proto __THROW
+#define SEEK_CUR 1
+#define __BIGGEST_ALIGNMENT__ 8
+#define __USE_ISOC95 1
+#define __USE_ISOC99 1
+#define __ASMNAME(cname) __ASMNAME2 (__USER_LABEL_PREFIX__, cname)
+#define _IO_uid_t __uid_t
+#define __DQ_IBIT__ 0
+#define __DBL_MAX__ double(1.7976931348623157e+308L)
+#define __ULFRACT_IBIT__ 0
+#define __INT_FAST32_MAX__ 0x7fffffff
+#define __DBL_HAS_INFINITY__ 1
+#define __USE_LARGEFILE 1
+#define __INT64_MAX__ 0x7fffffffffffffffLL
+#define __USE_XOPEN 1
+#define stdin stdin
+#define __USE_XOPEN2K 1
+#define __ACCUM_IBIT__ 16
+#define __DEC32_MIN_EXP__ (-94)
+#define __DADDR_T_TYPE __S32_TYPE
+#define __THUMB_INTERWORK__ 1
+#define __END_NAMESPACE_C99 
+#define _ISOC11_SOURCE 1
+#define __LACCUM_MAX__ 0X7FFFFFFFFFFFFFFFP-31LK
+#define __FD_SETSIZE 1024
+#define __attribute_format_strfmon__(a,b) __attribute__ ((__format__ (__strfmon__, a, b)))
+#define _IO_MAGIC 0xFBAD0000
+#define __INT_FAST16_TYPE__ int
+#define _SIZE_T_DEFINED 
+#define __USE_POSIX199506 1
+#define _FEATURES_H 1
+#define __LDBL_HAS_DENORM__ 1
+#define __stub_getmsg 
+#define _IO_FIXED 010000
+#define __ARM_FEATURE_LDREX 15
+#define __stub_fattach 
+#define __cplusplus 199711L
+#define __DEC128_MAX__ 9.999999999999999999999999999999999E6144DL
+#define __INT_LEAST32_MAX__ 0x7fffffff
+#define _IO_UNBUFFERED 2
+#define _IO_INTERNAL 010
+#define __DEC32_MIN__ 1E-95DF
+#define __ACCUM_MAX__ 0X7FFFFFFFP-15K
+#define __DEPRECATED 1
+#define __S32_TYPE int
+#define __glibc_unlikely(cond) __builtin_expect ((cond), 0)
+#define __DBL_MAX_EXP__ 1024
+#define __USACCUM_EPSILON__ 0x1P-8UHK
+#define __DEC128_EPSILON__ 1E-33DL
+#define __SFRACT_MAX__ 0X7FP-7HR
+#define __FRACT_IBIT__ 0
+#define __FSFILCNT_T_TYPE __ULONGWORD_TYPE
+#define __PTRDIFF_MAX__ 0x7fffffff
+#define __UACCUM_MIN__ 0.0UK
+#define _IO_LINKED 0x80
+#define _IO_HAVE_ST_BLKSIZE _G_HAVE_ST_BLKSIZE
+#define __STDC_NO_THREADS__ 1
+#define __UACCUM_IBIT__ 16
+#define __USECONDS_T_TYPE __U32_TYPE
+#define _IO_DELETE_DONT_CLOSE 0x40
+#define __BEGIN_NAMESPACE_STD 
+#define __OFF_T_TYPE __SLONGWORD_TYPE
+#define __GNUG__ 5
+#define __LONG_LONG_MAX__ 0x7fffffffffffffffLL
+#define __SIZEOF_SIZE_T__ 4
+#define __ULACCUM_MAX__ 0XFFFFFFFFFFFFFFFFP-32ULK
+#define _IO_BOOLALPHA 0200000
+#define __SIZEOF_WINT_T__ 4
+#define _IONBF 2
+#define __U16_TYPE unsigned short int
+#define _STDIO_H 1
+#define __SA_IBIT__ 16
+#define __ULLACCUM_MIN__ 0.0ULLK
+#define __GXX_ABI_VERSION 1009
+#define __USE_GNU 1
+#define __UTA_FBIT__ 64
+#define __FLT_MIN_EXP__ (-125)
+#define __USFRACT_MAX__ 0XFFP-8UHR
+#define __UFRACT_IBIT__ 0
+#define __stub_create_module 
+#define __extern_always_inline extern __always_inline __attribute__ ((__gnu_inline__))
+#define __ARM_FEATURE_QBIT 1
+#define __INT_FAST64_TYPE__ long long int
+#define __DBL_MIN__ double(2.2250738585072014e-308L)
+#define __USE_XOPEN2KXSI 1
+#define __REDIRECT(name,proto,alias) name proto __asm__ (__ASMNAME (#alias))
+#define __FLT_MIN_10_EXP__ (-37)
+#define _IO_off64_t __off64_t
+#define __USE_UNIX98 1
+#define __MODE_T_TYPE __U32_TYPE
+#define __LEAF_ATTR __attribute__ ((__leaf__))
+#define __LACCUM_MIN__ (-0X1P31LK-0X1P31LK)
+#define __RLIM64_T_TYPE __UQUAD_TYPE
+#define _IOS_ATEND 4
+#define __ULLACCUM_FBIT__ 32
+#define SEEK_DATA 3
+#define __GXX_TYPEINFO_EQUALITY_INLINE 0
+#define __ULLFRACT_EPSILON__ 0x1P-64ULLR
+#define __DEC128_MIN__ 1E-6143DL
+#define __REGISTER_PREFIX__ 
+#define __UINT16_MAX__ 0xffff
+#define _IOS_NOREPLACE 64
+#define __DBL_HAS_DENORM__ 1
+#define __ACCUM_MIN__ (-0X1P15K-0X1P15K)
+#define _IO_TIED_PUT_GET 0x400
+#define __attribute_pure__ __attribute__ ((__pure__))
+#define __SQ_IBIT__ 0
+#define __USE_POSIX2 1
+#define __UINT8_TYPE__ unsigned char
+#define __SLONGWORD_TYPE long int
+#define __UHA_FBIT__ 8
+#define __REDIRECT_LDBL(name,proto,alias) __REDIRECT (name, proto, alias)
+#define __NO_INLINE__ 1
+#define __SFRACT_MIN__ (-0.5HR-0.5HR)
+#define __UTQ_FBIT__ 128
+#define __warndecl(name,msg) extern void name (void) __attribute__((__warning__ (msg)))
+#define __FLT_MANT_DIG__ 24
+#define __VERSION__ "5.2.1 20151005"
+#define __UINT64_C(c) c ## ULL
+#define __ULLFRACT_FBIT__ 64
+#define __FRACT_EPSILON__ 0x1P-15R
+#define __ULACCUM_MIN__ 0.0ULK
+#define _STDC_PREDEF_H 1
+#define __UDA_FBIT__ 32
+#define _IO_file_flags _flags
+#define __USE_XOPEN2K8 1
+#define __LLACCUM_EPSILON__ 0x1P-31LLK
+#define __STRING(x) #x
+#define __GCC_ATOMIC_INT_LOCK_FREE 2
+#define __INO_T_TYPE __ULONGWORD_TYPE
+#define __ssize_t_defined 
+#define __GNUC_PREREQ(maj,min) ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#define _SYS_SIZE_T_H 
+#define __FLOAT_WORD_ORDER__ __ORDER_LITTLE_ENDIAN__
+#define __FSBLKCNT64_T_TYPE __UQUAD_TYPE
+#define _IO_feof_unlocked(__fp) (((__fp)->_flags & _IO_EOF_SEEN) != 0)
+#define __SUSECONDS_T_TYPE __SLONGWORD_TYPE
+#define __SIZE_T__ 
+#define __USFRACT_MIN__ 0.0UHR
+#define __stub_gtty 
+#define __NLINK_T_TYPE __UWORD_TYPE
+#define _IO_SHOWPOINT 0400
+#define __ULLACCUM_IBIT__ 32
+#define _G_config_h 1
+#define __UQQ_IBIT__ 0
+#define __stub_sstk 
+#define __wur 
+#define __STDC_IEC_559_COMPLEX__ 1
+#define _G_HAVE_MMAP 1
+#define _IO_OCT 040
+#define __off64_t_defined 
+#define __ARM_NEON__ 1
+#define __INT32_C(c) c
+#define __DEC64_EPSILON__ 1E-15DD
+#define __ORDER_PDP_ENDIAN__ 3412
+#define __DEC128_MIN_EXP__ (-6142)
+#define __UHQ_FBIT__ 16
+#define __LLACCUM_FBIT__ 31
+#define _ISOC95_SOURCE 1
+#define __LINARO_SPIN__ 2
+#define __INT_FAST32_TYPE__ int
+#define _BITS_TYPESIZES_H 1
+#define __SYSCALL_SLONG_TYPE __SLONGWORD_TYPE
+#define __UINT_LEAST16_TYPE__ short unsigned int
+#define unix 1
+#define __USE_POSIX 1
+#define __INT16_MAX__ 0x7fff
+#define __THROWNL throw ()
+#define _BSD_SIZE_T_ 
+#define __cpp_rtti 199711
+#define __SIZE_TYPE__ unsigned int
+#define __PMT(args) args
+#define __UINT64_MAX__ 0xffffffffffffffffULL
+#define __va_arg_pack_len() __builtin_va_arg_pack_len ()
+#define __ULONGWORD_TYPE unsigned long int
+#define _SIZE_T_DECLARED 
+#define __UDQ_FBIT__ 64
+#define _IO_SHOWBASE 0200
+#define __INT8_TYPE__ signed char
+#define __thumb__ 1
+#define __ELF__ 1
+#define __ID_T_TYPE __U32_TYPE
+#define __TIME_T_TYPE __SLONGWORD_TYPE
+#define __ULFRACT_EPSILON__ 0x1P-32ULR
+#define __LLFRACT_FBIT__ 63
+#define __warnattr(msg) __attribute__((__warning__ (msg)))
+#define _IO_funlockfile(_fp) 
+#define __FLT_RADIX__ 2
+#define __INT_LEAST16_TYPE__ short int
+#define __ARM_ARCH_PROFILE 65
+#define __LDBL_EPSILON__ 2.2204460492503131e-16L
+#define __UINTMAX_C(c) c ## ULL
+#define _POSIX_C_SOURCE 200809L
+#define __long_double_t long double
+#define __SACCUM_MAX__ 0X7FFFP-7HK
+#define __LDBL_REDIR(name,proto) name proto
+#define __SIG_ATOMIC_MAX__ 0x7fffffff
+#define _G_HAVE_MREMAP 1
+#define __LINARO_RELEASE__ 201511
+#define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 2
+#define _IO_IS_FILEBUF 0x2000
+#define __VFP_FP__ 1
+#define __SIZEOF_PTRDIFF_T__ 4
+#define SEEK_SET 0
+#define _IO_FLAGS2_NOTCANCEL 2
+#define __errordecl(name,msg) extern void name (void) __attribute__((__error__ (msg)))
+#define _XOPEN_SOURCE_EXTENDED 1
+#define __restrict_arr 
+#define __attribute_artificial__ __attribute__ ((__artificial__))
+#define __USE_MISC 1
+#define __LACCUM_EPSILON__ 0x1P-31LK
+#define __UWORD_TYPE unsigned int
+#define _SIZE_T_ 
+#define __DEC32_SUBNORMAL_MIN__ 0.000001E-95DF
+#define _IO_iconv_t _G_iconv_t
+#define _IO_USER_BUF 1
+#define __INT_FAST16_MAX__ 0x7fffffff
+#define __stub_revoke 
+#define _IO_off_t __off_t
+#define __UINT_FAST32_MAX__ 0xffffffffU
+#define __UINT_LEAST64_TYPE__ long long unsigned int
+#define __USACCUM_MAX__ 0XFFFFP-8UHK
+#define __SFRACT_EPSILON__ 0x1P-7HR
+#define __U64_TYPE __u_quad_t
+#define __FLT_HAS_QUIET_NAN__ 1
+#define _IO_STDIO_H 
+#define __FLT_MAX_10_EXP__ 38
+#define __LONG_MAX__ 0x7fffffffL
+#define __DEC128_SUBNORMAL_MIN__ 0.000000000000000000000000000000001E-6143DL
+#define __FLT_HAS_INFINITY__ 1
+#define __unix 1
+#define __USA_FBIT__ 16
+#define __UINT_FAST16_TYPE__ unsigned int
+#define __bos0(ptr) __builtin_object_size (ptr, 0)
+#define __DEC64_MAX__ 9.999999999999999E384DD
+#define __ARM_32BIT_STATE 1
+#define NULL __null
+#define __CHAR16_TYPE__ short unsigned int
+#define __PRAGMA_REDEFINE_EXTNAME 1
+#define __USING_NAMESPACE_C99(name) 
+#define _VA_LIST_DEFINED 
+#define __BLKSIZE_T_TYPE __SLONGWORD_TYPE
+#define _IO_size_t size_t
+#define __INT_LEAST16_MAX__ 0x7fff
+#define __stub_lchmod 
+#define __DEC64_MANT_DIG__ 16
+#define __UINT_LEAST32_MAX__ 0xffffffffU
+#define __SACCUM_FBIT__ 7
+#define __GCC_ATOMIC_LONG_LOCK_FREE 2
+#define __INT_LEAST64_TYPE__ long long int
+#define __ARM_FEATURE_CLZ 1
+#define __INT16_TYPE__ short int
+#define __INT_LEAST8_TYPE__ signed char
+#define __SQ_FBIT__ 31
+#define __DEC32_MAX_EXP__ 97
+#define SEEK_HOLE 4
+#define __ARM_ARCH_ISA_THUMB 2
+#define __INT_FAST8_MAX__ 0x7f
+#define __ARM_ARCH 7
+#define __INTPTR_MAX__ 0x7fffffff
+#define _OLD_STDIO_MAGIC 0xFABC0000
+#define __QQ_FBIT__ 7
+#define linux 1
+#define _IOS_APPEND 8
+#define __UTA_IBIT__ 64
+#define ____FILE_defined 1
+#define _IOLBF 1
+#define _IO_UPPERCASE 01000
+#define __KEY_T_TYPE __S32_TYPE
+#define __EXCEPTIONS 1
+#define __WORDSIZE 32
+#define __BEGIN_DECLS extern "C" {
+#define __LDBL_MANT_DIG__ 53
+#define __SFRACT_FBIT__ 7
+#define __SACCUM_MIN__ (-0X1P7HK-0X1P7HK)
+#define __DBL_HAS_QUIET_NAN__ 1
+#define _IO_BAD_SEEN 0x4000
+#define __GNUC_VA_LIST 
+#define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
+#define __RLIM_T_TYPE __ULONGWORD_TYPE
+#define FILENAME_MAX 4096
+#define __INTPTR_TYPE__ int
+#define __UINT16_TYPE__ short unsigned int
+#define __WCHAR_TYPE__ unsigned int
+#define __CLOCKID_T_TYPE __S32_TYPE
+#define __SIZEOF_FLOAT__ 4
+#define _IOS_TRUNC 16
+#define __THUMBEL__ 1
+#define __HAVE_COLUMN 
+#define __stub_fdetach 
+#define __USQ_FBIT__ 32
+#define __UINTPTR_MAX__ 0xffffffffU
+#define __DEC64_MIN_EXP__ (-382)
+#define __stub_chflags 
+#define putc(_ch,_fp) _IO_putc (_ch, _fp)
+#define __UQUAD_TYPE __u_quad_t
+#define __INT_FAST64_MAX__ 0x7fffffffffffffffLL
+#define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
+#define BUFSIZ _IO_BUFSIZ
+#define __FLT_DIG__ 6
+#define __FSID_T_TYPE struct { int __val[2]; }
+#define __UINT_FAST64_TYPE__ long long unsigned int
+#define _IO_putc_unlocked(_ch,_fp) (_IO_BE ((_fp)->_IO_write_ptr >= (_fp)->_IO_write_end, 0) ? __overflow (_fp, (unsigned char) (_ch)) : (unsigned char) (*(_fp)->_IO_write_ptr++ = (_ch)))
+#define __LDBL_REDIR_DECL(name) 
+#define __INT_MAX__ 0x7fffffff
+#define __LACCUM_FBIT__ 31
+#define __S16_TYPE short int
+#define __bos(ptr) __builtin_object_size (ptr, __USE_FORTIFY_LEVEL > 1)
+#define _T_SIZE_ 
+#define __USACCUM_MIN__ 0.0UHK
+#define __UHA_IBIT__ 8
+#define _IOS_INPUT 1
+#define __USE_LARGEFILE64 1
+#define __INT64_TYPE__ long long int
+#define __FLT_MAX_EXP__ 128
+#define __UTQ_IBIT__ 0
+#define __DBL_MANT_DIG__ 53
+#define ___int_size_t_h 
+#define __TIMER_T_TYPE void *
+#define __INT_LEAST64_MAX__ 0x7fffffffffffffffLL
+#define __GLIBC_MINOR__ 21
+#define __DEC64_MIN__ 1E-383DD
+#define __WINT_TYPE__ unsigned int
+#define __UINT_LEAST32_TYPE__ unsigned int
+#define __SIZEOF_SHORT__ 2
+#define __ULLFRACT_IBIT__ 0
+#define __LDBL_MIN_EXP__ (-1021)
+#define _IO_va_list __gnuc_va_list
+#define __arm__ 1
+#define __UDA_IBIT__ 32
+#define stdout stdout
+#define __REDIRECT_NTHNL(name,proto,alias) name proto __THROWNL __asm__ (__ASMNAME (#alias))
+#define EOF (-1)
+#define __INT_LEAST8_MAX__ 0x7f
+#define __extern_inline extern __inline __attribute__ ((__gnu_inline__))
+#define __USE_POSIX199309 1
+#define ____mbstate_t_defined 1
+#define __LFRACT_FBIT__ 31
+#define __BLKCNT64_T_TYPE __SQUAD_TYPE
+#define __WCHAR_UNSIGNED__ 1
+#define __ARM_ARCH_7A__ 1
+#define __LDBL_MAX_10_EXP__ 308
+#define __ATOMIC_RELAXED 0
+#define __FSBLKCNT_T_TYPE __ULONGWORD_TYPE
+#define __DBL_EPSILON__ double(2.2204460492503131e-16L)
+#define __stub_stty 
+#define _SIZET_ 
+#define __ARM_FEATURE_SIMD32 1
+#define __REDIRECT_NTH_LDBL(name,proto,alias) __REDIRECT_NTH (name, proto, alias)
+#define __UINT8_C(c) c
+#define __INT_LEAST32_TYPE__ int
+#define SEEK_END 2
+#define __SIZEOF_WCHAR_T__ 4
+#define __UINT64_TYPE__ long long unsigned int
+#define __ARM_NEON 1
+#define _ISOC99_SOURCE 1
+#define __REDIRECT_NTH(name,proto,alias) name proto __THROW __asm__ (__ASMNAME (#alias))
+#define _IO_RIGHT 04
+#define __END_NAMESPACE_STD 
+#define __LLFRACT_MAX__ 0X7FFFFFFFFFFFFFFFP-63LLR
+#define _LARGEFILE64_SOURCE 1
+#define __TQ_FBIT__ 127
+#define __INT_FAST8_TYPE__ signed char
+#define __PID_T_TYPE __S32_TYPE
+#define __ULLACCUM_EPSILON__ 0x1P-32ULLK
+#define __UHQ_IBIT__ 0
+#define __LLACCUM_IBIT__ 32
+#define P_tmpdir "/tmp"
+#define _IO_stdin ((_IO_FILE*)(&_IO_2_1_stdin_))
+#define _IO_cleanup_region_start(_fct,_fp) 
+#define _IO_NO_READS 4
+#define _IO_DEC 020
+#define __DBL_DECIMAL_DIG__ 17
+#define __DEC_EVAL_METHOD__ 2
+#define _SIZE_T 
+#define _IO_ERR_SEEN 0x20
+#define __ULONG32_TYPE unsigned long int
+#define __TA_FBIT__ 63
+#define FOPEN_MAX 16
+#define _IO_STDIO 040000
+#define __off_t_defined 
+#define _IO_IS_APPENDING 0x1000
+#define __UDQ_IBIT__ 0
+#define _GCC_SIZE_T 
+#define __ORDER_BIG_ENDIAN__ 4321
+#define __INO64_T_TYPE __UQUAD_TYPE
+#define __cpp_runtime_arrays 198712
+#define __USE_XOPEN2K8XSI 1
+#define __ACCUM_EPSILON__ 0x1P-15K
+#define __UINT32_C(c) c ## U
+#define __INTMAX_MAX__ 0x7fffffffffffffffLL
+#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
+#define __size_t__ 
+#define _IO_BUFSIZ _G_BUFSIZ
+#define __FLT_DENORM_MIN__ 1.4012984643248171e-45F
+#define __BEGIN_NAMESPACE_C99 
+#define __LLFRACT_IBIT__ 0
+#define __INT8_MAX__ 0x7f
+#define __UINT_FAST32_TYPE__ unsigned int
+#define _IO_fpos_t _G_fpos_t
+#define __CHAR32_TYPE__ unsigned int
+#define __FLT_MAX__ 3.4028234663852886e+38F
+#define __attribute_warn_unused_result__ __attribute__ ((__warn_unused_result__))
+#define __attribute_format_arg__(x) __attribute__ ((__format_arg__ (x)))
+#define __USACCUM_FBIT__ 8
+#define __INT32_TYPE__ int
+#define __SIZEOF_DOUBLE__ 8
+#define __cpp_exceptions 199711
+#define __UFRACT_EPSILON__ 0x1P-16UR
+#define _IO_BE(expr,res) __builtin_expect ((expr), res)
+#define __SWORD_TYPE int
+#define __INTMAX_TYPE__ long long int
+#define __DEC128_MAX_EXP__ 6145
+#define _T_SIZE 
+#define __va_arg_pack() __builtin_va_arg_pack ()
+#define __ATOMIC_CONSUME 1
+#define _IO_stdout ((_IO_FILE*)(&_IO_2_1_stdout_))
+#define __GNUC_MINOR__ 2
+#define __UINTMAX_MAX__ 0xffffffffffffffffULL
+#define __DEC32_MANT_DIG__ 7
+#define __HA_FBIT__ 7
+#define __DBL_MAX_10_EXP__ 308
+#define __FILE_defined 1
+#define __LDBL_DENORM_MIN__ 4.9406564584124654e-324L
+#define __USE_XOPEN_EXTENDED 1
+#define __INT16_C(c) c
+#define __U32_TYPE unsigned int
+#define __STDC__ 1
+#define __attribute_malloc__ __attribute__ ((__malloc__))
+#define __PTRDIFF_TYPE__ int
+#define __LLFRACT_MIN__ (-0.5LLR-0.5LLR)
+#define _G_IO_IO_FILE_VERSION 0x20001
+#define __attribute_noinline__ __attribute__ ((__noinline__))
+#define _IO_HEX 0100
+#define __ATOMIC_SEQ_CST 5
+#define __DA_FBIT__ 31
+#define __CLOCK_T_TYPE __SLONGWORD_TYPE
+#define _IO_fpos64_t _G_fpos64_t
+#define __UINT32_TYPE__ unsigned int
+#define __UINTPTR_TYPE__ unsigned int
+#define __USA_IBIT__ 16
+#define __DEC64_SUBNORMAL_MIN__ 0.000000000000001E-383DD
+#define __ARM_EABI__ 1
+#define __FSFILCNT64_T_TYPE __UQUAD_TYPE
+#define __DEC128_MANT_DIG__ 34
+#define __LDBL_MIN_10_EXP__ (-307)
+#define __attribute_deprecated__ __attribute__ ((__deprecated__))
+#define _IO_wint_t wint_t
+#define __SIZEOF_LONG_LONG__ 8
+#define __ULACCUM_EPSILON__ 0x1P-32ULK
+#define __USE_ATFILE 1
+#define __SACCUM_IBIT__ 8
+#define __GCC_ATOMIC_LLONG_LOCK_FREE 2
+#define __LDBL_DIG__ 15
+#define __FLT_DECIMAL_DIG__ 9
+#define __UINT_FAST16_MAX__ 0xffffffffU
+#define __GNUC_GNU_INLINE__ 1
+#define _G_va_list __gnuc_va_list
+#define __GCC_ATOMIC_SHORT_LOCK_FREE 2
+#define _IO_ftrylockfile(_fp) 
+#define __glibc_likely(cond) __builtin_expect ((cond), 1)
+#define __ULLFRACT_MAX__ 0XFFFFFFFFFFFFFFFFP-64ULLR
+#define __UINT_FAST8_TYPE__ unsigned char
+#define _GNU_SOURCE 1
+#define __USFRACT_EPSILON__ 0x1P-8UHR
+#define __ULACCUM_FBIT__ 32
+#define __P(args) args
+#define __ARM_FEATURE_DSP 1
+#define __QQ_IBIT__ 0
+#define __ATOMIC_ACQ_REL 4
+#define __ATOMIC_RELEASE 3
+#define _IO_peekc(_fp) _IO_peekc_unlocked (_fp)

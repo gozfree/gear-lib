@@ -1,21 +1,39 @@
 /******************************************************************************
- * Copyright (C) 2014-2015
- * file:    patch.h
- * author:  gozfree <gozfree@163.com>
- * created: 2016-07-29 14:24
- * updated: 2016-07-29 14:24
+ * Copyright (C) 2014-2018 Zhifeng Gong <gozfree@163.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with libraries; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#ifndef __PATCH_H__
-#define __pATCH_H__
+#ifndef PATCH_H
+#define PATCH_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#endif
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <string.h>
+#include <inttypes.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
+#define typeof __typeof__
 
 typedef uint32_t vlc_fourcc_t;
 #ifdef __GNUC__
@@ -109,6 +127,24 @@ static inline uint64_t bswap64 (uint64_t x)
 #define ntoh32(i) hton32(i)
 #define ntoh64(i) hton64(i)
 
+/* define from vlc */
+#ifdef WORDS_BIGENDIAN
+#   define VLC_FOURCC( a, b, c, d ) \
+        ( ((uint32_t)d) | ( ((uint32_t)c) << 8 ) \
+           | ( ((uint32_t)b) << 16 ) | ( ((uint32_t)a) << 24 ) )
+#   define VLC_TWOCC( a, b ) \
+        ( (uint16_t)(b) | ( (uint16_t)(a) << 8 ) )
+
+#else
+#   define VLC_FOURCC( a, b, c, d ) \
+        ( ((uint32_t)a) | ( ((uint32_t)b) << 8 ) \
+           | ( ((uint32_t)c) << 16 ) | ( ((uint32_t)d) << 24 ) )
+#   define VLC_TWOCC( a, b ) \
+        ( (uint16_t)(a) | ( (uint16_t)(b) << 8 ) )
+
+#endif
+
+
 
 /** Reads 16 bits in network byte order */
 static inline uint16_t U16_AT (const void *p)
@@ -141,13 +177,29 @@ static inline uint64_t U64_AT (const void *p)
 #define GetDWBE(p) U32_AT(p)
 #define GetQWBE(p) U64_AT(p)
 
+/* implement stream  */
 
-#define stream_Read(s, buf, size) ((stream_t*)s)->read(((stream_t*)s), buf, size)
-#define stream_write(s, buf, size) ((stream_t*)s)->write(((stream_t*)s), buf, size)
-#define stream_Peek(s, buf, size) ((stream_t*)s)->peek(((stream_t*)s), buf, size)
-#define stream_Seek(s, offset) ((stream_t*)s)->seek(((stream_t*)s), offset, SEEK_SET)
-#define stream_Tell(s) ((stream_t*)s)->tell(((stream_t*)s))
-#define stream_Size(s) ((stream_t*)s)->size(((stream_t*)s))
+#define MODE_READ             (1)
+#define MODE_WRITE            (2)
+#define MODE_READWRITEFILTER  (3)
+#define MODE_EXISTING         (4)
+#define MODE_CREATE           (8)
+
+
+typedef struct stream {
+    FILE *fp;
+    void **priv_buf;//store peek malloc buffer
+    int priv_buf_num;
+} stream_t;
+
+stream_t* create_file_stream();
+void destory_file_stream(stream_t* stream_s);
+
+int stream_Read(stream_t *stream_s, void* buf, int size);
+int stream_Peek(stream_t *stream_s, const uint8_t **buf, int size);
+uint64_t stream_Seek(stream_t *stream_s, int64_t offset);
+int64_t stream_Tell(stream_t *stream_s);
+int64_t stream_Size(stream_t *stream_s);
 
 bool decodeQtLanguageCode( uint16_t i_language_code, char *psz_iso,
                                   bool *b_mactables );

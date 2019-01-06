@@ -1,11 +1,3 @@
-###############################################################################
-#  Copyright (C) 2014-2015
-#  file:    Makefile
-#  author:  gozfree <gozfree@163.com>
-#  created: 2015-11-10 16:29:41
-#  updated: 2015-11-10 16:29:41
-###############################################################################
-
 ##############################################################################
 # common
 ###############################################################################
@@ -53,7 +45,7 @@ KERNEL_MODULE	= netlink_driver.ko
 KERNEL_DIR	= /lib/modules/$(shell uname -r)/build
 
 OBJS_LIB	= $(LIBNAME).o
-OBJS_LIB	+= msgq.o netlink.o shm.o
+OBJS_LIB	+= msgq_posix.o msgq_sysv.o netlink.o shm.o unix_socket.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -70,11 +62,7 @@ EXTRA_CFLAGS	+= -I../libmacro/
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llog
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -lthread
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -llock
-EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -ldict
+EXTRA_LDFLAGS	+= -L$(OUTPUT)/lib -ldict -lgevent
 EXTRA_LDFLAGS	+= -pthread -lrt
 
 
@@ -103,7 +91,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
