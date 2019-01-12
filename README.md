@@ -13,12 +13,12 @@ This is a collection of basic libraries.
 
 |name|descript|name|descript|name|descript|
 |----|--------|----|--------|----|--------|
-|[libatomic](libatomic)|Atomic operation|[libbase64](libbase64)|Base64/32 encode/decode|[libcmd](libcmd)|Based on readline like bash
+|[libbase64](libbase64)|Base64/32 encode/decode|[libcmd](libcmd)|Based on readline like bash
 |[libconfig](libconfig)|Support ini/json|[libdebug](libdebug)|Help to trace crash like gdb|[libdict](libdict)|Hash key-value dictonary
 |[libfilewatcher](libfilewatcher)|Watch file/dir on event|[libfile](libfile)|File operations|[libgevent](libgevent) | Reactor event, like libevent
 |[libhal](libhal)|hardware Abstraction Layer|[libhash](libhash)|Hash key-value based on hlist|[libipc](libipc)|Support mqueue/netlink/shm
 |[liblog](liblog)|Support console/file/rsyslog|[libmacro](libmacro)|Basic Macro define|[libmp4parser](libmp4parser)|MP4 format parser
-|[liblock](liblock)|Lock/mutex/sem wrapper|[libthread](libthread)|Thread wrapper|[libp2p](libp2p)|p2p punch hole and transfer
+|[libthread](libthread)|Thread wrapper|[libp2p](libp2p)|p2p punch hole and transfer
 |[libplugin](libplugin)|Dynamic link plugin|[librbtree](librbtree)|linux kernel rbtree|[librpc](librpc)|Remote Procedure Call
 |[librtsp](librtsp)|Rtsp wrapper|[libskt](libskt)|Socket wrapper|[libtime](libtime)|Time wrapper
 |[libqueue](libqueue)|support memory hook|[libringbuffer](libringbuffer)|c ringbuffer|[libworkq](libworkq)|Work queue in userspace
@@ -28,7 +28,7 @@ This is a collection of basic libraries.
 |----|----|
 |data struct|libdict libhash libringbuffer libqueue librbtree libsort libvector libmacro
 |network|librtsp libskt libp2p librpc libipc
-|async|libgevent libworkq libthread liblock libatomic
+|async|libgevent libworkq libthread
 |I/O parser|libbase64 libconfig libconfig++ liblog libfile libfilewatcher libstrex libcmd
 |multi-media|libuvc libjpeg-ex libmp4parser
 |misc|libdebug libhal libplugin libtime

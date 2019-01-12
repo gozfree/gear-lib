@@ -13,12 +13,12 @@
 
 |name|descript|name|descript|name|descript|
 |----|--------|----|--------|----|--------|
-|[libatomic](libatomic)|原子操作库|[libbase64](libbase64)|Base64/32 编解码|[libcmd](libcmd)|命令行库
+|[libbase64](libbase64)|Base64/32 编解码|[libcmd](libcmd)|命令行库
 |[libconfig](libconfig)|配置文件库|[libdebug](libdebug)|调试辅助库|[libdict](libdict)|哈希字典
 |[libfilewatcher](libfilewatcher)|文件监控|[libfile](libfile)|文件操作库|[libgevent](libgevent)|事件驱动
 |[libhal](libhal)|硬件抽象层|[libhash](libhash)|linux内核原生哈希库|[libipc](libipc)|进程间通信
 |[liblog](liblog)|日志库|[libmacro](libmacro)|通用宏定义|[libmp4parser](libmp4parser)|MP4解析库
-|[liblock](liblock)|锁操作|[libthread](libthread)|线程|[libp2p](libp2p)|p2p穿透传输
+||[libthread](libthread)|线程|[libp2p](libp2p)|p2p穿透传输
 |[libplugin](libplugin)|动态加载库|[librbtree](librbtree)|内核rbtree|[librpc](librpc)|远程过程调用库
 |[librtsp](librtsp)|RTSP协议|[libskt](libskt)|Socket封装|[libtime](libtime)|时间库
 |[libqueue](libqueue)|数据队列|[libringbuffer](libringbuffer)|循环缓冲|[libworkq](libworkq)|工作队列

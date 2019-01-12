@@ -56,7 +56,7 @@ CFLAGS	+= -DNO_CRYPTO
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTPUT)/lib -lqueue -lmacro -lthread -llock
+LDFLAGS	+= -L$(OUTPUT)/lib -lqueue -lmacro -lthread
 LDFLAGS	+= -pthread -ldl
 
 ###############################################################################

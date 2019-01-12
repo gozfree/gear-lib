@@ -15,7 +15,7 @@
  * License along with libraries; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  ******************************************************************************/
-#include "liblock.h"
+#include "libthread.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +23,6 @@
 #include <errno.h>
 #include <sched.h>
 #include <pthread.h>
-#include <semaphore.h>
 
 /******************************************************************************
  * spin lock APIs

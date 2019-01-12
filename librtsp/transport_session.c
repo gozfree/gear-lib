@@ -6,7 +6,6 @@
 #include <libtime.h>
 #include <libdict.h>
 #include <libmacro.h>
-#include <libatomic.h>
 #include <libgevent.h>
 #include <stdlib.h>
 #include <string.h>

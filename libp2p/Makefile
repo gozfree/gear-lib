@@ -55,7 +55,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTPUT)/lib -lrpc -lhash -lgevent -lskt -lthread -llock
+LDFLAGS	+= -L$(OUTPUT)/lib -lrpc -lhash -lgevent -lskt -lthread
 LDFLAGS	+= -L$(PLATFORM_LIB) -pthread
 ifeq ($(ARCH), pi)
 LDFLAGS	+= -lgcc_s
