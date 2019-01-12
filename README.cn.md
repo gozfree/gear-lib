@@ -11,18 +11,14 @@
 * 每个库都是一个独立工程，使用时，只需要把真正用到的库加入你的项目中即可，无需导入整个工程
 * 适用于嵌入式，以及网络服务开发等场景
 
-|name|descript|name|descript|name|descript|
-|----|--------|----|--------|----|--------|
-|[libbase64](libbase64)|Base64/32 编解码|[libcmd](libcmd)|命令行库
-|[libconfig](libconfig)|配置文件库|[libdebug](libdebug)|调试辅助库|[libdict](libdict)|哈希字典
-|[libfilewatcher](libfilewatcher)|文件监控|[libfile](libfile)|文件操作库|[libgevent](libgevent)|事件驱动
-|[libhal](libhal)|硬件抽象层|[libhash](libhash)|linux内核原生哈希库|[libipc](libipc)|进程间通信
-|[liblog](liblog)|日志库|[libmacro](libmacro)|通用宏定义|[libmp4parser](libmp4parser)|MP4解析库
-||[libthread](libthread)|线程|[libp2p](libp2p)|p2p穿透传输
-|[libplugin](libplugin)|动态加载库|[librbtree](librbtree)|内核rbtree|[librpc](librpc)|远程过程调用库
-|[librtsp](librtsp)|RTSP协议|[libskt](libskt)|Socket封装|[libtime](libtime)|时间库
-|[libqueue](libqueue)|数据队列|[libringbuffer](libringbuffer)|循环缓冲|[libworkq](libworkq)|工作队列
-|[libvector](libvector) |容器库|[libuvc](libuvc)|USB摄像头库
+|类型|名称|
+|----|----|
+|基础数据结构|dict hash ringbuffer queue rbtree sort vector macro
+|网络库|rtsp skt p2p rpc ipc
+|异步|gevent workq thread
+|I/O解析|base64 config log file filewatcher strex cmd
+|多媒体|uvc jpeg-ex mp4parser
+|其他|debug hal plugin time
 
 ## 编译方法
 推荐 Ubuntu14.04 gcc-4.8.4+ 及以上版本
