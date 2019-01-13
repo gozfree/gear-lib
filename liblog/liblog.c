@@ -38,6 +38,9 @@
 #define USE_SYSLOG
 #elif defined (__WIN32__)
 #include "win.h"
+#elif defined (__ANDROID__)
+#include <jni.h>
+#include <android/log.h>
 #endif
 #include "liblog.h"
 #include "color.h"
@@ -584,6 +587,20 @@ static int _log_print(int lvl, const char *tag,
     return ret;
 }
 
+#ifdef __ANDROID__
+
+#undef loge
+#define loge(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#undef logw
+#define logw(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+#undef logi
+#define logi(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#undef logd
+#define logd(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#undef logv
+#define logv(...) __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+
+#else
 int log_print(int lvl, const char *tag, const char *file,
               int line, const char *func, const char *fmt, ...)
 {
@@ -615,6 +632,7 @@ int log_print(int lvl, const char *tag, const char *file,
 
     return ret;
 }
+#endif
 
 void log_set_level(int level)
 {
