@@ -83,7 +83,7 @@ struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, 
         }
         break;
     case LOCK_COND:
-        if (0 != mutex_cond_init(&t->lock.cond)) {
+        if (0 != mutex_cond_init(&t->cond)) {
             printf("mutex_cond_init failed\n");
             goto err;
         }
@@ -126,9 +126,9 @@ void thread_destroy(struct thread *t)
         mutex_lock_deinit(&t->lock.mutex);
         break;
     case LOCK_COND:
-        mutex_cond_signal_all(&t->lock.cond);
+        mutex_cond_signal_all(&t->cond);
         mutex_lock_deinit(&t->lock.mutex);
-        mutex_cond_deinit(&t->lock.cond);
+        mutex_cond_deinit(&t->cond);
         break;
     default:
         break;
@@ -229,7 +229,7 @@ int thread_wait(struct thread *t, int64_t ms)
     switch (t->type) {
     case LOCK_COND:
     case LOCK_MUTEX:
-        return mutex_cond_wait(&t->lock.mutex, &t->lock.cond, ms);
+        return mutex_cond_wait(&t->lock.mutex, &t->cond, ms);
         break;
     case LOCK_SEM:
         return sem_lock_wait(&t->lock.sem, ms);
@@ -247,7 +247,7 @@ int thread_signal(struct thread *t)
     }
     switch (t->type) {
     case LOCK_COND:
-        mutex_cond_signal(&t->lock.cond);
+        mutex_cond_signal(&t->cond);
         break;
     case LOCK_SEM:
         return sem_lock_signal(&t->lock.sem);
@@ -265,7 +265,7 @@ int thread_signal_all(struct thread *t)
     }
     switch (t->type) {
     case LOCK_COND:
-        mutex_cond_signal_all(&t->lock.cond);
+        mutex_cond_signal_all(&t->cond);
         break;
     default:
         break;

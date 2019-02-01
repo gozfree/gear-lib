@@ -101,9 +101,9 @@ typedef struct thread {
     union {
         spin_lock_t spin;
         mutex_lock_t mutex;
-        mutex_cond_t cond;
         sem_lock_t sem;
     } lock;
+    mutex_cond_t cond;
     bool run;
     void *(*func)(struct thread *, void *);
     void *arg;
