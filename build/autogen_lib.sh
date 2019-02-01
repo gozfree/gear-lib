@@ -17,7 +17,7 @@ YEAR=$(date '+%Y')
 S='$'
 exclamation='!'
 
-LGPL_HEADER=\
+LICENSE_HEADER=\
 "/******************************************************************************
  * Copyright (C) 2014-2020 Zhifeng Gong <gozfree@163.com>
  *
@@ -55,7 +55,7 @@ mkdir_libfoo()
 autogen_libfoo_h()
 {
 cat > ${LIBFOO_H} <<!
-${LGPL_HEADER}
+${LICENSE_HEADER}
 #ifndef ${LIBFOO_MACRO}_H
 #define ${LIBFOO_MACRO}_H
 
@@ -75,7 +75,7 @@ extern "C" {
 autogen_libfoo_c()
 {
 cat > ${LIBFOO_C} <<!
-${LGPL_HEADER}
+${LICENSE_HEADER}
 #include "${LIBFOO_H}"
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,7 +86,7 @@ ${LGPL_HEADER}
 autogen_test_libfoo_c()
 {
 cat > ${TEST_LIBFOO_C} <<!
-${LGPL_HEADER}
+${LICENSE_HEADER}
 #include "${LIBFOO_H}"
 #include <stdio.h>
 #include <stdlib.h>

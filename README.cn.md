@@ -4,7 +4,7 @@
 
 [![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
 [![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
-[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
+[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.MIT)
 
 这是一组通用的Ｃ基础库
 * 全部用POSIX C实现，目标是为了跨平台兼容x86, arm, android, ios.
@@ -53,7 +53,7 @@
   `$ ./autogen_lib.sh libfoo`
 
 ## License
-LGPL/GPLv3. Please refer to the LICENSE file for detailed information.
+Please refer to the LICENSE file for detailed information.
 
 * 一般的开源项目如nginx/ffmpeg/redis等，都有各自的基础库，且实现较为相近，取各库的优点，实现较为通用的库，且库的命名不带特定工程前缀，在实现自己的工程时，方便代码的快速集成。
 * 当库完成度和稳定性高时，会release 到ubuntu launchpad.net PPA供下载安装

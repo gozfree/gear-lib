@@ -4,7 +4,7 @@ English | [简体中文](README.cn.md)
 
 [![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
 [![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
-[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.LGPL)
+[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.MIT)
 
 This is a collection of basic libraries.
 * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
@@ -58,7 +58,7 @@ Recommend Ubuntu14.04 gcc-4.8.4+
   * "sudo make install" is needed when build libxxx alone.
 
 ## License
-LGPL/GPLv3. Please refer to the LICENSE file for detailed information.
+Please refer to the LICENSE file for detailed information.
 
 ## Author & Contributing
 Welcome pull request to the libraries.  
