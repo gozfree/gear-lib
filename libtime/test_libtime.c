@@ -32,8 +32,8 @@ void foo()
     printf("time_get_msec_str:    %s\n", time_get_msec_str(time, sizeof(time)));
     printf("time_get_sec:         %" PRIu64 "\n", time_get_sec());
     printf("time_get_msec:        %" PRIu64 "\n", time_get_msec());
-    printf("time_get_msec:        %" PRIu64 "\n", time_get_usec()/1000);
-    printf("time_get_usec:        %" PRIu64 "\n", time_get_usec());
+    printf("time_get_msec:        %" PRIu64 "\n", time_get_usec(NULL)/1000);
+    printf("time_get_usec:        %" PRIu64 "\n", time_get_usec(NULL));
     printf("time_get_nsec:        %" PRIu64 "\n", time_get_nsec());
     printf("time_get_nsec_bootup: %" PRIu64 "\n", time_get_nsec_bootup());
 }

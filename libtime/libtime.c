@@ -78,10 +78,31 @@ char *time_get_str_human_by_utc(uint32_t utc, char *str, int len)
     return str;
 }
 
-uint64_t time_get_usec()
+char *time_get_str_human_by_msec(uint64_t msec, char *str, int len)
+{
+    struct time_info ti;
+    if (-1 == time_get_info_by_msec(msec, &ti)) {
+        return NULL;
+    }
+    snprintf(str, len, "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+             ti.year, ti.mon, ti.day, ti.hour, ti.min, ti.sec, ti.msec);
+    return str;
+}
+
+
+char *time_get_str_human_by_timeval(struct timeval *tv, char *str, int len)
+{
+    uint32_t sec = time_get_usec(tv)/1000000;
+    return time_get_str_human_by_utc(sec, str, len);
+}
+
+uint64_t time_get_usec(struct timeval *val)
 {
     struct timeval tv;
-    if (-1 == gettimeofday(&tv, NULL)) {
+    if (val == NULL) {
+        val = &tv;
+    }
+    if (-1 == gettimeofday(val, NULL)) {
         printf("gettimeofday failed %d:%s\n", errno, strerror(errno));
         return -1;
     }
@@ -162,9 +183,11 @@ int time_get_info_by_utc(uint32_t utc, struct time_info *ti)
 
     now = localtime((time_t *)&utc);
     if (!now) {
+        printf("localtime failed: %d\n", errno);
         return -1;
     }
     if (-1 == gettimeofday(&tv, &tz)) {
+        printf("gettimeofday failed: %d\n", errno);
         return -1;
     }
 
@@ -175,6 +198,46 @@ int time_get_info_by_utc(uint32_t utc, struct time_info *ti)
     ti->hour = now->tm_hour;
     ti->min = now->tm_min;
     ti->sec = now->tm_sec;
+    ti->timezone = (-tz.tz_minuteswest) / 60;
+
+    strftime(date_fmt, sizeof(ti->str), TIME_FORMAT, now);
+    snprintf(date_ms, sizeof(date_ms), "%03d", ti->msec);
+    snprintf(ti->str, sizeof(ti->str), "%s%s", date_fmt, date_ms);
+
+    return 0;
+}
+
+int time_get_info_by_msec(uint64_t msec, struct time_info *ti)
+{
+    struct timeval tv;
+    struct timezone tz;
+    struct tm *now;
+    char date_fmt[20] = {0};
+    char date_ms[4] = {0};
+    uint32_t utc;
+    uint16_t dot_msec;
+
+    utc = (uint32_t)(msec/1000);
+    dot_msec = (msec - utc*1000);
+    now = localtime((time_t *)&utc);
+    if (!now) {
+        printf("localtime failed: %d\n", errno);
+        return -1;
+    }
+    if (-1 == gettimeofday(&tv, &tz)) {
+        printf("gettimeofday failed: %d\n", errno);
+        return -1;
+    }
+
+    ti->utc = utc;
+    ti->utc_msec = msec;
+    ti->year = now->tm_year + 1900;
+    ti->mon = now->tm_mon + 1;
+    ti->day = now->tm_mday;
+    ti->hour = now->tm_hour;
+    ti->min = now->tm_min;
+    ti->sec = now->tm_sec;
+    ti->msec = dot_msec;
     ti->timezone = (-tz.tz_minuteswest) / 60;
 
     strftime(date_fmt, sizeof(ti->str), TIME_FORMAT, now);

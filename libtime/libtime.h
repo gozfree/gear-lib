@@ -51,6 +51,8 @@ uint64_t time_get_sec();
 char *time_get_sec_str();
 char *time_get_str_human(char *str, int len);
 char *time_get_str_human_by_utc(uint32_t utc, char *str, int len);
+char *time_get_str_human_by_msec(uint64_t msec, char *str, int len);
+char *time_get_str_human_by_timeval(struct timeval *val, char *str, int len);
 
 /*
  * accuracy milli second
@@ -62,16 +64,18 @@ int time_sleep_ms(uint64_t ms);
 /*
  * accuracy micro second
  */
-uint64_t time_get_usec();
+uint64_t time_get_usec(struct timeval *tv);
 
 /*
  * accuracy nano second
  */
 uint64_t time_get_nsec();
 uint64_t time_get_nsec_bootup();
+char *time_nsec_to_str(uint64_t nsec);
 
 int time_get_info(struct time_info *ti);
 int time_get_info_by_utc(uint32_t utc, struct time_info *ti);
+int time_get_info_by_msec(uint64_t msec, struct time_info *ti);
 
 bool time_passed_sec(int sec);
 
