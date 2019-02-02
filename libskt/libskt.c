@@ -32,6 +32,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <net/if.h>
+#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -47,14 +48,40 @@
 static struct skt_connection *_skt_connect(int type,
                 const char *host, uint16_t port)
 {
-    int domain = AF_INET;
+    int domain = -1;
     int protocol = 0;
     struct sockaddr_in si;
+    struct sockaddr_un su;
+    struct sockaddr *sa;
+    size_t sa_len = 0;
     struct skt_connection *sc = NULL;
     if (type < 0 || strlen(host) == 0 || port >= 0xFFFF) {
         printf("invalid paraments\n");
         return NULL;
     }
+    switch (type) {
+    case SOCK_STREAM:
+    case SOCK_DGRAM:
+        domain = AF_INET;
+        si.sin_family = domain;
+        si.sin_addr.s_addr = inet_addr(host);
+        si.sin_port = htons(port);
+        sa = (struct sockaddr*)&si;
+        sa_len = sizeof(si);
+        break;
+    case SOCK_SEQPACKET:
+        snprintf(su.sun_path, sizeof(su.sun_path), "%s", host);
+        su.sun_family = PF_UNIX;
+        domain = PF_UNIX;
+        sa = (struct sockaddr*)&su;
+        sa_len = sizeof(su);
+        break;
+    default:
+        printf("unknown socket type!\n");
+        return NULL;
+        break;
+    }
+
     sc = (struct skt_connection* )calloc(1, sizeof(struct skt_connection));
     if (sc == NULL) {
         printf("malloc failed!\n");
@@ -66,10 +93,7 @@ static struct skt_connection *_skt_connect(int type,
         goto fail;
     }
 
-    si.sin_family = domain;
-    si.sin_addr.s_addr = inet_addr(host);
-    si.sin_port = htons(port);
-    if (-1 == connect(sc->fd, (struct sockaddr*)&si, sizeof(si))) {
+    if (-1 == connect(sc->fd, sa, sa_len)) {
         printf("connect failed: %s\n", strerror(errno));
         goto fail;
     }
@@ -101,6 +125,11 @@ struct skt_connection *skt_tcp_connect(const char *host, uint16_t port)
 struct skt_connection *skt_udp_connect(const char *host, uint16_t port)
 {
     return _skt_connect(SOCK_DGRAM, host, port);
+}
+
+struct skt_connection *skt_unix_connect(const char *host, uint16_t port)
+{
+    return _skt_connect(SOCK_SEQPACKET, host, port);
 }
 
 int skt_tcp_bind_listen(const char *host, uint16_t port)
@@ -162,6 +191,34 @@ int skt_udp_bind(const char *host, uint16_t port)
         return -1;
     }
     return fd;
+}
+
+int skt_unix_bind_listen(const char *host, uint16_t port)
+{
+    int fd;
+    struct sockaddr_un su;
+
+    su.sun_family = PF_UNIX;
+    snprintf(su.sun_path, sizeof(su.sun_path), "%s", host);
+    fd = socket(PF_UNIX, SOCK_SEQPACKET, 0);
+    if (-1 == fd) {
+        printf("socket failed: %d\n", errno);
+        return -1;
+    }
+
+    if (-1 == bind(fd, (struct sockaddr*)&su, sizeof(struct sockaddr_un))) {
+        printf("bind %s failed: %d\n", host, errno);
+        goto failed;
+    }
+    if (-1 == listen(fd, SOMAXCONN)) {
+        printf("listen failed: %d\n", errno);
+        goto failed;
+    }
+    return fd;
+
+failed:
+    close(fd);
+    return -1;
 }
 
 int skt_accept(int fd, uint32_t *ip, uint16_t *port)

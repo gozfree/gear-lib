@@ -73,6 +73,10 @@ int skt_accept(int fd, uint32_t *ip, uint16_t *port);
 struct skt_connection *skt_udp_connect(const char *host, uint16_t port);
 int skt_udp_bind(const char *host, uint16_t port);
 
+//socket unix domain apis
+struct skt_connection *skt_unix_connect(const char *host, uint16_t port);
+int skt_unix_bind_listen(const char *host, uint16_t port);
+
 //socket common apis
 void skt_close(int fd);
 
