@@ -43,6 +43,7 @@ TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
+OBJS_LIB	+= msgq_posix.o msgq_sysv.o netlink.o shm.o unix_socket.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -55,11 +56,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTPUT)/lib -llog
-LDFLAGS	+= -L$(OUTPUT)/lib -lgevent
-LDFLAGS	+= -L$(OUTPUT)/lib -lhash
-LDFLAGS	+= -L$(OUTPUT)/lib -lskt
-LDFLAGS	+= -L$(OUTPUT)/lib -lthread
+LDFLAGS	+= -L$(OUTPUT)/lib -lgevent -lworkq -lhash -lskt -lthread -ltime
 LDFLAGS	+= -pthread -lrt
 LDFLAGS	+= -L$(PLATFORM_LIB)
 LDFLAGS	+= $($(ARCH)_LDFLAGS)

@@ -163,7 +163,6 @@ static void *raw_data_thread(void *arg)
             printf("input shell cmd> ");
             scanf("%c", &ch);
             scanf("%[^\n]", cmd);
-            printf("cmd = %s\n", cmd);
             rpc_shell_help(r, cmd, sizeof(cmd));
             break;
         case 'h':
@@ -190,9 +189,9 @@ int main(int argc, char **argv)
     }
     ip = argv[1];
     port = atoi(argv[2]);
-    struct rpc *r = rpc_create(ip, port);
+    struct rpc *r = rpc_client_create(ip, port);
     if (!r) {
-        printf("rpc_create failed\n");
+        printf("rpc_client_create failed\n");
         return -1;
     }
     RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
