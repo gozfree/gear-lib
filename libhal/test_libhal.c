@@ -23,11 +23,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void foo2()
+{
+    char *cmd = "date";
+    char buf[64];
+    system_with_result(cmd, buf, sizeof(buf));
+    printf("buf = %s\n", buf);
+}
 int main(int argc, char **argv)
 {
     struct network_ports ports;
     struct network_info ni;
     struct cpu_info ci;
+    foo2();
     network_get_info("lo", &ni);
     cpu_get_info(&ci);
     printf("%s\n", ni.ipaddr);

@@ -74,6 +74,11 @@ int network_get_port_occupied(struct network_ports *ports);
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
 int cpu_get_info(struct cpu_info *info);
 
+int system_noblock(char **argv);
+ssize_t system_with_result(const char *cmd, void *buf, size_t count);
+ssize_t system_noblock_with_result(char **argv, void *buf, size_t count);
+
+
 
 
 #ifdef __cplusplus
