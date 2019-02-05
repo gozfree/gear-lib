@@ -132,3 +132,4 @@ struct plugin *plugin_reload(struct plugin_manager *pm, const char *path, const 
     plugin_unload(pm, name);
     return plugin_load(pm, path, name);
 }
+

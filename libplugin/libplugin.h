@@ -60,6 +60,27 @@ struct plugin *plugin_load(struct plugin_manager *pm, const char *path, const ch
 void plugin_unload(struct plugin_manager *pm, const char *name);
 struct plugin *plugin_reload(struct plugin_manager *pm, const char *path, const char *name);
 
+/*
+ * using HOOK_CALL(func, args...), prev/post functions can be hook into func
+ */
+#define HOOK_CALL(fn, ...)                                \
+    ({                                                    \
+        fn##_prev(__VA_ARGS__);                           \
+        __typeof__(fn) *sym =  dlsym(RTLD_NEXT, #fn);     \
+        if (!sym) {return NULL;}                          \
+        sym(__VA_ARGS__);                                 \
+        fn##_post(__VA_ARGS__);                           \
+    })
+
+/*
+ * using CALL(fn, args...), you need override api
+ */
+#define CALL(fn, ...)                                     \
+    ({__typeof__(fn) *sym = (__typeof__(fn) *)            \
+                            dlsym(RTLD_NEXT, #fn);        \
+     sym(__VA_ARGS__);})
+
+
 #ifdef __cplusplus
 }
 #endif
