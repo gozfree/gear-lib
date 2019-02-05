@@ -19,11 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBLOG_WIN_H
-#define LIBLOG_WIN_H
-
+#ifndef LIB_WIN_H
+#define LIB_WIN_H
+#include <stdio.h>
+#include <stdlib.h>
 #include <direct.h>
 #include <winsock2.h>
+
+#define bool                int
+#define false               0
+#define true                1
+#define inline              __inline
+#define ssize_t             SSIZE_T
+#define __func__            __FUNCTION__
 
 #undef USE_SYSLOG
 
@@ -39,8 +47,9 @@
 
 static ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
 {
+    int i;
     ssize_t len = 0;
-    for (int i = 0; i < iovcnt; ++i) {
+    for (i = 0; i < iovcnt; ++i) {
         len += write(fd, iov[i].iov_base, iov[i].iov_len);
     }
     return len;

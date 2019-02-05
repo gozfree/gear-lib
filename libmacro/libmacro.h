@@ -23,10 +23,12 @@
 #define LIBMACRO_H
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <stdbool.h>
-#if defined (__linux__)
 #include <sys/uio.h>
-#elif defined (__WIN32__)
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "win.h"
 #endif
 #include "kernel_list.h"
@@ -81,39 +83,12 @@ void *memdup(void *src, size_t len);
 struct iovec *iovec_create(size_t len);
 void iovec_destroy(struct iovec *);
 
-#define UNUSED(arg)  arg = arg
-
-
-void *dl_override(const char *name);
-
-/*
- * using HOOK_CALL(func, args...), prev/post functions can be hook into func
- */
-#define HOOK_CALL(func, ...) \
-    ({ \
-        func##_prev(__VA_ARGS__); \
-        __typeof__(func) *sym = dl_override(#func); \
-        sym(__VA_ARGS__); \
-        func##_post(__VA_ARGS__); \
-    })
-
-/*
- * using CALL(func, args...), you need override api
- */
-#define CALL(func, ...) \
-    ({__typeof__(func) *sym = (__typeof__(func) *)dl_override(#func); sym(__VA_ARGS__);}) \
+#define UNUSED(arg)  (arg = arg)
 
 
 bool is_little_endian(void);
 
-#define is_character(c) \
-    (((c)<='z'&&(c)>='a') || ((c)<='Z'&&(c)>='A'))
-
-int system_noblock(char **argv);
-ssize_t system_with_result(const char *cmd, void *buf, size_t count);
-ssize_t system_noblock_with_result(char **argv, void *buf, size_t count);
-
-bool proc_exist(const char *proc);
+#define is_character(c) (((c)<='z'&&(c)>='a') || ((c)<='Z'&&(c)>='A'))
 
 #ifdef __cplusplus
 }

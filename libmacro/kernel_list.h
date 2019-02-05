@@ -24,6 +24,10 @@
 
 #include <stddef.h>
 
+#if defined(WIN32)
+#define inline __inline
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
