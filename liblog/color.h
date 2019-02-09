@@ -22,7 +22,22 @@
 #ifndef _COLOR_H_
 #define _COLOR_H_
 
-#ifndef __WIN32__
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#define B_RED(str)      str
+#define B_GREEN(str)    str
+#define B_YELLOW(str)   str
+#define B_BLUE(str)     str
+#define B_MAGENTA(str)  str
+#define B_CYAN(str)     str
+#define B_WHITE(str)    str
+#define RED(str)        str
+#define GREEN(str)      str
+#define YELLOW(str)     str
+#define BLUE(str)       str
+#define MAGENTA(str)    str
+#define CYAN(str)       str
+#define WHITE(str)      str
+#else
 #define FG_BLACK        30
 #define FG_RED          31
 #define FG_GREEN        32
@@ -53,21 +68,6 @@
 #define MAGENTA(str)    "\033[35m" str "\033[0m"
 #define CYAN(str)       "\033[36m" str "\033[0m"
 #define WHITE(str)      "\033[37m" str "\033[0m"
-#else
-#define B_RED(str)      str
-#define B_GREEN(str)    str
-#define B_YELLOW(str)   str
-#define B_BLUE(str)     str
-#define B_MAGENTA(str)  str
-#define B_CYAN(str)     str
-#define B_WHITE(str)    str
-#define RED(str)        str
-#define GREEN(str)      str
-#define YELLOW(str)     str
-#define BLUE(str)       str
-#define MAGENTA(str)    str
-#define CYAN(str)       str
-#define WHITE(str)      str
 #endif
 
 

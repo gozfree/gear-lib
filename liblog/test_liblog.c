@@ -21,9 +21,12 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
 #include "liblog.h"
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+#endif
+
 
 static void test_no_init(void)
 {

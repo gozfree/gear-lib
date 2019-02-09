@@ -19,6 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include "liblog.h"
+#include "color.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -26,28 +29,31 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include <pthread.h>
 #include <fcntl.h>
-#include <unistd.h>
+
+#if defined (__linux__) || defined (__CYGWIN__)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <sys/uio.h>
+//#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/param.h>
-#if defined (__linux__)
-#include <syslog.h>
-#include <sys/uio.h>
-#include <sys/syscall.h>
+
 #define USE_SYSLOG
-#elif defined (__WIN32__)
-#include "win.h"
+
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+
 #elif defined (__ANDROID__)
 #include <jni.h>
 #include <android/log.h>
 #endif
-#include "liblog.h"
-#include "color.h"
 
 #define LOG_IOVEC_MAX       (10)
 #define FILENAME_LEN        (256)
@@ -187,22 +193,20 @@ static unsigned long long get_file_size(const char *path)
 
 static unsigned long long get_file_size_by_fp(FILE *fp)
 {
+    long tmp;
     unsigned long long size;
     if (!fp || fp == stderr) {
         return 0;
     }
-    long tmp = ftell(fp);
+    tmp = ftell(fp);
     fseek(fp, 0L, SEEK_END);
     size = ftell(fp);
     fseek(fp, tmp, SEEK_SET);
     return size;
 }
 
-#if defined (__WIN32__)
-static int get_proc_name(char *name, size_t len)
-{
-    return -1;
-}
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+
 #else
 static int get_proc_name(char *name, size_t len)
 {
@@ -235,9 +239,8 @@ static int get_proc_name(char *name, size_t len)
 #endif
 
 #if defined (__APPLE__)
-#define _gettid	getpid
-#elif defined (__linux__)
-static pid_t _gettid(void)
+#elif defined (__linux__) || defined (__CYGWIN__)
+static pid_t gettid(void)
 {
     return syscall(__NR_gettid);
 }
@@ -281,12 +284,14 @@ static const char *get_dir(const char *path)
 
 static int mkdir_r(const char *path, mode_t mode)
 {
+    int ret = 0;
+    char *temp, *pos;
     if (!path) {
         return -1;
     }
-    char *temp = strdup(path);
-    char *pos = temp;
-    int ret = 0;
+
+    temp = strdup(path);
+    pos = temp;
 
     if (strncmp(temp, "/", 1) == 0) {
         pos += 1;
@@ -381,7 +386,7 @@ static ssize_t _log_fwrite(struct iovec *vec, int n)
             _log_fopen_rewrite(_log_name);
         } else {
             if (CHECK_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT)) {
-            fprintf(stderr, "%s size= %" PRIu64 " reach max %" PRIu64 ", splited\n",
+                fprintf(stderr, "%s size= %" PRIu64 " reach max %" PRIu64 ", splited\n",
                     _log_name, (uint64_t)tmp_size, (uint64_t)_log_file_size);
             }
             if (EOF == _log_fclose()) {
@@ -476,15 +481,15 @@ static ssize_t _log_write(struct iovec *vec, int n)
 
 
 static struct log_ops log_fio_ops = {
-    .open = _log_fopen,
-    .write = _log_fwrite,
-    .close = _log_fclose,
+    _log_fopen,
+    _log_fwrite,
+    _log_fclose,
 };
 
 static struct log_ops log_io_ops = {
-    .open = _log_open,
-    .write = _log_write,
-    .close = _log_close
+    _log_open,
+    _log_write,
+    _log_close
 };
 
 static struct log_ops *_log_handle = NULL;
@@ -550,7 +555,7 @@ static int _log_print(int lvl, const char *tag,
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_PIDTID_BIT)) {
         snprintf(s_pname, sizeof(s_pname), "[%s ", _proc_name);
         snprintf(s_pid, sizeof(s_pid), "pid:%d ", getpid());
-        snprintf(s_tid, sizeof(s_tid), "tid:%d]", (int)_gettid());
+        snprintf(s_tid, sizeof(s_tid), "tid:%d]", (int)gettid());
         snprintf(s_tag, sizeof(s_tag), "[%s]", tag);
         snprintf(s_file, sizeof(s_file), "[%s:%d: %s] ", file, line, func);
     }
@@ -649,13 +654,13 @@ void log_set_level(int level)
 
 static void log_check_env(int *lvl, int *out)
 {
-    *lvl = LOG_LEVEL_DEFAULT;
     const char *levelstr = level_str(getenv(LOG_LEVEL_ENV));
     const char *outputstr = output_str(getenv(LOG_OUTPUT_ENV));
     const char *timestr = time_str(getenv(LOG_TIMESTAMP_ENV));
     int level = atoi(levelstr);
     int output = atoi(outputstr);
     int timestamp = atoi(timestr);
+    *lvl = LOG_LEVEL_DEFAULT;
 
     switch (level) {
     case 1:
@@ -848,19 +853,19 @@ static void log_deinit_syslog(void)
 }
 
 static struct log_driver log_rsys_driver = {
-    .init = log_init_syslog,
-    .deinit = log_deinit_syslog,
+    log_init_syslog,
+    log_deinit_syslog,
 };
 #endif
 
 static struct log_driver log_stderr_driver = {
-    .init = log_init_stderr,
-    .deinit = log_deinit_stderr,
+    log_init_stderr,
+    log_deinit_stderr,
 };
 
 static struct log_driver log_file_driver = {
-    .init = log_init_file,
-    .deinit = log_deinit_file,
+    log_init_file,
+    log_deinit_file,
 };
 
 static struct log_driver *_log_driver = NULL;
