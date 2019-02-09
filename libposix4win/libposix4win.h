@@ -24,61 +24,104 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <direct.h>
 #include <winsock2.h>
 #include <windows.h>
 #include <process.h>
-
+#include <tlhelp32.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/******************************************************************************
+ * basic types
+ ******************************************************************************/
+#define false                     0
+#define true                      1
+typedef int                       bool;
 
-#define bool                int
-#define false               0
-#define true                1
+#define inline                    __inline
+#define __func__                  __FUNCTION__
 
-#define inline              __inline
-#define ssize_t             SSIZE_T
-#define __func__            __FUNCTION__
-#define off_t               SSIZE_T
+typedef SSIZE_T                   ssize_t;
+typedef SSIZE_T                   off_t;
+
+
+/******************************************************************************
+ * I/O string APIs
+ ******************************************************************************/
+#define snprintf                  _snprintf
+#define sprintf                   _sprintf
+#define strcasecmp                _stricmp
+#define strdup                    _strdup
 
 #define PATH_SPLIT                '\\'
-#define getcwd(buf, size)         GetModuleFileName(NULL, buf, size)
-#define mkdir(path,mode)          _mkdir(path)
-#define localtime_r(timep,result) localtime_s(result, timep)
-#define _gettid(void)             GetCurrentProcessId()
+#define PRId8                     "hhd"
+#define PRId16                    "hd"
+#define PRId32                    "ld"
+#define PRId64                    "lld"
+#define PRIu8                     "hhu"
+#define PRIu16                    "hu"
+#define PRIu32                    "lu"
+#define PRIu64                    "llu"
+
 #define iovec                     _WSABUF
 #define iov_len                   len
 #define iov_base                  buf
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+
+
+/******************************************************************************
+ * sys file APIs
+ ******************************************************************************/
+#define STDIN_FILENO              0       /* standard input file descriptor */
+#define STDOUT_FILENO             1       /* standard output file descriptor */
+#define STDERR_FILENO             2       /* standard error file descriptor */
+#define MAXPATHLEN                1024
+
+typedef int                       gid_t;
+typedef int                       uid_t;
+typedef int                       dev_t;
+typedef int                       ino_t;
+typedef int                       mode_t;
+typedef int                       caddr_t;
+
+#define F_OK                      0
+#define R_OK                      4
+#define W_OK                      2
+#define X_OK                      1
 
 struct stat {
-#if 0
     dev_t         st_dev;
     ino_t         st_ino;
     mode_t        st_mode;
-    nlink_t       st_nlink;
+    //nlink_t       st_nlink;
     uid_t         st_uid;
     gid_t         st_gid;
     dev_t         st_rdev;
-#endif
     off_t         st_size;
-#if 0
     unsigned long st_blksize;
     unsigned long st_blocks;
     time_t        st_atime;
-#endif
 };
 
 int stat(const char *file, struct stat *buf);
+int access(const char *pathname, int mode);
+#define mkdir(path,mode)          _mkdir(path)
+#define getcwd(buf, size)         GetModuleFileName(NULL, buf, size)
 
 
-/******************************************************************************/
+/******************************************************************************
+ * pthread APIs
+ ******************************************************************************/
 
-#define pthread_once_t INIT_ONCE
-#define pthread_mutex_t SRWLOCK
-#define pthread_cond_t CONDITION_VARIABLE
+#define pthread_once_t            INIT_ONCE
+#define PTHREAD_ONCE_INIT         INIT_ONCE_STATIC_INIT
+#define pthread_mutex_t           SRWLOCK
+#define pthread_cond_t            CONDITION_VARIABLE
 
 typedef struct pthread_t {
     void *handle;
@@ -105,10 +148,44 @@ int pthread_cond_broadcast(pthread_cond_t *cond);
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int pthread_cond_signal(pthread_cond_t *cond);
 
+#define getpid                    GetCurrentProcessId
+#define gettid                    GetCurrentThreadId
+int get_proc_name(char *name, size_t len);
+
+
 /******************************************************************************/
 #define dlopen(name, flags) win32_dlopen(name)
 #define dlclose FreeLibrary
 #define dlsym GetProcAddress
+
+
+/******************************************************************************
+ * time APIs
+ ******************************************************************************/
+struct win_time_t
+{
+    int wday;/** This represents day of week where value zero means Sunday */
+    int day;/** This represents day of month: 1-31 */
+    int mon;/** This represents month, with the value is 0 - 11 (zero is January) */
+    /** This represent the actual year (unlike in ANSI libc where
+     *  the value must be added by 1900).
+     */
+    int year;
+
+    int sec;/** This represents the second part, with the value is 0-59 */
+    int min;/** This represents the minute part, with the value is: 0-59 */
+    int hour;/** This represents the hour part, with the value is 0-23 */
+    int msec;/** This represents the milisecond part, with the value is 0-999 */
+};
+
+struct timezone
+{
+    int tz_minuteswest;
+    int tz_dsttime;
+};
+
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+#define localtime_r(timep,result) localtime_s(result, timep)
 
 #ifdef __cplusplus
 }

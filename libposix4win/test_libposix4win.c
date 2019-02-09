@@ -5,6 +5,7 @@
 
 void foo()
 {
+    char proc[128] = {0};
     const char *file = "Android.mk";
     struct stat st;
     memset(&st, 0, sizeof(st));
@@ -12,6 +13,8 @@ void foo()
         printf("stat %s failed\n", file);
     }
     printf("%s size=%d\n", file, st.st_size);
+    get_proc_name(proc, sizeof(proc));
+    printf("proc name = %s\n", proc);
 
 }
 

@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdarg.h>
-
+#include <windows.h>
 #define HAVE_WINRT 1
 
 int stat(const char *file, struct stat *st)
@@ -36,6 +36,21 @@ int stat(const char *file, struct stat *st)
     hd = FindFirstFile(file, &info);
     if (hd != INVALID_HANDLE_VALUE) {
         st->st_size = info.nFileSizeLow;
+        ret = 0;
+    } else {
+        ret = -1;
+    }
+    FindClose(hd);
+    return ret;
+}
+
+int access(const char *file, int mode)
+{
+    int ret = 0;
+    WIN32_FIND_DATA info;
+    HANDLE hd;
+    hd = FindFirstFile(file, &info);
+    if (hd != INVALID_HANDLE_VALUE) {
         ret = 0;
     } else {
         ret = -1;
@@ -179,7 +194,7 @@ HMODULE win32_dlopen(const char *name)
         if (pathlen == 0 || pathlen + wcslen(name_w) + 2 > MAX_PATH)
             goto exit;
         path[pathlen] = '\\';
-        wcscpy(path + pathlen + 1, name_w);
+        wcscpy_s(path + pathlen + 1, MAX_PATH, name_w);
         module = LoadLibraryExW(path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
         if (module == NULL) {
             // Next try System32 directory
@@ -187,7 +202,7 @@ HMODULE win32_dlopen(const char *name)
             if (pathlen == 0 || pathlen + wcslen(name_w) + 2 > MAX_PATH)
                 goto exit;
             path[pathlen] = '\\';
-            wcscpy(path + pathlen + 1, name_w);
+            wcscpy_s(path + pathlen + 1, MAX_PATH, name_w);
             module = LoadLibraryExW(path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
         }
 exit:
@@ -213,4 +228,129 @@ exit:
 #else
     return LoadLibraryExA(name, NULL, LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
 #endif
+}
+
+void showProcessInformation()
+{
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot) {
+        PROCESSENTRY32 pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32);
+        if (Process32First(hSnapshot, &pe32)) {
+            do {
+               printf("pid %d %s\n", pe32.th32ProcessID, pe32.szExeFile);
+            } while(Process32Next(hSnapshot, &pe32));
+         }
+         CloseHandle(hSnapshot);
+    }
+}
+
+int get_proc_name(char *name, size_t len)
+{
+    PROCESSENTRY32 pe32;
+    int got = 0;
+    int i = 0;
+    HANDLE hd = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (!hd) {
+        return -1;
+    }
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    if (Process32First(hd, &pe32)) {
+        do {
+            if (pe32.th32ProcessID == GetCurrentProcessId()) {
+                got = 1;
+                strncpy(name, pe32.szExeFile, len);
+                break;
+            }
+	} while(Process32Next(hd, &pe32));
+    }
+    CloseHandle(hd);
+    if (got) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+
+#define SECS_TO_FT_MULT 10000000
+static LARGE_INTEGER base_time;
+
+
+// Find 1st Jan 1970 as a FILETIME
+static void get_base_time(LARGE_INTEGER *base_time)
+{
+    SYSTEMTIME st;
+    FILETIME ft;
+
+    memset(&st,0,sizeof(st));
+    st.wYear=1970;
+    st.wMonth=1;
+    st.wDay=1;
+    SystemTimeToFileTime(&st, &ft);
+    base_time->LowPart = ft.dwLowDateTime;
+    base_time->HighPart = ft.dwHighDateTime;
+    base_time->QuadPart /= SECS_TO_FT_MULT;
+}
+
+int gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+    SYSTEMTIME st;
+    FILETIME ft;
+    LARGE_INTEGER li;
+    static char get_base_time_flag = 0;
+
+    if (get_base_time_flag == 0) {
+        get_base_time(&base_time);
+    }
+
+    GetLocalTime(&st);
+    SystemTimeToFileTime(&st, &ft);
+
+    li.LowPart = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+    li.QuadPart /= SECS_TO_FT_MULT;
+    li.QuadPart -= base_time.QuadPart;
+
+    tv->tv_sec = li.LowPart;
+    tv->tv_usec = st.wMilliseconds*1000;
+
+    return 0;
+}
+
+int win_time(struct timeval *tv, struct win_time_t *time)
+{
+    LARGE_INTEGER li;
+    FILETIME ft;
+    SYSTEMTIME st;
+
+    li.QuadPart = tv->tv_sec;
+    li.QuadPart += base_time.QuadPart;
+    li.QuadPart *= SECS_TO_FT_MULT;
+
+    ft.dwLowDateTime = li.LowPart;
+    ft.dwHighDateTime = li.HighPart;
+    FileTimeToSystemTime(&ft, &st);
+
+    time->year = st.wYear;
+    time->mon = st.wMonth-1;
+    time->day = st.wDay;
+    time->wday = st.wDayOfWeek;
+
+    time->hour = st.wHour;
+    time->min = st.wMinute;
+    time->sec = st.wSecond;
+    time->msec = tv->tv_usec/1000;
+
+    return 0;
+}
+
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
+{
+    int i;
+    ssize_t len = 0;
+    for (i = 0; i < iovcnt; ++i) {
+        len += write(fd, iov[i].iov_base, iov[i].iov_len);
+    }
+    return len;
 }
