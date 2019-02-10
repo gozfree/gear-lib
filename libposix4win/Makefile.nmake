@@ -20,10 +20,12 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /IWIN32-Code /IWIN32-Code/nmake /Iinclude /I.
-CFLAGS	= $(FLAGS) /Ox /W3
+CFLAGS	= /Iinclude /I.
+CFLAGS	= $(CFLAGS) /Od /W3 /Zi
 
 LDFLAGS	= /NOLOGO
+
+LIBS    = ws2_32.lib
 
 ###############################################################################
 # target
@@ -35,10 +37,10 @@ OBJS	= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 all: $(TGT)
 
 $(TGT_LIB_A): $(OBJS_LIB)
-	$(AR) $(OBJS_LIB) /o:$(TGT_LIB_A)
+	$(AR) $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_A)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) /out:$(TGT_LIB_SO)
+	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
 	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /o $(TGT_UNIT_TEST)
