@@ -21,8 +21,17 @@ This is a collection of basic libraries.
 |misc|debug hal plugin time
 
 ## How To Build
-Recommend Ubuntu14.04 gcc-4.8.4+
-  * linux platform (32/64 bit)  
+
+### Windows
+  * Windows7 install "Microsoft Visual Studio 10.0"  
+    open cmd.exe  
+   `> "D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat"`  
+   `> cd libraries\libposix4win\`  
+   `> nmake /f Makefile.nmake clean`  
+   `> nmake /f Makefile.nmake`  
+
+### Linux
+  * linux platform (>= Ubuntu14.04 >= gcc-4.8.4 32/64 bit)  
    `$ cd libraries`  
    `$ ./build.sh`  
    `$ sudo ./build.sh install`
@@ -47,16 +56,10 @@ Recommend Ubuntu14.04 gcc-4.8.4+
    After install, the libxxx.xx will be installed in /usr/local/lib/.  
    libxxx.h, libxxx.so or libxxx.a of libraries are also in ./output/$(ARCH)  
 
-  * windows
-    open cmd.exe
-   `> "D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat"`  
-   `> cd libraries\libposix4win\`  
-   `> nmake /f Makefile.nmake clean`  
-   `> nmake /f Makefile.nmake`  
 
-## How To Autogen C code
+## How To Autogen C template code
    If you want to add your own library into the build script, no need repeat the same code, only auto gen libxxx framework.  
-  `$ ./autogen_lib.sh libfoo`
+  `$ ./build/autogen_lib.sh libfoo`
 
 ## About Build
   * by default, build x86 on linux, and libxxx folder can be built independently

@@ -21,9 +21,17 @@
 |其他|debug hal plugin time
 
 ## 编译方法
-推荐 Ubuntu14.04 gcc-4.8.4+ 及以上版本
 
-  * linux 平台 (32/64 bit)  
+### Windows  
+  * Windows7 "Microsoft Visual Studio 10.0"及以上版本  
+    open cmd.exe  
+   `> "D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat"`  
+   `> cd libraries\libposix4win\`  
+   `> nmake /f Makefile.nmake clean`  
+   `> nmake /f Makefile.nmake`  
+
+### Linux  
+  * linux 平台 (Ubuntu14.04 gcc-4.8.4+及以上版本 32/64 bit)  
    `$ cd libraries`  
    `$ ./build.sh`  
    `$ sudo ./build.sh install`
@@ -48,9 +56,10 @@
    After install, the libxxx.xx will be installed in /usr/local/lib/.  
    libxxx.h, libxxx.so or libxxx.a of libraries are also in ./output/$(ARCH)  
 
+
 ## 自动生成代码
    如果要加入你自己的开发库，只需要执行如下命令，即可自动生成代码和编译框架  
-  `$ ./autogen_lib.sh libfoo`
+  `$ ./build/autogen_lib.sh libfoo`
 
 ## License
 Please refer to the LICENSE file for detailed information.
