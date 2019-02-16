@@ -31,6 +31,10 @@
 #include <windows.h>
 #include <process.h>
 #include <tlhelp32.h>
+#include <fcntl.h>
+#include <io.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,32 +85,14 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 #define STDOUT_FILENO             1       /* standard output file descriptor */
 #define STDERR_FILENO             2       /* standard error file descriptor */
 #define MAXPATHLEN                1024
+#define PATH_MAX                  4096
 
-typedef int                       gid_t;
-typedef int                       uid_t;
-typedef int                       dev_t;
-typedef int                       ino_t;
 typedef int                       mode_t;
-typedef int                       caddr_t;
 
 #define F_OK                      0
 #define R_OK                      4
 #define W_OK                      2
 #define X_OK                      1
-
-struct stat {
-    dev_t         st_dev;
-    ino_t         st_ino;
-    mode_t        st_mode;
-    //nlink_t       st_nlink;
-    uid_t         st_uid;
-    gid_t         st_gid;
-    dev_t         st_rdev;
-    off_t         st_size;
-    unsigned long st_blksize;
-    unsigned long st_blocks;
-    time_t        st_atime;
-};
 
 int stat(const char *file, struct stat *buf);
 int access(const char *pathname, int mode);

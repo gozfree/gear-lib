@@ -28,22 +28,6 @@
 #include <windows.h>
 #define HAVE_WINRT 1
 
-int stat(const char *file, struct stat *st)
-{
-    int ret = 0;
-    WIN32_FIND_DATA info;
-    HANDLE hd;
-    hd = FindFirstFile(file, &info);
-    if (hd != INVALID_HANDLE_VALUE) {
-        st->st_size = info.nFileSizeLow;
-        ret = 0;
-    } else {
-        ret = -1;
-    }
-    FindClose(hd);
-    return ret;
-}
-
 int access(const char *file, int mode)
 {
     int ret = 0;

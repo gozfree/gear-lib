@@ -6,7 +6,7 @@
 void foo()
 {
     char proc[128] = {0};
-    const char *file = "Android.mk";
+    const char *file = "version.sh";
     struct stat st;
     memset(&st, 0, sizeof(st));
     if (0 > stat(file, &st)) {
