@@ -17,9 +17,8 @@
  ******************************************************************************/
 #include "libconfig.h"
 #include "iniparser.h"
+#include "config_util.h"
 #include <stdarg.h>
-
-static char *file_path = NULL;
 
 static int ini_load(struct config *c, const char *name)
 {
@@ -29,139 +28,127 @@ static int ini_load(struct config *c, const char *name)
         return -1;
     }
     c->priv = (void *)ini;
-    file_path = strdup(name);
+    strncpy(c->path, name, sizeof(c->path));
     return 0;
 }
 
 static int ini_set_string(struct config *c, ...)
 {
-#if 0
-    const char *key;
-    const char *val;
-    const char *end;
     dictionary *ini = (dictionary *)c->priv;
-    return iniparser_set(ini, key, val);
-#else
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    iniparser_set(ini, type_list[cnt-2].cval, type_list[cnt-1].cval);
+    free(type_list);
     return 0;
-#endif
 }
 
 static char *ini_get_string(struct config *c, ...)
 {
     dictionary *ini = (dictionary *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
-    char *ret = NULL;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
+    char *ret = NULL;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = iniparser_getstring(ini, key[0], NULL);
-        break;
-    case 2:
-        break;
-    case 3:
-        break;
-    case 4:
-        break;
-    case 0:
-    default:
-        break;
-    }
-    free(key);
+
+    ret = iniparser_getstring(ini, type_list[cnt-1].cval, NULL);
+    free(type_list);
     return ret;
 }
 
 static int ini_get_int(struct config *c, ...)
 {
     dictionary *ini = (dictionary *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
-    int ret = 0;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
+    int ret = 0;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = iniparser_getint(ini, key[0], -1);
-        break;
-    default:
-        break;
-    }
-    free(key);
+
+    ret = iniparser_getint(ini, type_list[cnt-1].cval, -1);
+    free(type_list);
+
     return ret;
 }
 
 static double ini_get_double(struct config *c, ...)
 {
     dictionary *ini = (dictionary *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
-    double ret;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
+    double ret = 0.0;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = iniparser_getdouble(ini, key[0], -1.0);
-        break;
-    default:
-        break;
-    }
-    free(key);
+
+    ret = iniparser_getdouble(ini, type_list[cnt-1].cval, -1.0);
+    free(type_list);
     return ret;
 }
 
 static int ini_get_boolean(struct config *c, ...)
 {
     dictionary *ini = (dictionary *)c->priv;
-    char **key = NULL;
-    char *tmp = NULL;
-    int ret;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
     int cnt = 0;
+    int ret = 0;
     va_list ap;
+
     va_start(ap, c);
-    tmp = va_arg(ap, char *);
-    while (tmp) {//last argument must be NULL
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
         cnt++;
-        key = (char **)realloc(key, cnt*sizeof(char**));
-        key[cnt-1] = tmp;
-        tmp = va_arg(ap, char *);
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
     va_end(ap);
-    switch (cnt) {
-    case 1:
-        ret = iniparser_getboolean(ini, key[0], -1);
-        break;
-    default:
-        break;
-    }
-    free(key);
+
+    ret = iniparser_getboolean(ini, type_list[cnt-1].cval, -1);
+    free(type_list);
     return ret;
 }
 
@@ -171,12 +158,10 @@ static void ini_del(struct config *c, const char *key)
     return iniparser_unset(ini, key);
 }
 
-
 static void ini_unload(struct config *c)
 {
     dictionary *ini = (dictionary *)c->priv;
     iniparser_freedict(ini);
-    free(file_path);
 }
 
 static void ini_dump(struct config *c, FILE *f)
@@ -187,7 +172,7 @@ static void ini_dump(struct config *c, FILE *f)
 
 static int ini_save(struct config *c)
 {
-    FILE *f = fopen(file_path, "w+");
+    FILE *f = fopen(c->path, "w+");
     if (!f) {
         return -1;
     }

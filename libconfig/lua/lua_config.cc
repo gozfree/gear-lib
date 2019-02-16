@@ -101,6 +101,7 @@ static int lua_load(struct config *c, const char *name)
         return -1;
     }
     c->priv = (void *)lt;
+    strncpy(c->path, name, sizeof(c->path));
     return 0;
 }
 

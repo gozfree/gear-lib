@@ -32,12 +32,14 @@ static int ini_test(void)
 {
     struct config *conf = conf_load("ini/example.ini");
     printf("ini_test\n");
-    conf_dump(conf);
-    conf_set_string(conf, "wine:aaaa", "ccc");
+    conf_set_string(conf, "wine:year", "1122");
     conf_set_string(conf, "wine:aaaa", "ddd");
-    conf_set_string(conf, "wine:aaaa", "eee");
+    conf_set_string(conf, "wine:eeee", "1.234");
+    conf_dump(conf);
     conf_del(conf, "wine:aaaa");
     printf("year = %d\n", conf_get_int(conf, "wine:year"));
+    printf("grape = %s\n", conf_get_string(conf, "wine:grape"));
+    printf("alcohol = %f\n", conf_get_double(conf, "wine:alcohol"));
     conf_save(conf);
     conf_unload(conf);
 

@@ -85,6 +85,7 @@ static int js_load(struct config *c, const char *name)
     }
     free(buf);
     c->priv = (void *)json;
+    strncpy(c->path, name, sizeof(c->path));
     return 0;
 }
 

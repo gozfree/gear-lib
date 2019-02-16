@@ -23,6 +23,7 @@
 #define LIBCONFIG_H
 
 #include <stdio.h>
+#include <limits.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,6 +31,7 @@ extern "C" {
 
 typedef struct config {
     struct config_ops *ops;
+    char path[PATH_MAX];
     void *priv;
 } config_t;
 
