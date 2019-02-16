@@ -27,10 +27,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/vfs.h>
 #include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#endif
 
 
 static void foo(void)
@@ -38,6 +39,9 @@ static void foo(void)
     int len = 0;
     int i = 0;
     file_backend_type type;
+    struct file *fw;
+    struct file *f;
+    struct iovec *iobuf;
     char buf[128] = {0};
     for (i = 0; i < 2; ++i) {
         if (i == 0)
@@ -46,7 +50,7 @@ static void foo(void)
             type = FILE_BACKEND_FIO;
         file_backend(type);
         printf("backend=%d\n", type);
-        struct file *fw = file_open("/tmp/lsusb", F_CREATE);
+        fw = file_open("lsusb", F_CREATE);
         file_write(fw, "hello file\n", 11);
         file_sync(fw);
         file_seek(fw, 0, SEEK_SET);
@@ -55,12 +59,13 @@ static void foo(void)
         printf("read len = %d, buf = %s", len, buf);
         file_close(fw);
 
-        struct file *f = file_open("/tmp/lsusb", F_RDONLY);
+        f = file_open("lsusb", F_RDONLY);
         memset(buf, 0, sizeof(buf));
         len = file_read(f, buf, sizeof(buf));
         printf("read len = %d, buf = %s", len, buf);
-        printf("len=%zu\n", file_get_size("/tmp/lsusb"));
-        struct iovec *iobuf = file_dump("/tmp/lsusb");
+        printf("len=%zu\n", file_get_size("lsusb"));
+
+        iobuf = file_dump("lsusb");
         if (iobuf) {
             //printf("len=%zu, buf=%s\n", iobuf->iov_len, (char *)iobuf->iov_base);
         }
@@ -87,7 +92,7 @@ static void foo4(void)
 {
     int len = 0;
     char buf[128] = {0};
-    struct file *fw = file_open("/tmp/lsusb", F_APPEND);
+    struct file *fw = file_open("lsusb", F_APPEND);
     file_write(fw, "hello file\n", 11);
     file_sync(fw);
     file_seek(fw, 0, SEEK_SET);
@@ -100,7 +105,7 @@ static void foo4(void)
 static void foo5(void)
 {
     struct file_info info;
-    file_get_info("/tmp/lsusb", &info);
+    file_get_info("lsusb", &info);
     printf("info->size = %" PRIu64 "\n", info.size);
     printf("info->type = %d\n", info.type);
     printf("info->time_modify = %" PRIu64 "\n", info.modify_sec);

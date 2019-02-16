@@ -22,24 +22,26 @@
 #include "libfile.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#endif
 
 #define MAX_RETRY_CNT   (3)
 
 static struct file_desc *io_open(const char *path, file_open_mode_t mode)
 {
+    int flags = -1;
     struct file_desc *file = (struct file_desc *)calloc(1,
                              sizeof(struct file_desc));
     if (!file) {
         printf("malloc failed:%d %s\n", errno, strerror(errno));
         return NULL;
     }
-    int flags = -1;
     switch(mode) {
     case F_RDONLY:
         flags = O_RDONLY;
@@ -76,6 +78,7 @@ static struct file_desc *io_open(const char *path, file_open_mode_t mode)
 static ssize_t io_read(struct file_desc *file, void *buf, size_t len)
 {
     int n;
+    int fd;
     char *p = (char *)buf;
     size_t left = len;
     size_t step = 1024*1024;
@@ -84,7 +87,7 @@ static ssize_t io_read(struct file_desc *file, void *buf, size_t len)
         printf("%s paraments invalid!\n", __func__);
         return -1;
     }
-    int fd = file->fd;
+    fd = file->fd;
     while (left > 0) {
         if (left < step)
             step = left;
@@ -113,6 +116,7 @@ static ssize_t io_read(struct file_desc *file, void *buf, size_t len)
 static ssize_t io_write(struct file_desc *file, const void *buf, size_t len)
 {
     ssize_t n;
+    int fd;
     char *p = (char *)buf;
     size_t left = len;
     size_t step = 1024 * 1024;
@@ -121,7 +125,7 @@ static ssize_t io_write(struct file_desc *file, const void *buf, size_t len)
         printf("%s paraments invalid, ", __func__);
         return -1;
     }
-    int fd = file->fd;
+    fd = file->fd;
     while (left > 0) {
         if (left < step)
             step = left;
@@ -160,7 +164,11 @@ static int io_sync(struct file_desc *file)
     if (!file) {
         return -1;
     }
+#if defined (__linux__) || defined (__CYGWIN__)
     return fsync(file->fd);
+#else
+    return 0;
+#endif
 }
 
 static size_t io_size(struct file_desc *file)
@@ -182,11 +190,11 @@ static void io_close(struct file_desc *file)
 }
 
 struct file_ops io_ops = {
-    .open  = io_open,
-    .write = io_write,
-    .read  = io_read,
-    .seek  = io_seek,
-    .sync  = io_sync,
-    .size  = io_size,
-    .close = io_close,
+    io_open,
+    io_write,
+    io_read,
+    io_seek,
+    io_sync,
+    io_size,
+    io_close,
 };

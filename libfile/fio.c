@@ -24,19 +24,21 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
+#endif
 
 #define MAX_RETRY_CNT   (3)
 
 static struct file_desc *fio_open(const char *path, file_open_mode_t mode)
 {
+    const char *flags = NULL;
     struct file_desc *file = (struct file_desc *)calloc(1,
                              sizeof(struct file_desc));
     if (!file) {
         printf("malloc failed:%d %s\n", errno, strerror(errno));
         return NULL;
     }
-    const char *flags = NULL;
     switch(mode) {
     case F_RDONLY:
         flags = "r";
@@ -74,6 +76,7 @@ static struct file_desc *fio_open(const char *path, file_open_mode_t mode)
 static ssize_t fio_read(struct file_desc *file, void *buf, size_t len)
 {
     int n;
+    FILE *fp = NULL;
     char *p = (char *)buf;
     size_t left = len;
     size_t step = 1024*1024;
@@ -82,7 +85,7 @@ static ssize_t fio_read(struct file_desc *file, void *buf, size_t len)
         printf("%s paraments invalid!\n", __func__);
         return -1;
     }
-    FILE *fp = file->fp;
+    fp = file->fp;
     while (left > 0) {
         if (left < step)
             step = left;
@@ -107,16 +110,19 @@ static ssize_t fio_read(struct file_desc *file, void *buf, size_t len)
 
 static ssize_t fio_write(struct file_desc *file, const void *buf, size_t len)
 {
+    FILE *fp = NULL;
     ssize_t n;
+    size_t step;
+    size_t left;
     char *p = (char *)buf;
     int retry = 0;
     if (file == NULL || buf == NULL || len == 0) {
         printf("%s paraments invalid!\n", __func__);
         return -1;
     }
-    FILE *fp = file->fp;
-    size_t step = 1024 * 1024;
-    size_t left = len;
+    fp = file->fp;
+    step = 1024 * 1024;
+    left = len;
     while (left > 0) {
         if (left < step)
             step = left;
@@ -160,10 +166,11 @@ static int fio_sync(struct file_desc *file)
 static size_t fio_size(struct file_desc *file)
 {
     long size;
+    long tmp;
     if (!file) {
         return 0;
     }
-    long tmp = ftell(file->fp);
+    tmp = ftell(file->fp);
     fseek(file->fp, 0L, SEEK_END);
     size = ftell(file->fp);
     fseek(file->fp, tmp, SEEK_SET);
@@ -180,11 +187,11 @@ static void fio_close(struct file_desc *file)
 }
 
 struct file_ops fio_ops = {
-    .open  = fio_open,
-    .write = fio_write,
-    .read  = fio_read,
-    .seek  = fio_seek,
-    .sync  = fio_sync,
-    .size  = fio_size,
-    .close = fio_close,
+    fio_open,
+    fio_write,
+    fio_read,
+    fio_seek,
+    fio_sync,
+    fio_size,
+    fio_close,
 };

@@ -22,18 +22,26 @@
 #include "libfile.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
+#include <sys/vfs.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include <libgen.h>
 #include <limits.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+#endif
+
 
 /*
  * Most of these MAGIC constants are defined in /usr/include/linux/magic.h,
@@ -164,11 +172,12 @@ ssize_t file_read(struct file *file, void *data, size_t size)
 
 ssize_t file_read_path(const char *path, void *data, size_t size)
 {
+    ssize_t flen = 0;
     struct file *fp = file_open(path, F_RDONLY);
     if (!fp) {
         return -1;
     }
-    ssize_t flen = file_read(fp, data, size);
+    flen = file_read(fp, data, size);
     file_close(fp);
     return flen;
 }
@@ -183,11 +192,12 @@ ssize_t file_write(struct file *file, const void *data, size_t size)
 
 ssize_t file_write_path(const char *path, const void *data, size_t size)
 {
+    ssize_t flen = 0;
     struct file *fp = file_open(path, F_WRCLEAR);
     if (!fp) {
         return -1;
     }
-    ssize_t flen = file_write(fp, data, size);
+    flen = file_write(fp, data, size);
     file_close(fp);
     return flen;
 }
@@ -218,11 +228,11 @@ off_t file_seek(struct file *file, off_t offset, int whence)
 
 ssize_t file_get_size(const char *path)
 {
+    struct stat st;
+    off_t size = 0;
     if (!path) {
         return -1;
     }
-    struct stat st;
-    off_t size = 0;
     if (stat(path, &st) < 0) {
         printf("%s stat error: %s\n", path, strerror(errno));
     } else {
@@ -233,14 +243,17 @@ ssize_t file_get_size(const char *path)
 
 struct iovec *file_dump(const char *path)
 {
+    struct iovec *buf = NULL;
+    struct file *f = NULL;
+    ssize_t size = 0;
     if (!path) {
         return NULL;
     }
-    ssize_t size = file_get_size(path);
+    size = file_get_size(path);
     if (size == 0) {
         return NULL;
     }
-    struct iovec *buf = (struct iovec *)calloc(1, sizeof(struct iovec));
+    buf = (struct iovec *)calloc(1, sizeof(struct iovec));
     if (!buf) {
         printf("malloc failed!\n");
         return NULL;
@@ -252,7 +265,7 @@ struct iovec *file_dump(const char *path)
         return NULL;
     }
 
-    struct file *f = file_open(path, F_RDONLY);
+    f = file_open(path, F_RDONLY);
     if (!f) {
         printf("file open failed!\n");
         free(buf->iov_base);
@@ -267,17 +280,19 @@ struct iovec *file_dump(const char *path)
 
 struct file_systat *file_get_systat(const char *path)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
+    int i;
+    struct statfs stfs;
+    struct file_systat *fi = NULL;
     if (!path) {
         printf("path can't be null\n");
         return NULL;
     }
-    int i;
-    struct statfs stfs;
     if (-1 == statfs(path, &stfs)) {
         printf("statfs %s failed: %s\n", path, strerror(errno));
         return NULL;
     }
-    struct file_systat *fi = (struct file_systat *)calloc(1,
+    fi = (struct file_systat *)calloc(1,
                     sizeof(struct file_systat));
     if (!fi) {
         printf("malloc failed!\n");
@@ -295,6 +310,9 @@ struct file_systat *file_get_systat(const char *path)
         }
     }
     return fi;
+#else
+    return NULL;
+#endif
 }
 
 char *file_path_pwd()
@@ -308,12 +326,20 @@ char *file_path_pwd()
 
 char *file_path_suffix(char *path)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     return basename(path);
+#else
+    return NULL;
+#endif
 }
 
 char *file_path_prefix(char *path)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     return dirname(path);
+#else
+    return NULL;
+#endif
 }
 
 bool file_exist(const char *path)
@@ -323,12 +349,13 @@ bool file_exist(const char *path)
 
 static int mkdir_r(const char *path, mode_t mode)
 {
-    if (!path) {
-        return -1;
-    }
     char *temp = strdup(path);
     char *pos = temp;
     int ret = 0;
+
+    if (!path) {
+        return -1;
+    }
 
     if (strncmp(temp, "/", 1) == 0) {
         pos += 1;
@@ -371,6 +398,7 @@ int file_dir_create(const char *path)
 
 int dfs_remove_dir(const char *path)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -400,6 +428,9 @@ int dfs_remove_dir(const char *path)
     }
     closedir(pdir);
     return ret;
+#else
+    return 0;
+#endif
 }
 
 int file_dir_remove(const char *path)
@@ -410,6 +441,7 @@ int file_dir_remove(const char *path)
 
 int file_dir_tree(const char *path)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -441,11 +473,13 @@ int file_dir_tree(const char *path)
         }
     }
     closedir(pdir);
+#endif
     return 0;
 }
 
 int dfs_dir_size(const char *path, uint64_t *size)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -476,6 +510,7 @@ int dfs_dir_size(const char *path, uint64_t *size)
         }
     }
     closedir(pdir);
+#endif
     return 0;
 }
 
@@ -487,6 +522,7 @@ int file_dir_size(const char *path, uint64_t *size)
 
 int file_num_in_dir(const char *path)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     if (!path) {
         return -1;
     }
@@ -505,10 +541,14 @@ int file_num_in_dir(const char *path)
     }
     closedir(dir);
     return num;
+#else
+    return 0;
+#endif
 }
 
 int file_get_info(const char *path, struct file_info *info)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     struct stat st;
     if (-1 == stat(path, &st)) {
         printf("stat %s failed!\n", path);
@@ -537,5 +577,6 @@ int file_get_info(const char *path, struct file_info *info)
     info->size = st.st_size;
     info->access_sec = st.st_atim.tv_sec;
     info->modify_sec = st.st_ctim.tv_sec;//using change, not modify
+#endif
     return 0;
 }

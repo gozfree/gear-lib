@@ -24,9 +24,15 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <limits.h>
+
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <stdbool.h>
 #include <sys/uio.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
