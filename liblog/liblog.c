@@ -38,7 +38,9 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <sys/uio.h>
-//#include <sys/syscall.h>
+#ifndef __CYGWIN__
+#include <sys/syscall.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -211,7 +213,7 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
 static int get_proc_name(char *name, size_t len)
 {
     int i, ret;
-    char proc_name[MAXPATHLEN];
+    char proc_name[PATH_MAX];
     char *ptr = NULL;
     memset(proc_name, 0, sizeof(proc_name));
     if (-1 == readlink("/proc/self/exe", proc_name, sizeof(proc_name))) {
@@ -242,7 +244,11 @@ static int get_proc_name(char *name, size_t len)
 #elif defined (__linux__) || defined (__CYGWIN__)
 static pid_t gettid(void)
 {
+#ifndef __CYGWIN__
     return syscall(__NR_gettid);
+#else
+    return 0;
+#endif
 }
 #endif
 
