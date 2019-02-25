@@ -226,6 +226,11 @@ off_t file_seek(struct file *file, off_t offset, int whence)
     return file->ops->seek(file->fd, offset, whence);
 }
 
+int file_rename(const char *old_file, const char *new_file)
+{
+    return rename(old_file, new_file);
+}
+
 ssize_t file_get_size(const char *path)
 {
     struct stat st;
