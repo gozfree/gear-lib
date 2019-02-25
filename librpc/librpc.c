@@ -733,17 +733,10 @@ void rpc_destroy(struct rpc *r)
         return;
     }
     sem_destroy(&r->sem);
+    gevent_base_loop_break(r->evbase);
     gevent_base_destroy(r->evbase);
     r->ops->deinit(r);
-#if 0
-    if (r->send_pkt.payload) {
-        free(r->send_pkt.payload);
-    }
-    if (r->recv_pkt.payload) {
-        free(r->recv_pkt.payload);
-    }
-#endif
-
+    wq_destroy(r->wq);
     thread_destroy(r->dispatch_thread);
     free(r);
 }
