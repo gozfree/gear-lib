@@ -122,7 +122,7 @@ static ssize_t io_write(struct file_desc *file, const void *buf, size_t len)
     size_t step = 1024 * 1024;
     int cnt = 0;
     if (file == NULL || buf == NULL || len == 0) {
-        printf("%s paraments invalid, ", __func__);
+        printf("%s paraments invalid\n", __func__);
         return -1;
     }
     fd = file->fd;
