@@ -55,7 +55,7 @@ static const uint32_t v4l2_cid_supported[] = {
 
 #define MAX_V4L2_CID        (sizeof(v4l2_cid_supported)/sizeof(uint32_t))
 #define MAX_V4L_BUF         (32)
-#define MAX_V4L_REQBUF_CNT  (256)
+#define MAX_V4L_REQBUF_CNT  (4)
 
 struct frame {
     struct iovec buf;
