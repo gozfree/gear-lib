@@ -7,14 +7,14 @@
  *****************************************************************************/
 #include "libsort.h"
 
-static void u32_swap(void *a, void *b, int size)
+static void u32_swap(void *a, void *b, size_t size)
 {
     uint32_t t = *(uint32_t *)a;
     *(uint32_t *)a = *(uint32_t *)b;
     *(uint32_t *)b = t;
 }
 
-static void generic_swap(void *a, void *b, int size)
+static void generic_swap(void *a, void *b, size_t size)
 {
     char t;
     do {
@@ -24,10 +24,16 @@ static void generic_swap(void *a, void *b, int size)
     } while (--size > 0);
 }
 
-static int u32_cmp(const void *a, const void *b)
+static int generic_cmp(const void *a, const void *b, size_t size)
 {
-    return *(int *)a - *(int *)b;
+    const unsigned char *p = (const unsigned char *)a;
+    const unsigned char *q = (const unsigned char *)b;
+    while (size--) {
+        if (*p != *q) return *p - *q;
+    }
+    return 0;
 }
+
 
 /**
  * sort - sort an array of elements
@@ -47,8 +53,8 @@ static int u32_cmp(const void *a, const void *b)
  */
 
 static void sort(void *base, size_t num, size_t size,
-          int (*cmp_func)(const void *, const void *),
-          void (*swap_func)(void *, void *, int size))
+          int (*cmp_func)(const void *, const void *, size_t),
+          void (*swap_func)(void *, void *, size_t))
 {
     /* pre-scale counters for performance */
     int i = (num/2 - 1) * size, n = num * size, c, r;
@@ -56,16 +62,16 @@ static void sort(void *base, size_t num, size_t size,
     if (!swap_func)
         swap_func = (size == 4 ? u32_swap : generic_swap);
     if (!cmp_func)
-        cmp_func = u32_cmp;
+        cmp_func = generic_cmp;
 
     /* heapify */
     for ( ; i >= 0; i -= size) {
         for (r = i; r * 2 + size < n; r  = c) {
             c = r * 2 + size;
             if (c < n - size &&
-                cmp_func(base + c, base + c + size) < 0)
+                cmp_func(base + c, base + c + size, size) < 0)
                 c += size;
-            if (cmp_func(base + r, base + c) >= 0)
+            if (cmp_func(base + r, base + c, size) >= 0)
                 break;
             swap_func(base + r, base + c, size);
         }
@@ -77,9 +83,9 @@ static void sort(void *base, size_t num, size_t size,
         for (r = 0; r * 2 + size < i; r = c) {
             c = r * 2 + size;
             if (c < i - size &&
-                cmp_func(base + c, base + c + size) < 0)
+                cmp_func(base + c, base + c + size, size) < 0)
                 c += size;
-            if (cmp_func(base + r, base + c) >= 0)
+            if (cmp_func(base + r, base + c, size) >= 0)
                 break;
             swap_func(base + r, base + c, size);
         }

@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include "libsort.h"
 
-static void generic_swap(void *a, void *b, int size)
+static void generic_swap(void *a, void *b, size_t size)
 {
     char t;
     do {
@@ -20,9 +20,14 @@ static void generic_swap(void *a, void *b, int size)
     } while (--size > 0);
 }
 
-static int u32_cmp(const void *a, const void *b)
+static int generic_cmp(const void *a, const void *b, size_t size)
 {
-    return *(int *)a - *(int *)b;
+    const unsigned char *p = (const unsigned char *)a;
+    const unsigned char *q = (const unsigned char *)b;
+    while (size--) {
+        if (*p != *q) return *p - *q;
+    }
+    return 0;
 }
 
 
@@ -56,7 +61,7 @@ void bubble_sort(void *array, size_t num, size_t size)
     int i = 0, j = 0;
     for (i = 0; i < num; ++i) {
         for (j = 0; j < num-i-1; ++j) {
-            if ((u32_cmp(array+j*size, array+(j+1)*size)) > 0) {
+            if ((generic_cmp(array+j*size, array+(j+1)*size, size)) > 0) {
                 generic_swap(array+j*size, array+(j+1)*size, size);
             }
         }
