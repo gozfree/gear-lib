@@ -37,6 +37,7 @@ TGT_UNIT_TEST	= test_$(LIBNAME)
 OBJS_LIB	= $(LIBNAME).o
 OBJS_LIB	+= bubble_sort.o
 OBJS_LIB	+= heap_sort.o
+OBJS_LIB    += quick_sort.o
 
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
