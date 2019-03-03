@@ -24,18 +24,26 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <sys/uio.h>
+#define __USE_LINUX_IOCTL_DEFS
 #include <sys/ioctl.h>
-#include <sys/time.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct uvc_ops;
 
 struct uvc_ctx {
     int fd;
     int width;
     int height;
     struct timeval timestamp;
+    struct uvc_ops *ops;
     void *opaque;
 };
 
@@ -51,6 +59,15 @@ struct video_ctrl {
 
 #define UVC_GET_CAP  _IOWR('V',  0, struct video_cap)
 #define UVC_SET_CTRL _IOWR('V',  1, struct video_ctrl)
+
+struct uvc_ops {
+    void *(*open)(struct uvc_ctx *uvc, const char *dev, int width, int height);
+    void (*close)(struct uvc_ctx *c);
+    int (*read)(struct uvc_ctx *c, void *buf, size_t len);
+    int (*write)(struct uvc_ctx *c, void *buf, size_t len);
+    int (*ioctl)(struct uvc_ctx *c, uint32_t cid, int value);
+    int (*print_info)(struct uvc_ctx *c);
+};
 
 
 struct uvc_ctx *uvc_open(const char *dev, int width, int height);
