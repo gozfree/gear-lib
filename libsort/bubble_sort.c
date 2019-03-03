@@ -24,7 +24,7 @@ static int generic_cmp(const void *a, const void *b, size_t size)
 {
     const unsigned char *p = (const unsigned char *)a;
     const unsigned char *q = (const unsigned char *)b;
-    while (size--) {
+    for (; size--; p++, q++) {
         if (*p != *q) return *p - *q;
     }
     return 0;
