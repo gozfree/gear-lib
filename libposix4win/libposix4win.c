@@ -80,29 +80,78 @@ int pthread_join(pthread_t thread, void **retval)
     return 0;
 }
 
-int pthread_mutex_init(pthread_mutex_t *m, void* attr)
+int pthread_mutex_init(pthread_mutex_t *lock, void *attr)
 {
-    InitializeSRWLock(m);
+    *lock = CreateMutex(attr, false, NULL);
     return 0;
 }
 
 int pthread_mutex_destroy(pthread_mutex_t *m)
 {
-    /* Unlocked SWR locks use no resources */
+    CloseHandle(*m);
     return 0;
 }
 
 int pthread_mutex_lock(pthread_mutex_t *m)
 {
-    AcquireSRWLockExclusive(m);
+    WaitForSingleObject(*m, INFINITE);
     return 0;
 }
 
 int pthread_mutex_unlock(pthread_mutex_t *m)
 {
+    ReleaseMutex(m);
+    return 0;
+}
+
+int pthread_rwlock_init(pthread_rwlock_t *m, void* attr)
+{
+    InitializeSRWLock(m);
+    return 0;
+}
+
+int pthread_rwlock_destroy(pthread_rwlock_t *m)
+{
+    /* Unlocked SWR locks use no resources */
+    return 0;
+}
+
+int pthread_rwlock_rdlock(pthread_rwlock_t *m)
+{
+    AcquireSRWLockExclusive(m);
+    return 0;
+}
+
+int pthread_rwlock_unlock(pthread_rwlock_t *m)
+{
     ReleaseSRWLockExclusive(m);
     return 0;
 }
+
+int sem_init(sem_t *sem, int pshared, unsigned int value)
+{
+    *sem = CreateSemaphore(NULL, 1, 1, NULL);
+    return 0;
+}
+
+int sem_destroy(sem_t *sem)
+{
+    CloseHandle(*sem);
+    return 0;
+}
+
+int sem_wait(sem_t *sem)
+{
+    WaitForSingleObject(*sem, INFINITE);
+    return 0;
+}
+
+int sem_post(sem_t *sem)
+{
+    ReleaseSemaphore(*sem, 1, 1);
+    return 0;
+}
+
 
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 {
