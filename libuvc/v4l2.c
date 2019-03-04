@@ -1,13 +1,40 @@
-
-#include <libmacro.h>
+/******************************************************************************
+ * Copyright (C) 2014-2020 Zhifeng Gong <gozfree@163.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+#include "libuvc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
-#include <sys/uio.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <sys/mman.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
 #include <linux/videodev2.h>
+
+struct frame {
+    struct iovec buf;
+    int index;
+};
+
 /*
  * refer to /usr/include/linux/v4l2-controls.h
  * supported v4l2 control cmds
@@ -173,48 +200,6 @@ static void v4l2_get_cid(struct v4l2_ctx *vc)
     }
 }
 
-static struct v4l2_ctx *v4l2_open(struct uvc_ctx *uvc, const char *dev, int width, int height)
-{
-    int fd = -1;
-    struct v4l2_ctx *vc = CALLOC(1, struct v4l2_ctx);
-    if (!vc) {
-        printf("malloc v4l2_ctx failed!\n");
-        return NULL;
-    }
-    fd = open(dev, O_RDWR);
-    if (fd == -1) {
-        printf("open %s failed: %d\n", dev, errno);
-        goto failed;
-    }
-    vc->name = strdup(dev);
-    vc->fd = fd;
-    vc->width = width;
-    vc->height = height;
-
-    if (-1 == v4l2_set_format(vc)) {
-        printf("v4l2_set_format failed\n");
-        goto failed;
-    }
-    if (-1 == v4l2_req_buf(vc)) {
-        printf("v4l2_req_buf failed\n");
-        goto failed;
-    }
-    vc->parent = uvc;
-    return vc;
-
-failed:
-    if (fd != -1) {
-        close(fd);
-    }
-    if (vc->name) {
-        free(vc->name);
-    }
-    if (vc) {
-        free(vc);
-    }
-    return NULL;
-}
-
 static int v4l2_set_format(struct v4l2_ctx *vc)
 {
     struct v4l2_format fmt;
@@ -299,6 +284,48 @@ static int v4l2_req_buf(struct v4l2_ctx *vc)
     return 0;
 }
 
+static void *v4l2_open(struct uvc_ctx *uvc, const char *dev, int width, int height)
+{
+    int fd = -1;
+    struct v4l2_ctx *vc = calloc(1, sizeof(struct v4l2_ctx));
+    if (!vc) {
+        printf("malloc v4l2_ctx failed!\n");
+        return NULL;
+    }
+    fd = open(dev, O_RDWR);
+    if (fd == -1) {
+        printf("open %s failed: %d\n", dev, errno);
+        goto failed;
+    }
+    vc->name = strdup(dev);
+    vc->fd = fd;
+    vc->width = width;
+    vc->height = height;
+
+    if (-1 == v4l2_set_format(vc)) {
+        printf("v4l2_set_format failed\n");
+        goto failed;
+    }
+    if (-1 == v4l2_req_buf(vc)) {
+        printf("v4l2_req_buf failed\n");
+        goto failed;
+    }
+    vc->parent = uvc;
+    return vc;
+
+failed:
+    if (fd != -1) {
+        close(fd);
+    }
+    if (vc->name) {
+        free(vc->name);
+    }
+    if (vc) {
+        free(vc);
+    }
+    return NULL;
+}
+
 static int v4l2_buf_enqueue(struct v4l2_ctx *vc)
 {
     struct v4l2_buffer buf = {
@@ -341,14 +368,14 @@ static int v4l2_buf_dequeue(struct v4l2_ctx *vc, struct frame *f)
     }
     vc->qbuf_done = false;
     vc->buf_index = buf.index;
-    memcpy(&vc->parent->timestamp, &buf.timestamp, sizeof(struct timeval));
+    memcpy(&(vc->parent->timestamp), &buf.timestamp, sizeof(struct timeval));
     f->index = buf.index;
     f->buf.iov_base = vc->buf[buf.index].iov_base;
     f->buf.iov_len = buf.bytesused;
     return f->buf.iov_len;
 }
 
-static int v4l2_read(struct uvc_ctx *uvc, struct v4l2_ctx *vc, void *buf, int len)
+static int v4l2_read(struct uvc_ctx *uvc, void *buf, size_t len)
 {
     struct frame f;
     int flen;
@@ -360,7 +387,7 @@ static int v4l2_read(struct uvc_ctx *uvc, struct v4l2_ctx *vc, void *buf, int le
         return -1;
     }
     if (flen > len) {
-        printf("v4l2 frame is %d bytes, but buffer len is %d, not enough!\n",
+        printf("v4l2 frame is %d bytes, but buffer len is %zu, not enough!\n",
              flen, len);
         return -1;
     }
@@ -372,7 +399,7 @@ static int v4l2_read(struct uvc_ctx *uvc, struct v4l2_ctx *vc, void *buf, int le
     return f.buf.iov_len;
 }
 
-static int v4l2_write(struct uvc_ctx *uvc, void *buf, int len)
+static int v4l2_write(struct uvc_ctx *uvc, void *buf, size_t len)
 {
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
     return v4l2_buf_enqueue(vc);
@@ -451,5 +478,4 @@ struct uvc_ops v4l2_ops = {
     v4l2_write,
     v4l2_ioctl,
     v4l2_print_info,
-    NULL,
 };

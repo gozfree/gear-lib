@@ -42,14 +42,6 @@ static struct uvc_ops *uvc_ops[] = {
     NULL
 };
 
-
-
-struct frame {
-    struct iovec buf;
-    int index;
-};
-
-
 int uvc_print_info(struct uvc_ctx *c)
 {
     return c->ops->print_info(c);
