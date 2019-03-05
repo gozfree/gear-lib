@@ -5,40 +5,38 @@
  *****************************************************************************/
 #include "common.h"
 
-static void qsort_recu(byte *l, byte *r, size_t size)
+static void qsort_recu(byte *l, byte *r, size_t size, fp_cmp cmp)
 {
     if (l < r) {
         byte *p = l;
         byte *q = r;
-        
+
         do {
-            while ((p < q) && (default_cmp(p, q, size) <= 0)) 
+            while ((p < q) && (cmp(p, q, size) <= 0))
                 q -= size;
 
             if (p != q) {
-                default_swap(p, q, size);
+                byte_swap(p, q, size);
                 p += size;
             }
 
-            while ((p < q) && (default_cmp(p, q, size) <= 0))
+            while ((p < q) && (cmp(p, q, size) <= 0))
                 p += size;
 
             if (p != q) {
-                default_swap(q, p, size);
+                byte_swap(q, p, size);
                 q -= size;
             }
         } while (p < q);
 
-        qsort_recu(l, p - size, size);
-        qsort_recu(p + size, r, size);
+        qsort_recu(l, p - size, size, cmp);
+        qsort_recu(p + size, r, size, cmp);
     }
 }
 
-int quick_sort(void *array, size_t num, size_t size)
+int quick_sort(void *array, size_t num, size_t size, fp_cmp cmp)
 {
-    if (!array || !num || !size) {
-        return -1;
-    }
-    qsort_recu((byte *)array, (byte *)array + size * (num - 1), size);
+    CHK_PARAMETERS(array, num, size, cmp);
+    qsort_recu((byte *)array, (byte *)array + size * (num - 1), size, cmp);
     return 0;
 }

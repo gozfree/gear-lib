@@ -92,7 +92,7 @@ static void sort(void *base, size_t num, size_t size,
     }
 }
 
-void heap_sort(void *base, size_t num, size_t size)
+void heap_sort(void *base, size_t num, size_t size, fp_cmp cmp)
 {
-    sort(base, num, size, NULL, NULL);
+    sort(base, num, size, cmp, NULL);
 }
