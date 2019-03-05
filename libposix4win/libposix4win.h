@@ -106,8 +106,10 @@ int access(const char *pathname, int mode);
 
 #define pthread_once_t            INIT_ONCE
 #define PTHREAD_ONCE_INIT         INIT_ONCE_STATIC_INIT
-#define pthread_mutex_t           SRWLOCK
+#define pthread_mutex_t           HANDLE
 #define pthread_cond_t            CONDITION_VARIABLE
+#define pthread_rwlock_t          SRWLOCK
+#define sem_t                     HANDLE
 
 typedef struct pthread_t {
     void *handle;
@@ -116,6 +118,7 @@ typedef struct pthread_t {
     void *ret;
 } pthread_t;
 
+
 typedef struct pthread_attr_t {
     void *unused;
 } pthread_attr_t;
@@ -123,10 +126,28 @@ typedef struct pthread_attr_t {
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr, 
                    void *(*start_routine)(void*), void *arg);
 int pthread_join(pthread_t thread, void **retval);
-int pthread_mutex_init(pthread_mutex_t *m, void* attr);
+
+int pthread_mutex_init(pthread_mutex_t *m, void *attr);
 int pthread_mutex_destroy(pthread_mutex_t *m);
 int pthread_mutex_lock(pthread_mutex_t *m);
 int pthread_mutex_unlock(pthread_mutex_t *m);
+
+int pthread_rwlock_init(pthread_rwlock_t *m, void *attr);
+int pthread_rwlock_destroy(pthread_rwlock_t *m);
+int pthread_rwlock_rdlock(pthread_rwlock_t *m);
+int pthread_rwlock_wrlock(pthread_rwlock_t *m);
+int pthread_rwlock_unlock(pthread_rwlock_t *m);
+
+int sem_init(sem_t *sem, int pshared, unsigned int value);
+int sem_destroy(sem_t *sem);
+int sem_wait(sem_t *sem);
+int sem_trywait(sem_t *sem);
+int sem_timedwait(sem_t *sem, const struct timespec *abstime);
+int sem_post(sem_t *sem);
+
+
+
+
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
 int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr);
 int pthread_cond_destroy(pthread_cond_t *cond);
@@ -172,6 +193,38 @@ struct timezone
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 #define localtime_r(timep,result) localtime_s(result, timep)
+
+/******************************************************************************
+ * driver IOC APIs
+ ******************************************************************************/
+#define _IOC_NRBITS	8
+#define _IOC_TYPEBITS	8
+#define _IOC_SIZEBITS	14
+#define _IOC_DIRBITS	2
+
+#define _IOC_NRMASK	((1 << _IOC_NRBITS)-1)
+#define _IOC_TYPEMASK	((1 << _IOC_TYPEBITS)-1)
+#define _IOC_SIZEMASK	((1 << _IOC_SIZEBITS)-1)
+#define _IOC_DIRMASK	((1 << _IOC_DIRBITS)-1)
+
+#define _IOC_NRSHIFT	0
+#define _IOC_TYPESHIFT	(_IOC_NRSHIFT+_IOC_NRBITS)
+#define _IOC_SIZESHIFT	(_IOC_TYPESHIFT+_IOC_TYPEBITS)
+#define _IOC_DIRSHIFT	(_IOC_SIZESHIFT+_IOC_SIZEBITS)
+
+#define _IOC_NONE	0U
+#define _IOC_WRITE	1U
+#define _IOC_READ	2U
+
+
+#define _IOC(dir,type,nr,size) \
+  (((dir)	<< _IOC_DIRSHIFT) | \
+    +	((type) << _IOC_TYPESHIFT) | \
+    +	((nr)	<< _IOC_NRSHIFT) | \
+    +	((size) << _IOC_SIZESHIFT))
+
+
+#define _IOWR(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
 
 #ifdef __cplusplus
 }

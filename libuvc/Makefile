@@ -41,7 +41,7 @@ TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o
+OBJS_LIB	= $(LIBNAME).o v4l2.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
