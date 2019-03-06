@@ -12,27 +12,45 @@
 extern "C" {
 #endif
 
-#include <string.h>
+#include "libsort.h"
+#include <stdio.h>
 
 typedef unsigned char byte;
-typedef int (*fp_cmp)(const byte *, const byte *, size_t);
-typedef void (*fp_swap)(const byte *, const byte *, size_t);
 
-static int default_cmp(const byte *p, const byte *q, size_t size)
+#define CHK_PARAMETERS(array, num, size, cmp) \
+    do { \
+        if (!array || !size) { \
+            printf("invalid parameter!\n"); \
+            return -1; \
+        } \
+        if (num < 2) { \
+            printf("invalid parameter!\n"); \
+            return -1; \
+        } \
+        if (num >> 20) { \
+            printf("cannot sort array with more than 1048576 elements!\n"); \
+            return -1; \
+        } \
+        if (!cmp) cmp = default_cmp; \
+    } while (0)
+
+static inline void byte_swap(byte *p, byte *q, size_t size)
 {
+    for (; size--; p++, q++) {
+        byte t = *p;
+        *p = *q;
+        *q = t;
+    }
+}
+
+static int default_cmp(const void *a, const void *b, size_t size)
+{
+    const byte *p = (const byte *)a;
+    const byte *q = (const byte *)b;
     for (; size--; p++, q++) {
         if (*p != *q) return *p - *q;
     }
     return 0;
-}
-
-static inline void default_swap(byte *p, byte *q, size_t size)
-{
-    while (size--) {
-        byte t = *p;
-        *p++ = *q;
-        *q++ = t;
-    }
 }
 
 #ifdef __cplusplus

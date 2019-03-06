@@ -5,42 +5,25 @@
  * created: 2015-08-09 00:43
  * updated: 2015-08-09 00:43
  *****************************************************************************/
+#include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "libsort.h"
 
-static void generic_swap(void *a, void *b, size_t size)
-{
-    char t;
-    do {
-        t = *(char *)a;
-        *(char *)a++ = *(char *)b;
-        *(char *)b++ = t;
-    } while (--size > 0);
-}
-
-static int generic_cmp(const void *a, const void *b, size_t size)
-{
-    const unsigned char *p = (const unsigned char *)a;
-    const unsigned char *q = (const unsigned char *)b;
-    for (; size--; p++, q++) {
-        if (*p != *q) return *p - *q;
-    }
-    return 0;
-}
-
-
-#define bsort(type, array, len) \
-    do {\
-        size_t _i = 0, _j = 0;\
-        for (_i = 0; _i < len; ++_i) {\
-            for (_j = 0; _j < len-_i-1; ++_j) {\
-                if (*((type *)array+_j) > *((type *)array+_j+1)) {\
-                    generic_swap(((type *)array+_j), ((type *)array+_j+1), sizeof(type));\
-                }\
-            }\
-        }\
+#define BUBBLE_SORT(type, array, len) \
+    do { \
+        type *s = (type *)array; \
+        type *e = s + len - 1; \
+        type *p, *q; \
+        for (q = e; q > s; q--) { \
+            for (p = s; p < q; p++) { \
+                if (p[0] > p[1]) { \
+                    type t = p[0]; \
+                    p[0] = p[1]; \
+                    p[1] = t; \
+                } \
+            } \
+        } \
     } while (0)
 
 void bubble_sortf(float *array, size_t len)
@@ -49,21 +32,23 @@ void bubble_sortf(float *array, size_t len)
         printf("invalid parament\n");
         return;
     }
-    bsort(float, array, len);
+    BUBBLE_SORT(float, array, len);
 }
 
-void bubble_sort(void *array, size_t num, size_t size)
+int bubble_sort(void *array, size_t num, size_t size, fp_cmp cmp)
 {
-    if (!array || num <=0) {
-        printf("invalid parament\n");
-        return;
-    }
-    int i = 0, j = 0;
-    for (i = 0; i < num; ++i) {
-        for (j = 0; j < num-i-1; ++j) {
-            if ((generic_cmp(array+j*size, array+(j+1)*size, size)) > 0) {
-                generic_swap(array+j*size, array+(j+1)*size, size);
+    CHK_PARAMETERS(array, num, size, cmp);
+
+    byte *s = (byte *)array;
+    byte *e = s + size * (num - 1);
+
+    byte *p, *q;
+    for (q = e; q > s; q -= size) {
+        for (p = s; p < q; p += size) {
+            if (cmp(p, p + size, size) > 0) {
+                byte_swap(p, p + size, size);
             }
         }
     }
+    return 0;
 }

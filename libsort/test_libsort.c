@@ -20,22 +20,33 @@
         printf("\n");\
     } while (0)
 
+int float_compare(const void *a, const void *b, size_t size)
+{
+    if (!size) return 0;
+    const float esp = 0.0001;
+    const float *p = (const float *)a;
+    const float *q = (const float *)b;
+    float d = *p - *q;
+    if (d < esp && d > -esp) return 0;
+    if (d < 0) return -1;
+    return 1;
+}
 
 void test_heapsort()
 {
     int a[]={4,1,2,5,3, 2, 2, 2, 1};
     print_array(int, "%d\t", a);
-    heap_sort(a, sizeof(a)/sizeof(a[0]), sizeof(int));
+    heap_sort(a, sizeof(a)/sizeof(a[0]), sizeof(int), 0);
     print_array(int, "%d\t", a);
 
     int b[]={8,1,2,5,3};
     print_array(int, "%d\t", b);
-    heap_sort(b, sizeof(b)/sizeof(b[0]), sizeof(int));
+    heap_sort(b, sizeof(b)/sizeof(b[0]), sizeof(int), 0);
     print_array(int, "%d\t", b);
 
     float f[]={1.1,2.2,4.2,3.0};
     print_array(float, "%f\t", f);
-    heap_sort(f, sizeof(f)/sizeof(f[0]), sizeof(float));
+    heap_sort(f, sizeof(f)/sizeof(f[0]), sizeof(float), float_compare);
     print_array(float, "%f\t", f);
 }
 
@@ -45,18 +56,18 @@ void test_bsort()
     int a[]={4,1,2,5,3};
     print_array(int, "%d\t", a);
     //bsort(int, a);
-    bubble_sort(a, sizeof(a)/sizeof(a[0]), sizeof(int));
+    bubble_sort(a, sizeof(a)/sizeof(a[0]), sizeof(int), 0);
     print_array(int, "%d\t", a);
 
     int b[]={8,1,2,5,3};
     print_array(int, "%d\t", b);
-    bubble_sort(b, sizeof(b)/sizeof(b[0]), sizeof(int));
+    bubble_sort(b, sizeof(b)/sizeof(b[0]), sizeof(int), 0);
     print_array(int, "%d\t", b);
 #endif
 
     float f[]={1.1,2.2,4.2,3.0};
     print_array(float, "%f\t", f);
-    bubble_sort(f, sizeof(f)/sizeof(f[0]), sizeof(float));
+    bubble_sort(f, sizeof(f)/sizeof(f[0]), sizeof(float), float_compare);
     print_array(float, "%f\t", f);
 
 }
