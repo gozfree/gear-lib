@@ -23,10 +23,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
-#include <errno.h>
 #include <sched.h>
 #include <pthread.h>
+#endif
+#include <errno.h>
 
 /******************************************************************************
  * spin lock APIs
@@ -37,11 +39,14 @@
 #define cpu_pause()
 #endif
 
+#if defined (__linux__) || defined (__CYGWIN__)
 #define atomic_cmp_set(lock, old, set) \
     __sync_bool_compare_and_swap(lock, old, set)
+#endif
 
 int spin_lock(spin_lock_t *lock)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     int spin = 2048;
     int value = 1;
     int i, n;
@@ -62,6 +67,7 @@ int spin_lock(spin_lock_t *lock)
         }
         sched_yield();
     }
+#endif
     return 0;
 }
 
@@ -73,7 +79,11 @@ int spin_unlock(spin_lock_t *lock)
 
 int spin_trylock(spin_lock_t *lock)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     return (*(lock) == 0 && atomic_cmp_set(lock, 0, 1));
+#else
+    return 0;
+#endif
 }
 
 /******************************************************************************
@@ -81,6 +91,7 @@ int spin_trylock(spin_lock_t *lock)
  *****************************************************************************/
 int mutex_lock_init(mutex_lock_t *lock)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     pthread_mutexattr_t  attr;
 
     if (0 != pthread_mutexattr_init(&attr)) {
@@ -91,20 +102,25 @@ int mutex_lock_init(mutex_lock_t *lock)
         printf("pthread_mutexattr_settype (PTHREAD_MUTEX_ERRORCHECK) failed\n");
         return -1;
     }
+#endif
     pthread_mutex_init(lock, NULL);
+
+#if defined (__linux__) || defined (__CYGWIN__)
     if (0 != pthread_mutexattr_destroy(&attr)) {
         printf("pthread_mutexattr_destroy failed\n");
     }
+#endif
     return 0;
 }
 
 void mutex_lock_deinit(mutex_lock_t *ptr)
 {
+    int ret;
+    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
     if (!ptr) {
         return;
     }
-    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
-    int ret = pthread_mutex_destroy(lock);
+    ret = pthread_mutex_destroy(lock);
     if (ret != 0) {
         switch (ret) {
         case EBUSY:
@@ -119,11 +135,13 @@ void mutex_lock_deinit(mutex_lock_t *ptr)
 
 int mutex_trylock(mutex_lock_t *ptr)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
-    int ret = pthread_mutex_trylock(lock);
+    ret = pthread_mutex_trylock(lock);
     if (ret != 0) {
         switch (ret) {
         case EBUSY:
@@ -138,16 +156,18 @@ int mutex_trylock(mutex_lock_t *ptr)
             break;
         }
     }
+#endif
     return ret;
 }
 
 int mutex_lock(mutex_lock_t *ptr)
 {
+    int ret;
+    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
-    int ret = pthread_mutex_lock(lock);
+    ret = pthread_mutex_lock(lock);
     if (ret != 0) {
         switch (ret) {
         case EDEADLK:
@@ -167,11 +187,12 @@ int mutex_lock(mutex_lock_t *ptr)
 
 int mutex_unlock(mutex_lock_t *ptr)
 {
+    int ret;
+    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_mutex_t *lock = (pthread_mutex_t *)ptr;
-    int ret = pthread_mutex_unlock(lock);
+    ret = pthread_mutex_unlock(lock);
     if (ret != 0) {
         switch (ret) {
         case EPERM:
@@ -202,11 +223,12 @@ int mutex_cond_init(mutex_cond_t *cond)
 
 void mutex_cond_deinit(mutex_cond_t *ptr)
 {
+    int ret;
+    pthread_cond_t *cond = (pthread_cond_t *)ptr;
     if (!ptr) {
         return;
     }
-    pthread_cond_t *cond = (pthread_cond_t *)ptr;
-    int ret = pthread_cond_destroy(cond);
+    ret = pthread_cond_destroy(cond);
     if (ret != 0) {
         switch (ret) {
         case EBUSY:
@@ -221,18 +243,19 @@ void mutex_cond_deinit(mutex_cond_t *ptr)
 
 int mutex_cond_wait(mutex_lock_t *mutexp, mutex_cond_t *condp, int64_t ms)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    int retry = 3;
+    struct timespec ts;
+    pthread_mutex_t *mutex = (pthread_mutex_t *)mutexp;
+    pthread_cond_t *cond = (pthread_cond_t *)condp;
     if (!condp || !mutexp) {
         return -1;
     }
-    int ret = 0;
-    int retry = 3;
-    pthread_mutex_t *mutex = (pthread_mutex_t *)mutexp;
-    pthread_cond_t *cond = (pthread_cond_t *)condp;
     if (ms <= 0) {
         //never return an error code
         pthread_cond_wait(cond, mutex);
     } else {
-        struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
         uint64_t ns = ts.tv_sec * 1000 * 1000 * 1000 + ts.tv_nsec;
         ns += ms * 1000 * 1000;
@@ -258,25 +281,26 @@ wait:
             }
         }
     }
+#endif
     return ret;
 }
 
 void mutex_cond_signal(mutex_cond_t *ptr)
 {
+    pthread_cond_t *cond = (pthread_cond_t *)ptr;
     if (!ptr) {
         return;
     }
-    pthread_cond_t *cond = (pthread_cond_t *)ptr;
     //never return an error code
     pthread_cond_signal(cond);
 }
 
 void mutex_cond_signal_all(mutex_cond_t *ptr)
 {
+    pthread_cond_t *cond = (pthread_cond_t *)ptr;
     if (!ptr) {
         return;
     }
-    pthread_cond_t *cond = (pthread_cond_t *)ptr;
     //never return an error code
     pthread_cond_broadcast(cond);
 }
@@ -286,11 +310,12 @@ void mutex_cond_signal_all(mutex_cond_t *ptr)
  *****************************************************************************/
 int rwlock_init(rw_lock_t *lock)
 {
+    int ret;
     if (!lock) {
         printf("malloc pthread_rwlock_t failed:%d\n", errno);
         return -1;
     }
-    int ret = pthread_rwlock_init(lock, NULL);
+    ret = pthread_rwlock_init(lock, NULL);
     if (ret != 0) {
         switch (ret) {
         case EAGAIN:
@@ -317,10 +342,10 @@ int rwlock_init(rw_lock_t *lock)
 
 void rwlock_deinit(rw_lock_t *ptr)
 {
+    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (!ptr) {
         return;
     }
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (0 != pthread_rwlock_destroy(lock)) {
         printf("pthread_rwlock_destroy failed!\n");
     }
@@ -328,11 +353,12 @@ void rwlock_deinit(rw_lock_t *ptr)
 
 int rwlock_rdlock(rw_lock_t *ptr)
 {
+    int ret;
+    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
-    int ret = pthread_rwlock_rdlock(lock);
+    ret = pthread_rwlock_rdlock(lock);
     if (ret != 0) {
         switch (ret) {
         case EBUSY:
@@ -349,7 +375,7 @@ int rwlock_rdlock(rw_lock_t *ptr)
                    "already owns the read-write lock for writing.\n");
             break;
         default:
-            printf("pthread_rwlock_destroy failed!\n");
+            printf("pthread_rwlock_rdlock failed!\n");
             break;
         }
     }
@@ -358,11 +384,13 @@ int rwlock_rdlock(rw_lock_t *ptr)
 
 int rwlock_tryrdlock(rw_lock_t *ptr)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
-    int ret = pthread_rwlock_tryrdlock(lock);
+    ret = pthread_rwlock_tryrdlock(lock);
     if (ret != 0) {
         switch (ret) {
         case EBUSY:
@@ -383,16 +411,19 @@ int rwlock_tryrdlock(rw_lock_t *ptr)
             break;
         }
     }
+#endif
     return ret;
 }
 
 int rwlock_wrlock(rw_lock_t *ptr)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
-    int ret = pthread_rwlock_wrlock(lock);
+    ret = pthread_rwlock_wrlock(lock);
     if (ret != 0) {
         switch (ret) {
         case EDEADLK:
@@ -404,16 +435,19 @@ int rwlock_wrlock(rw_lock_t *ptr)
             break;
         }
     }
+#endif
     return ret;
 }
 
 int rwlock_trywrlock(rw_lock_t *ptr)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
-    int ret = pthread_rwlock_trywrlock(lock);
+    ret = pthread_rwlock_trywrlock(lock);
     if (ret != 0) {
         switch (ret) {
         case EBUSY:
@@ -426,16 +460,18 @@ int rwlock_trywrlock(rw_lock_t *ptr)
             break;
         }
     }
+#endif
     return ret;
 }
 
 int rwlock_unlock(rw_lock_t *ptr)
 {
+    int ret;
+    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    pthread_rwlock_t *lock = (pthread_rwlock_t *)ptr;
-    int ret = pthread_rwlock_unlock(lock);
+    ret = pthread_rwlock_unlock(lock);
     if (ret != 0) {
         switch (ret) {
         default:
@@ -461,10 +497,10 @@ int sem_lock_init(sem_lock_t *lock)
 
 void sem_lock_deinit(sem_lock_t *ptr)
 {
+    sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return;
     }
-    sem_t *lock = (sem_t *)ptr;
     if (0 != sem_destroy(lock)) {
         printf("sem_destroy %d:%s\n", errno , strerror(errno));
     }
@@ -472,11 +508,13 @@ void sem_lock_deinit(sem_lock_t *ptr)
 
 int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    struct timespec ts;
+    sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    int ret;
-    sem_t *lock = (sem_t *)ptr;
     if (ms < 0) {
         ret = sem_wait(lock);
         if (ret != 0) {
@@ -490,7 +528,6 @@ int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
             }
         }
     } else {
-        struct timespec ts;
         clock_gettime(CLOCK_REALTIME, &ts);
         uint64_t ns = ts.tv_sec * 1000 * 1000 * 1000 + ts.tv_nsec;
         ns += ms * 1000 * 1000;
@@ -509,16 +546,18 @@ int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
             }
         }
     }
+#endif
     return ret;
 }
 
 int sem_lock_trywait(sem_lock_t *ptr)
 {
+    int ret = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
+    sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    int ret;
-    sem_t *lock = (sem_t *)ptr;
     ret = sem_trywait(lock);
     if (ret != 0) {
         switch (errno) {
@@ -527,16 +566,17 @@ int sem_lock_trywait(sem_lock_t *ptr)
             break;
         }
     }
+#endif
     return ret;
 }
 
 int sem_lock_signal(sem_lock_t *ptr)
 {
+    int ret;
+    sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return -1;
     }
-    int ret;
-    sem_t *lock = (sem_t *)ptr;
     ret = sem_post(lock);
     if (ret != 0) {
         switch (errno) {

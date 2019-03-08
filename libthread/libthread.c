@@ -25,8 +25,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <pthread.h>
 #include <stdarg.h>
+
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#pragma comment(lib , "libposix4win.lib")
+#endif
 
 #define CALLOC(size, type) \
     (type *)calloc(size, sizeof(type))
@@ -45,13 +48,13 @@ static void *__thread_func(void *arg)
 
 struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...)
 {
+    enum lock_type type;
+    va_list ap;
     struct thread *t = CALLOC(1, struct thread);
     if (!t) {
         printf("malloc thread failed(%d): %s\n", errno, strerror(errno));
         goto err;
     }
-    enum lock_type type;
-    va_list ap;
     va_start(ap, arg);
     type = va_arg(ap, enum lock_type);
     va_end(ap);
@@ -140,6 +143,7 @@ void thread_destroy(struct thread *t)
 
 void thread_info(struct thread *t)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     int i;
     size_t v;
     void *stkaddr;
@@ -183,6 +187,7 @@ void thread_info(struct thread *t)
     if (0 == pthread_attr_getstack(&t->attr, &stkaddr, &v)) {
         printf("stack address = %p, size = %zu\n", stkaddr, v);
     }
+#endif
 }
 
 int thread_lock(struct thread *t)

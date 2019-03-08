@@ -23,13 +23,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
+#endif
 
 void thread_print_info(struct thread *t)
 {
     thread_lock(t);
     printf("========\n");
-    printf("thread id = %ld\n", t->tid);
+    printf("thread id = %ld\n", (long)t->tid);
     printf("========\n");
     thread_unlock(t);
 }
@@ -47,8 +49,8 @@ void foo()
     struct thread *t1 = thread_create(thread, NULL);
     struct thread *t2 = thread_create(thread, NULL);
     struct thread *t3 = thread_create(thread, NULL);
-    printf("%s: t1->tid = %ld\n", __func__, t1->tid);
-    printf("%s: t2->tid = %ld\n", __func__, t2->tid);
+    printf("%s: t1->tid = %ld\n", __func__, (long)t1->tid);
+    printf("%s: t2->tid = %ld\n", __func__, (long)t2->tid);
     thread_print_info(t1);
     thread_print_info(t2);
     thread_print_info(t3);
@@ -70,7 +72,7 @@ int main(int argc, char **argv)
     foo();
     foo2();
     while (1) {
-        printf("%s:%d xxx\n", __func__, __LINE__);
+        //printf("%s:%d xxx\n", __func__, __LINE__);
         sleep(1);
     }
     return 0;
