@@ -80,6 +80,15 @@ int pthread_join(pthread_t thread, void **retval)
     return 0;
 }
 
+int pthread_attr_init(pthread_attr_t *attr)
+{
+    return 0;
+}
+
+void pthread_attr_destroy(pthread_attr_t *attr)
+{
+}
+
 int pthread_mutex_init(pthread_mutex_t *lock, void *attr)
 {
     *lock = CreateMutex(attr, false, NULL);

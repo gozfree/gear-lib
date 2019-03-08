@@ -29,6 +29,7 @@
 #include <direct.h>
 #include <winsock2.h>
 #include <windows.h>
+#include <ws2tcpip.h>
 #include <process.h>
 #include <tlhelp32.h>
 #include <fcntl.h>
@@ -127,6 +128,8 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine)(void*), void *arg);
 int pthread_join(pthread_t thread, void **retval);
 
+int pthread_attr_init(pthread_attr_t *attr);
+void pthread_attr_destroy(pthread_attr_t *attr);
 int pthread_mutex_init(pthread_mutex_t *m, void *attr);
 int pthread_mutex_destroy(pthread_mutex_t *m);
 int pthread_mutex_lock(pthread_mutex_t *m);
@@ -193,6 +196,7 @@ struct timezone
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 #define localtime_r(timep,result) localtime_s(result, timep)
+#define sleep Sleep
 
 /******************************************************************************
  * driver IOC APIs
@@ -225,6 +229,13 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 
 #define _IOWR(type,nr,size)	_IOC(_IOC_READ|_IOC_WRITE,(type),(nr),sizeof(size))
+
+
+/******************************************************************************
+ * socket APIs
+ ******************************************************************************/
+
+
 
 #ifdef __cplusplus
 }
