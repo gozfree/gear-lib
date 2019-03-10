@@ -396,3 +396,11 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
     }
     return len;
 }
+
+
+int get_nprocs()
+{
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwNumberOfProcessors;
+}
