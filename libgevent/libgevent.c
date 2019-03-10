@@ -20,20 +20,33 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libgevent.h"
-#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
 #include <fcntl.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+#endif
 #include <errno.h>
 
+
+#if defined (__linux__) || defined (__CYGWIN__)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
 extern const struct gevent_ops epollops;
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+extern const struct gevent_ops iocpops;
+#endif
 
 static const struct gevent_ops *eventops[] = {
+#if defined (__linux__) || defined (__CYGWIN__)
 //    &selectops,
     &epollops,
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    &iocpops,
+#endif
     NULL
 };
 
@@ -45,12 +58,15 @@ struct gevent_base *gevent_base_create(void)
 {
     int i;
     int fds[2];
+    struct gevent *e;
     struct gevent_base *eb = NULL;
+#if defined (__linux__) || defined (__CYGWIN__)
     if (pipe(fds)) {
         perror("pipe failed");
         return NULL;
     }
-    eb = CALLOC(1, struct gevent_base);
+#endif
+    eb = (struct gevent_base *)calloc(1, sizeof(struct gevent_base));
     if (!eb) {
         printf("malloc gevent_base failed!\n");
         close(fds[0]);
@@ -65,9 +81,10 @@ struct gevent_base *gevent_base_create(void)
     eb->loop = 1;
     eb->rfd = fds[0];
     eb->wfd = fds[1];
-    eb->tid = 0;
+#if defined (__linux__) || defined (__CYGWIN__)
     fcntl(fds[0], F_SETFL, fcntl(fds[0], F_GETFL) | O_NONBLOCK);
-    struct gevent *e = gevent_create(eb->rfd, event_in, NULL, NULL, NULL);
+#endif
+    e = gevent_create(eb->rfd, event_in, NULL, NULL, NULL);
     gevent_add(eb, e);
     return eb;
 }
@@ -149,12 +166,13 @@ struct gevent *gevent_create(int fd,
         void *args)
 {
     int flags = 0;
-    struct gevent *e = CALLOC(1, struct gevent);
+    struct gevent_cbs *evcb; 
+    struct gevent *e = (struct gevent *)calloc(1, sizeof(struct gevent));
     if (!e) {
         printf("malloc gevent failed!\n");
         return NULL;
     }
-    struct gevent_cbs *evcb = CALLOC(1, struct gevent_cbs);
+    evcb = (struct gevent_cbs *)calloc(1, sizeof(struct gevent_cbs));
     if (!evcb) {
         printf("malloc gevent failed!\n");
         return NULL;
@@ -187,13 +205,19 @@ struct gevent *gevent_timer_create(time_t msec,
         void (ev_timer)(int, void *),
         void *args)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     enum gevent_flags flags = 0;
-    struct gevent *e = CALLOC(1, struct gevent);
+    struct gevent_cbs *evcb; 
+    int fd;
+    time_t sec = msec/1000;
+    long nsec = (msec-sec*1000)*1000000;
+
+    struct gevent *e = (struct gevent *)calloc(1, sizeof(struct gevent));
     if (!e) {
         printf("malloc gevent failed!\n");
         goto failed;
     }
-    struct gevent_cbs *evcb = CALLOC(1, struct gevent_cbs);
+    evcb = (struct gevent_cbs *)calloc(1, sizeof(struct gevent_cbs));
     if (!evcb) {
         printf("malloc gevent failed!\n");
         goto failed;
@@ -210,14 +234,12 @@ struct gevent *gevent_timer_create(time_t msec,
         flags &= ~EVENT_PERSIST;
     }
 
-    int fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+    fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     if (fd == -1) {
         printf("timerfd_create failed %d\n", errno);
         goto failed;
     }
 
-    time_t sec = msec/1000;
-    long nsec = (msec-sec*1000)*1000000;
 
     evcb->itimer.it_value.tv_sec = sec;
     evcb->itimer.it_value.tv_nsec = nsec;
@@ -236,6 +258,7 @@ struct gevent *gevent_timer_create(time_t msec,
 failed:
     if (e->evcb) free(e->evcb);
     if (e) free(e);
+#endif
     return NULL;
 }
 

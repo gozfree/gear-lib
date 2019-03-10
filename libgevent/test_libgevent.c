@@ -20,32 +20,33 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libgevent.h"
-#include <liblog.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <sys/sysinfo.h>
+//#include <unistd.h>
+//#include <sys/sysinfo.h>
 #include <signal.h>
 
 struct gevent_base *evbase = NULL;
 
 static void on_input(int fd, void *arg)
 {
-    logi("on_input fd = %d\n", fd);
+    printf("on_input fd = %d\n", fd);
 }
 
 static int foo(void)
 {
+    struct gevent *event_2000;
+    struct gevent *event_1500;
     evbase = gevent_base_create();
     if (!evbase) {
         printf("gevent_base_create failed!\n");
         return -1;
     }
-    struct gevent *event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_input, NULL);
+    event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_input, NULL);
     if (!event_2000) {
         printf("gevent_create failed!\n");
         return -1;
     }
-    struct gevent *event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_input, NULL);
+    event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_input, NULL);
     if (!event_1500) {
         printf("gevent_create failed!\n");
         return -1;
@@ -75,7 +76,7 @@ static void sigint_handler(int sig)
 
 void signal_init()
 {
-    signal(SIGPIPE, SIG_IGN);
+    //signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, sigint_handler);
 }
 

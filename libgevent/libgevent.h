@@ -24,8 +24,13 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <pthread.h>
 #include <sys/timerfd.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +59,9 @@ struct gevent_cbs {
     void (*ev_out)(int fd, void *arg);
     void (*ev_err)(int fd, void *arg);
     void (*ev_timer)(int fd, void *arg);
+#if defined (__linux__) || defined (__CYGWIN__)
     struct itimerspec itimer;
+#endif
     void *args;
 };
 
