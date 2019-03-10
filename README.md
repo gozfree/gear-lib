@@ -1,4 +1,4 @@
-# LightWeight Libraries
+# Gear Libraries
 
 English | [简体中文](README.cn.md)
 
