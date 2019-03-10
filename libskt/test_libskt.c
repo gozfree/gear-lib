@@ -107,6 +107,7 @@ int tcp_client(const char *host, uint16_t port)
     printf("remote ip = %s, port = %d\n", str_ip, g_sc->remote.port);
     skt_set_tcp_keepalive(g_sc->fd, 1);
     memset(&tcpi, 0, sizeof(tcpi));
+#if defined (__linux__) || defined (__CYGWIN__)
     ret = skt_get_tcp_info(g_sc->fd, &tcpi);
     if (ret == 0) {
         printf("unrecovered=%u "
@@ -126,6 +127,7 @@ int tcp_client(const char *host, uint16_t port)
              tcpi.tcpi_snd_cwnd,
              tcpi.tcpi_total_retrans);  // Total retransmits for entire connection
     }
+#endif
     struct thread *thread = thread_create(tcp_client_thread, g_sc);
     if (!thread) {
         printf("thread_create failed!\n");
@@ -243,6 +245,7 @@ void domain_test()
 {
     void *p;
     char str[MAX_ADDR_STRING];
+#if defined (__linux__) || defined (__CYGWIN__)
     skt_addr_list_t *tmp;
     if (0 == skt_get_local_list(&tmp, 0)) {
         for (; tmp; tmp = tmp->next) {
@@ -250,6 +253,7 @@ void domain_test()
             printf("ip = %s port = %d\n", str, tmp->addr.port);
         }
     }
+#endif
 
     if (0 == skt_getaddrinfo(&tmp, "www.sina.com", "3478")) {
         for (; tmp; tmp = tmp->next) {

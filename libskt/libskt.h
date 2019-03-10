@@ -25,18 +25,22 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#ifndef __ANDROID__
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <unistd.h>
 #include <ifaddrs.h>
-#endif
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define MAX_ADDR_STRING (65)
+#define INET_ADDRSTRLEN 16
 
 //socket structs
 

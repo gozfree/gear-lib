@@ -24,19 +24,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <unistd.h>
 #include <errno.h>
-#ifndef __ANDROID__
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <ifaddrs.h>
-#endif
 #include <netdb.h>
 #include <fcntl.h>
 #include <net/if.h>
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/epoll.h>
 #include <arpa/inet.h>
+#endif
 
 
 #define LISTEN_MAX_BACKLOG  (128)
@@ -51,14 +49,24 @@ static struct skt_connection *_skt_connect(int type,
     int domain = -1;
     int protocol = 0;
     struct sockaddr_in si;
+#if 0
     struct sockaddr_un su;
+#endif
     struct sockaddr *sa;
     size_t sa_len = 0;
     struct skt_connection *sc = NULL;
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    WSADATA Ws;
+    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+        printf("Init Windows Socket Failed\n");
+        return NULL;
+    }
+#endif
     if (type < 0 || strlen(host) == 0 || port >= 0xFFFF) {
         printf("invalid paraments\n");
         return NULL;
     }
+
     switch (type) {
     case SOCK_STREAM:
     case SOCK_DGRAM:
@@ -69,6 +77,7 @@ static struct skt_connection *_skt_connect(int type,
         sa = (struct sockaddr*)&si;
         sa_len = sizeof(si);
         break;
+#if 0
     case SOCK_SEQPACKET:
         snprintf(su.sun_path, sizeof(su.sun_path), "%s", host);
         su.sun_family = PF_UNIX;
@@ -76,6 +85,7 @@ static struct skt_connection *_skt_connect(int type,
         sa = (struct sockaddr*)&su;
         sa_len = sizeof(su);
         break;
+#endif
     default:
         printf("unknown socket type!\n");
         return NULL;
@@ -87,6 +97,7 @@ static struct skt_connection *_skt_connect(int type,
         printf("malloc failed!\n");
         return NULL;
     }
+
     sc->fd = socket(domain, type, protocol);
     if (-1 == sc->fd) {
         printf("socket: %s\n", strerror(errno));
@@ -134,8 +145,17 @@ struct skt_connection *skt_unix_connect(const char *host, uint16_t port)
 
 int skt_tcp_bind_listen(const char *host, uint16_t port)
 {
+    SOCKET fd;
     struct sockaddr_in si;
-    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    WSADATA Ws;
+    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+        printf("Init Windows Socket Failed\n");
+        return -1;
+    }
+#endif
+    fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    //int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (-1 == fd) {
         printf("socket failed: %s\n", strerror(errno));
         goto fail;
@@ -171,7 +191,13 @@ int skt_udp_bind(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_in si;
-
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    WSADATA Ws;
+    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+        printf("Init Windows Socket Failed\n");
+        return NULL;
+    }
+#endif
     si.sin_family = AF_INET;
     si.sin_addr.s_addr = host ? inet_addr(host) : INADDR_ANY;
     si.sin_port = htons(port);
@@ -193,11 +219,16 @@ int skt_udp_bind(const char *host, uint16_t port)
     return fd;
 }
 
+#if defined (__linux__) || defined (__CYGWIN__)
 int skt_unix_bind_listen(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_un su;
-
+    WSADATA Ws;
+    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+        printf("Init Windows Socket Failed\n");
+        return NULL;
+    }
     su.sun_family = PF_UNIX;
     snprintf(su.sun_path, sizeof(su.sun_path), "%s", host);
     fd = socket(PF_UNIX, SOCK_SEQPACKET, 0);
@@ -220,6 +251,7 @@ failed:
     close(fd);
     return -1;
 }
+#endif
 
 int skt_accept(int fd, uint32_t *ip, uint16_t *port)
 {
@@ -241,12 +273,15 @@ void skt_close(int fd)
     close(fd);
 }
 
+#if defined (__linux__) || defined (__CYGWIN__)
 int skt_get_tcp_info(int fd, struct tcp_info *tcpi)
 {
     socklen_t len = sizeof(*tcpi);
     return getsockopt(fd, SOL_TCP, TCP_INFO, tcpi, &len);
 }
+#endif
 
+#if defined (__linux__) || defined (__CYGWIN__)
 int skt_get_local_list(skt_addr_list_t **al, int loopback)
 {
 #ifdef __ANDROID__
@@ -309,6 +344,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
 #endif
     return 0;
 }
+#endif
 
 int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr)
 {
@@ -426,11 +462,11 @@ int skt_gethostbyname(skt_addr_list_t **al, const char *name)
 
     host = gethostbyname(name);
     if (NULL == host) {
-        herror("gethostbyname failed!\n");
+        printf("gethostbyname failed!\n");
         return -1;
     }
     if (host->h_addrtype != AF_INET && host->h_addrtype != AF_INET6) {
-        herror("addrtype error!\n");
+        printf("addrtype error!\n");
         return -1;
     }
 
@@ -461,6 +497,7 @@ int skt_gethostbyname(skt_addr_list_t **al, const char *name)
     return 0;
 }
 
+#if defined (__linux__) || defined (__CYGWIN__)
 int skt_get_local_info(void)
 {
     int fd;
@@ -472,7 +509,13 @@ int skt_get_local_info(void)
     char ip[32] = {0};
     char broadAddr[32] = {0};
     char subnetMask[32] = {0};
-
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    WSADATA Ws;
+    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+        printf("Init Windows Socket Failed\n");
+        return NULL;
+    }
+#endif
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
         close(fd);
@@ -553,9 +596,11 @@ int skt_get_local_info(void)
     close(fd);
     return 0;
 }
+#endif
 
 int skt_set_noblk(int fd, int enable)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
@@ -571,11 +616,13 @@ int skt_set_noblk(int fd, int enable)
         printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
+#endif
     return 0;
 }
 
 int skt_set_block(int fd)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
@@ -587,12 +634,14 @@ int skt_set_block(int fd)
         printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
+#endif
     return 0;
 }
 
 int skt_set_nonblock(int fd)
 {
     int flag;
+#if defined (__linux__) || defined (__CYGWIN__)
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
         printf("fcntl: %s\n", strerror(errno));
@@ -603,6 +652,7 @@ int skt_set_nonblock(int fd)
         printf("fcntl: %s\n", strerror(errno));
         return -1;
     }
+#endif
     return 0;
 }
 int skt_set_reuse(int fd, int enable)
