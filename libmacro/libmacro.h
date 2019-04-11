@@ -25,7 +25,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if !(defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER))
+#include <sys/param.h>
+#endif
+
+#if defined (__linux__) || defined (__CYGWIN__) || defined (BSD)
 #include <stdbool.h>
 #include <sys/uio.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
