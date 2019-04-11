@@ -81,7 +81,7 @@ extern "C" {
         printf("\n");                                           \
     } while (0)
 
-#define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
+#define ALIGN2(x, a)	(((x) + (a) - 1) & ~((a) - 1))
 
 void *memdup(void *src, size_t len);
 struct iovec *iovec_create(size_t len);
