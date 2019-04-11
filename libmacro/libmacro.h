@@ -45,6 +45,11 @@ extern "C" {
  * MACRO DEFINES ARE UPPERCASE
  */
 
+/**
+ * Variable-argument unused annotation
+ */
+#define UNUSED(e, ...)      (void) ((void) (e), ##__VA_ARGS__)
+
 #ifdef __GNUC__
 #define LIKELY(x)           (__builtin_expect(!!(x), 1))
 #define UNLIKELY(x)         (__builtin_expect(!!(x), 0))
@@ -86,9 +91,6 @@ extern "C" {
 void *memdup(void *src, size_t len);
 struct iovec *iovec_create(size_t len);
 void iovec_destroy(struct iovec *);
-
-#define UNUSED(arg)  (arg = arg)
-
 
 bool is_little_endian(void);
 
