@@ -47,11 +47,11 @@ extern "C" {
 #define UNUSED(e, ...)      (void) ((void) (e), ##__VA_ARGS__)
 
 #ifdef __GNUC__
-#define LIKELY(x)           (__builtin_expect(!!(x), 1))
-#define UNLIKELY(x)         (__builtin_expect(!!(x), 0))
+#define LIKELY(x)           (__builtin_expect(!(x), 0))
+#define UNLIKELY(x)         (__builtin_expect(!(x), 1))
 #else
-#define LIKELY(x)           (x)
-#define UNLIKELY(x)         (x)
+#define LIKELY(x)           UNUSED(x)
+#define UNLIKELY(x)         UNUSED(x)
 #endif
 
 #define SWAP(a, b)          \
