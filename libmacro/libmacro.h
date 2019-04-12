@@ -61,7 +61,7 @@ extern "C" {
 #define MAX2(a, b)           ((a) > (b) ? (a) : (b))
 
 #define CALLOC(size, type)  (type *)calloc(size, sizeof(type))
-#define SIZEOF(array)       (sizeof(array)/sizeof(array[0]))
+#define ARRAY_SIZE(a)       (sizeof(a) / sizeof(a[0]))
 
 #define VERBOSE()           \
     do {\
