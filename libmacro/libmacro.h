@@ -50,8 +50,8 @@ extern "C" {
 #define LIKELY(x)           (__builtin_expect(!(x), 0))
 #define UNLIKELY(x)         (__builtin_expect(!(x), 1))
 #else
-#define LIKELY(x)           UNUSED(x)
-#define UNLIKELY(x)         UNUSED(x)
+#define LIKELY(x)           (x)
+#define UNLIKELY(x)         (x)
 #endif
 
 #define SWAP(a, b)          \
