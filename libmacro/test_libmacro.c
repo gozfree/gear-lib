@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libmacro.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38,10 +39,35 @@ void foo()
     UNUSED(p);
 }
 
+void unused_macro_tests(void)
+{
+    int i;
+    UNUSED(i);
+
+    char c = '@';
+    UNUSED(c, i);
+
+    int a, b;
+    UNUSED(a, b);
+
+    UNUSED(sizeof(char) == 1);
+    UNUSED(sizeof(char) == 1, i);
+    UNUSED(a, sizeof(char) == 1, b);
+
+    UNUSED(0, i, "Yummy!", a, b, 'a', NULL, 3.141592654);
+
+    const char *duh = "Suck less!";
+    UNUSED(duh);
+}
 
 int main(int argc, char **argv)
 {
+    UNUSED(argc, argv);
+
     foo();
     printf("hello world\n");
+    unused_macro_tests();
+    printf("Little endian: %d\n", is_little_endian());
     return 0;
 }
+

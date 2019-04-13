@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (__APPLE__)
 #include <stdbool.h>
 #include <sys/uio.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
@@ -41,9 +41,14 @@ extern "C" {
  * MACRO DEFINES ARE UPPERCASE
  */
 
+/**
+ * Variable-argument unused annotation
+ */
+#define UNUSED(e, ...)      (void) ((void) (e), ##__VA_ARGS__)
+
 #ifdef __GNUC__
-#define LIKELY(x)           (__builtin_expect(!!(x), 1))
-#define UNLIKELY(x)         (__builtin_expect(!!(x), 0))
+#define LIKELY(x)           (__builtin_expect(!(x), 0))
+#define UNLIKELY(x)         (__builtin_expect(!(x), 1))
 #else
 #define LIKELY(x)           (x)
 #define UNLIKELY(x)         (x)
@@ -52,16 +57,17 @@ extern "C" {
 #define SWAP(a, b)          \
     do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
-#define MIN2(a, b)           ((a) > (b) ? (b) : (a))
-#define MAX2(a, b)           ((a) > (b) ? (a) : (b))
+#define MIN2(a, b)          ((a) > (b) ? (b) : (a))
+#define MAX2(a, b)          ((a) > (b) ? (a) : (b))
+#define ABS(x)              ((x) >= 0 ? (x) : -(x))
 
-#define CALLOC(size, type)  (type *)calloc(size, sizeof(type))
-#define SIZEOF(array)       (sizeof(array)/sizeof(array[0]))
+#define CALLOC(size, type)  (type *) calloc(size, sizeof(type))
+#define ARRAY_SIZE(a)       (sizeof(a) / sizeof(a[0]))
 
-#define VERBOSE()           \
-    do {\
-        printf("%s:%s:%d xxxxxx\n", __FILE__, __func__, __LINE__);\
-    } while (0);
+#define VERBOSE()                                                   \
+    do {                                                            \
+        printf("%s:%s:%d xxxxxx\n", __FILE__, __func__, __LINE__);  \
+    } while (0)
 
 #define DUMP_BUFFER(buf, len)                                   \
     do {                                                        \
@@ -77,18 +83,38 @@ extern "C" {
         printf("\n");                                           \
     } while (0)
 
-#define ALIGN(x, a)	(((x) + (a) - 1) & ~((a) - 1))
+#define ALIGN2(x, a)	(((x) + (a) - 1) & ~((a) - 1))
+
+#define is_alpha(c) (((c) >=  'a' && (c) <= 'z') || ((c) >=  'A' && (c) <= 'Z'))
+
+/**
+ * Compile-time strlen(3)
+ * XXX: Should only used for `char[]'  NOT `char *'
+ * Assume string ends with null byte('\0')
+ */
+#define STRLEN(s)          (sizeof(s) - 1)
+
+/**
+ * Compile-time assurance  see: linux/arch/x86/boot/boot.h
+ * Will fail build if condition yield true
+ */
+#ifndef BUILD_BUG_ON
+#if defined (__WIN32__) || defined (_WIN32) || defined (_MSC_VER)
+/*
+ * MSVC compiler allows negative array size(treat as unsigned value)
+ *  yet them don't allow zero-size array
+ */
+#define BUILD_BUG_ON(cond)      ((void) sizeof(char[!(cond)]))
+#else
+#define BUILD_BUG_ON(cond)      ((void) sizeof(char[1 - 2 * !!(cond)]))
+#endif
+#endif
 
 void *memdup(void *src, size_t len);
 struct iovec *iovec_create(size_t len);
 void iovec_destroy(struct iovec *);
 
-#define UNUSED(arg)  (arg = arg)
-
-
 bool is_little_endian(void);
-
-#define is_character(c) (((c)<='z'&&(c)>='a') || ((c)<='Z'&&(c)>='A'))
 
 #ifdef __cplusplus
 }

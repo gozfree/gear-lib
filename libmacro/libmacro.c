@@ -27,14 +27,16 @@
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
 #endif
+
+#include <stdint.h>
 #include <signal.h>
 #include <errno.h>
 
 void *memdup(void *src, size_t len)
 {
     void *dst = calloc(1, len);
-    if (dst) {
-        memcpy(dst, src, len);
+    if (LIKELY(dst != NULL)) {
+        (void) memcpy(dst, src, len);
     }
     return dst;
 }
@@ -42,26 +44,33 @@ void *memdup(void *src, size_t len)
 struct iovec *iovec_create(size_t len)
 {
     struct iovec *vec = CALLOC(1, struct iovec);
-    vec->iov_len = len;
-    vec->iov_base = calloc(1, len);
+    if (LIKELY(vec != NULL)) {
+        vec->iov_len = len;
+        vec->iov_base = calloc(1, len);
+        if (UNLIKELY(vec->iov_base == NULL)) {
+            free(vec);
+            vec = NULL;
+        }
+    }
     return vec;
 }
 
 void iovec_destroy(struct iovec *vec)
 {
-    if (!vec || !vec->iov_base)
-        return;
-    free(vec->iov_base);
-    free(vec);
+    if (LIKELY(vec != NULL)) {
+        /* free(NULL) do nop */
+        free(vec->iov_base);
+        free(vec);
+    }
 }
 
+/**
+ * Fast little endian check
+ * NOTE: not applicable for PDP endian
+ */
 bool is_little_endian(void)
 {
-    unsigned int probe = 0xff;
-    size_t sz = sizeof(unsigned int);
-    unsigned char * probe_byte = (unsigned char *)&probe;
-    if (!(probe_byte[0] == 0xff || probe_byte[sz - 1] == 0xff)) {
-        printf("%s: something wrong!\n", __func__);
-    }
-    return probe_byte[0] == 0xff;
+    static uint16_t x = 0x01;
+    return *((uint8_t *) &x);
 }
+
