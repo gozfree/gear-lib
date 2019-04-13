@@ -57,8 +57,9 @@ extern "C" {
 #define SWAP(a, b)          \
     do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
-#define MIN2(a, b)           ((a) > (b) ? (b) : (a))
-#define MAX2(a, b)           ((a) > (b) ? (a) : (b))
+#define MIN2(a, b)          ((a) > (b) ? (b) : (a))
+#define MAX2(a, b)          ((a) > (b) ? (a) : (b))
+#define ABS(x)              ((x) >= 0 ? (x) : -(x))
 
 #define CALLOC(size, type)  (type *) calloc(size, sizeof(type))
 #define ARRAY_SIZE(a)       (sizeof(a) / sizeof(a[0]))
