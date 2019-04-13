@@ -64,6 +64,10 @@ void iovec_destroy(struct iovec *vec)
     }
 }
 
+/**
+ * Fast little endian check
+ * NOTE: not applicable for PDP endian
+ */
 bool is_little_endian(void)
 {
     static uint16_t x = 0x01;
