@@ -27,6 +27,8 @@
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
 #endif
+
+#include <stdint.h>
 #include <signal.h>
 #include <errno.h>
 
@@ -64,11 +66,7 @@ void iovec_destroy(struct iovec *vec)
 
 bool is_little_endian(void)
 {
-    unsigned int probe = 0xff;
-    size_t sz = sizeof(unsigned int);
-    unsigned char * probe_byte = (unsigned char *)&probe;
-    if (!(probe_byte[0] == 0xff || probe_byte[sz - 1] == 0xff)) {
-        printf("%s: something wrong!\n", __func__);
-    }
-    return probe_byte[0] == 0xff;
+    static uint16_t x = 0x01;
+    return *((uint8_t *) &x);
 }
+
