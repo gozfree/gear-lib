@@ -63,10 +63,10 @@ extern "C" {
 #define CALLOC(size, type)  (type *)calloc(size, sizeof(type))
 #define ARRAY_SIZE(a)       (sizeof(a) / sizeof(a[0]))
 
-#define VERBOSE()           \
-    do {\
-        printf("%s:%s:%d xxxxxx\n", __FILE__, __func__, __LINE__);\
-    } while (0);
+#define VERBOSE()                                                   \
+    do {                                                            \
+        printf("%s:%s:%d xxxxxx\n", __FILE__, __func__, __LINE__);  \
+    } while (0)
 
 #define DUMP_BUFFER(buf, len)                                   \
     do {                                                        \
