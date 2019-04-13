@@ -84,13 +84,36 @@ extern "C" {
 
 #define ALIGN2(x, a)	(((x) + (a) - 1) & ~((a) - 1))
 
+#define is_alpha(c) (((c) >=  'a' && (c) <= 'z') || ((c) >=  'A' && (c) <= 'Z'))
+
+/**
+ * Compile-time strlen(3)
+ * XXX: Should only used for `char[]'  NOT `char *'
+ * Assume string ends with null byte('\0')
+ */
+#define STRLEN(s)          (sizeof(s) - 1)
+
+/**
+ * Compile-time assurance  see: linux/arch/x86/boot/boot.h
+ * Will fail build if condition yield true
+ */
+#ifndef BUILD_BUG_ON
+#if defined (__WIN32__) || defined (_WIN32) || defined (_MSC_VER)
+/*
+ * MSVC compiler allows negative array size(treat as unsigned value)
+ *  yet them don't allow zero-size array
+ */
+#define BUILD_BUG_ON(cond)      ((void) sizeof(char[1 - !!(cond)]))
+#else
+#define BUILD_BUG_ON(cond)      ((void) sizeof(char[1 - 2 * !!(cond)]))
+#endif
+#endif
+
 void *memdup(void *src, size_t len);
 struct iovec *iovec_create(size_t len);
 void iovec_destroy(struct iovec *);
 
 bool is_little_endian(void);
-
-#define is_character(c) (((c)<='z'&&(c)>='a') || ((c)<='Z'&&(c)>='A'))
 
 #ifdef __cplusplus
 }
