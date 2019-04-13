@@ -104,7 +104,7 @@ extern "C" {
  * MSVC compiler allows negative array size(treat as unsigned value)
  *  yet them don't allow zero-size array
  */
-#define BUILD_BUG_ON(cond)      ((void) sizeof(char[1 - !!(cond)]))
+#define BUILD_BUG_ON(cond)      ((void) sizeof(char[!(cond)]))
 #else
 #define BUILD_BUG_ON(cond)      ((void) sizeof(char[1 - 2 * !!(cond)]))
 #endif
