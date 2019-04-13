@@ -34,7 +34,7 @@ void *memdup(void *src, size_t len)
 {
     void *dst = calloc(1, len);
     if (LIKELY(dst != NULL)) {
-        memcpy(dst, src, len);
+        (void) memcpy(dst, src, len);
     }
     return dst;
 }
@@ -55,9 +55,11 @@ struct iovec *iovec_create(size_t len)
 
 void iovec_destroy(struct iovec *vec)
 {
-    if (!vec || !vec->iov_base) return;
-    free(vec->iov_base);
-    free(vec);
+    if (LIKELY(vec != NULL)) {
+        /* free(NULL) do nop */
+        free(vec->iov_base);
+        free(vec);
+    }
 }
 
 bool is_little_endian(void)
