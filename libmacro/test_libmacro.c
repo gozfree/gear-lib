@@ -62,8 +62,12 @@ void unused_macro_tests(void)
 
 int main(int argc, char **argv)
 {
+    UNUSED(argc, argv);
+
     foo();
     printf("hello world\n");
     unused_macro_tests();
+    printf("Little endian: %d\n", is_little_endian());
     return 0;
 }
+
