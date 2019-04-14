@@ -52,9 +52,7 @@ void unused_macro_tests(void)
 
     UNUSED(sizeof(char) == 1);
     UNUSED(sizeof(char) == 1, i);
-    UNUSED(a, sizeof(char) == 1, b);
 
-    UNUSED(0, i, "Yummy!", a, b, 'a', NULL, 3.141592654);
 
     const char *duh = "Suck less!";
     UNUSED(duh);
