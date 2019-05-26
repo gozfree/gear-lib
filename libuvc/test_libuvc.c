@@ -25,15 +25,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+#pragma comment(lib , "libfile.lib")
+#endif
+
 int main(int argc, char **argv)
 {
+    int i = 0;
     int flen = 2 * 640 * 480;
     int size = 0;
+    struct file *fp;
     void *frm = calloc(1, flen);
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
     uvc_print_info(uvc);
-    struct file *fp = file_open("uvc.yuv", F_CREATE);
-    for (int i = 0; i < 64; ++i) {
+    fp = file_open("uvc.yuv", F_CREATE);
+    for (i = 0; i < 64; ++i) {
         memset(frm, 0, flen);
         size = uvc_read(uvc, frm, flen);
         if (size == -1) {

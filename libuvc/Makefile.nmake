@@ -20,10 +20,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /Iinclude /I../libposix4win/ /I. 
+CFLAGS	= /Iinclude /I../libposix4win/ /I.  /I../libfile/
 CFLAGS	= $(CFLAGS) /Od /W3 /Zi
 
-LDFLAGS	= /LIBPATH:../libposix4win/ /LIBPATH:./
+LDFLAGS	= /LIBPATH:../libposix4win/ /LIBPATH:../libfile/ /LIBPATH:./
 
 ###############################################################################
 # target
