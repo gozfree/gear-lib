@@ -157,7 +157,7 @@ int sem_wait(sem_t *sem)
 
 int sem_post(sem_t *sem)
 {
-    ReleaseSemaphore(*sem, 1, 1);
+    ReleaseSemaphore(*sem, 1, (LPLONG)1);
     return 0;
 }
 
@@ -191,7 +191,7 @@ int pthread_cond_broadcast(pthread_cond_t *cond)
 
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-    SleepConditionVariableSRW(cond, mutex, INFINITE, 0);
+    SleepConditionVariableSRW(cond, (PSRWLOCK)mutex, INFINITE, 0);
     return 0;
 }
 
@@ -397,6 +397,15 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
     return len;
 }
 
+char *dup_wchar_to_utf8(wchar_t *w)
+{
+    char *s = NULL;
+    int l = WideCharToMultiByte(CP_UTF8, 0, w, -1, 0, 0, 0, 0);
+    s = malloc(l);
+    if (s)
+        WideCharToMultiByte(CP_UTF8, 0, w, -1, s, l, 0, 0);
+    return s;
+}
 
 int get_nprocs()
 {

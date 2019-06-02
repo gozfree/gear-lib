@@ -78,6 +78,8 @@ typedef SSIZE_T                   off_t;
 #define iov_base                  buf
 ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
+char *dup_wchar_to_utf8(wchar_t *w);
+
 
 /******************************************************************************
  * sys file APIs
