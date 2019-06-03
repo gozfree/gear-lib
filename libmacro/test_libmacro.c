@@ -35,8 +35,12 @@ void *mymalloc(size_t size)
 
 void foo()
 {
-    void *p = mymalloc(10);
-    UNUSED(p);
+    int len = 48;
+    void *p = malloc(len);
+    for (int i = 0; i < len; i++) {
+        *((char *)p +i) = i;
+    }
+    DUMP_BUFFER(p, len);
 }
 
 void unused_macro_tests(void)

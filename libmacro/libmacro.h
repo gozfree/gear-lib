@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #if defined (__linux__) || defined (__CYGWIN__) || defined (__APPLE__)
 #include <stdbool.h>
@@ -69,18 +70,25 @@ extern "C" {
         printf("%s:%s:%d xxxxxx\n", __FILE__, __func__, __LINE__);  \
     } while (0)
 
-#define DUMP_BUFFER(buf, len)                                   \
-    do {                                                        \
-        int _i;                                                 \
-        if (buf == NULL || len <= 0) {                          \
-            break;                                              \
-        }                                                       \
-        for (_i = 0; _i < len; _i++) {                          \
-            if (!(_i%16))                                       \
-                printf("\n%p: ", buf+_i);                       \
-            printf("%02x ", (*((char *)buf + _i)) & 0xff);      \
-        }                                                       \
-        printf("\n");                                           \
+#define DUMP_BUFFER(buf, len)                                            \
+    do {                                                                 \
+        int _i, _j=0;                                                    \
+        char _tmp[128] = {0};                                             \
+        if (buf == NULL || len <= 0) {                                   \
+            break;                                                       \
+        }                                                                \
+        for (_i = 0; _i < len; _i++) {                                   \
+            if (!(_i%16)) {                                              \
+                if (_i != 0) {                                           \
+                    printf("%s", _tmp);                                  \
+                }                                                        \
+                memset(_tmp, 0, sizeof(_tmp));                           \
+                _j = 0;                                                  \
+                _j += snprintf(_tmp+_j, 64, "\n%p: ", buf+_i);           \
+            }                                                            \
+            _j += snprintf(_tmp+_j, 4, "%02hhx ", *((char *)buf + _i));  \
+        }                                                                \
+        printf("%s\n", _tmp);                                            \
     } while (0)
 
 #define ALIGN2(x, a)	(((x) + (a) - 1) & ~((a) - 1))
