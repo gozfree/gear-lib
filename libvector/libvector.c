@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
 
 #define VECTOR_DEFAULT_BUF_LEN  (1024)
@@ -32,6 +31,7 @@ void _vector_push_back(struct vector *v, void *e, size_t type_size)
 {
     size_t resize;
     void *pnew;
+    void *ptop;
     if (!v || !e || type_size != v->type_size) {
         printf("%s: paraments invalid!\n", __func__);
         return;
@@ -49,7 +49,7 @@ check:
         v->capacity = resize;
         goto check;
     }
-    void *ptop = (uint8_t *)v->buf.iov_base + v->size * v->type_size;
+    ptop = (uint8_t *)v->buf.iov_base + v->size * v->type_size;
     memcpy(ptop, e, v->type_size);
     v->size++;
 }

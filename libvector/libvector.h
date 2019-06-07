@@ -23,7 +23,12 @@
 #define LIBVECTOR_H
 
 #include <stdint.h>
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <unistd.h>
 #include <sys/uio.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,18 +77,22 @@ void *_vector_iter_value(struct vector *v, vector_iter iter);
 void *_vector_at(struct vector *v, int pos);
 
 
+#if defined (__linux__) || defined (__CYGWIN__)
 #define vector_create(type_t) \
     ({type_t t;struct vector *v = _vector_create(sizeof(t)); v;})
+#endif
 void vector_destroy(struct vector *v);
 int vector_empty(struct vector *v);
 #define vector_push_back(v, e) _vector_push_back(v, (void *)&e, sizeof(e))
 void vector_pop_back(struct vector *v);
+#if defined (__linux__) || defined (__CYGWIN__)
 #define vector_back(v, type_t) \
     ({ \
         type_t tmp; \
         memcpy(&tmp, vector_last(v), v->type_size); \
         &tmp; \
     })
+#endif
 
 #define vector_iter_valuep(vector, iter, type_t) \
     (type_t *)_vector_iter_value(vector, iter)

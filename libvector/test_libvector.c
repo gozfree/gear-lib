@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 struct tmp_box {
     char c;
@@ -35,10 +35,15 @@ void mix_struct()
 {
     struct tmp_box tb;
     vector_iter iter;
+    vector_t *c;
     tb.c = 'a';
     tb.i = 1;
     tb.f = 1.23;
-    vector_t *c = vector_create(struct tmp_box);
+#if defined (__linux__) || defined (__CYGWIN__)
+    c = vector_create(struct tmp_box);
+#else
+    c = _vector_create(sizeof(struct tmp_box));
+#endif
     vector_push_back(c, tb);
     for (iter = vector_begin(c); iter != vector_end(c); iter = vector_next(c)) {
         struct tmp_box *tt = vector_iter_valuep(c, iter, struct tmp_box);
@@ -59,9 +64,18 @@ void default_struct()
     int i;
     int sum = 0;
     int *tmp;
+#if defined (__linux__) || defined (__CYGWIN__)
+#else
+    int itmp = 0;
+#endif
     int t1 = 100, t2 = 200, t3 = 300;
+    vector_t *a;
     vector_iter iter;
-    vector_t *a = vector_create(int);
+#if defined (__linux__) || defined (__CYGWIN__)
+    a = vector_create(int);
+#else
+    a = _vector_create(sizeof(int));
+#endif
     vector_push_back(a, t1);
     vector_push_back(a, t2);
     vector_push_back(a, t3);
@@ -73,7 +87,12 @@ void default_struct()
     }
 
     while (!vector_empty(a)) {
+#if defined (__linux__) || defined (__CYGWIN__)
         tmp = vector_back(a, int);
+#else
+        memcpy(itmp, vector_last(a), a->type_size);
+        tmp = &itmp;
+#endif
         sum += *tmp;
         vector_pop_back(a);
     }
