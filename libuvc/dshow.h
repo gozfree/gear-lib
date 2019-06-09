@@ -23,32 +23,31 @@ struct GUIDoffset {
 };
 
 #define DECLARE_QUERYINTERFACE(class, ...)                                   \
-long WINAPI                                                                  \
-class##_QueryInterface(class *this, const GUID *riid, void **ppvObject)      \
+long WINAPI class##_QueryInterface(class *this, const GUID *riid, void **ppobj) \
 {                                                                            \
     struct GUIDoffset ifaces[] = __VA_ARGS__;                                \
     int i;                                                                   \
-    dshowdebug("_QueryInterface(%p, %p, %p)\n", this, riid, ppvObject); \
-    if (!ppvObject)                                                          \
+    dshowdebug("%s(%p, %p, %p)\n", __func__, this, riid, ppobj);             \
+    if (!ppobj)                                                              \
         return E_POINTER;                                                    \
     for (i = 0; i < sizeof(ifaces)/sizeof(ifaces[0]); i++) {                 \
         if (IsEqualGUID(riid, ifaces[i].iid)) {                              \
             void *obj = (void *) ((uint8_t *) this + ifaces[i].offset);      \
             class##_AddRef(this);                                            \
-            dshowdebug("\tfound %d with offset %d\n", i, ifaces[i].offset);  \
-            *ppvObject = (void *) obj;                                       \
+            *ppobj = (void *) obj;                                           \
             return S_OK;                                                     \
         }                                                                    \
     }                                                                        \
-    dshowdebug("\tE_NOINTERFACE\n");                                         \
-    *ppvObject = NULL;                                                       \
+    dshowdebug("%s(%p) E_NOINTERFACE\n", __func__, this, riid, ppobj);       \
+    *ppobj = NULL;                                                           \
     return E_NOINTERFACE;                                                    \
 }
+
 #define DECLARE_ADDREF(class)                                                \
 unsigned long WINAPI                                                         \
 class##_AddRef(class *this)                                                  \
 {                                                                            \
-    dshowdebug("_AddRef(%p)\t%ld\n", this, this->ref+1);  \
+    dshowdebug("%s(%p)\t%ld\n", __func__, this, this->ref+1);  \
     return InterlockedIncrement(&this->ref);                                 \
 }
 #define DECLARE_RELEASE(class)                                               \
@@ -56,7 +55,7 @@ unsigned long WINAPI                                                         \
 class##_Release(class *this)                                                 \
 {                                                                            \
     long ref = InterlockedDecrement(&this->ref);                             \
-    dshowdebug("_Release(%p)\t%ld\n", this, ref);         \
+    dshowdebug("%s(%p)\t%ld\n", __func__, this, ref);         \
     if (!ref)                                                                \
         class##_Destroy(this);                                               \
     return ref;                                                              \
@@ -66,7 +65,7 @@ class##_Release(class *this)                                                 \
 #define DECLARE_DESTROY(class, func)                                         \
 void class##_Destroy(class *this)                                            \
 {                                                                            \
-    dshowdebug("_Destroy(%p)\n", this);                   \
+    dshowdebug("%s(%p)\n", __func__, this);                   \
     func(this);                                                              \
     if (this) {                                                              \
         if (this->vtbl)                                                      \
@@ -79,7 +78,6 @@ class *class##_Create(__VA_ARGS__)                                           \
 {                                                                            \
     class *this = CoTaskMemAlloc(sizeof(class));                             \
     void  *vtbl = CoTaskMemAlloc(sizeof(*this->vtbl));                       \
-    dshowdebug("_Create(%p)\n", this);                    \
     if (!this || !vtbl)                                                      \
         goto fail;                                                           \
     ZeroMemory(this, sizeof(class));                                         \
@@ -88,7 +86,7 @@ class *class##_Create(__VA_ARGS__)                                           \
     this->vtbl = vtbl;                                                       \
     if (!setup)                                                              \
         goto fail;                                                           \
-    dshowdebug("created %p\n", this);                  \
+    dshowdebug("%s(%p)\n", __func__, this);                                  \
     return this;                                                             \
 fail:                                                                        \
     class##_Destroy(this);                                                   \
@@ -99,6 +97,7 @@ fail:                                                                        \
 #define SETVTBL(vtbl, class, fn) \
     do { (vtbl)->fn = (void *) class##_##fn; } while(0)
 
+#define imemoffset offsetof(dshow_pin, imemvtbl)
 
 /*****************************************************************************
  * dshow_pin
@@ -106,6 +105,7 @@ fail:                                                                        \
 typedef struct dshow_pin dshow_pin;
 typedef struct dshow_filter dshow_filter;
 typedef struct dshow_enum_pins dshow_enum_pins;
+typedef struct dshow_enum_media_types dshow_enum_media_types;
 typedef struct dshow_input_pin dshow_input_pin;
 
 struct dshow_pin {
@@ -166,6 +166,27 @@ long          WINAPI dshow_input_pin_Receive                 (dshow_input_pin *,
 long          WINAPI dshow_input_pin_ReceiveMultiple         (dshow_input_pin *, IMediaSample **, long, long *);
 long          WINAPI dshow_input_pin_ReceiveCanBlock         (dshow_input_pin *);
 void                 dshow_input_pin_Destroy(dshow_input_pin *);
+
+/*****************************************************************************
+ * dshow_enum_media_types
+ ****************************************************************************/
+struct dshow_enum_media_types {
+    IEnumMediaTypesVtbl *vtbl;
+    long ref;
+    int pos;
+    AM_MEDIA_TYPE type;
+};
+
+long          WINAPI dshow_enum_media_types_QueryInterface(dshow_enum_media_types *, const GUID *, void **);
+unsigned long WINAPI dshow_enum_media_types_AddRef        (dshow_enum_media_types *);
+unsigned long WINAPI dshow_enum_media_types_Release       (dshow_enum_media_types *);
+long          WINAPI dshow_enum_media_types_Next          (dshow_enum_media_types *, unsigned long, AM_MEDIA_TYPE **, unsigned long *);
+long          WINAPI dshow_enum_media_types_Skip          (dshow_enum_media_types *, unsigned long);
+long          WINAPI dshow_enum_media_types_Reset         (dshow_enum_media_types *);
+long          WINAPI dshow_enum_media_types_Clone         (dshow_enum_media_types *, dshow_enum_media_types **);
+
+void                 dshow_enum_media_types_Destroy(dshow_enum_media_types *);
+dshow_enum_media_types *dshow_enum_media_types_Create(const AM_MEDIA_TYPE *type);
 
 /*****************************************************************************
  * dshow_filter
