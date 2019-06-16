@@ -22,7 +22,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define __STDC_FORMAT_MACROS
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <inttypes.h>
+#endif
 #include "libtime.h"
 
 void foo()

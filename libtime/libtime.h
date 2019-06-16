@@ -23,7 +23,11 @@
 #define LIBTIME_H
 
 #include <stdint.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <stdbool.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
 #include <time.h>
 
 #ifdef __cplusplus

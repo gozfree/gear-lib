@@ -24,12 +24,21 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <sys/time.h>
 #include <sys/timeb.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+typedef int clockid_t;
+#define CLOCK_REALTIME		((clockid_t) 1)
+#define CLOCK_MONOTONIC		((clockid_t) 4)
+#endif
 
 #include "libtime.h"
 
 #define TIME_FORMAT "%Y%m%d%H%M%S"
+
 
 uint64_t time_get_sec()
 {
@@ -111,19 +120,27 @@ uint64_t time_get_usec(struct timeval *val)
 
 uint64_t _time_clock_gettime(clockid_t clk_id)
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     struct timespec ts;
     if (-1 == clock_gettime(clk_id, &ts)) {
         printf("clock_gettime failed %d:%s\n", errno, strerror(errno));
         return -1;
     }
     return (uint64_t)(((uint64_t)ts.tv_sec*1000*1000*1000) + (uint64_t)ts.tv_nsec);
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    return 0;
+#endif
 }
 
 uint64_t time_get_msec()
 {
+#if defined (__linux__) || defined (__CYGWIN__)
     struct timeb tb;
     ftime(&tb);
     return (uint64_t)(((uint64_t)tb.time) * 1000 + (uint64_t)tb.millitm);
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    return 0;
+#endif
 }
 
 uint64_t time_get_nsec()
@@ -285,6 +302,8 @@ int time_get_info(struct time_info *ti)
     return 0;
 }
 
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#else
 int time_set_info(struct time_info *ti)
 {
     time_t timep;
@@ -309,6 +328,7 @@ int time_set_info(struct time_info *ti)
     }
     return 0;
 }
+#endif
 
 bool time_passed_sec(int sec)
 {
