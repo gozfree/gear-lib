@@ -22,9 +22,13 @@
 #ifndef LIBQUEUE_H
 #define LIBQUEUE_H
 
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <sys/uio.h>
 #include <pthread.h>
-#include <libmacro.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
+#include "libmacro.h"
 
 
 #ifdef __cplusplus

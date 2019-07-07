@@ -23,17 +23,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <sys/time.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#pragma comment(lib , "libposix4win.lib")
+#pragma comment(lib , "libmacro.lib")
+#endif
 #include "libqueue.h"
 
 #define QUEUE_MAX_DEPTH 200
 
 struct item *item_alloc(struct queue *q, void *data, size_t len)
 {
+    struct item *item;
     if (!q) {
         return NULL;
     }
-    struct item *item = CALLOC(1, struct item);
+    item = CALLOC(1, struct item);
     if (!item) {
         printf("malloc failed!\n");
         return NULL;
@@ -113,12 +120,16 @@ struct queue *queue_create()
 
 int queue_flush(struct queue *q)
 {
+    struct item *item, *next;
     if (!q) {
         return -1;
     }
-    struct item *item, *next;
     pthread_mutex_lock(&q->lock);
+#if defined (__linux__) || defined (__CYGWIN__)
     list_for_each_entry_safe(item, next, &q->head, entry) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(item, struct item, next, struct item, &q->head, entry) {
+#endif
         list_del(&item->entry);
         item_free(q, item);
     }
@@ -174,20 +185,24 @@ int queue_push(struct queue *q, struct item *item)
 
 struct item *queue_pop(struct queue *q)
 {
+    struct item *item = NULL;
     if (!q) {
         printf("invalid parament!\n");
         return NULL;
     }
 
-    struct item *item = NULL;
     pthread_mutex_lock(&q->lock);
     while (list_empty(&q->head)) {
+#if defined (__linux__) || defined (__CYGWIN__)
         struct timeval now;
         struct timespec outtime;
         gettimeofday(&now, NULL);
         outtime.tv_sec = now.tv_sec + 1;
         outtime.tv_nsec = now.tv_usec * 1000;
         int ret = pthread_cond_timedwait(&q->cond, &q->lock, &outtime);
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+        int ret = pthread_cond_timedwait(&q->cond, &q->lock, 1000);
+#endif
         if (ret == 0) {
             break;
         }
