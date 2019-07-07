@@ -29,10 +29,11 @@
 #if defined (__linux__) || defined (__CYGWIN__) || defined (__APPLE__)
 #include <stdbool.h>
 #include <sys/uio.h>
+#include "kernel_list.h"
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "win.h"
+#include "kernel_list_win32.h"
 #endif
-#include "kernel_list.h"
 
 #ifdef __cplusplus
 extern "C" {

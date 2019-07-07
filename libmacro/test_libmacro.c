@@ -35,30 +35,31 @@ void *mymalloc(size_t size)
 
 void foo()
 {
+    int i = 0;
     int len = 48;
     void *p = malloc(len);
-    for (int i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         *((char *)p +i) = i;
     }
-    DUMP_BUFFER(p, len);
+    //DUMP_BUFFER(p, len);
 }
 
 void unused_macro_tests(void)
 {
     int i;
-    UNUSED(i);
 
+    const char *duh = "Suck less!";
     char c = '@';
-    UNUSED(c, i);
 
     int a, b;
+    UNUSED(c, i);
+    UNUSED(i);
     UNUSED(a, b);
 
     UNUSED(sizeof(char) == 1);
     UNUSED(sizeof(char) == 1, i);
 
 
-    const char *duh = "Suck less!";
     UNUSED(duh);
 }
 
