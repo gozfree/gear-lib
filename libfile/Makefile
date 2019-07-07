@@ -32,7 +32,7 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
-ENABLE_FILEWATCHER	= 1
+ENABLE_FILEWATCHER	= 0
 LIBNAME		= libfile
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
@@ -67,7 +67,7 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 ifeq ($(ENABLE_FILEWATCHER), 1)
-LDFLAGS	+= -ldict -lgevent
+LDFLAGS	+= -L$(OUTPUT)/lib -ldict -lgevent
 endif
 
 ###############################################################################

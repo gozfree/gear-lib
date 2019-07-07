@@ -34,6 +34,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+typedef int SOCKET;
 #endif
 
 
@@ -219,7 +220,7 @@ int skt_udp_bind(const char *host, uint16_t port)
     return fd;
 }
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 int skt_unix_bind_listen(const char *host, uint16_t port)
 {
     int fd;

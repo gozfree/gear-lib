@@ -32,18 +32,22 @@
 #include <errno.h>
 
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
+#ifndef __CYGWIN__
 extern const struct gevent_ops epollops;
+#endif
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 extern const struct gevent_ops iocpops;
 #endif
 
 static const struct gevent_ops *eventops[] = {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__)
 //    &selectops,
+#ifndef __CYGWIN__
     &epollops,
+#endif
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     &iocpops,
 #endif

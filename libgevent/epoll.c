@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#ifndef __CYGWIN__
 #include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -175,3 +176,4 @@ struct gevent_ops epollops = {
     .del      = epoll_del,
     .dispatch = epoll_dispatch,
 };
+#endif

@@ -21,8 +21,10 @@
  ******************************************************************************/
 #include "libgevent.h"
 #include <stdio.h>
-//#include <unistd.h>
-//#include <sys/sysinfo.h>
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <unistd.h>
+#include <sys/sysinfo.h>
+#endif
 #include <signal.h>
 
 struct gevent_base *evbase = NULL;

@@ -55,7 +55,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lfile -lskt -lgevent -llog -ldict -lthread -ltime \
+LDFLAGS	+= -L$(OUTPUT)/lib -pthread -lfile -lskt -lgevent -llog -ldict -lthread -ltime \
 	   -lvector -luvc -lx264 -lmacro
 
 ###############################################################################

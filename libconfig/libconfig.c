@@ -65,7 +65,7 @@ static struct config_ops *find_backend(const char *name)
         return NULL;
     }
     int i = 0;
-    int max_list = SIZEOF(conf_ops_list);
+    int max_list = ARRAY_SIZE(conf_ops_list);
     char *suffix = get_file_suffix(name);
     if (!suffix) {
         printf("there is no suffix in config name\n");
