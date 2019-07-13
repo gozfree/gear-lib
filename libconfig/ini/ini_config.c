@@ -155,7 +155,7 @@ static int ini_get_boolean(struct config *c, ...)
 static void ini_del(struct config *c, const char *key)
 {
     dictionary *ini = (dictionary *)c->priv;
-    return iniparser_unset(ini, key);
+    iniparser_unset(ini, key);
 }
 
 static void ini_unload(struct config *c)
@@ -172,26 +172,27 @@ static void ini_dump(struct config *c, FILE *f)
 
 static int ini_save(struct config *c)
 {
+    dictionary *ini;
     FILE *f = fopen(c->path, "w+");
     if (!f) {
         return -1;
     }
-    dictionary *ini = (dictionary *)c->priv;
+    ini = (dictionary *)c->priv;
     iniparser_dump_ini(ini, f);
     fclose(f);
     return 0;
 }
 
 struct config_ops ini_ops = {
-    .load        = ini_load,
-    .set_string  = ini_set_string,
-    .get_string  = ini_get_string,
-    .get_int     = ini_get_int,
-    .get_double  = ini_get_double,
-    .get_boolean = ini_get_boolean,
-    .get_length  = NULL,
-    .del         = ini_del,
-    .dump        = ini_dump,
-    .save        = ini_save,
-    .unload      = ini_unload,
+    ini_load,
+    ini_set_string,
+    ini_get_string,
+    ini_get_int,
+    ini_get_double,
+    ini_get_boolean,
+    NULL,
+    ini_del,
+    ini_dump,
+    ini_save,
+    ini_unload,
 };

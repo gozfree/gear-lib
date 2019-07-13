@@ -20,18 +20,24 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libconfig.h"
-#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
+#endif
+#include <libmacro.h>
 #include <errno.h>
 
 
 extern struct config_ops ini_ops;
 extern struct config_ops json_ops;
+#ifdef ENABLE_LUA
 extern struct config_ops lua_ops;
+#endif
 
 struct config *g_config = NULL;
 
@@ -60,13 +66,15 @@ static char *get_file_suffix(const char *name)
 
 static struct config_ops *find_backend(const char *name)
 {
+    int i = 0;
+    int max_list;
+    char *suffix;
     if (!name) {
         printf("config name can not be NULL\n");
         return NULL;
     }
-    int i = 0;
-    int max_list = ARRAY_SIZE(conf_ops_list);
-    char *suffix = get_file_suffix(name);
+    max_list = ARRAY_SIZE(conf_ops_list);
+    suffix = get_file_suffix(name);
     if (!suffix) {
         printf("there is no suffix in config name\n");
         return NULL;
@@ -85,12 +93,13 @@ static struct config_ops *find_backend(const char *name)
 
 struct config *conf_load(const char *name)
 {
+    struct config *c;
     struct config_ops *ops = find_backend(name);
     if (!ops) {
         printf("can not find valid config backend\n");
         return NULL;
     }
-    struct config *c = CALLOC(1, struct config);
+    c = CALLOC(1, struct config);
     if (!c) {
         printf("malloc failed!\n");
         return NULL;
@@ -117,14 +126,14 @@ void conf_del(struct config *c, const char *key)
 {
     if (!c || !c->ops->del)
         return;
-    return c->ops->del(c, key);
+    c->ops->del(c, key);
 }
 
 void conf_dump(struct config *c)
 {
     if (!c || !c->ops->dump)
         return;
-    return c->ops->dump(c, stderr);
+    c->ops->dump(c, stderr);
 }
 
 int conf_save(struct config *c)
@@ -138,7 +147,7 @@ void conf_dump_to_file(FILE *f, struct config *c)
 {
     if (!c || !c->ops->dump)
         return;
-    return c->ops->dump(c, f);
+    c->ops->dump(c, f);
 }
 
 void conf_unload(struct config *c)

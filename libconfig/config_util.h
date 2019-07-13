@@ -23,7 +23,6 @@
 #ifndef CONFIG_UTIL_H
 #define CONFIG_UTIL_H
 
-#define POINTER_ADDR 0x10000000
 
 #define TYPE_EMPTY   0
 #define TYPE_INT     1
@@ -39,16 +38,19 @@ struct int_charp {
 
 /*
  * va_arg_type can get value from ap ignore type
- * if the type is char *, it must be pointer of memory in higher address
- * when the type is int, it always smaller than pointer addr
+ * firstly, try to match "char *", which must be pointer of memory in higher address
+ * if the type is "int", the value force to "char *" will be the real value
+ * because the int value is the index of table in conf file, and should be limited.
+ * so we use MAX_CONF_ENTRY to divide the type of "int" or "char *"
  */
+#define MAX_CONF_ENTRY 4096
 #define va_arg_type(ap, mix)                        \
     do {                                            \
         char *__tmp = va_arg(ap, char *);           \
         if (!__tmp) {                               \
             mix.type = TYPE_EMPTY;                  \
             mix.cval = NULL;                        \
-        } else if (__tmp < (char *)POINTER_ADDR) {  \
+        } else if (__tmp < (char *)MAX_CONF_ENTRY) {\
             mix.type = TYPE_INT;                    \
             mix.ival = *(int *)&__tmp;              \
         } else {                                    \

@@ -21,7 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

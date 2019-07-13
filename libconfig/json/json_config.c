@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libmacro.h>
 #include "libconfig.h"
 #include "config_util.h"
 #include "cJSON.h"
@@ -72,12 +71,13 @@ cleanup:
 
 static int js_load(struct config *c, const char *name)
 {
+    cJSON *json;
     char *buf = read_file(name);
     if (!buf) {
         printf("read_file %s failed!\n", name);
         return -1;
     }
-    cJSON *json = cJSON_Parse(buf);
+    json = cJSON_Parse(buf);
     if (!json) {
         printf("cJSON_Parse failed!\n");
         free(buf);
@@ -95,6 +95,7 @@ static int js_set_string(struct config *c, ...)
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
+    int i;
     va_list ap;
 
     va_start(ap, c);
@@ -107,7 +108,7 @@ static int js_set_string(struct config *c, ...)
     }
     va_end(ap);
 
-    for (int i = 0; i < cnt-1; i++) {
+    for (i = 0; i < cnt-1; i++) {
         switch (type_list[i].type) {
         case TYPE_INT:
             json = cJSON_GetArrayItem(json, type_list[i].ival-1);
@@ -130,6 +131,7 @@ static char *js_get_string(struct config *c, ...)
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
+    int i;
     va_list ap;
 
     va_start(ap, c);
@@ -142,7 +144,7 @@ static char *js_get_string(struct config *c, ...)
     }
     va_end(ap);
 
-    for (int i = 0; i < cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         switch (type_list[i].type) {
         case TYPE_INT:
             json = cJSON_GetArrayItem(json, type_list[i].ival-1);
@@ -164,6 +166,7 @@ static int js_get_int(struct config *c, ...)
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
+    int i;
     va_list ap;
 
     va_start(ap, c);
@@ -176,7 +179,7 @@ static int js_get_int(struct config *c, ...)
     }
     va_end(ap);
 
-    for (int i = 0; i < cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         switch (type_list[i].type) {
         case TYPE_INT:
             json = cJSON_GetArrayItem(json, type_list[i].ival-1);
@@ -198,6 +201,7 @@ static double js_get_double(struct config *c, ...)
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
+    int i;
     va_list ap;
 
     va_start(ap, c);
@@ -210,7 +214,7 @@ static double js_get_double(struct config *c, ...)
     }
     va_end(ap);
 
-    for (int i = 0; i < cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         switch (type_list[i].type) {
         case TYPE_INT:
             json = cJSON_GetArrayItem(json, type_list[i].ival-1);
@@ -232,6 +236,7 @@ static int js_get_boolean(struct config *c, ...)
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
+    int i;
     va_list ap;
 
     va_start(ap, c);
@@ -244,7 +249,7 @@ static int js_get_boolean(struct config *c, ...)
     }
     va_end(ap);
 
-    for (int i = 0; i < cnt; i++) {
+    for (i = 0; i < cnt; i++) {
         switch (type_list[i].type) {
         case TYPE_INT:
             json = cJSON_GetArrayItem(json, type_list[i].ival-1);
@@ -285,15 +290,15 @@ static void js_unload(struct config *c)
 }
 
 struct config_ops json_ops = {
-    .load        = js_load,
-    .set_string  = js_set_string,
-    .get_string  = js_get_string,
-    .get_int     = js_get_int,
-    .get_double  = js_get_double,
-    .get_boolean = js_get_boolean,
-    .get_length  = NULL,
-    .del         = NULL,
-    .dump        = js_dump,
-    .save        = NULL,
-    .unload      = js_unload,
+    js_load,
+    js_set_string,
+    js_get_string,
+    js_get_int,
+    js_get_double,
+    js_get_boolean,
+    NULL,
+    NULL,
+    js_dump,
+    NULL,
+    js_unload,
 };

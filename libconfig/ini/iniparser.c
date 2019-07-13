@@ -7,8 +7,10 @@
 */
 /*--------------------------------------------------------------------------*/
 /*---------------------------- Includes ------------------------------------*/
-#include <ctype.h>
+#include "libconfig.h"
 #include "iniparser.h"
+#include <ctype.h>
+
 
 /*---------------------------- Defines -------------------------------------*/
 #define ASCIILINESZ         (1024)
@@ -63,10 +65,11 @@ static void strlwc(char * s)
 /*--------------------------------------------------------------------------*/
 static void strstrip(char * s)
 {
+    char *last, *dest;
     if (s==NULL) return ;
 
-    char *last = s + strlen(s);
-    char *dest = s;
+    last = s + strlen(s);
+    dest = s;
 
     while (isspace((int)*s) && *s) s++;
     while (last > s) {
