@@ -2,9 +2,9 @@
 
 English | [简体中文](README.cn.md)
 
-[![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
-[![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
-[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.MIT)
+[![Build](https://travis-ci.org/gozfree/gear-lib.svg?branch=master)](https://travis-ci.org/gozfree/gear-lib)
+[![Release](https://img.shields.io/github/release/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/releases)
+[![License](https://img.shields.io/github/license/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/blob/master/LICENSE.MIT)
 
 This is a collection of basic libraries.
 * All are written in POSIX C, aim to used compatibility on x86, arm, android, ios.
@@ -14,11 +14,11 @@ This is a collection of basic libraries.
 |type|name|
 |----|----|
 |data struct|dict hash ringbuffer queue rbtree sort vector macro
-|network|rtsp skt p2p rpc ipc
+|network|rtsp rtmp skt p2p rpc ipc
 |async|gevent workq thread
 |I/O parser|base64 config log file filewatcher strex
 |multi-media|uvc jpeg-ex mp4parser
-|misc|debug hal plugin time
+|misc|debug hal plugin time posix4win
 
 ## How To Build
 
@@ -73,8 +73,3 @@ Please refer to the LICENSE file for detailed information.
 ## Author & Contributing
 Welcome pull request to the libraries.  
 
-|                                               |                                               |
-|-----------------------------------------------|-----------------------------------------------|
-| [CMShuyuhui](https://github.com/CMShuyuhui)   | [core1011](https://github.com/core1011)       |
-| [elfring](https://github.com/elfring)         | [ktsaou](https://github.com/ktsaou)           |
-| [zh794390558](https://github.com/zh794390558) | [gozfree](https://github.com/gozfree)         |

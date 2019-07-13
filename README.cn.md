@@ -2,9 +2,9 @@
 
 [English](README.md) | 简体中文
 
-[![Build](https://travis-ci.org/gozfree/libraries.svg?branch=master)](https://travis-ci.org/gozfree/libraries)
-[![Release](https://img.shields.io/github/release/gozfree/libraries.svg)](https://github.com/gozfree/libraries/releases)
-[![License](https://img.shields.io/github/license/gozfree/libraries.svg)](https://github.com/gozfree/libraries/blob/master/LICENSE.MIT)
+[![Build](https://travis-ci.org/gozfree/gear-lib.svg?branch=master)](https://travis-ci.org/gozfree/gear-lib)
+[![Release](https://img.shields.io/github/release/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/releases)
+[![License](https://img.shields.io/github/license/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/blob/master/LICENSE.MIT)
 
 这是一组通用的Ｃ基础库
 * 全部用POSIX C实现，目标是为了跨平台兼容x86, arm, android, ios.
@@ -14,11 +14,11 @@
 |类型|名称|
 |----|----|
 |基础数据结构|dict hash ringbuffer queue rbtree sort vector macro
-|网络库|rtsp skt p2p rpc ipc
+|网络库|rtsp rtmp skt p2p rpc ipc
 |异步|gevent workq thread
-|I/O解析|base64 config log file filewatcher strex cmd
+|I/O解析|base64 config log file filewatcher strex
 |多媒体|uvc jpeg-ex mp4parser
-|其他|debug hal plugin time
+|其他|debug hal plugin time posix4win
 
 ## 编译方法
 
@@ -78,9 +78,3 @@ Please refer to the LICENSE file for detailed information.
 
 ## 作者与贡献者
 非常欢迎参与开发维护这套基础库
-
-|                                               |                                               |
-|-----------------------------------------------|-----------------------------------------------|
-| [CMShuyuhui](https://github.com/CMShuyuhui)   | [core1011](https://github.com/core1011)       |
-| [elfring](https://github.com/elfring)         | [ktsaou](https://github.com/ktsaou)           |
-| [zh794390558](https://github.com/zh794390558) | [gozfree](https://github.com/gozfree)         |
