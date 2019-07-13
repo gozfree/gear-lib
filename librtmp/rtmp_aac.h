@@ -25,8 +25,6 @@
 #include "librtmp.h"
 #include <stdio.h>
 #include <stdint.h>
-#include <sys/uio.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

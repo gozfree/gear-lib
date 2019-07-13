@@ -23,7 +23,6 @@
 #define RTMP_UTIL_H
 
 #include "librtmp.h"
-#include <sys/uio.h>
 
 #ifdef __cplusplus
 extern "C" {

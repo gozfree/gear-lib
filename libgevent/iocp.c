@@ -72,6 +72,10 @@ static void *iocp_init(void)
     ncpus = get_nprocs();
     c->thread_nums = ncpus * 2;
     c->tids = (pthread_t *)calloc(c->thread_nums, sizeof(pthread_t));
+    if (!c->tids) {
+        printf("malloc tids failed!\n");
+        return NULL;
+    }
 
     c->port = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
     c->is_run = true;
@@ -92,6 +96,9 @@ static void iocp_deinit(void *ctx)
 
 static int iocp_add(struct gevent_base *eb, struct gevent *e)
 {
+    struct iocp_ctx *c = (struct iocp_ctx *)ctx;
+    CreateIoCompletionPort((HANDLE)(PerSocketData->socket), completionPort, (DWORD)PerSocketData, 0); 
+
     return 0;
 }
 

@@ -71,7 +71,7 @@ typedef unsigned char uint8_t;
 
 /* ok, we assume to have the same float word order and byte order if float word order is not defined */
 #ifndef __FLOAT_WORD_ORDER
-#warning "Float word order not defined, assuming the same as byte order!"
+//#info "Float word order not defined, assuming the same as byte order!"
 #define __FLOAT_WORD_ORDER	__BYTE_ORDER
 #endif
 

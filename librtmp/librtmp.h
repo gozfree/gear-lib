@@ -25,9 +25,11 @@
 #include <libqueue.h>
 #include <libthread.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdint.h>
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <stdbool.h>
 #include <sys/uio.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

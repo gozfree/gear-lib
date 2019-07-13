@@ -754,9 +754,9 @@ static inline void hlist_move_list(struct hlist_head *old,
  * @member:	the name of the hlist_node within the struct.
  */
 #define hlist_for_each_entry(pos, pos_type, head, member)				\
-	for (pos = hlist_entry_safe((head)->first, pos_type, member);\
+	for (pos = hlist_entry_safe((head)->first, struct hlist_node, pos_type, member);\
 	     pos;							\
-	     pos = hlist_entry_safe((pos)->member.next, pos_type, member))
+	     pos = hlist_entry_safe((pos)->member.next, struct hlist_node, pos_type, member))
 
 /**
  * hlist_for_each_entry_continue - iterate over a hlist continuing after current point
@@ -764,9 +764,9 @@ static inline void hlist_move_list(struct hlist_head *old,
  * @member:	the name of the hlist_node within the struct.
  */
 #define hlist_for_each_entry_continue(pos, pos_type, member)			\
-	for (pos = hlist_entry_safe((pos)->member.next, pos_type, member);\
+	for (pos = hlist_entry_safe((pos)->member.next, struct hlist_node, pos_type, member);\
 	     pos;							\
-	     pos = hlist_entry_safe((pos)->member.next, pos_type, member))
+	     pos = hlist_entry_safe((pos)->member.next, struct hlist_node, pos_type, member))
 
 /**
  * hlist_for_each_entry_from - iterate over a hlist continuing from current point
@@ -775,7 +775,7 @@ static inline void hlist_move_list(struct hlist_head *old,
  */
 #define hlist_for_each_entry_from(pos, pos_type, member)				\
 	for (; pos;							\
-	     pos = hlist_entry_safe((pos)->member.next, pos_type, member))
+	     pos = hlist_entry_safe((pos)->member.next, struct hlist_node, pos_type, member))
 
 /**
  * hlist_for_each_entry_safe - iterate over list of given type safe against removal of list entry
@@ -784,10 +784,10 @@ static inline void hlist_move_list(struct hlist_head *old,
  * @head:	the head for your list.
  * @member:	the name of the hlist_node within the struct.
  */
-#define hlist_for_each_entry_safe(pos, pos_type, n, head, member) 		\
-	for (pos = hlist_entry_safe((head)->first, pos_type, member);\
+#define hlist_for_each_entry_safe(pos, pos_type, n, n_type, head, member) 		\
+	for (pos = hlist_entry_safe((head)->first, struct hlist_node, pos_type, member);\
 	     pos && ({ n = pos->member.next; 1; });			\
-	     pos = hlist_entry_safe(n, pos_type, member))
+	     pos = hlist_entry_safe(n, n_type, pos_type, member))
 
 
 #ifdef __cplusplus

@@ -9,7 +9,7 @@ RM	= del
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libmacro
+LIBNAME		= libhash
 TGT_LIB_A	= $(LIBNAME).lib
 TGT_LIB_SO	= $(LIBNAME).dll
 TGT_UNIT_TEST	= test_$(LIBNAME).exe
@@ -20,9 +20,11 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /IWIN32-Code /IWIN32-Code/nmake /Iinclude /I.
+CFLAGS	= /IWIN32-Code /IWIN32-Code/nmake /Iinclude /I. /I../libmacro/
 CFLAGS	= $(CFLAGS) /Ox /W3
 
+
+LDFLAGS	= -pthread -ldl
 
 ###############################################################################
 # target

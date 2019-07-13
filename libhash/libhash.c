@@ -132,15 +132,19 @@ uint32_t hash_gen32(const char *key, size_t len)
 
 static struct hash_item *hash_lookup(struct hash *h, const char *key, uint32_t *hash)
 {
-    *hash = hash_gen32(key, strlen(key));
     struct hlist_head *list;
     struct hash_item *hi;
     struct hlist_node *next;
     uint32_t i;
+    *hash = hash_gen32(key, strlen(key));
     i = *hash & (h->bucket-1);
     list = &((struct hlist_head *)h->opaque_list)[i];
 
+#if defined (__linux__) || defined (__CYGWIN__)
     hlist_for_each_entry_safe(hi, next, list, item) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
+#endif
         if ((hi->hash == *hash) && strcmp(hi->key, key) == 0) {
             return hi;
         }
@@ -166,17 +170,19 @@ static struct hash_item *hash_lookup(struct hash *h, const char *key, uint32_t *
 
 struct hash *hash_create(int bucket)
 {
+    int i;
+    struct hlist_head *list;
     struct hash *h = (struct hash *)calloc(1, sizeof(*h));
     if (!h) {
         return NULL;
     }
-    struct hlist_head *list = (struct hlist_head *)calloc(bucket, sizeof(struct hlist_head));
+    list = (struct hlist_head *)calloc(bucket, sizeof(struct hlist_head));
     if (!list) {
         free(h);
         return NULL;
     }
     h->bucket = bucket;
-    for (int i = 0; i < bucket; i++) {
+    for (i = 0; i < bucket; i++) {
         INIT_HLIST_HEAD(&list[i]);
     }
     h->opaque_list = list;
@@ -185,14 +191,20 @@ struct hash *hash_create(int bucket)
 
 void hash_destroy(struct hash *h)
 {
+    int i;
+    struct hlist_head *list;
+    struct hash_item *hi;
+    struct hlist_node *next;
     if (!h) {
         return;
     }
-    struct hlist_head *list = h->opaque_list;
-    for (int i = 0; i < h->bucket; i++) {
-        struct hash_item *hi;
-        struct hlist_node *next;
+    list = h->opaque_list;
+    for (i = 0; i < h->bucket; i++) {
+#if defined (__linux__) || defined (__CYGWIN__)
         hlist_for_each_entry_safe(hi, next, &list[i], item) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+        hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, &list[i], item) {
+#endif
             hlist_del((struct hlist_node *)hi);
             free(hi->key);
             if (h->destory) {
