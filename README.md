@@ -16,7 +16,7 @@ This is a collection of basic libraries.
 |data struct|dict hash ringbuffer queue rbtree sort vector macro
 |network|rtsp rtmp skt p2p rpc ipc
 |async|gevent workq thread
-|I/O parser|base64 config log file filewatcher strex
+|I/O parser|base64 config log file filewatcher strex submask
 |multi-media|uvc jpeg-ex mp4parser
 |misc|debug hal plugin time posix4win
 
