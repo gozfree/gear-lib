@@ -20,7 +20,7 @@ PLATFORM="[linux|pi|android|ios]"
 #basic libraries
 BASIC_LIBS="libmacro libtime liblog libgevent libworkq libdict libhash libsort \
 	    librbtree libringbuffer libthread libconfig libvector libbase64 \
-            libdebug libfile libuvc libmp4parser libqueue libplugin "
+            libdebug libfile libuvc libmp4parser libqueue libplugin libhal libsubmask"
 FRAMEWORK_LIBS="libipc"
 NETWORK_LIBS="libskt librpc librtsp"
 
