@@ -36,10 +36,10 @@ int submask_masktoprefix(const char* ip_str)
 {
     //int ret = 0;
     unsigned int ip_num = 0;
-    unsigned char c1,c2,c3,c4;
+    unsigned int c1,c2,c3,c4;
     int cnt = 0;
 		int i = 0;
-    sscanf(ip_str, "%hhu.%hhu.%hhu.%hhu", &c1, &c2, &c3, &c4);
+    sscanf(ip_str, "%u.%u.%u.%u", &c1, &c2, &c3, &c4);
     ip_num = c1<<24 | c2<<16 | c3<<8 | c4;
 
     // fast...
