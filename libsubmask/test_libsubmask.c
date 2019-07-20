@@ -97,8 +97,8 @@ int foo1()
 {
 	char ipbuf[56];
 	printf("foo1 submask_masktoprefix mask:%s ===> prefix:%d\n","255.255.255.128",submask_masktoprefix("255.255.255.128"));
-	submask_prefixtomask(16,ipbuf);
-	printf("foo1 submask_prefixtomask prefix:%d ===> mask:%s\n",16,ipbuf);
+	submask_prefixtomask(25,ipbuf);
+	printf("foo1 submask_prefixtomask prefix:%d ===> mask:%s\n",25,ipbuf);
 	return 0;
 }
 
