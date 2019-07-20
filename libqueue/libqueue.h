@@ -47,8 +47,12 @@ struct item {
     struct iovec opaque;
 };
 
+struct queue;
+
 typedef void *(alloc_hook)(void *data, size_t len);
 typedef void (free_hook)(void *data);
+typedef void *(push_hook)(struct queue *q, struct item *item);
+typedef void *(pop_hook)(struct queue *q);
 
 
 struct queue {
@@ -60,6 +64,8 @@ struct queue {
     enum queue_mode mode;
     alloc_hook *alloc_hook;
     free_hook *free_hook;
+    push_hook *push_hook;
+    pop_hook *pop_hook;
 };
 
 struct item *item_alloc(struct queue *q, void *data, size_t len);
@@ -70,7 +76,8 @@ void queue_destroy(struct queue *q);
 int queue_set_depth(struct queue *q, int depth);
 int queue_get_depth(struct queue *q);
 int queue_set_mode(struct queue *q, enum queue_mode mode);
-int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb);
+int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb,
+                                    push_hook *push_cb, pop_hook *pop_cb);
 struct item *queue_pop(struct queue *q);
 int queue_push(struct queue *q, struct item *item);
 int queue_flush(struct queue *q);

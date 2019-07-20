@@ -81,13 +81,16 @@ int queue_set_mode(struct queue *q, enum queue_mode mode)
     return 0;
 }
 
-int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb)
+int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb,
+                                    push_hook *push_cb, pop_hook *pop_cb)
 {
     if (!q) {
         return -1;
     }
     q->alloc_hook = alloc_cb;
     q->free_hook = free_cb;
+    q->push_hook = push_cb;
+    q->pop_hook = pop_cb;
     return 0;
 }
 
@@ -115,6 +118,8 @@ struct queue *queue_create()
     q->mode = QUEUE_FULL_FLUSH;
     q->alloc_hook = NULL;
     q->free_hook = NULL;
+    q->push_hook = NULL;
+    q->pop_hook = NULL;
     return q;
 }
 
@@ -174,6 +179,9 @@ int queue_push(struct queue *q, struct item *item)
     pthread_mutex_lock(&q->lock);
     list_add_tail(&item->entry, &q->head);
     ++(q->depth);
+    if (q->push_hook) {
+        q->push_hook(q, item);
+    }
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     if (q->depth > q->max_depth) {
@@ -222,6 +230,9 @@ struct item *queue_pop(struct queue *q)
 
     item = list_first_entry_or_null(&q->head, struct item, entry);
     if (item) {
+        if (q->pop_hook) {
+                q->pop_hook(q);
+        }
         list_del(&item->entry);
         --(q->depth);
     }

@@ -172,7 +172,7 @@ struct rtmp *rtmp_create(const char *url)
         printf("queue_create failed!\n");
         goto failed;
     }
-    queue_set_hook(rtmp->q, item_alloc_hook, item_free_hook);
+    queue_set_hook(rtmp->q, item_alloc_hook, item_free_hook, NULL, NULL);
     rtmp->tmp_buf.iov_len = MAX_NALS_LEN;
     rtmp->tmp_buf.iov_base = calloc(1, MAX_NALS_LEN);
     if (!rtmp->tmp_buf.iov_base) {

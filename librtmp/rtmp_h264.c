@@ -551,12 +551,12 @@ int h264_add(struct rtmp *rtmp, struct iovec *data)
 {
     uint8_t extra[128];
     int extra_len = 0;
-    
+    struct rtmp_h264_info info;
+
     if (-1 == h264_get_extra_data(data->iov_base, data->iov_len, extra, &extra_len)) {
+        printf("h264_get_extra_data failed!\n");
         return -1;
     }
-    
-    struct rtmp_h264_info info;
     if (-1 == get_h264_info(extra + 5, extra_len-5, &info)) {
         printf("get_h264_info failed!\n");
         return -1;
