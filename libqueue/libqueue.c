@@ -52,6 +52,7 @@ struct item *item_alloc(struct queue *q, void *data, size_t len)
         item->data.iov_base = memdup(data, len);
         item->data.iov_len = len;
     }
+    item->ref_cnt = q->branch_cnt;
     return item;
 }
 
@@ -103,6 +104,33 @@ int queue_set_depth(struct queue *q, int depth)
     return 0;
 }
 
+int queue_add_branch(struct queue *q, const char *name)
+{
+    struct queue_branch *qb = CALLOC(1, struct queue_branch);
+    if (!q || !qb || !name) {
+        return -1;
+    }
+    qb->name = strdup(name);
+    list_add_tail(&qb->hook, &q->branch);
+    q->branch_cnt++;
+    return 0;
+}
+
+int queue_del_branch(struct queue *q, const char *name)
+{
+    struct queue_branch *node, *next;
+    list_for_each_entry_safe(node, next, &q->branch, hook) {
+        if (!strcmp(node->name, name)) {
+            list_del(&node->hook);
+            free(node->name);
+            free(node);
+            q->branch_cnt--;
+            return 0;
+        }
+    }
+    return -1;
+}
+
 struct queue *queue_create()
 {
     struct queue *q = CALLOC(1, struct queue);
@@ -111,6 +139,7 @@ struct queue *queue_create()
         return NULL;
     }
     INIT_LIST_HEAD(&q->head);
+    INIT_LIST_HEAD(&q->branch);
     pthread_mutex_init(&q->lock, NULL);
     pthread_cond_init(&q->cond, NULL);
     q->depth = 0;
@@ -120,6 +149,7 @@ struct queue *queue_create()
     q->free_hook = NULL;
     q->push_hook = NULL;
     q->pop_hook = NULL;
+    q->branch_cnt = 0;
     return q;
 }
 
@@ -187,7 +217,6 @@ int queue_push(struct queue *q, struct item *item)
     if (q->depth > q->max_depth) {
         printf("queue depth reach max depth %d\n", q->depth);
     }
-    //printf("push queue depth is %d\n", q->depth);
     return 0;
 }
 
@@ -230,11 +259,14 @@ struct item *queue_pop(struct queue *q)
 
     item = list_first_entry_or_null(&q->head, struct item, entry);
     if (item) {
-        if (q->pop_hook) {
+        --item->ref_cnt;
+        if (item->ref_cnt <= 0) {
+            if (q->pop_hook) {
                 q->pop_hook(q);
+            }
+            list_del(&item->entry);
+            --(q->depth);
         }
-        list_del(&item->entry);
-        --(q->depth);
     }
     pthread_mutex_unlock(&q->lock);
     //printf("pop queue depth is %d\n", q->depth);

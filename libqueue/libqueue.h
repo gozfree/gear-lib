@@ -30,6 +30,14 @@
 #endif
 #include "libmacro.h"
 
+/*
+ * queue is multi-reader single-writer
+ *
+ *                 |-->branch1
+ * t1-->t2-->...-->tN
+ *                 |-->branch2
+ */
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +53,7 @@ struct item {
     struct iovec data;
     struct list_head entry;
     struct iovec opaque;
+    int ref_cnt;
 };
 
 struct queue;
@@ -54,6 +63,11 @@ typedef void (free_hook)(void *data);
 typedef void *(push_hook)(struct queue *q, struct item *item);
 typedef void *(pop_hook)(struct queue *q);
 
+struct queue_branch {
+    char *name;
+    struct list_head hook;
+    struct iovec opaque;
+};
 
 struct queue {
     struct list_head head;
@@ -66,6 +80,8 @@ struct queue {
     free_hook *free_hook;
     push_hook *push_hook;
     pop_hook *pop_hook;
+    struct list_head branch;
+    int branch_cnt;
 };
 
 struct item *item_alloc(struct queue *q, void *data, size_t len);
