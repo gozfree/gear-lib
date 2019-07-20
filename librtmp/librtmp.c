@@ -69,7 +69,7 @@ static void *item_alloc_hook(void *data, size_t len)
     return pkt;
 }
 
-static void item_free_hook(void *data)
+static void *item_free_hook(void *data)
 {
     struct rtmp_packet *pkt = (struct rtmp_packet *)data;
     if (pkt) {
@@ -80,6 +80,7 @@ static void item_free_hook(void *data)
         free(pkt);
         pkt = NULL;
     }
+    return NULL;
 }
 
 struct rtmp *rtmp_create(const char *url)
@@ -172,7 +173,7 @@ struct rtmp *rtmp_create(const char *url)
         printf("queue_create failed!\n");
         goto failed;
     }
-    queue_set_hook(rtmp->q, item_alloc_hook, item_free_hook, NULL, NULL);
+    queue_set_hook(rtmp->q, item_alloc_hook, item_free_hook);
     rtmp->tmp_buf.iov_len = MAX_NALS_LEN;
     rtmp->tmp_buf.iov_base = calloc(1, MAX_NALS_LEN);
     if (!rtmp->tmp_buf.iov_base) {

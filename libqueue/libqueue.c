@@ -24,6 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #if defined (__linux__) || defined (__CYGWIN__)
+#include <unistd.h>
 #include <sys/time.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
@@ -33,7 +34,6 @@
 #include "libqueue.h"
 
 #define QUEUE_MAX_DEPTH 200
-
 struct item *item_alloc(struct queue *q, void *data, size_t len)
 {
     struct item *item;
@@ -82,16 +82,13 @@ int queue_set_mode(struct queue *q, enum queue_mode mode)
     return 0;
 }
 
-int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb,
-                                    push_hook *push_cb, pop_hook *pop_cb)
+int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb)
 {
     if (!q) {
         return -1;
     }
     q->alloc_hook = alloc_cb;
     q->free_hook = free_cb;
-    q->push_hook = push_cb;
-    q->pop_hook = pop_cb;
     return 0;
 }
 
@@ -104,31 +101,9 @@ int queue_set_depth(struct queue *q, int depth)
     return 0;
 }
 
-int queue_add_branch(struct queue *q, const char *name)
+int queue_get_depth(struct queue *q)
 {
-    struct queue_branch *qb = CALLOC(1, struct queue_branch);
-    if (!q || !qb || !name) {
-        return -1;
-    }
-    qb->name = strdup(name);
-    list_add_tail(&qb->hook, &q->branch);
-    q->branch_cnt++;
-    return 0;
-}
-
-int queue_del_branch(struct queue *q, const char *name)
-{
-    struct queue_branch *node, *next;
-    list_for_each_entry_safe(node, next, &q->branch, hook) {
-        if (!strcmp(node->name, name)) {
-            list_del(&node->hook);
-            free(node->name);
-            free(node);
-            q->branch_cnt--;
-            return 0;
-        }
-    }
-    return -1;
+    return q->depth;
 }
 
 struct queue *queue_create()
@@ -147,8 +122,6 @@ struct queue *queue_create()
     q->mode = QUEUE_FULL_FLUSH;
     q->alloc_hook = NULL;
     q->free_hook = NULL;
-    q->push_hook = NULL;
-    q->pop_hook = NULL;
     q->branch_cnt = 0;
     return q;
 }
@@ -209,9 +182,7 @@ int queue_push(struct queue *q, struct item *item)
     pthread_mutex_lock(&q->lock);
     list_add_tail(&item->entry, &q->head);
     ++(q->depth);
-    if (q->push_hook) {
-        q->push_hook(q, item);
-    }
+    queue_branch_notify(q);
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     if (q->depth > q->max_depth) {
@@ -261,19 +232,84 @@ struct item *queue_pop(struct queue *q)
     if (item) {
         --item->ref_cnt;
         if (item->ref_cnt <= 0) {
-            if (q->pop_hook) {
-                q->pop_hook(q);
-            }
             list_del(&item->entry);
             --(q->depth);
         }
     }
     pthread_mutex_unlock(&q->lock);
-    //printf("pop queue depth is %d\n", q->depth);
     return item;
 }
 
-int queue_get_depth(struct queue *q)
+struct queue_branch *queue_branch_add(struct queue *q, const char *name)
 {
-    return q->depth;
+    struct queue_branch *qb = CALLOC(1, struct queue_branch);
+    if (!q || !qb || !name) {
+        return NULL;
+    }
+    if (pipe(qb->fds)) {
+        printf("create pipe failed: %s\n", strerror(errno));
+        return NULL;
+    }
+    qb->name = strdup(name);
+    list_add_tail(&qb->hook, &q->branch);
+    q->branch_cnt++;
+    return qb;
+}
+
+int queue_branch_del(struct queue *q, const char *name)
+{
+    struct queue_branch *qb, *next;
+    list_for_each_entry_safe(qb, next, &q->branch, hook) {
+        if (!strcmp(qb->name, name)) {
+            list_del(&qb->hook);
+            free(qb->name);
+            free(qb);
+            close(qb->fds[0]);
+            close(qb->fds[1]);
+            q->branch_cnt--;
+            return 0;
+        }
+    }
+    return -1;
+}
+
+struct queue_branch *queue_branch_get(struct queue *q, const char *name)
+{
+    struct queue_branch *qb, *next;
+
+    list_for_each_entry_safe(qb, next, &q->branch, hook) {
+        if (!strcmp(qb->name, name)) {
+            return qb;
+        }
+    }
+    return NULL;
+}
+
+int queue_branch_notify(struct queue *q)
+{
+    struct queue_branch *qb, *next;
+    char notify = '1';
+
+    list_for_each_entry_safe(qb, next, &q->branch, hook) {
+        if (write(qb->WR_FD, &notify, sizeof(notify)) != 1) {
+            printf("write pipe failed: %s\n", strerror(errno));
+        }
+    }
+    return 0;
+}
+
+struct item *queue_branch_pop(struct queue *q, const char *name)
+{
+    struct queue_branch *qb, *next;
+    char notify = '1';
+
+    list_for_each_entry_safe(qb, next, &q->branch, hook) {
+        if (!strcmp(qb->name, name)) {
+            if (read(qb->RD_FD, &notify, sizeof(notify)) != 1) {
+                printf("read pipe failed: %s\n", strerror(errno));
+            }
+            return queue_pop(q);
+        }
+    }
+    return NULL;
 }
