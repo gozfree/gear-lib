@@ -38,10 +38,13 @@ void foo()
     int i = 0;
     int len = 48;
     void *p = malloc(len);
+    void *q = NULL;
     for (i = 0; i < len; i++) {
         *((char *)p +i) = i;
     }
-    //DUMP_BUFFER(p, len);
+    q = memdup(p, len);
+    DUMP_BUFFER(p, len);
+    DUMP_BUFFER(q, len);
 }
 
 void unused_macro_tests(void)

@@ -36,7 +36,7 @@ void *memdup(void *src, size_t len)
 {
     void *dst = calloc(1, len);
     if (LIKELY(dst != NULL)) {
-        (void) memcpy(dst, src, len);
+        memcpy(dst, src, len);
     }
     return dst;
 }
