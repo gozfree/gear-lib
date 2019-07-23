@@ -36,19 +36,24 @@ This is a collection of basic libraries.
 ### Linux
   * linux platform (>= Ubuntu14.04 >= gcc-4.8.4 32/64 bit)  
    `$ cd libraries`  
-   `$ ./build.sh`  
-   default debug version，compiler release version  
-   `$ ./build.sh {all|libxxx} linux release`  
-   install  
+   `$ ./build.sh`     
    `$ sudo ./build.sh install`  
+   default debug version，compiler release version  
+   `$ ./build.sh {all|libxxx} linux release`   
+   `$ sudo ./build.sh install linux release`  
    
   * host(linux) target(rasberrypi)  
     (you need download [toolchain of rasberrypi](https://github.com/raspberrypi/tools.git))  
-   `$ ./build.sh all pi`
+   `$ ./build.sh all pi`  
+   default debug version，compiler release version  
+   `$ ./build.sh {all|libxxx} pi release`  
 
   * host(rasberrypi board)  
    `$ ./build.sh`  
    `$ sudo ./build.sh install`  
+   default debug version，compiler release version  
+   `$ ./build.sh {all|libxxx} linux release`  
+   `$ sudo ./build.sh install linux release`  
 
   * android arm cross compile  
    (you need download [android-ndk-r9-linux-x86_64.tar.bz2](http://dl.google.com/android/ndk/android-ndk-r9-linux-x86_64.tar.bz2))  

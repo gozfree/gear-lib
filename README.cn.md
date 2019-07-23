@@ -36,19 +36,24 @@
 ### Linux  
   * linux 平台 (Ubuntu14.04 gcc-4.8.4+及以上版本 32/64 bit)  
    `$ cd libraries`  
-   `$ ./build.sh`  
+   `$ ./build.sh`    
+   `$ sudo ./build.sh install`
    默认debug版本，编译release版本  
    `$ ./build.sh {all|libxxx} linux release`  
-   安装  
-   `$ sudo ./build.sh install`
+   `$ sudo ./build.sh install linux release`  
 
   * host(linux) target(rasberrypi)  
     (you need download [toolchain of rasberrypi](https://github.com/raspberrypi/tools.git))  
    `$ ./build.sh all pi`
+   默认debug版本，编译release版本  
+   `$ ./build.sh {all|libxxx} pi release`  
 
   * host(rasberrypi board)  
    `$ ./build.sh`  
-   `$ sudo ./build.sh install`  
+   `$ sudo ./build.sh install`
+   默认debug版本，编译release版本  
+   `$ ./build.sh {all|libxxx} linux release`  
+   `$ sudo ./build.sh install linux release`  
 
   * android arm 交叉编译  
    (需要下载 [android-ndk-r9-linux-x86_64.tar.bz2](http://dl.google.com/android/ndk/android-ndk-r9-linux-x86_64.tar.bz2))  
