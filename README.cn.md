@@ -16,7 +16,7 @@
 |基础数据结构|dict hash ringbuffer queue rbtree sort vector macro
 |网络库|rtsp rtmp skt p2p rpc ipc
 |异步|gevent workq thread
-|I/O解析|base64 config log file filewatcher strex
+|I/O解析|base64 config log file filewatcher strex submask
 |多媒体|uvc jpeg-ex mp4parser
 |其他|debug hal plugin time posix4win
 
@@ -29,11 +29,17 @@
    `> cd libraries\libposix4win\`  
    `> nmake /f Makefile.nmake clean`  
    `> nmake /f Makefile.nmake`  
+    默认debug版本，编译release版本
+   `> nmake /f Makefile.nmake clean`
+   `> nmake /f Makefile.nmake MODE=release`
 
 ### Linux  
   * linux 平台 (Ubuntu14.04 gcc-4.8.4+及以上版本 32/64 bit)  
    `$ cd libraries`  
-   `$ ./build.sh`  
+   `$ ./build.sh` 
+    默认debug版本，编译release版本
+   `$ ./build.sh {all|libxxx} linux release` 
+    安装
    `$ sudo ./build.sh install`
 
   * host(linux) target(rasberrypi)  
@@ -46,13 +52,16 @@
 
   * android arm 交叉编译  
    (需要下载 [android-ndk-r9-linux-x86_64.tar.bz2](http://dl.google.com/android/ndk/android-ndk-r9-linux-x86_64.tar.bz2))  
-   `$ ./build.sh all android`  
+   `$ ./build.sh all android` 
+   默认debug版本，编译release版本
+   `$ ./build.sh {all|libxxx} android release` 
 
   * android 原生开发  
     also need ndk tools  
    `$ cd android_jni_libs`  
    `$ ndk-build`  
-
+	 默认debug版本，编译release版本
+	 `$ ndk-build MODE=release`  
    After install, the libxxx.xx will be installed in /usr/local/lib/.  
    libxxx.h, libxxx.so or libxxx.a of libraries are also in ./output/$(ARCH)  
 

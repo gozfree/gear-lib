@@ -12,6 +12,7 @@ CC	= ${CROSS_PREFIX}gcc
 CXX	= ${CROSS_PREFIX}g++
 LD	= ${CROSS_PREFIX}ld
 AR	= ${CROSS_PREFIX}ar
+STRIP   = ${CROSS_PREFIX}strip
 
 COLOR	= 1
 CC_V	= $(CC_$(COLOR))
@@ -49,13 +50,18 @@ ifeq ($(ARCH), pi)
 OBJS_LIB	+= chrome_convert.o
 endif
 OBJS_UNIT_TEST	= test_${LIBNAME}.o
-
+ifeq ($(MODE), release)
+CFLAGS	:= -O2 -Wall -Werror -fPIC
+LTYPE   := release
+else
 CFLAGS	:= -g -Wall -Werror -fPIC
+LTYPE   := debug
+endif
 CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 LDFLAGS	:= -lpthread
 LDFLAGS	+= -ljpeg
-LDFLAGS	+= -L$(OUTPUT)/lib
+LDFLAGS	+= -L$(OUTPUT)/$(LTYPE)/lib
 LDFLAGS	+= -llog
 
 .PHONY : all clean
@@ -85,11 +91,12 @@ clean:
 	$(RM_V) -f $(TGT)
 
 install:
+	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	$(CP_V) -r $(TGT_LIB_H)  ${OUTPUT}/include
-	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/lib
-	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/lib
+	$(CP_V) -r $(TGT_LIB_A)  ${OUTPUT}/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO) ${OUTPUT}/$(LTYPE)/lib
 
 uninstall:
-	$(RM_V) -f ${OUTPUT}/include/$(TGT_LIB_H)
-	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_A)
-	$(RM_V) -f ${OUTPUT}/lib/$(TGT_LIB_SO)
+	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f ${OUTPUT}/$(LTYPE)/lib/$(TGT_LIB_A)
+	$(RM_V) -f ${OUTPUT}/$(LTYPE)/lib/$(TGT_LIB_SO)

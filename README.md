@@ -29,11 +29,17 @@ This is a collection of basic libraries.
    `> cd libraries\libposix4win\`  
    `> nmake /f Makefile.nmake clean`  
    `> nmake /f Makefile.nmake`  
-
+	  default debug version, compiler release version
+   `> nmake /f Makefile.nmake clean`
+   `> nmake /f Makefile.nmake MODE=release`
+   
 ### Linux
   * linux platform (>= Ubuntu14.04 >= gcc-4.8.4 32/64 bit)  
    `$ cd libraries`  
    `$ ./build.sh`  
+   default debug version，compiler release version
+   `$ ./build.sh {all|libxxx} linux release` 
+    install
    `$ sudo ./build.sh install`
 
   * host(linux) target(rasberrypi)  
@@ -47,12 +53,15 @@ This is a collection of basic libraries.
   * android arm cross compile  
    (you need download [android-ndk-r9-linux-x86_64.tar.bz2](http://dl.google.com/android/ndk/android-ndk-r9-linux-x86_64.tar.bz2))  
    `$ ./build.sh all android`  
+    default debug version，compiler release version
+   `$ ./build.sh {all|libxxx} android release`
 
   * android naitve develop  
     also need ndk tools  
    `$ cd android_jni_libs`  
    `$ ndk-build`  
-
+    default debug version，compiler release version
+	 `$ ndk-build MODE=release` 
    After install, the libxxx.xx will be installed in /usr/local/lib/.  
    libxxx.h, libxxx.so or libxxx.a of libraries are also in ./output/$(ARCH)  
 

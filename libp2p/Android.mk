@@ -4,6 +4,10 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := libp2p
 
+ifeq ($(MODE), release)
+LOCAL_CFLAGS += -O2
+endif
+
 LIBRARIES_DIR	:= $(LOCAL_PATH)/../
 
 LIBSKT_INC := $(LIBRARIES_DIR)/libskt/

@@ -14,10 +14,16 @@ LIBNAME	= libfoo
 CC	= $(TOOLCHAINS_PREFIX)-gcc
 LD	= $(TOOLCHAINS_PREFIX)-ld
 
+ifeq ($(MODE), release)
+LOCAL_CFLAGS += -O2
+else
+LOCAL_CFLAGS += -g
+endif
+
 INC_PATH = -I$(TOOLCHAINS_INCLUDE) \
 		   -I$(TOOLCHAINS_INCLUDE_FIXED) \
 		   -I$(PLATFORM_INCLUDE)
-CFLAGS	:= $(INC_PATH) -g -Wall \
+CFLAGS	:= $(INC_PATH) $(LOCAL_CFLAGS) -Wall \
 	   -D__ANDROID_APP__ \
 	   -fno-exceptions \
 	   -fno-unwind-tables \

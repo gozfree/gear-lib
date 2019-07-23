@@ -26,7 +26,11 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 # cflags and ldflags
 ###############################################################################
 CFLAGS	= /Iinclude /I../libposix4win/ /I../libmacro/ /I.
-CFLAGS	= $(CFLAGS) /Od /W3 /Zi
+!IF "$(MODE)"=="release"
+CFLAGS  = $(CFLAGS) /Od /GF
+!ELSE
+CFLAGS  = $(CFLAGS) /Od /W3 /Zi
+!ENDIF
 
 LDFLAGS	= /LIBPATH:../libposix4win/ /LIBPATH:../libmacro/ /LIBPATH:./
 

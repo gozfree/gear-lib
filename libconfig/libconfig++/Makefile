@@ -25,6 +25,7 @@ CC	= $(CROSS_PREFIX)gcc
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
+STRIP   = $(CROSS_PREFIX)strip
 
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
@@ -68,7 +69,13 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 CFLAGS_LUA	= `pkg-config --cflags lua5.3`
 CFLAGS_JSON	= `pkg-config --cflags jsoncpp`
+ifeq ($(MODE), release)
+CFLAGS	:= -O2 -Wall -Werror -fPIC
+LTYPE   := release
+else
 CFLAGS	:= -g -Wall -Werror -fPIC
+LTYPE   := debug
+endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 CFLAGS	+= $(CFLAGS_LUA)
@@ -79,7 +86,7 @@ SHARED	:= -shared
 LDFLAGS_LUA	= `pkg-config --libs lua5.3`
 LDFLAGS_JSON	= `pkg-config --libs jsoncpp`
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS += -L$(OUTPUT)/lib -llog
+LDFLAGS += -L$(OUTPUT)/$(LTYPE)/lib -llog
 LDFLAGS	+= -lpthread
 LDFLAGS	+= $(LDFLAGS_LUA)
 LDFLAGS	+= $(LDFLAGS_JSON)
@@ -126,14 +133,15 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
+	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	mkdir -p $(OUTPUT)/include/libgconfig
 	$(CP_V) -dpRf --parents $(TGT_LIB_H)  $(OUTPUT)/include/libgconfig
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
 
 uninstall:
-	$(RM_V) -f $(OUTPUT)/include/libgconfig/$(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/libgconfig/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)

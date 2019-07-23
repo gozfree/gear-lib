@@ -25,6 +25,7 @@ CC	= $(CROSS_PREFIX)gcc
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
+STRIP   = $(CROSS_PREFIX)strip
 
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
@@ -55,7 +56,13 @@ OBJS	+= $(patsubst %.cpp,%.o,$(SRC))
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
+ifeq ($(MODE), release)
+CFLAGS	:= -O2 -Wall -Werror
+LTYPE   := release
+else
 CFLAGS	:= -g -Wall -Werror
+LTYPE   := debug
+endif
 CFLAGS  += -I../
 
 LDFLAGS	:= -lpthread

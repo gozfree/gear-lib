@@ -15,6 +15,7 @@ CC	= $(CROSS_PREFIX)gcc
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
+STRIP   = $(CROSS_PREFIX)strip
 
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
@@ -37,7 +38,13 @@ TGT_UNIT_TEST	= test_$(LIBNAME)
 OBJS_LIB	= $(LIBNAME).o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
+ifeq ($(MODE), release)
+CFLAGS	:= -O2 -Wall -Werror -fPIC
+LTYPE   := release
+else
 CFLAGS	:= -g -Wall -Werror -fPIC
+LTYPE   := debug
+endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 
@@ -74,11 +81,12 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
+	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
 
 uninstall:
-	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
+	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
