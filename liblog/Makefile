@@ -73,6 +73,11 @@ else
 CFLAGS	:= -g -Wall -Werror 
 LTYPE   := debug
 endif
+ifeq ($(OUTPUT),/usr/local)
+OUTLIBPATH := /usr/local
+else
+OUTLIBPATH := $(OUTPUT)/$(LTYPE)
+endif
 ifeq ($(ARCH), win)
 else
 CFLAGS	+= -fPIC
@@ -126,12 +131,12 @@ install:
 	$(MAKEDIR_OUTPUT)
 	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib
 
 uninstall:
 	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)
+	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO_VER)

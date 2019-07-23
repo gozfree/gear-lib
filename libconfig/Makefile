@@ -78,6 +78,11 @@ else
 CFLAGS	:= -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
+ifeq ($(OUTPUT),/usr/local)
+OUTLIBPATH :=/usr/local
+else
+OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
+endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include -I./
 ifeq ($(ENABLE_LUA), 1)
@@ -88,7 +93,7 @@ endif
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS += -L$(OUTPUT)/$(LTYPE)/lib -lmacro
+LDFLAGS += -L$(OUTLIBPATH)/lib -lmacro
 ifeq ($(ENABLE_LUA), 1)
 LDFLAGS	+= `pkg-config --libs lua5.2`
 endif
@@ -135,12 +140,12 @@ install:
 	$(MAKEDIR_OUTPUT)
 	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib
 
 uninstall:
 	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)
+	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO_VER)
