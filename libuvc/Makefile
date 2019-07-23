@@ -17,6 +17,7 @@ CC	= $(CROSS_PREFIX)gcc
 CXX	= $(CROSS_PREFIX)g++
 LD	= $(CROSS_PREFIX)ld
 AR	= $(CROSS_PREFIX)ar
+STRIP   = $(CROSS_PREFIX)strip
 
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
@@ -47,7 +48,13 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
+ifeq ($(MODE), release)
+CFLAGS	:= -O2 -Wall -Werror -fPIC
+LTYPE   := release
+else
 CFLAGS	:= -g -Wall -Werror -fPIC
+LTYPE   := debug
+endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 
@@ -81,7 +88,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTPUT)/lib -lfile
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTPUT)/$(LTYPE)/lib -lfile
 
 clean:
 	$(RM_V) -f $(OBJS)
@@ -92,13 +99,14 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
+	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
 
 uninstall:
-	$(RM_V) -f $(OUTPUT)/include/$(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTPUT)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)

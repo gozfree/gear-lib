@@ -9,6 +9,7 @@ LIBFOO_H=${MODULE}.h
 TEST_LIBFOO_C=test_${MODULE}.c
 README_MD=README.md
 ANDROID_MK=Android.mk
+NMAKE=Makefile.nmake
 VERSION_SH=version.sh
 
 LIBFOO_MACRO=`echo ${MODULE} | tr 'a-z' 'A-Z'`
@@ -103,6 +104,7 @@ CC	= ${S}(CROSS_PREFIX)gcc
 CXX	= ${S}(CROSS_PREFIX)g++
 LD	= ${S}(CROSS_PREFIX)ld
 AR	= ${S}(CROSS_PREFIX)ar
+STRIP   = ${S}(CROSS_PREFIX)strip
 
 ifeq (${S}(COLOR_INC), ${S}(wildcard ${S}(COLOR_INC)))
 include ${S}(COLOR_INC)
@@ -133,7 +135,13 @@ OBJS_UNIT_TEST	= test_${S}(LIBNAME).o
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	:= -g -Wall -Werror -fPIC
+ifeq (${S}(MODE), release)
+CFLAGS  := -O2 -Wall -Werror -fPIC
+LTYPE   := release
+else
+CFLAGS  := -g -Wall -Werror -fPIC
+LTYPE   := debug
+endif
 CFLAGS	+= ${S}(${S}(ARCH)_CFLAGS)
 CFLAGS	+= -I${S}(OUTPUT)/include
 
@@ -178,16 +186,17 @@ clean:
 
 install:
 	${S}(MAKEDIR_OUTPUT)
+	if [ "${S}(MODE)" = "release" ];then ${S}(STRIP) ${S}(TGT); fi
 	${S}(CP_V) -r ${S}(TGT_LIB_H)  ${S}(OUTPUT)/include
-	${S}(CP_V) -r ${S}(TGT_LIB_A)  ${S}(OUTPUT)/lib
-	${S}(CP_V) -r ${S}(TGT_LIB_SO) ${S}(OUTPUT)/lib
-	${S}(CP_V) -r ${S}(TGT_LIB_SO_VER) ${S}(OUTPUT)/lib
+	${S}(CP_V) -r ${S}(TGT_LIB_A)  ${S}(OUTPUT)/${S}(LTYPE)/lib
+	${S}(CP_V) -r ${S}(TGT_LIB_SO) ${S}(OUTPUT)/${S}(LTYPE)/lib
+	${S}(CP_V) -r ${S}(TGT_LIB_SO_VER) ${S}(OUTPUT)/${S}(LTYPE)/lib
 
 uninstall:
-	${S}(RM_V) -f ${S}(OUTPUT)/include/${S}(TGT_LIB_H)
-	${S}(RM_V) -f ${S}(OUTPUT)/lib/${S}(TGT_LIB_A)
-	${S}(RM_V) -f ${S}(OUTPUT)/lib/${S}(TGT_LIB_SO)
-	${S}(RM_V) -f ${S}(OUTPUT)/lib/${S}(TGT_LIB_SO_VER)
+	cd ${S}(OUTPUT)/include/ && rm -f ${S}(TGT_LIB_H)
+	${S}(RM_V) -f ${S}(OUTPUT)/${S}(LTYPE)/lib/${S}(TGT_LIB_A)
+	${S}(RM_V) -f ${S}(OUTPUT)/${S}(LTYPE)/lib/${S}(TGT_LIB_SO)
+	${S}(RM_V) -f ${S}(OUTPUT)/${S}(LTYPE)/lib/${S}(TGT_LIB_SO_VER)
 !
 }
 
@@ -200,6 +209,10 @@ include ${S}(CLEAR_VARS)
 
 LOCAL_MODULE := ${MODULE}
 
+ifeq (${S}(MODE), release)
+LOCAL_CFLAGS += -O2
+endif
+
 LIBRARIES_DIR	:= ${S}(LOCAL_PATH)/../
 
 LOCAL_C_INCLUDES := ${S}(LOCAL_PATH)
@@ -208,6 +221,66 @@ LOCAL_C_INCLUDES := ${S}(LOCAL_PATH)
 LOCAL_SRC_FILES := ${LIBFOO_C}
 
 include ${S}(BUILD_SHARED_LIBRARY)
+!
+}
+
+autogen_makefile_nmake()
+{
+cat > ${NMAKE} <<!
+###############################################################################
+# common
+###############################################################################
+#ARCH: linux/pi/android/ios/win
+LD	= link
+AR	= lib
+RM	= del
+###############################################################################
+# target and object
+###############################################################################
+LIBNAME		= ${MODULE}
+TGT_LIB_A	= ${S}(LIBNAME).lib
+TGT_LIB_SO	= ${S}(LIBNAME).dll
+TGT_UNIT_TEST	= test_${S}(LIBNAME).exe
+
+OBJS_LIB	= ${S}(LIBNAME).obj
+OBJS_UNIT_TEST	= test_${S}(LIBNAME).obj
+
+###############################################################################
+# cflags and ldflags
+###############################################################################
+CFLAGS	= /Iinclude /I.
+!IF "${S}(MODE)"=="release"
+CFLAGS  = ${S}(CFLAGS) /O2 /GF
+!ELSE
+CFLAGS  = ${S}(CFLAGS) /Od /W3 /Zi
+!ENDIF
+
+LDFLAGS	= /NOLOGO
+
+LIBS    = ws2_32.lib
+
+###############################################################################
+# target
+###############################################################################
+TGT	= ${S}(TGT_LIB_A)  ${S}(TGT_LIB_SO) ${S}(TGT_UNIT_TEST)
+
+OBJS	= ${S}(OBJS_LIB) ${S}(OBJS_UNIT_TEST)
+
+all: ${S}(TGT)
+
+${S}(TGT_LIB_A): ${S}(OBJS_LIB)
+	${S}(AR) ${S}(OBJS_LIB) ${S}(LIBS) /o:${S}(TGT_LIB_A)
+
+${S}(TGT_LIB_SO): ${S}(OBJS_LIB)
+	${S}(LD) ${S}(LDFLAGS) /Dll ${S}(OBJS_LIB) ${S}(LIBS) /o:${S}(TGT_LIB_SO)
+
+${S}(TGT_UNIT_TEST): ${S}(OBJS_UNIT_TEST)
+	${S}(CC) ${S}(TGT_LIB_A) ${S}(OBJS_UNIT_TEST) /o ${S}(TGT_UNIT_TEST)
+
+clean:
+	${S}(RM) ${S}(OBJS)
+	${S}(RM) ${S}(TGT)
+	${S}(RM) ${S}(TGT_LIB_SO)*
 !
 }
 
@@ -233,7 +306,7 @@ output=version.h
 
 LIBNAME=\`echo \${libname} | tr 'a-z' 'A-Z'\`
 export version=\${major}.\${minor}.\${patch}
-export buildid=\`git log -1 --pretty=format:"git-%cd-%h" --date=short .\`
+export buildid=\`git log -1 --pretty=format:"git-%cd-%h" --date=short 2>/dev/null\`
 autogen_version_h()
 {
 cat > version.h <<!
@@ -268,6 +341,7 @@ autogen_libfoo_c
 autogen_libfoo_h
 autogen_test_libfoo_c
 autogen_makefile
+autogen_makefile_nmake
 autogen_version_sh
 autogen_android_mk
 autogen_readme_md

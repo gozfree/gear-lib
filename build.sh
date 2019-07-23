@@ -4,15 +4,22 @@ set -e
 CMD=$0
 MODULE=$1
 ARCH=$2
+MODE=$3
 
 #default is linux
 case $# in
 0)
 	MODULE=all;
-	ARCH=linux;;
+	ARCH=linux;
+	MODE=debug;;
 1)
-	ARCH=linux;;
+	ARCH=linux;
+	MODE=debug;;
+2)
+	MODE=debug;;
+	
 esac
+
 
 #add supported platform to here
 PLATFORM="[linux|pi|android|ios]"
@@ -27,22 +34,23 @@ NETWORK_LIBS="libskt librpc librtsp"
 usage()
 {
 	echo "==== usage ===="
-	echo "$CMD <module> [platform]"
+	echo "$CMD <module> [platform] [mode]"
 	echo "<module>: library to compile or all library, must needed"
 	echo "[platform]: linux, raspberrypi or android, default is linux, optional"
+	echo "[mode]: debug or release, default is debug, optional"
 	echo ""
-	echo "./build.sh all $PLATFORM"
-	echo "./build.sh basic_libs $PLATFORM"
-	echo "./build.sh network_libs $PLATFORM"
+	echo "./build.sh all $PLATFORM [debug|release]"
+	echo "./build.sh basic_libs $PLATFORM [debug|release]"
+	echo "./build.sh network_libs $PLATFORM [debug|release]"
 	echo ""
 	echo "basic libraries (must):"
 	for item in $BASIC_LIBS; do
-		echo "$CMD $item $PLATFORM";
+		echo "$CMD $item $PLATFORM [debug|release]";
 	done
 	echo ""
 	echo "network libraries (optional):"
 	for item in $NETWORK_LIBS; do
-		echo "$CMD $item $PLATFORM";
+		echo "$CMD $item $PLATFORM [debug|release]";
 	done
 	exit
 }
@@ -72,7 +80,7 @@ config_common()
 {
 	STRIP=${CROSS_PREFIX}strip
 	LIBS_DIR=`pwd`
-	OUTPUT=${LIBS_DIR}/output/${ARCH}
+	OUTPUT=${LIBS_DIR}/output/${ARCH}/
 }
 
 config_arch()
@@ -93,9 +101,9 @@ config_arch()
 
 check_output()
 {
-	if [ ! -d "${OUTPUT}" ]; then
+	if [ ! -d "${OUTPUT}/debug" ]; then
 		mkdir -p ${OUTPUT}/include
-		mkdir -p ${OUTPUT}/lib
+		mkdir -p ${OUTPUT}/{release,debug}/lib
 	fi
 }
 
@@ -122,7 +130,7 @@ build_module()
 		return
 		;;
 	"install")
-		MAKE="make ARCH=${ARCH}"
+		MAKE="make ARCH=${ARCH} MODE=${MODE}"
 		${MAKE} install > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "==== install ${ARCH} ${MODULE} failed"
@@ -132,7 +140,7 @@ build_module()
 		fi
 		;;
 	"uninstall")
-		MAKE="make ARCH=${ARCH}"
+		MAKE="make ARCH=${ARCH} MODE=${MODE}"
 		${MAKE} uninstall > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "==== uninstall ${ARCH} ${MODULE} failed"
@@ -142,7 +150,7 @@ build_module()
 		fi
 		;;
 	*)
-		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT}"
+		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT} MODE=${MODE}"
 		if [[ ${ARCH} == "linux" || ${ARCH} == "pi" || ${ARCH} == "android" ]]; then
 			${MAKE} > /dev/null
 		else
@@ -176,6 +184,8 @@ do_build()
 {
 	case $MODULE in
 	"all")
+		rm -rf output
+		check_output
 		build_all clean;
 		build_all;;
 	"clean")
