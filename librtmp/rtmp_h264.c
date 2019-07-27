@@ -510,6 +510,55 @@ static void update_timestamp(struct rtmp_packet *pkt)
     rtmp->prev_timestamp += diff;
 }
 
+static int strip_nalu_sps_pps(uint8_t *data, int len)
+{
+    int got_sps = 0, got_pps = 0;
+    int pos = 0;
+    int i = 0, j = 0;
+    int index[16] = {0};
+    while (pos < len - 4) {
+        if (NAL_SLICE_PREFIX((data+pos))) {
+            index[i] = pos;
+            ++i;
+            pos += 3;
+        } else if (NAL_HEADER_PREFIX((data+pos))) {
+            index[i] = pos;
+            ++i;
+            pos += 4;
+        }
+        ++pos;
+    }
+    if (i == 0) {
+        return -1;
+    }
+    for (j = 0; j < i; ++j) {
+        pos = index[j];
+        uint8_t *nal = &data[pos];
+        int nal_type = nal[4] &  0x1F;
+        switch (nal_type) {
+        case H264_NAL_SLICE:
+            break;
+        case H264_NAL_IDR_SLICE:
+            break;
+        case H264_NAL_SEI:
+            break;
+        case H264_NAL_SPS:
+            got_sps = 1;
+            break;
+        case H264_NAL_PPS:
+            got_pps = 1;
+            break;
+        default:
+            printf("nal_type=%d\n", nal_type);
+            break;
+        }
+        if (got_sps && got_pps) {
+            return index[j+1];
+        }
+    }
+    return 0;
+}
+
 int h264_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp)
 {
     if (len <= 4) {
@@ -519,6 +568,11 @@ int h264_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp
     int total_len = 0;
     int key_frame = 0;
     int ret = 0;
+    int offset = strip_nalu_sps_pps(data, len);
+    if (offset) {
+        data += offset;
+        len -= offset;
+    }
 
     ret = h264_parse(data, len, rtmp->tmp_buf.iov_base, &total_len, &key_frame);
     if (ret != 0) {
