@@ -41,8 +41,8 @@
 
 #define RTSP_REQUEST_LEN_MAX	(1024)
 
-static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t ip, uint16_t port);
-static void rtsp_connect_destroy(struct rtsp_server_ctx *rtsp, int fd);
+static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, uint16_t port);
+static void rtsp_connect_destroy(struct rtsp_server *rtsp, int fd);
 
 static void on_recv(int fd, void *arg)
 {
@@ -64,7 +64,7 @@ static void on_recv(int fd, void *arg)
         }
     } else if (rlen == 0) {
         loge("peer connect shutdown\n");
-        rtsp_connect_destroy(req->rtsp_server_ctx, fd);
+        rtsp_connect_destroy(req->rtsp_server, fd);
     } else {
         loge("something error\n");
     }
@@ -75,14 +75,14 @@ static void on_error(int fd, void *arg)
     loge("error: %d\n", errno);
 }
 
-static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t ip, uint16_t port)
+static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, uint16_t port)
 {
     char key[9];
     struct rtsp_request *req = CALLOC(1, struct rtsp_request);
     req->fd = fd;
     req->client.ip = ip;
     req->client.port = port;
-    req->rtsp_server_ctx = rtsp;
+    req->rtsp_server = rtsp;
     req->raw = iovec_create(RTSP_REQUEST_LEN_MAX);
     skt_set_noblk(fd, 1);
     req->event = gevent_create(fd, on_recv, NULL, on_error, req);
@@ -94,7 +94,7 @@ static void rtsp_connect_create(struct rtsp_server_ctx *rtsp, int fd, uint32_t i
     logi("fd = %d, req=%p\n", fd, req);
 }
 
-static void rtsp_connect_destroy(struct rtsp_server_ctx *rtsp, int fd)
+static void rtsp_connect_destroy(struct rtsp_server *rtsp, int fd)
 {
     char key[9];
     snprintf(key, sizeof(key), "%d", fd);
@@ -113,7 +113,7 @@ static void on_connect(int fd, void *arg)
     int afd;
     uint32_t ip;
     uint16_t port;
-    struct rtsp_server_ctx *rtsp = (struct rtsp_server_ctx *)arg;
+    struct rtsp_server *rtsp = (struct rtsp_server *)arg;
 
     afd = skt_accept(fd, &ip, &port);
     if (afd == -1) {
@@ -127,12 +127,12 @@ static void on_connect(int fd, void *arg)
 
 static void *rtsp_thread_event(struct thread *t, void *arg)
 {
-    struct rtsp_server_ctx *rc = (struct rtsp_server_ctx *)arg;
+    struct rtsp_server *rc = (struct rtsp_server *)arg;
     gevent_base_loop(rc->evbase);
     return NULL;
 }
 
-static void media_source_default(struct rtsp_server_ctx *c)
+static void media_source_default(struct rtsp_server *c)
 {
     //const char *name = "H264";
     const char *name = "uvc";
@@ -159,7 +159,7 @@ void connect_pool_destroy(void *pool)
 }
 
 
-static int master_thread_create(struct rtsp_server_ctx *c)
+static int master_thread_create(struct rtsp_server *c)
 {
     struct gevent *e = NULL;
     int fd = skt_tcp_bind_listen(c->host.ip_str, c->host.port);
@@ -197,28 +197,31 @@ failed:
     return -1;
 }
 
-static void destroy_master_thread(struct rtsp_server_ctx *c)
+static void destroy_master_thread(struct rtsp_server *c)
 {
     connect_pool_destroy(c->connect_pool);
-
 }
 
-struct rtsp_server_ctx *rtsp_server_init(const char *ip, uint16_t port)
+struct rtsp_server *rtsp_server_init(const char *ip, uint16_t port)
 {
-    struct rtsp_server_ctx *c = CALLOC(1, struct rtsp_server_ctx);
+    struct rtsp_server *c = CALLOC(1, struct rtsp_server);
     if (!c) {
-        loge("malloc rtsp_server_ctx failed!\n");
+        loge("malloc rtsp_server failed!\n");
         return NULL;
     }
     if (ip) {
         strcpy(c->host.ip_str, ip);
     }
     c->host.port = port;
-    master_thread_create(c);
     return c;
 }
 
-void rtsp_server_deinit(struct rtsp_server_ctx *c)
+int rtsp_server_dispatch(struct rtsp_server *c)
+{
+    return master_thread_create(c);
+}
+
+void rtsp_server_deinit(struct rtsp_server *c)
 {
     destroy_master_thread(c);
     free(c);

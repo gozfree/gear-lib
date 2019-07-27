@@ -36,7 +36,7 @@ endif
 LIBNAME		= librtsp
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
-TGT_LIB_H	= $(LIBNAME).h
+TGT_LIB_H	= $(LIBNAME).h librtsp_server.h media_source.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
@@ -68,7 +68,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -L$(OUTLIBPATH)/lib -pthread -lfile -lskt -lgevent -llog -ldict -lthread -ltime \
-	   -lvector -luvc -lx264 -lmacro
+	   -lvector -luvc -lx264 -lmacro -lqueue
 
 ###############################################################################
 # target

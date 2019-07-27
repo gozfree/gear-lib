@@ -23,7 +23,7 @@
 #define LIBRTSP_H
 
 #include "librtsp_server.h"
-#include "rtp.h"
+#include "media_source.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -100,6 +100,7 @@ static void *send_thread(struct thread *t, void *ptr)
         loge("open failed!\n");
         return NULL;
     }
+    ms->is_active = true;
     unsigned int ssrc = (unsigned int)rtp_ssrc();
     uint64_t pts = time_get_msec();
     unsigned int seq = ssrc;
@@ -117,6 +118,7 @@ static void *send_thread(struct thread *t, void *ptr)
         //usleep(500*1000);
 
     }
+    ms->is_active = false;
     return NULL;
 }
 

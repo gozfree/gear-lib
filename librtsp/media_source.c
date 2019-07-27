@@ -30,14 +30,14 @@
 #define REGISTER_MEDIA_SOURCE(x)                                               \
     {                                                                          \
         extern struct media_source media_source_##x;                           \
-            media_source_register(&media_source_##x);                          \
+            rtsp_media_source_register(&media_source_##x);                     \
     }
 
 static struct media_source *first_media_source = NULL;
 static struct media_source **last_media_source = &first_media_source;
 static int registered = 0;
 
-static void media_source_register(struct media_source *ms)
+void rtsp_media_source_register(struct media_source *ms)
 {
     struct media_source **p = last_media_source;
     ms->next = NULL;
@@ -56,7 +56,7 @@ void media_source_register_all(void)
     REGISTER_MEDIA_SOURCE(uvc);
 }
 
-struct media_source *media_source_lookup(char *name)
+struct media_source *rtsp_media_source_lookup(char *name)
 {
     struct media_source *p;
     for (p = first_media_source; p != NULL; p = p->next) {
