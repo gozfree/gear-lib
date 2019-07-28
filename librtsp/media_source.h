@@ -22,6 +22,7 @@
 #ifndef MEDIA_SOURCE_H
 #define MEDIA_SOURCE_H
 #include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <sys/time.h>
 
@@ -45,11 +46,12 @@ typedef struct media_source {
     void (*close)(struct media_source *ms);
     int (*get_frame)();
     void *opaque;
+    bool is_active;
     struct media_source *next;
 } media_source_t;
 
 void media_source_register_all();
-struct media_source *media_source_lookup(char *name);
+struct media_source *rtsp_media_source_lookup(char *name);
 
 #ifdef __cplusplus
 }

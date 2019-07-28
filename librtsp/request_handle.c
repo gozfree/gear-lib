@@ -126,7 +126,7 @@ static int on_options(struct rtsp_request *req, char *url)
 static int on_describe(struct rtsp_request *req, char *url)
 {
     char buf[RTSP_RESPONSE_LEN_MAX];
-    struct media_source *ms = media_source_lookup(url);
+    struct media_source *ms = rtsp_media_source_lookup(url);
     if (!ms) {
         loge("media_source %s not found\n", url);
         return handle_rtsp_response(req, 404, NULL);
@@ -143,7 +143,7 @@ static int on_setup(struct rtsp_request *req, char *url)
 {
     char buf[RTSP_RESPONSE_LEN_MAX];
     char transport[128];
-    struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
+    struct rtsp_server *rc = req->rtsp_server;
 
     if (-1 == parse_transport(&req->transport, (char *)req->raw->iov_base, req->raw->iov_len)) {
         return handle_rtsp_response(req, 461, NULL);
@@ -205,13 +205,13 @@ static int on_play(struct rtsp_request *req, char *url)
         loge("parse_range failed!\n");
         return -1;
     }
-    struct rtsp_server_ctx *rc = req->rtsp_server_ctx;
+    struct rtsp_server *rc = req->rtsp_server;
     struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
     if (!ts) {
         handle_rtsp_response(req, 454, NULL);
         return -1;
     }
-    struct media_source *ms = media_source_lookup(url);
+    struct media_source *ms = rtsp_media_source_lookup(url);
 
     if (req->range.to > 0) {
         n += snprintf(buf+n, sizeof(buf)-n, "Range: npt=%.3f-%.3f\r\n", (float)(req->range.from / 1000.0f), (float)(req->range.to / 1000.0f));
