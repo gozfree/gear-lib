@@ -361,9 +361,9 @@ static int live_read(struct media_source *ms, void **data, size_t *len)
 }
 
 struct media_source media_source_uvc = {
-    .name = "uvc",
+    .name         = "uvc",
     .sdp_generate = sdp_generate,
-    .open = live_open,
-    .read = live_read,
-    .close = live_close,
+    .open         = live_open,
+    .read         = live_read,
+    .close        = live_close,
 };

@@ -22,14 +22,16 @@
 #ifndef LIBRTSP_SERVER_H
 #define LIBRTSP_SERVER_H
 
+#include <libthread.h>
+#include <libgevent.h>
 #include <libskt.h>
-#include <libdict.h>
+#include "media_source.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct rtsp_server_ctx {
+struct rtsp_server {
     int listen_fd;
     struct skt_addr host;
     struct gevent_base *evbase;
@@ -41,8 +43,10 @@ struct rtsp_server_ctx {
     struct thread *worker_thread;
 };
 
-struct rtsp_server_ctx *rtsp_server_init(const char *host, uint16_t port);
-void rtsp_deinit(struct rtsp_server_ctx *ctx);
+struct rtsp_server *rtsp_server_init(const char *host, uint16_t port);
+int rtsp_server_dispatch(struct rtsp_server *c);
+void rtsp_server_deinit(struct rtsp_server *c);
+int rtsp_media_source_register(struct media_source *ms);
 
 #ifdef __cplusplus
 }

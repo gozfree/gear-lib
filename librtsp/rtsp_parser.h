@@ -97,7 +97,7 @@ typedef struct rtsp_request {
     struct session_header session;
     struct range_header range;
     struct gevent *event;
-    struct rtsp_server_ctx *rtsp_server_ctx;
+    struct rtsp_server *rtsp_server;
 } rtsp_request_t;
 
 int parse_rtsp_request(struct rtsp_request *req);

@@ -233,10 +233,10 @@ static int sdp_generate(struct media_source *ms)
 
 
 struct media_source media_source_h264 = {
-    .name = "H264",
+    .name         = "H264",
     .sdp_generate = sdp_generate,
-    .open = h264_file_open,
-    .read = h264_file_read_frame,
-    .write = h264_file_write,
-    .close = h264_file_close,
+    .open         = h264_file_open,
+    .read         = h264_file_read_frame,
+    .write        = h264_file_write,
+    .close        = h264_file_close,
 };
