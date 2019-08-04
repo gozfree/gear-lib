@@ -152,8 +152,12 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
                 if (e->evcb->ev_timer) {
                     e->evcb->ev_timer(e->evfd, e->evcb->args);
                     if (0 == (what & EPOLLONESHOT)) {
-                        time_t elapse = 0;
-                        read(e->evfd, &elapse, sizeof(elapse));//XXX trigger timer
+                        uint64_t expirations = 0;
+                        int ret = 0;
+                        ret = read(e->evfd, &expirations, sizeof(expirations));//XXX trigger timer
+                        if (ret == EINVAL) {
+                            printf("get expirations failed from timerfd!\n");
+                        }
                     }
                 }
 
