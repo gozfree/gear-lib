@@ -31,8 +31,8 @@ usage()
 
 mkdir_libfoo()
 {
-	mkdir ${MODULE}
-	cd ${MODULE}
+	mkdir gear-lib/${MODULE}
+	cd gear-lib/${MODULE}
 }
 
 autogen_libfoo_h()
@@ -328,6 +328,14 @@ autogen_version_h
 chmod a+x ${VERSION_SH}
 }
 
+link_libfoo()
+{
+	cd ../../include/
+	ln -s ../gear-lib/${LIBFOO_H} .
+	cd ../src/
+	ln -s ../gear-lib/${LIBFOO_C} .
+}
+
 case $# in
 0)
 	usage;
@@ -345,4 +353,5 @@ autogen_makefile_nmake
 autogen_version_sh
 autogen_android_mk
 autogen_readme_md
+link_libfoo
 

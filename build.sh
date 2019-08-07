@@ -79,7 +79,7 @@ config_ios()
 config_common()
 {
 	STRIP=${CROSS_PREFIX}strip
-	LIBS_DIR=`pwd`
+	LIBS_DIR=`pwd`/gear-lib
 	OUTPUT=${LIBS_DIR}/output/${ARCH}/
 }
 
@@ -122,6 +122,7 @@ build_module()
 		return
 	fi
 	cd ${LIBS_DIR}/${MODULE}/
+	echo "cd ${LIBS_DIR}/${MODULE}/"
 
 	case $ACTION in
 	"clean")
