@@ -5,7 +5,7 @@
 ARCH		?= linux
 CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
-BUILD_DIR	:= $(shell pwd)/../../build/
+BUILD_DIR	:= $(shell pwd)/../build/
 ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
 COLOR_INC	:= $(BUILD_DIR)/color.inc
 
@@ -33,7 +33,7 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libuio
+LIBNAME		= libfsm
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
@@ -49,16 +49,11 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 # cflags and ldflags
 ###############################################################################
 ifeq ($(MODE), release)
-CFLAGS	:= -O2 -Wall -Werror -fPIC
+CFLAGS  := -O2 -Wall -Werror -fPIC
 LTYPE   := release
 else
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS  := -g -Wall -Werror -fPIC
 LTYPE   := debug
-endif
-ifeq ($(OUTPUT),/usr/local)
-OUTLIBPATH :=/usr/local
-else
-OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
@@ -106,12 +101,12 @@ install:
 	$(MAKEDIR_OUTPUT)
 	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
 	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
 
 uninstall:
 	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO_VER)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)

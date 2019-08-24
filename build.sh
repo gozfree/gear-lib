@@ -17,7 +17,7 @@ case $# in
 	MODE=debug;;
 2)
 	MODE=debug;;
-	
+
 esac
 
 
@@ -122,7 +122,6 @@ build_module()
 		return
 	fi
 	cd ${LIBS_DIR}/${MODULE}/
-	echo "cd ${LIBS_DIR}/${MODULE}/"
 
 	case $ACTION in
 	"clean")

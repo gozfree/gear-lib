@@ -19,39 +19,72 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBUIO_INTERNAL_H
-#define LIBUIO_INTERNAL_H
+#ifndef LIBFSM_H
+#define LIBFSM_H
 
-#include "libuio.h"
-#include <sys/stat.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct uio_map_t {
-	unsigned long addr;
-	size_t size;
-	size_t offset;
-	char *name;
-	void *map;
+/*
+ *      |------|  event1 |------|
+ *      |state1| ------> |state2|  
+ *      |------| <------ |------|
+ *        | /|\   event2   | /|\
+ *  event3|  | event4      |  |
+ *       \|/ |             |  |
+ *      |------|   event5  |  | event6
+ *      |state3|<-----------  |
+ *      |------|--------------
+ */
+
+typedef int (*fsm_event_handle)(void *arg);
+struct fsm_state;
+
+struct fsm_event {
+    int id;
+    fsm_event_handle *handle;
+    struct fsm_event *prev_state;
+    struct fsm_event *next_state;
+    void *arg;
 };
 
-struct uio_info_t {
-	char *path;
-	char *name;
-	char *version;
-	struct uio_map_t *maps;
-	char *devname;
-	dev_t devid;
-	int maxmap;
-	int fd;
+struct fsm_state {
+    int id;
+    struct fsm_event *enter_event;
+    struct fsm_event *leave_event;
+    void *arg;
 };
 
+struct fsm_graph {
+    struct fsm_state *state_list;
+    struct fsm_event *event_list;
 
-int uio_open (struct uio_info_t* info);
+};
 
+struct fsm {
+    pthread_t tid;
+    struct fsm_graph graph;
+    bool is_running;
+    bool is_exit;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    struct fsm_state *curr_state;
 
+};
+
+struct fsm *fsm_create();
+void fsm_destroy(struct fsm *fsm);
+int fsm_register(struct fsm *fsm, struct fsm_state *state, struct fsm_event *event);
+int fsm_unregister(struct fsm *fsm, struct fsm_state *state, struct fsm_event *event);
+
+int fsm_start(struct fsm *fsm);
+int fsm_stop(struct fsm *fsm);
+int fsm_state_init(struct fsm_state *state);
 
 #ifdef __cplusplus
 }

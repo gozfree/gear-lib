@@ -19,17 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include "libuio_internal.h"
-#include "libuio.h"
+#include "libfsm.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-int uio_open(struct uio_info_t* info)
+int main(int argc, char **argv)
 {
-	return 0;
-}
-
-void uio_close(struct uio_info_t* info)
-{
-
+    return 0;
 }
