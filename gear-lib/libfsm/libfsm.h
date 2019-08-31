@@ -32,7 +32,7 @@ extern "C" {
 
 /*
  *      |------|  event1 |------|
- *      |state1| ------> |state2|  
+ *      |state1| ------> |state2|
  *      |------| <------ |------|
  *        | /|\   event2   | /|\
  *  event3|  | event4      |  |
@@ -43,48 +43,27 @@ extern "C" {
  */
 
 typedef int (*fsm_event_handle)(void *arg);
-struct fsm_state;
 
-struct fsm_event {
-    int id;
-    fsm_event_handle *handle;
-    struct fsm_event *prev_state;
-    struct fsm_event *next_state;
-    void *arg;
-};
-
-struct fsm_state {
-    int id;
-    struct fsm_event *enter_event;
-    struct fsm_event *leave_event;
-    void *arg;
-};
-
-struct fsm_graph {
-    struct fsm_state *state_list;
-    struct fsm_event *event_list;
-
+struct fsm_event_table {
+    int current_state;
+    int trigger_event;
+    int next_state;
+    fsm_event_handle do_action;
 };
 
 struct fsm {
-    pthread_t tid;
-    struct fsm_graph graph;
-    bool is_running;
-    bool is_exit;
+    int curr_state;
+    struct fsm_event_table *table;
+    int table_num;
     pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    struct fsm_state *curr_state;
-
 };
 
 struct fsm *fsm_create();
 void fsm_destroy(struct fsm *fsm);
-int fsm_register(struct fsm *fsm, struct fsm_state *state, struct fsm_event *event);
-int fsm_unregister(struct fsm *fsm, struct fsm_state *state, struct fsm_event *event);
 
-int fsm_start(struct fsm *fsm);
-int fsm_stop(struct fsm *fsm);
-int fsm_state_init(struct fsm_state *state);
+int fsm_state_init(struct fsm *fsm, int state);
+int fsm_action(struct fsm *fsm, int event_id, void *args);
+int fsm_traval(struct fsm *fsm);
 
 #ifdef __cplusplus
 }

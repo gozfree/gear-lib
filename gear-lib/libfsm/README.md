@@ -1,3 +1,3 @@
 ## libfsm
-This is a simple libfsm library.
+This is a simple Finite State Machine library.
 

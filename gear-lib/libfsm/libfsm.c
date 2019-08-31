@@ -23,102 +23,55 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void *_fsm_loop(void *arg)
-{
-    struct fsm *fsm = (struct fsm *)arg;
-    while (1) {
-        if (!fsm->is_running) {
-            pthread_mutex_lock(&fsm->mutex);
-            pthread_cond_wait(&fsm->cond, &fsm->mutex);
-            pthread_mutex_unlock(&fsm->mutex);
-        } else if (fsm->is_exit) {
-            break;
-        } else {
-        }
-    }
-
-    return NULL;
-}
-
 struct fsm *fsm_create()
 {
-    int ret;
     struct fsm *fsm = (struct fsm *)calloc(1, sizeof(struct fsm));
     if (!fsm) {
         printf("malloc failed!\n");
         return NULL;
     }
-    fsm->is_running = false;
-    fsm->is_exit = false;
+    fsm->curr_state = 0;
     pthread_mutex_init(&fsm->mutex, NULL);
-    pthread_cond_init(&fsm->cond, NULL);
-    ret = pthread_create(&fsm->tid, NULL, _fsm_loop, fsm);
-    if (ret) {
-        printf("pthread_create fsm loop failed!\n");
-    }
-
     return fsm;
 }
 
 void fsm_destroy(struct fsm *fsm)
 {
     if (fsm) {
+        pthread_mutex_destroy(&fsm->mutex);
         free(fsm);
     }
 }
 
-struct fsm_state *fsm_state_create(int id, struct fsm_event *enter, struct fsm_event *leave, void *arg)
+int fsm_state_init(struct fsm *fsm, int state)
 {
-    struct fsm_state *state = (struct fsm_state *)calloc(1, sizeof(struct fsm_state));
-    if (!state) {
-        printf("malloc failed!\n");
-        return NULL;
-    }
-    state->id = id;
-    state->enter_event = enter;
-    state->leave_event = leave;
-    state->arg = arg;
-
-    return state;
-}
-
-int fsm_register(struct fsm *fsm, struct fsm_state *state, struct fsm_event *event)
-{
-    if (!fsm || !state || !event) {
-        return -1;
-    }
+    fsm->curr_state = state;
     return 0;
 }
 
-int fsm_start(struct fsm *fsm)
+int fsm_action(struct fsm *fsm, int event_id, void *args)
 {
-    if (!fsm) {
-        return -1;
-    }
-    fsm->is_running = true;
-    fsm->is_exit = false;
+    int i;
+    int ret;
     pthread_mutex_lock(&fsm->mutex);
-    pthread_cond_signal(&fsm->cond);
+    for (i = 0; i < fsm->table_num; ++i) {
+        if (fsm->curr_state == fsm->table[i].current_state)
+            break;
+    }
+    if (i == fsm->table_num) {
+        printf("can not find state %d\n", fsm->curr_state);
+        ret = -1;
+        goto out;
+    }
+    if (event_id != fsm->table[i].trigger_event) {
+        printf("invalid trigger_event[%d] from state[%d] to state[%d]\n", event_id, fsm->curr_state, fsm->table[i].next_state);
+        ret = -1;
+        goto out;
+    }
+    ret = fsm->table[i].do_action(args);
+    printf("change state %d -> %d\n", fsm->curr_state, fsm->table[i].next_state);
+    fsm->curr_state = fsm->table[i].next_state;
+out:
     pthread_mutex_unlock(&fsm->mutex);
-    return 0;
-}
-
-int fsm_stop(struct fsm *fsm)
-{
-    if (!fsm) {
-        return -1;
-    }
-    fsm->is_running = false;
-    fsm->is_exit = false;
-    return 0;
-}
-
-int fsm_exit(struct fsm *fsm)
-{
-    if (!fsm) {
-        return -1;
-    }
-    fsm->is_running = false;
-    fsm->is_exit = true;
-    return 0;
+    return ret;
 }
