@@ -196,7 +196,7 @@ int time_get_info_by_utc(uint32_t utc, struct time_info *ti)
     struct timezone tz;
     struct tm *now;
     char date_fmt[20] = {0};
-    char date_ms[4] = {0};
+    char date_ms[8] = {0};
 
     now = localtime((time_t *)&utc);
     if (!now) {
@@ -230,7 +230,7 @@ int time_get_info_by_msec(uint64_t msec, struct time_info *ti)
     struct timezone tz;
     struct tm *now;
     char date_fmt[20] = {0};
-    char date_ms[4] = {0};
+    char date_ms[8] = {0};
     uint32_t utc;
     uint16_t dot_msec;
 
@@ -271,7 +271,7 @@ int time_get_info(struct time_info *ti)
     struct timezone tz;
     struct tm *now;
     char date_fmt[20] = {0};
-    char date_ms[4] = {0};
+    char date_ms[8] = {0};
 
     if (-1 == time(&utc)) {
         return -1;
