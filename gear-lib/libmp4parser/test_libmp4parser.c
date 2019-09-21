@@ -19,8 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <stdio.h>
 #include "libmp4parser.h"
+#include <stdio.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 int main(int argc, char* argv[])
 {
@@ -32,7 +34,7 @@ int main(int argc, char* argv[])
     uint64_t duration = 0;
     uint32_t w, h;
     mp4_get_duration(mp, &duration);
-    printf("duration = %lu\n", duration);
+    printf("duration = %" PRIu64 "\n", duration);
     mp4_get_resolution(mp, &w, &h);
     printf("resolution = %dx%d\n", (int)w, (int)h);
     mp4_parser_destroy(mp);
