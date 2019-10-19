@@ -1,6 +1,11 @@
+#include <stdio.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #ifdef ESP_OPEN_RTOS
 
@@ -159,4 +164,54 @@ void homekit_mdns_add_txt(const char *key, const char *format, ...) {
 void homekit_mdns_configure_finalize() {
 }
 void homekit_mdns_init() {
+}
+
+#define SPIFLASH_FILE    "spiflash"
+
+int spiflash_read(int addr, void *buf, size_t size)
+{
+    int ret, fd;
+    fd = open(SPIFLASH_FILE, O_RDWR|O_CREAT|O_APPEND, 0644);
+    if (fd == -1) {
+        printf("open %s failed!\n", SPIFLASH_FILE);
+        return -1;
+    }
+    lseek(fd, addr, SEEK_SET);
+    ret = read(fd, buf, size);
+    close(fd);
+    return ret;
+}
+
+int spiflash_write(int addr, void *buf, size_t size)
+{
+    int ret, fd;
+    fd = open(SPIFLASH_FILE, O_RDWR|O_CREAT|O_APPEND, 0644);
+    if (fd == -1) {
+        printf("open %s failed!\n", SPIFLASH_FILE);
+        return -1;
+    }
+    lseek(fd, addr, SEEK_SET);
+    ret = write(fd, buf, size);
+    close(fd);
+    return ret;
+}
+
+int spiflash_erase_sector(int addr)
+{
+    int ret, fd;
+    struct stat buf;
+    void *zero;
+    if (stat(SPIFLASH_FILE, &buf) < 0) {
+        return -1;
+    }
+    fd = open(SPIFLASH_FILE, O_RDWR|O_CREAT|O_APPEND, 0644);
+    if (fd == -1) {
+        printf("open %s failed!\n", SPIFLASH_FILE);
+        return -1;
+    }
+    zero = calloc(1, buf.st_size);
+    ret = write(fd, zero, buf.st_size);
+    close(fd);
+    free(zero);
+    return ret;
 }
