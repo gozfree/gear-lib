@@ -47,6 +47,7 @@ This is a collection of basic libraries.
 * libplugin: Dynamic link plugin
 * libtime: Time wrapper
 * libposix4win: posix adapter for Windows
+* libposix4rtos: posix adapter for FreeRTOS
 
 ## Muiti-Media
 * libuvc: USB video class V4L2/dshow

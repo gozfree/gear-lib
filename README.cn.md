@@ -47,6 +47,7 @@
 * libplugin: 动态加载库
 * libtime: 时间库
 * libposix4win: windows平台poxix适配库
+* libposix4rtos: FreeRTOS平台poxix适配库
 
 ## 多媒体
 * libuvc: USB摄像头库
