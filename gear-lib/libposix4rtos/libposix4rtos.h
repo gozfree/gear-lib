@@ -57,7 +57,7 @@ typedef struct pthread_attr_t {
     const char *thread_name[MAX_THREAD_NAME];
 } pthread_attr_t;
 
-int pthread_create(pthread_t *thread, const pthread_attr_t *attr, 
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine)(void*), void *arg);
 int pthread_join(pthread_t thread, void **retval);
 

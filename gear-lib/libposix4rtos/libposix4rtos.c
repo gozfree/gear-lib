@@ -28,28 +28,29 @@ int msleep(unsigned int msec)
     return 0;
 }
 
-
-static void *__thread_func(void *arg)
+static void __thread_func(void *arg)
 {
-    struct thread *t = (struct thread *)arg;
+    struct pthread_t *t = (struct pthread_t *)arg;
     if (!t->func) {
         printf("thread function is null\n");
-        return NULL;
+        return;
     }
-    t->func(t, t->arg);
+    t->ret = t->func(t->arg);
     vTaskDelete(NULL);
-    return NULL;
 }
 
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine)(void*), void *arg)
 {
     int ret;
+    if (thread == NULL) {
+        return -1;
+    }
     TaskHandle_t *pvCreatedTask = (TaskHandle_t *)calloc(1, sizeof(TaskHandle_t ));
-    TaskFunction_t pvTaskCode = start_routine;
-    const char * const pcName = (attr == NULL) ? NULL : attr->thread_name;
+    TaskFunction_t pvTaskCode = __thread_func;
+    const char * const pcName = (attr == NULL) ? "thread" : attr->thread_name;
     const uint32_t usStackDepth = (attr == NULL) ? 4096 : attr->stack_depth;
-    void * const pvParameters = arg;
+    void * const pvParameters = thread;
     UBaseType_t uxPriority = (attr == NULL) ? 0 : attr->sched_priority;
     thread->func = start_routine;
     thread->arg = arg;
@@ -62,7 +63,12 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 
 int pthread_join(pthread_t thread, void **retval)
 {
-    vTaskDelete(thread.pvCreatedTask);
+    if (!thread.handle)
+        return -1;
+    free(thread.handle);
+    thread.handle = NULL;
+    if (retval)
+        *retval = thread.ret;
     return 0;
 }
 
