@@ -26,14 +26,25 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "freertos/event_groups.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int msleep(unsigned int msec);
-#define sleep(sec) msleep(sec*1000)
+/******************************************************************************
+ * time APIs
+ ******************************************************************************/
+typedef unsigned long useconds_t;
+typedef long time_t;
+struct timespec {
+    time_t tv_sec;
+    long tv_nsec;
+};
+
+int usleep(useconds_t us);
+unsigned int sleep(unsigned int seconds);
 
 
 /******************************************************************************
@@ -57,6 +68,11 @@ typedef struct pthread_attr_t {
     const char *thread_name[MAX_THREAD_NAME];
 } pthread_attr_t;
 
+typedef struct pthread_cond_t {
+    EventGroupHandle_t event;
+    EventBits_t evbits;
+} pthread_cond_t;
+
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine)(void*), void *arg);
 int pthread_join(pthread_t thread, void **retval);
@@ -69,6 +85,11 @@ int pthread_mutex_destroy(pthread_mutex_t *m);
 int pthread_mutex_lock(pthread_mutex_t *m);
 int pthread_mutex_unlock(pthread_mutex_t *m);
 
+int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr);
+int pthread_cond_destroy(pthread_cond_t *cond);
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms);
+int pthread_cond_signal(pthread_cond_t *cond);
 
 #ifdef __cplusplus
 }

@@ -22,9 +22,23 @@
 #include "libposix4rtos.h"
 #include <stdio.h>
 
-int msleep(unsigned int msec)
+int usleep(useconds_t us)
 {
-    vTaskDelay((msec)/portTICK_PERIOD_MS);
+    const int us_per_tick = portTICK_PERIOD_MS * 1000;
+    if (us < us_per_tick) {
+        vTaskDelay(us * portTICK_PERIOD_MS);
+    } else {
+        /* since vTaskDelay(1) blocks for anywhere between 0 and portTICK_PERIOD_MS,
+         * round up to compensate.
+         */
+        vTaskDelay((us + us_per_tick - 1) / us_per_tick);
+    }
+    return 0;
+}
+
+unsigned int sleep(unsigned int seconds)
+{
+    usleep(seconds*1000000UL);
     return 0;
 }
 
@@ -105,5 +119,51 @@ int pthread_mutex_lock(pthread_mutex_t *m)
 int pthread_mutex_unlock(pthread_mutex_t *m)
 {
     xSemaphoreGive(*m);
+    return 0;
+}
+
+int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr)
+{
+    if (!cond) {
+        return -1;
+    }
+    cond->event = xEventGroupCreate();
+    if (!cond->event) {
+        return -1;
+    }
+    cond->evbits = 1;
+    return 0;
+}
+
+int pthread_cond_destroy(pthread_cond_t *cond)
+{
+    if (!cond) {
+        return -1;
+    }
+    vEventGroupDelete(cond->event);
+    return 0;
+}
+
+int pthread_cond_signal(pthread_cond_t *cond)
+{
+    xEventGroupSetBits(cond->event, cond->evbits);
+    return 0;
+}
+
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
+{
+    do {
+        usleep(1000);
+    } while (!(xEventGroupGetBits(cond->event) & cond->evbits))
+    return 0;
+}
+
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms)
+{
+    do {
+        usleep(1000);
+        if (--ms < 0)
+            return -1;
+    } while (!(xEventGroupGetBits(cond->event) & cond->evbits))
     return 0;
 }
