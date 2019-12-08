@@ -603,20 +603,24 @@ int h264_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp
 
 int h264_add(struct rtmp *rtmp, struct iovec *data)
 {
-    uint8_t extra[128];
+#define MAX_EXTRA_LEN   32*1024
     int extra_len = 0;
     struct rtmp_h264_info info;
 
-    if (-1 == h264_get_extra_data(data->iov_base, data->iov_len, extra, &extra_len)) {
+    rtmp->video = (struct rtmp_video_params *)calloc(1, sizeof(struct rtmp_video_params));
+    rtmp->video->extra_data = calloc(1, MAX_EXTRA_LEN);
+    if (!rtmp->video->extra_data) {
+        printf("calloc failed\n");
+        return -1;
+    }
+    if (-1 == h264_get_extra_data(data->iov_base, data->iov_len, rtmp->video->extra_data, &extra_len)) {
         printf("h264_get_extra_data failed!\n");
         return -1;
     }
-    if (-1 == get_h264_info(extra + 5, extra_len-5, &info)) {
+    if (-1 == get_h264_info(rtmp->video->extra_data + 5, extra_len-5, &info)) {
         printf("get_h264_info failed!\n");
         return -1;
     }
-    rtmp->video = (struct rtmp_video_params *)calloc(1, sizeof(struct rtmp_video_params));
-    memcpy(rtmp->video->extra, extra, extra_len);
     rtmp->video->extra_data_len = extra_len;
     rtmp->video->width = info.width;
     rtmp->video->height = info.height;
@@ -650,7 +654,7 @@ int h264_write_header(struct rtmp *rtmp)
     int sps_size,pps_size;
     int startcode_len = 4;
 
-    sps = rtmp->video->extra;
+    sps = rtmp->video->extra_data;
     sps_size = 0;
     for (int i = 4; i < rtmp->video->extra_data_len - 4; i++) {
         if ((AV_RB32(&sps[i]) == 0x00000001) /*|| (AV_RB24(&sps[i]) == 0x000001)*/){

@@ -153,7 +153,7 @@ int rtmp_flush(struct rtmp *rtmp)
 {
     if (RTMP_IsConnected(rtmp->base)) {
 
-        int ret = RTMP_Write(rtmp->base, (const char *)rtmp->buf->data, rtmp->buf->d_cur);
+        int ret = RTMP_Write(rtmp->base, (const char *)rtmp->buf->data, rtmp->buf->d_cur, 0);
         if (ret == -1) {
             printf("RTMP_Write() failed\n");
             return -1;

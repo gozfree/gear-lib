@@ -48,7 +48,7 @@ struct rtmp_video_params {
     int height;
     double framerate;
     int bitrate;
-    uint8_t extra[128];
+    uint8_t *extra_data;
     int extra_data_len;
 };
 
@@ -78,6 +78,7 @@ struct rtmp {
     struct iovec tmp_buf;
     struct thread *thread;
     bool is_run;
+    bool is_start;
     bool is_keyframe_got;
     uint32_t prev_msec;
     uint32_t prev_timestamp;
@@ -96,7 +97,6 @@ struct rtmp *rtmp_create(const char *push_url);
 int rtmp_stream_add(struct rtmp *rtmp, enum rtmp_data_type type, struct iovec *data);
 int rtmp_stream_start(struct rtmp *rtmp);
 void rtmp_stream_stop(struct rtmp *rtmp);
-int rtmp_stream_pause(struct rtmp *rtmp);
 int rtmp_send_data(struct rtmp *rtmp, enum rtmp_data_type type, uint8_t *data, int len, uint32_t timestamp);
 void rtmp_destroy(struct rtmp *rtmp);
 

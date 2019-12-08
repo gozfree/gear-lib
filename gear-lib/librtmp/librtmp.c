@@ -25,6 +25,7 @@
 #include "rtmp_aac.h"
 #include "rtmp_g711.h"
 #include "rtmp.h"
+#include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -85,23 +86,6 @@ static void *item_free_hook(void *data)
 
 struct rtmp *rtmp_create(const char *url)
 {
-    int protocol = RTMP_PROTOCOL_UNDEFINED;
-    AVal hostname = { 0, 0 };
-    unsigned int port = 1935;
-    AVal playpath = { 0, 0 };
-    AVal app = { 0, 0 };
-    AVal tcUrl = { 0, 0 };
-    AVal swfUrl = { 0, 0 };
-    AVal auth = { 0, 0 };
-    AVal swfHash = { 0, 0 };
-    AVal flashVer = { 0, 0 };
-    AVal subscribepath = { 0, 0 };
-    AVal usherToken = { 0, 0 };
-    AVal sockshost = { 0, 0 };
-    AVal pageUrl = { 0, 0 };
-    unsigned int  swfSize = 0;
-    unsigned int dSeek = 0;
-    unsigned int dStopOffset = 0;
     struct rtmp *rtmp = (struct rtmp *)calloc(1, sizeof(struct rtmp));
     if (!rtmp) {
         printf("malloc rtmp failed!\n");
@@ -113,49 +97,25 @@ struct rtmp *rtmp_create(const char *url)
         goto failed;
     }
     RTMP_Init(base);
-    if (!RTMP_ParseURL(url, &protocol, &hostname, &port, &playpath, &app)) {
-        printf("Couldn't parse the url %s", url);
+    RTMP_LogSetLevel(RTMP_LOGINFO);
+
+    if (!RTMP_SetupURL(base, (char *)url)) {
+        printf("RTMP_SetupURL failed!\n");
         goto failed;
     }
-    if (tcUrl.av_len == 0) {
-        char str[512] = { 0 };
-        tcUrl.av_len = snprintf(str, 511, "%s://%.*s:%d/%.*s",RTMPProtocolStringsLower[protocol], hostname.av_len,hostname.av_val, port, app.av_len, app.av_val);
-        tcUrl.av_val = strdup(str);
-    }
-    RTMP_SetupStream(base, protocol, &hostname, port, &sockshost, &playpath,
-                      &tcUrl, &swfUrl, &pageUrl, &app, &auth, &swfHash, swfSize,
-                      &flashVer, &subscribepath,&usherToken, dSeek, dStopOffset, true, 30);
-    uint32_t bufferTime = 10 * 3600 * 1000;
-    RTMP_SetBufferMS(base, bufferTime);
+
     RTMP_EnableWrite(base);
+
+    RTMP_AddStream(base, NULL);
+
     if (!RTMP_Connect(base, NULL)) {
         printf("RTMP_Connect failed!\n");
         goto failed;
     }
-    if (!RTMP_ConnectStream(base, dSeek)){
+    if (!RTMP_ConnectStream(base, 0)){
         printf("RTMP_ConnectStream failed!\n");
         goto failed;
     }
-
-    RTMPPacket pack;
-    RTMPPacket_Alloc(&pack, 4);
-    pack.m_packetType = RTMP_PACKET_TYPE_CHUNK_SIZE;
-    pack.m_nChannel = 0x02;
-    pack.m_headerType = RTMP_PACKET_SIZE_LARGE;
-    pack.m_nTimeStamp = 0;
-    pack.m_nInfoField2 = 0;
-    pack.m_nBodySize = 4;
-    int nVal = RTMP_PKT_SIZE;
-    pack.m_body[3] = nVal & 0xff;
-    pack.m_body[2] = nVal >> 8;
-    pack.m_body[1] = nVal >> 16;
-    pack.m_body[0] = nVal >> 24;
-    base->m_outChunkSize = nVal;
-    if (FALSE == RTMP_SendPacket(base, &pack, 1)) {
-        printf("RTMP_SendPacket failed!\n");
-        goto failed;
-    }
-    RTMPPacket_Free(&pack);
 
     rtmp->buf = calloc(1, sizeof(struct rtmp_private_buf));
     if (!rtmp->buf) {
@@ -182,6 +142,7 @@ struct rtmp *rtmp_create(const char *url)
     }
     rtmp->base = base;
     rtmp->is_run = false;
+    rtmp->is_start = false;
     rtmp->is_keyframe_got = false;
     rtmp->prev_msec = 0;
     rtmp->prev_timestamp = 0;
@@ -199,7 +160,6 @@ failed:
             free(rtmp->buf->data);
         }
         free(rtmp);
-        RTMPPacket_Free(&pack);
     }
     return NULL;
 }
@@ -402,6 +362,7 @@ void rtmp_stream_stop(struct rtmp *rtmp)
     if (rtmp) {
         thread_destroy(rtmp->thread);
         rtmp->thread = NULL;
+        rtmp->is_start = false;
     }
 }
 
@@ -410,10 +371,16 @@ int rtmp_stream_start(struct rtmp *rtmp)
     if (!rtmp) {
         return -1;
     }
+    if (rtmp->is_start) {
+        printf("rtmp stream already start!\n");
+        return -1;
+    }
     rtmp->thread = thread_create(rtmp_stream_thread, rtmp);
     if (!rtmp->thread) {
+        rtmp->is_start = false;
         printf("thread_create failed!\n");
         return -1;
     }
+    rtmp->is_start = true;
     return 0;
 }
