@@ -67,6 +67,8 @@ struct uvc_ops {
     int (*write)(struct uvc_ctx *c, void *buf, size_t len);
     int (*ioctl)(struct uvc_ctx *c, uint32_t cid, int value);
     int (*print_info)(struct uvc_ctx *c);
+    int (*start_stream)(struct uvc_ctx *c);
+    int (*stop_stream)(struct uvc_ctx *c);
 };
 
 
@@ -76,6 +78,8 @@ int uvc_read(struct uvc_ctx *c, void *buf, size_t len);
 int uvc_ioctl(struct uvc_ctx *c, uint32_t cmd, void *buf, int len);
 void uvc_close(struct uvc_ctx *c);
 
+int uvc_start_stream(struct uvc_ctx *uvc);
+int uvc_stop_stream(struct uvc_ctx *uvc);
 
 #ifdef __cplusplus
 }

@@ -76,6 +76,16 @@ int uvc_read(struct uvc_ctx *uvc, void *buf, size_t len)
     return uvc->ops->read(uvc, buf, len);
 }
 
+int uvc_start_stream(struct uvc_ctx *uvc)
+{
+    return uvc->ops->start_stream(uvc);
+}
+
+int uvc_stop_stream(struct uvc_ctx *uvc)
+{
+    return uvc->ops->stop_stream(uvc);
+}
+
 int uvc_ioctl(struct uvc_ctx *uvc, uint32_t cmd, void *buf, int len)
 {
     struct video_ctrl *vctrl;

@@ -53,6 +53,7 @@ CFLAGS	:= -O2 -Wall -Werror -fPIC
 LTYPE   := release
 else
 CFLAGS	:= -g -Wall -Werror -fPIC
+# -DHAVE_LIBV4L2
 LTYPE   := debug
 endif
 ifeq ($(OUTPUT),/usr/local)
@@ -67,6 +68,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
+# -lv4l2
 
 ###############################################################################
 # target
