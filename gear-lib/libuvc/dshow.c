@@ -1137,4 +1137,5 @@ struct uvc_ops dshow_ops = {
     NULL,
     NULL,
     NULL,
+    NULL,
 };

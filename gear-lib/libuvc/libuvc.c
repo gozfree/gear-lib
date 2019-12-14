@@ -26,6 +26,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #if defined (__linux__) || defined (__CYGWIN__)
 extern struct uvc_ops v4l2_ops;
@@ -41,11 +42,6 @@ static struct uvc_ops *uvc_ops[] = {
 #endif
     NULL
 };
-
-int uvc_print_info(struct uvc_ctx *c)
-{
-    return c->ops->print_info(c);
-}
 
 struct uvc_ctx *uvc_open(const char *dev, int width, int height)
 {
@@ -70,14 +66,17 @@ failed:
 
 int uvc_read(struct uvc_ctx *uvc, void *buf, size_t len)
 {
-    if (-1 == uvc->ops->write(uvc, NULL, 0)) {
+    if (-1 == uvc->ops->enqueue(uvc, NULL, 0)) {
         return -1;
     }
-    return uvc->ops->read(uvc, buf, len);
+    return uvc->ops->dequeue(uvc, buf, len);
 }
 
-int uvc_start_stream(struct uvc_ctx *uvc)
+int uvc_start_stream(struct uvc_ctx *uvc, on_stream_data *strm_cb)
 {
+    uvc->on_data = strm_cb;
+    if (strm_cb) {
+    }
     return uvc->ops->start_stream(uvc);
 }
 
@@ -86,19 +85,25 @@ int uvc_stop_stream(struct uvc_ctx *uvc)
     return uvc->ops->stop_stream(uvc);
 }
 
-int uvc_ioctl(struct uvc_ctx *uvc, uint32_t cmd, void *buf, int len)
+int uvc_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 {
+    void *arg;
+    va_list ap;
+    va_start(ap, cmd);
+    arg = va_arg(ap, void *);
+    va_end(ap);
+
     struct video_ctrl *vctrl;
     switch (cmd) {
     case UVC_GET_CAP:
-        uvc->ops->print_info(uvc);
+        uvc->ops->ioctl(uvc, cmd, NULL);
         break;
     case UVC_SET_CTRL:
-        vctrl = (struct video_ctrl *)buf;
+        vctrl = (struct video_ctrl *)arg;
         uvc->ops->ioctl(uvc, vctrl->cmd, vctrl->val);
         break;
     default:
-        printf("cmd %d not supported yet!\n", cmd);
+        printf("cmd %lu not supported yet!\n", cmd);
         break;
     }
     return 0;

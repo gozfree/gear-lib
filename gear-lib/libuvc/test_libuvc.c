@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
 
 #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
@@ -39,10 +41,10 @@ int main(int argc, char **argv)
     struct file *fp;
     void *frm = calloc(1, flen);
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
-    uvc_print_info(uvc);
+    uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open("uvc.yuv", F_CREATE);
-    uvc_start_stream(uvc);
-    for (i = 0; i < 64; ++i) {
+    uvc_start_stream(uvc, NULL);
+    for (i = 0; i < 32; ++i) {
         memset(frm, 0, flen);
         size = uvc_read(uvc, frm, flen);
         if (size == -1) {
@@ -51,7 +53,6 @@ int main(int argc, char **argv)
         file_write(fp, frm, size);
     }
     file_close(fp);
-    uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     uvc_stop_stream(uvc);
     uvc_close(uvc);
     return 0;
