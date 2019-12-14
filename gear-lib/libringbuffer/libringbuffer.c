@@ -28,7 +28,7 @@
 #define MAX(a, b)           ((a) > (b) ? (a) : (b))
 #define CALLOC(size, type)  (type *)calloc(size, sizeof(type))
 
-int rb_get_space_free(struct ringbuffer *rb)
+size_t rb_get_space_free(struct ringbuffer *rb)
 {
     if (!rb) {
         return -1;
@@ -40,7 +40,7 @@ int rb_get_space_free(struct ringbuffer *rb)
     }
 }
 
-int rb_get_space_used(struct ringbuffer *rb)
+size_t rb_get_space_used(struct ringbuffer *rb)
 {
     if (!rb) {
         return -1;
@@ -95,13 +95,24 @@ ssize_t rb_write(struct ringbuffer *rb, const void *buf, size_t len)
     if (!rb) {
         return -1;
     }
-    int left = rb_get_space_free(rb);
-    if ((int)len > left) {
-        printf("Not enough space: %zu request, %d available\n", len, left);
+    size_t left = rb_get_space_free(rb);
+    if (len > left) {
+        printf("Not enough space: %zu request, %zu available\n", len, left);
         return -1;
     }
-    memcpy(rb_end_ptr(rb), buf, len);
-    rb->end = (rb->end + len) % rb->length;
+
+    if ((rb->length - rb->end) < len) {
+        int half_tail = rb->length - rb->end;
+        memcpy(rb_end_ptr(rb), buf, half_tail);
+        rb->end = (rb->end + half_tail) % rb->length;
+
+        int half_head = len - half_tail;
+        memcpy(rb_end_ptr(rb), buf+half_tail, half_head);
+        rb->end = (rb->end + half_head) % rb->length;
+    } else {
+        memcpy(rb_end_ptr(rb), buf, len);
+        rb->end = (rb->end + len) % rb->length;
+    }
     return len;
 }
 
@@ -111,30 +122,52 @@ ssize_t rb_read(struct ringbuffer *rb, void *buf, size_t len)
         return -1;
     }
     size_t rlen = MIN(len, rb_get_space_used(rb));
-    memcpy(buf, rb_start_ptr(rb), rlen);
-    rb->start = (rb->start + rlen) % rb->length;
+
+    if ((rb->length - rb->start) < rlen) {
+        int half_tail = rb->length - rb->start;
+        memcpy(buf, rb_start_ptr(rb), half_tail);
+        rb->start = (rb->start + half_tail) % rb->length;
+
+        int half_head = rlen - half_tail;
+        memcpy(buf+half_tail, rb_start_ptr(rb), half_head);
+        rb->start = (rb->start + half_head) % rb->length;
+    } else {
+        memcpy(buf, rb_start_ptr(rb), rlen);
+        rb->start = (rb->start + rlen) % rb->length;
+    }
+
     if ((rb->start == rb->end) || (rb_get_space_used(rb) == 0)) {
         rb->start = rb->end = 0;
     }
     return rlen;
 }
 
-void *rb_dump(struct ringbuffer *rb, int *blen)
+void *rb_dump(struct ringbuffer *rb, size_t *blen)
 {
     if (!rb) {
         return NULL;
     }
     void *buf = NULL;
-    int len = rb_get_space_used(rb);
-    if (len > 0) {
-        buf = calloc(1, len);
-        if (!buf) {
-            printf("malloc %d failed!\n", len);
-            return NULL;
-        }
+    size_t len = rb_get_space_used(rb);
+    if (len <= 0) {
+        return NULL;
+    }
+    buf = calloc(1, len);
+    if (!buf) {
+        printf("malloc %zu failed!\n", len);
+        return NULL;
     }
     *blen = len;
-    memcpy(buf, rb_start_ptr(rb), len);
+
+    if ((rb->length - rb->start) < len) {
+        int half_tail = rb->length - rb->start;
+        memcpy(buf, rb_start_ptr(rb), half_tail);
+
+        int half_head = len - half_tail;
+        memcpy(buf+half_tail, rb->buffer, half_head);
+    } else {
+        memcpy(buf, rb_start_ptr(rb), len);
+    }
     return buf;
 }
 

@@ -29,16 +29,16 @@ int foo()
     struct ringbuffer *rb = rb_create(1024);
     const char *tmp = "hello world";
     ssize_t ret = 0;
-    int len = 0;
+    size_t len = 0;
     for (int i = 0; i < 100; i++) {
-        printf("free=%d, used=%d\n", rb_get_space_free(rb), rb_get_space_used(rb));
+        printf("free=%zu, used=%zu\n", rb_get_space_free(rb), rb_get_space_used(rb));
         ret = rb_write(rb, tmp, strlen(tmp));
         if (ret < 0) {
             break;
         }
     }
     printf("dump = %s\n", (char *)rb_dump(rb, &len));
-    printf("rb_write len=%d\n", len);
+    printf("rb_write len=%zu\n", len);
     char tmp2[9];
     memset(tmp2, 0, sizeof(tmp2));
     rb_read(rb, tmp2, sizeof(tmp2)-1);
