@@ -628,9 +628,10 @@ static void v4l2_prepare_frame(struct v4l2_ctx *vc,
     }
 }
 
-static int v4l2_buf_enqueue(struct v4l2_ctx *vc)
+static int uvc_v4l2_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
 {
-    struct v4l2_buffer buf = {
+    struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
+    struct v4l2_buffer qbuf = {
         .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
         .memory = V4L2_MEMORY_MMAP,
         .index = vc->buf_index
@@ -639,7 +640,7 @@ static int v4l2_buf_enqueue(struct v4l2_ctx *vc)
     if (vc->qbuf_done) {
         return 0;
     }
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_QBUF, &buf)) {
+    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_QBUF, &qbuf)) {
         printf("%s ioctl(VIDIOC_QBUF) failed: %d\n", __func__, errno);
         return -1;
     }
@@ -647,13 +648,14 @@ static int v4l2_buf_enqueue(struct v4l2_ctx *vc)
     return 0;
 }
 
-static int v4l2_buf_dequeue(struct v4l2_ctx *vc, struct uvc_frame *frame)
+static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct uvc_frame *frame)
 {
     int retry_cnt = 0;
     uint8_t *start;
     size_t plane_offsets[MAX_AV_PLANES];
     struct v4l2_buffer qbuf;
 
+    struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
     if (!vc->qbuf_done) {
         printf("v4l2 need VIDIOC_QBUF first!\n");
         return -1;
@@ -697,36 +699,6 @@ retry:
     frame->size = qbuf.bytesused;
 
     return frame->size;
-}
-
-static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, void *buf, size_t len)
-{
-    struct uvc_frame frame;
-    int flen;
-    struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
-
-    flen = v4l2_buf_dequeue(vc, &frame);
-    if (flen == -1) {
-        printf("v4l2 dequeue failed!\n");
-        return -1;
-    }
-    if (flen > len) {
-        printf("v4l2 frame is %d bytes, but buffer len is %zu, not enough!\n",
-             flen, len);
-        return -1;
-    }
-    if (len < (int)frame.size) {
-        printf("error occur!\n");
-        return -1;
-    }
-    memcpy(buf, frame.data[vc->buf_index], frame.size);
-    return frame.size;
-}
-
-static int uvc_v4l2_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
-{
-    struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
-    return v4l2_buf_enqueue(vc);
 }
 
 static void uvc_v4l2_close(struct uvc_ctx *uvc)

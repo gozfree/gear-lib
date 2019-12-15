@@ -64,12 +64,12 @@ failed:
     return NULL;
 }
 
-int uvc_read(struct uvc_ctx *uvc, void *buf, size_t len)
+int uvc_query_frame(struct uvc_ctx *uvc, struct uvc_frame *frame)
 {
     if (-1 == uvc->ops->enqueue(uvc, NULL, 0)) {
         return -1;
     }
-    return uvc->ops->dequeue(uvc, buf, len);
+    return uvc->ops->dequeue(uvc, frame);
 }
 
 int uvc_start_stream(struct uvc_ctx *uvc, on_stream_data *strm_cb)

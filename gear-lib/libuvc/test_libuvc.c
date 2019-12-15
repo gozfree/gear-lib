@@ -36,21 +36,20 @@
 int main(int argc, char **argv)
 {
     int i = 0;
-    int flen = 2 * 640 * 480;
     int size = 0;
     struct file *fp;
-    void *frm = calloc(1, flen);
+    struct uvc_frame frm;
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
     uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open("uvc.yuv", F_CREATE);
     uvc_start_stream(uvc, NULL);
     for (i = 0; i < 32; ++i) {
-        memset(frm, 0, flen);
-        size = uvc_read(uvc, frm, flen);
+        memset(&frm, 0, sizeof(frm));
+        size = uvc_query_frame(uvc, &frm);
         if (size == -1) {
             continue;
         }
-        file_write(fp, frm, size);
+        file_write(fp, frm.data[0], frm.size);
     }
     file_close(fp);
     uvc_stop_stream(uvc);

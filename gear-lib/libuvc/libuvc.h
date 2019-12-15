@@ -75,7 +75,7 @@ struct video_ctrl {
 struct uvc_ops {
     void *(*open)(struct uvc_ctx *uvc, const char *dev, int width, int height);
     void (*close)(struct uvc_ctx *c);
-    int (*dequeue)(struct uvc_ctx *c, void *buf, size_t len);
+    int (*dequeue)(struct uvc_ctx *c, struct uvc_frame *frame);
     int (*enqueue)(struct uvc_ctx *c, void *buf, size_t len);
     int (*ioctl)(struct uvc_ctx *c, unsigned long int cmd, ...);
     int (*print_info)(struct uvc_ctx *c);
@@ -84,12 +84,12 @@ struct uvc_ops {
 };
 
 struct uvc_ctx *uvc_open(const char *dev, int width, int height);
-int uvc_read(struct uvc_ctx *c, void *buf, size_t len);
 int uvc_ioctl(struct uvc_ctx *c, unsigned long int cmd, ...);
 void uvc_close(struct uvc_ctx *c);
 
 int uvc_start_stream(struct uvc_ctx *uvc, on_stream_data *strm_cb);
 int uvc_stop_stream(struct uvc_ctx *uvc);
+int uvc_query_frame(struct uvc_ctx *c, struct uvc_frame *frame);
 
 #ifdef __cplusplus
 }
