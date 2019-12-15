@@ -164,11 +164,9 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, int width, int 
     }
     vc->name = strdup(dev);
     vc->fd = fd;
-    vc->width = width;
-    vc->height = height;
+
     vc->channel = -1;
     vc->standard = -1;
-    vc->resolution = -1;
     vc->framerate = -1;
     vc->dv_timing = -1;
 
@@ -176,12 +174,18 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, int width, int 
         printf("v4l2_init failed\n");
         goto failed;
     }
+
+    vc->resolution = v4l2_pack_tuple(width, height);
+
     if (-1 == v4l2_set_format(vc->fd, &vc->resolution, &vc->pixfmt, &vc->linesize)) {
         printf("v4l2_set_format failed\n");
         goto failed;
     }
 
     v4l2_unpack_tuple(&vc->width, &vc->height, vc->resolution);
+    if (vc->width != width || vc->height != height) {
+        printf("v4l2 format is forced to %dx%d\n", vc->width, vc->height);
+    }
 
     /* set framerate */
     if (v4l2_set_framerate(vc->fd, &vc->framerate) < 0) {
