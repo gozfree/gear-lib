@@ -593,10 +593,10 @@ static int v4l2_create_mmap(struct v4l2_ctx *vc)
 }
 
 static void v4l2_prepare_frame(struct v4l2_ctx *vc,
-                struct uvc_frame *frame, size_t *plane_offsets)
+                struct video_frame *frame, size_t *plane_offsets)
 {
-    memset(frame, 0, sizeof(struct uvc_frame));
-    memset(plane_offsets, 0, sizeof(size_t) * MAX_AV_PLANES);
+    memset(frame, 0, sizeof(struct video_frame));
+    memset(plane_offsets, 0, sizeof(size_t) * VIDEO_MAX_PLANES);
 
     frame->width = vc->width;
     frame->height = vc->height;
@@ -648,11 +648,11 @@ static int uvc_v4l2_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
     return 0;
 }
 
-static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct uvc_frame *frame)
+static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
 {
     int retry_cnt = 0;
     uint8_t *start;
-    size_t plane_offsets[MAX_AV_PLANES];
+    size_t plane_offsets[VIDEO_MAX_PLANES];
     struct v4l2_buffer qbuf;
 
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
@@ -693,7 +693,7 @@ retry:
 
     vc->prev_ts = frame->timestamp;
     start = (uint8_t *)vc->buf[qbuf.index].iov_base;
-    for (int i = 0; i < MAX_AV_PLANES; ++i) {
+    for (int i = 0; i < VIDEO_MAX_PLANES; ++i) {
         frame->data[i] = start + plane_offsets[i];
     }
     frame->size = qbuf.bytesused;

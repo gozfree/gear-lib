@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     int i = 0;
     int size = 0;
     struct file *fp;
-    struct uvc_frame frm;
+    struct video_frame frm;
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
     uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open("uvc.yuv", F_CREATE);

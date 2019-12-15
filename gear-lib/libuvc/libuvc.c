@@ -64,7 +64,7 @@ failed:
     return NULL;
 }
 
-int uvc_query_frame(struct uvc_ctx *uvc, struct uvc_frame *frame)
+int uvc_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
 {
     if (-1 == uvc->ops->enqueue(uvc, NULL, 0)) {
         return -1;

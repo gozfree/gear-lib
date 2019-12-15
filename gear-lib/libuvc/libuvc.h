@@ -31,6 +31,8 @@
 #include "libposix4win.h"
 #endif
 
+#include <libmedia-io.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,17 +40,6 @@ extern "C" {
 struct uvc_ctx;
 struct uvc_ops;
 typedef int (*on_stream_data)(struct uvc_ctx *c, void *data, size_t len);
-
-#define MAX_AV_PLANES 8
-struct uvc_frame {
-    uint8_t *data[MAX_AV_PLANES];
-    uint32_t linesize[MAX_AV_PLANES];
-    uint32_t width;
-    uint32_t height;
-    uint64_t timestamp;//ns
-    uint64_t size;
-    uint64_t id;
-};
 
 struct uvc_ctx {
     int fd;
@@ -75,7 +66,7 @@ struct video_ctrl {
 struct uvc_ops {
     void *(*open)(struct uvc_ctx *uvc, const char *dev, int width, int height);
     void (*close)(struct uvc_ctx *c);
-    int (*dequeue)(struct uvc_ctx *c, struct uvc_frame *frame);
+    int (*dequeue)(struct uvc_ctx *c, struct video_frame *frame);
     int (*enqueue)(struct uvc_ctx *c, void *buf, size_t len);
     int (*ioctl)(struct uvc_ctx *c, unsigned long int cmd, ...);
     int (*print_info)(struct uvc_ctx *c);
@@ -89,7 +80,7 @@ void uvc_close(struct uvc_ctx *c);
 
 int uvc_start_stream(struct uvc_ctx *uvc, on_stream_data *strm_cb);
 int uvc_stop_stream(struct uvc_ctx *uvc);
-int uvc_query_frame(struct uvc_ctx *c, struct uvc_frame *frame);
+int uvc_query_frame(struct uvc_ctx *c, struct video_frame *frame);
 
 #ifdef __cplusplus
 }
