@@ -28,6 +28,7 @@ extern "C" {
 
 #include "audio-def.h"
 #include "video-def.h"
+#include "memalign.h"
 
 struct media_frame {
     union {

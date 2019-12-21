@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+#define VIDEO_MAX_PLANES               8
+
 enum video_format {
     VIDEO_FORMAT_NONE,
 
@@ -72,6 +74,9 @@ enum video_format {
     VIDEO_FORMAT_AYUV,
 };
 
+const char *video_format_name(enum video_format format);
+enum video_format video_format_from_fourcc(uint32_t fourcc);
+
 /**
  * This structure describes decoded (raw) video data.
  */
@@ -79,16 +84,22 @@ enum video_format {
 struct video_frame {
     uint8_t *data[VIDEO_MAX_PLANES];
     uint32_t linesize[VIDEO_MAX_PLANES];
+    enum video_format format;
     uint32_t width;
     uint32_t height;
-    int      format;
     uint64_t timestamp;//ns
-    uint64_t size;
+    uint64_t totoal_size;
     uint64_t id;
     uint8_t **extended_data;
     void    *opaque;
 };
 
+struct video_frame *video_frame_create(enum video_format format,
+                uint32_t width, uint32_t height);
+void video_frame_free(struct video_frame *frame);
+
+struct video_frame *video_frame_copy(struct video_frame *dst,
+			     const struct video_frame *src);
 /**
  * This structure stores compressed data.
  */
