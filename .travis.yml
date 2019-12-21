@@ -6,3 +6,10 @@ before_install:
   - sudo apt-get install -y libx264-dev
   - sudo apt-get install -y protobuf-compiler
 script: ./build.sh
+
+env:
+  global:
+    - CODECOV_TOKEN="86c0cf19-699e-49f9-b6d4-4d5c214e70d5"
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

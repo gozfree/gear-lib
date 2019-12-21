@@ -4,6 +4,7 @@ English | [简体中文](README.cn.md)
 
 [![Build](https://travis-ci.org/gozfree/gear-lib.svg?branch=master)](https://travis-ci.org/gozfree/gear-lib)
 [![Release](https://img.shields.io/github/release/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/releases)
+[![Codecov](https://codecov.io/gh/gozfree/gear-lib/graph/badge.svg)](https://codecov.io/gh/gozfree/gear-lib/releases)
 [![License](https://img.shields.io/github/license/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/blob/master/LICENSE.MIT)
 
 This is a collection of basic libraries.
