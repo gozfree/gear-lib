@@ -43,8 +43,9 @@ typedef int (*on_stream_data)(struct uvc_ctx *c, void *data, size_t len);
 
 struct uvc_ctx {
     int fd;
-    int width;
-    int height;
+    uint32_t width;
+    uint32_t height;
+    enum video_format format;
     struct uvc_ops *ops;
     void *opaque;
     on_stream_data *on_data;
@@ -64,7 +65,7 @@ struct video_ctrl {
 #define UVC_SET_CTRL _IOWR('V',  1, struct video_ctrl)
 
 struct uvc_ops {
-    void *(*open)(struct uvc_ctx *uvc, const char *dev, int width, int height);
+    void *(*open)(struct uvc_ctx *uvc, const char *dev, uint32_t width, uint32_t height);
     void (*close)(struct uvc_ctx *c);
     int (*dequeue)(struct uvc_ctx *c, struct video_frame *frame);
     int (*enqueue)(struct uvc_ctx *c, void *buf, size_t len);
@@ -74,7 +75,7 @@ struct uvc_ops {
     int (*stop_stream)(struct uvc_ctx *c);
 };
 
-struct uvc_ctx *uvc_open(const char *dev, int width, int height);
+struct uvc_ctx *uvc_open(const char *dev, uint32_t width, uint32_t height);
 int uvc_ioctl(struct uvc_ctx *c, unsigned long int cmd, ...);
 void uvc_close(struct uvc_ctx *c);
 

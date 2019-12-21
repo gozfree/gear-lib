@@ -40,6 +40,11 @@ int main(int argc, char **argv)
     struct file *fp;
     struct video_frame frm;
     struct uvc_ctx *uvc = uvc_open("/dev/video0", 640, 480);
+    if (!uvc) {
+        printf("uvc_open failed!\n");
+        return -1;
+    }
+    printf("uvc %dx%d format=%s\n", uvc->width, uvc->height, video_format_name(uvc->format));
     uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open("uvc.yuv", F_CREATE);
     uvc_start_stream(uvc, NULL);
@@ -49,7 +54,8 @@ int main(int argc, char **argv)
         if (size == -1) {
             continue;
         }
-        file_write(fp, frm.data[0], frm.size);
+        file_write(fp, frm.data[0], frm.total_size);
+        printf("frm.size=%zu\n", frm.total_size);
     }
     file_close(fp);
     uvc_stop_stream(uvc);

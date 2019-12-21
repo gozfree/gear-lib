@@ -88,7 +88,7 @@ struct video_frame {
     uint32_t width;
     uint32_t height;
     uint64_t timestamp;//ns
-    uint64_t totoal_size;
+    uint64_t total_size;
     uint64_t id;
     uint8_t **extended_data;
     void    *opaque;

@@ -75,13 +75,13 @@ struct v4l2_ctx {
     int channel; /*one video node may contain several input channel */
     int standard;
     int resolution;
-    int pixfmt;
-    int linesize;
+    uint32_t pixfmt;
+    uint32_t linesize;
     int dv_timing;
     int framerate;
     char *name;
-    int width;
-    int height;
+    uint32_t width;
+    uint32_t height;
     struct iovec buf[MAX_V4L_BUF];
     int buf_index;
     int req_count;
@@ -97,16 +97,16 @@ struct v4l2_ctx {
 
 static int v4l2_init(struct v4l2_ctx *vc);
 static int v4l2_create_mmap(struct v4l2_ctx *vc);
-static int v4l2_set_format(int fd, int *resolution, int *pixelformat, int *bytesperline);
+static int v4l2_set_format(int fd, int *resolution, uint32_t *pixelformat, uint32_t *bytesperline);
 static int v4l2_set_framerate(int fd, int *framerate);
 static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
 
-static inline int v4l2_pack_tuple(int a, int b)
+static inline int v4l2_pack_tuple(uint32_t a, uint32_t b)
 {
     return (a << 16) | (b & 0xffff);
 }
 
-static void v4l2_unpack_tuple(int *a, int *b, int packed)
+static void v4l2_unpack_tuple(uint32_t *a, uint32_t *b, int packed)
 {
     *a = packed >> 16;
     *b = packed & 0xffff;
@@ -115,18 +115,18 @@ static void v4l2_unpack_tuple(int *a, int *b, int packed)
 #define V4L2_FOURCC_STR(code)                                         \
         (char[5])                                                     \
 {                                                                     \
-    (code >> 24) & 0xFF, (code >> 16) & 0xFF, (code >> 8) & 0xFF,     \
-    code & 0xFF, 0                                                    \
+    (code&0xFF), ((code>>8)&0xFF), ((code>>16)&0xFF), ((code>>24)&0xFF),       \
+     0                                                    \
 }
 
 #define timeval2ns(tv) \
     (((uint64_t)tv.tv_sec * 1000000000) + ((uint64_t)tv.tv_usec * 1000))
 
 
-static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, int width, int height)
+static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, uint32_t height)
 {
     int fd = -1;
-    int fps_num, fps_denom;
+    uint32_t fps_num, fps_denom;
     struct v4l2_ctx *vc = calloc(1, sizeof(struct v4l2_ctx));
     if (!vc) {
         printf("malloc v4l2_ctx failed!\n");
@@ -203,6 +203,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, int width, int 
         goto failed;
     }
 
+    uvc->format = video_format_from_fourcc(vc->pixfmt);
     uvc->fd = fd;
     vc->parent = uvc;
     return vc;
@@ -449,10 +450,10 @@ static void v4l2_get_cid(struct v4l2_ctx *vc)
 }
 
 static int v4l2_set_format(int fd, int *resolution,
-                int *pixelformat, int *bytesperline)
+                uint32_t *pixelformat, uint32_t *bytesperline)
 {
     bool set = false;
-    int width, height;
+    uint32_t width, height;
     struct v4l2_format fmt;
 
     /* We need to set the type in order to query the settings */
@@ -487,7 +488,7 @@ static int v4l2_set_format(int fd, int *resolution,
 static int v4l2_set_framerate(int fd, int *framerate)
 {
     bool set = false;
-    int num, denom;
+    uint32_t num, denom;
     struct v4l2_streamparm par;
 
     /* We need to set the type in order to query the stream settings */
@@ -700,9 +701,9 @@ retry:
     for (int i = 0; i < VIDEO_MAX_PLANES; ++i) {
         frame->data[i] = start + plane_offsets[i];
     }
-    frame->size = qbuf.bytesused;
+    frame->total_size = qbuf.bytesused;
 
-    return frame->size;
+    return frame->total_size;
 }
 
 static void uvc_v4l2_close(struct uvc_ctx *uvc)

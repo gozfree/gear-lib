@@ -43,7 +43,7 @@ static struct uvc_ops *uvc_ops[] = {
     NULL
 };
 
-struct uvc_ctx *uvc_open(const char *dev, int width, int height)
+struct uvc_ctx *uvc_open(const char *dev, uint32_t width, uint32_t height)
 {
     struct uvc_ctx *uvc = (struct uvc_ctx *)calloc(1, sizeof(struct uvc_ctx));
     if (!uvc) {

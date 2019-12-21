@@ -19,23 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBMEDIA_IO_H
-#define LIBMEDIA_IO_H
+#ifndef MEMALIGN_H
+#define MEMALIGN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "audio-def.h"
-#include "video-def.h"
 
-struct media_frame {
-    union {
-        struct audio_frame audio;
-        struct video_frame video;
-    };
-};
-
+#define ALIGNMENT 32
+#define ALIGN_SIZE(size, align) (((size) + (align - 1)) & (~(align - 1)))
 
 #ifdef __cplusplus
 }

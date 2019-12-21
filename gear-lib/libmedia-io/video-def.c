@@ -130,7 +130,7 @@ struct video_frame *video_frame_create(enum video_format format,
         offsets[1] = size;
         size += (width / 2) * (height / 2);
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
         frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
@@ -144,7 +144,7 @@ struct video_frame *video_frame_create(enum video_format format,
         offsets[0] = size;
         size += (width / 2) * (height / 2) * 2;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
         frame->linesize[0] = width;
@@ -153,7 +153,7 @@ struct video_frame *video_frame_create(enum video_format format,
     case VIDEO_FORMAT_Y800:
         size = width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->linesize[0] = width;
         break;
@@ -162,7 +162,7 @@ struct video_frame *video_frame_create(enum video_format format,
     case VIDEO_FORMAT_UYVY:
         size = width * height * 2;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->linesize[0] = width * 2;
         break;
@@ -172,14 +172,14 @@ struct video_frame *video_frame_create(enum video_format format,
     case VIDEO_FORMAT_AYUV:
         size = width * height * 4;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->linesize[0] = width * 4;
         break;
     case VIDEO_FORMAT_I444:
         size = width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size * 3);
         frame->data[1] = (uint8_t *)frame->data[0] + size;
         frame->data[2] = (uint8_t *)frame->data[1] + size;
@@ -190,7 +190,7 @@ struct video_frame *video_frame_create(enum video_format format,
     case VIDEO_FORMAT_BGR3:
         size = width * height * 3;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->linesize[0] = width * 3;
         break;
@@ -203,7 +203,7 @@ struct video_frame *video_frame_create(enum video_format format,
         offsets[1] = size;
         size += (width / 2) * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
         frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
@@ -223,7 +223,7 @@ struct video_frame *video_frame_create(enum video_format format,
         offsets[2] = size;
         size += width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
         frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
@@ -245,7 +245,7 @@ struct video_frame *video_frame_create(enum video_format format,
         offsets[2] = size;
         size += width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
         frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
@@ -267,7 +267,7 @@ struct video_frame *video_frame_create(enum video_format format,
         offsets[2] = size;
         size += width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->totoal_size = size;
+        frame->total_size = size;
         frame->data[0] = memalign(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
         frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
