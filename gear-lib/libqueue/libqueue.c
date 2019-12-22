@@ -34,6 +34,16 @@
 #include "libqueue.h"
 
 #define QUEUE_MAX_DEPTH 200
+
+struct iovec *item_get_data(struct queue *q, struct item *it)
+{
+    if (q->alloc_hook) {
+        return &it->opaque;
+    } else {
+        return &it->data;
+    }
+}
+
 struct item *item_alloc(struct queue *q, void *data, size_t len)
 {
     struct item *item;
@@ -240,7 +250,7 @@ struct item *queue_pop(struct queue *q)
     return item;
 }
 
-struct queue_branch *queue_branch_add(struct queue *q, const char *name)
+struct queue_branch *queue_branch_new(struct queue *q, const char *name)
 {
     struct queue_branch *qb = CALLOC(1, struct queue_branch);
     if (!q || !qb || !name) {

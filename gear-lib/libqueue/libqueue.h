@@ -85,6 +85,7 @@ struct queue {
 
 struct item *item_alloc(struct queue *q, void *data, size_t len);
 void item_free(struct queue *q, struct item *item);
+struct iovec *item_get_data(struct queue *q, struct item *it);
 
 struct queue *queue_create();
 void queue_destroy(struct queue *q);
