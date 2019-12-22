@@ -100,12 +100,222 @@ enum video_format video_format_from_fourcc(uint32_t fourcc)
     return VIDEO_FORMAT_NONE;
 }
 
-struct video_frame *video_frame_create(enum video_format format,
-                uint32_t width, uint32_t height)
+int video_frame_init(struct video_frame *frame, enum video_format format,
+                uint32_t width, uint32_t height, int flag)
 {
     size_t size;
+
+    if (format == VIDEO_FORMAT_NONE || width == 0 || height == 0) {
+        printf("invalid paramenters!\n");
+        return -1;
+    }
+
+    frame->format = format;
+    frame->width = width;
+    frame->height = height;
+    frame->flag = flag;
+
+    switch (format) {
+    case VIDEO_FORMAT_I420:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[1] = size;
+        size += (width / 2) * (height / 2);
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[2] = size;
+        size += (width / 2) * (height / 2);
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width / 2;
+        frame->linesize[2] = width / 2;
+        frame->planes = 3;
+        break;
+    case VIDEO_FORMAT_NV12:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[1] = size;
+        size += (width / 2) * (height / 2) * 2;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width;
+        frame->planes = 2;
+        break;
+    case VIDEO_FORMAT_Y800:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        }
+        frame->linesize[0] = width;
+        frame->planes = 1;
+        break;
+    case VIDEO_FORMAT_YVYU:
+    case VIDEO_FORMAT_YUY2:
+    case VIDEO_FORMAT_UYVY:
+        size = width * height * 2;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        }
+        frame->linesize[0] = width * 2;
+        frame->planes = 1;
+        break;
+    case VIDEO_FORMAT_RGBA:
+    case VIDEO_FORMAT_BGRA:
+    case VIDEO_FORMAT_BGRX:
+    case VIDEO_FORMAT_AYUV:
+        size = width * height * 4;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        }
+        frame->linesize[0] = width * 4;
+        frame->planes = 1;
+        break;
+    case VIDEO_FORMAT_I444:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size * 3);
+        frame->data[1] = (uint8_t *)frame->data[0] + size;
+        frame->data[2] = (uint8_t *)frame->data[1] + size;
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width;
+        frame->linesize[2] = width;
+        frame->planes = 3;
+        break;
+    case VIDEO_FORMAT_BGR3:
+        size = width * height * 3;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        }
+        frame->linesize[0] = width * 3;
+        frame->planes = 1;
+        break;
+    case VIDEO_FORMAT_I422:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[1] = size;
+        size += (width / 2) * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[2] = size;
+        size += (width / 2) * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width / 2;
+        frame->linesize[2] = width / 2;
+        frame->planes = 3;
+        break;
+    case VIDEO_FORMAT_I40A:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[1] = size;
+        size += (width / 2) * (height / 2);
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[2] = size;
+        size += (width / 2) * (height / 2);
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[3] = size;
+        size += width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width / 2;
+        frame->linesize[2] = width / 2;
+        frame->linesize[3] = width;
+        frame->planes = 4;
+        break;
+    case VIDEO_FORMAT_I42A:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[1] = size;
+        size += (width / 2) * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[2] = size;
+        size += (width / 2) * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[3] = size;
+        size += width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width / 2;
+        frame->linesize[2] = width / 2;
+        frame->linesize[3] = width;
+        frame->planes = 4;
+        break;
+    case VIDEO_FORMAT_YUVA:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[1] = size;
+        size += width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[2] = size;
+        size += width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->plane_offsets[3] = size;
+        size += width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (flag == VFC_ALLOC) {
+        frame->data[0] = memalign(ALIGNMENT, size);
+        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
+        }
+        frame->linesize[0] = width;
+        frame->linesize[1] = width;
+        frame->linesize[2] = width;
+        frame->linesize[3] = width;
+        frame->planes = 4;
+        break;
+    default:
+        printf("unsupport video format %d\n", format);
+        break;
+    }
+    return 0;
+}
+
+struct video_frame *video_frame_create(enum video_format format,
+                uint32_t width, uint32_t height, int flag)
+{
     struct video_frame *frame;
-    size_t offsets[VIDEO_MAX_PLANES];
 
     if (format == VIDEO_FORMAT_NONE || width == 0 || height == 0) {
         printf("invalid paramenters!\n");
@@ -117,179 +327,21 @@ struct video_frame *video_frame_create(enum video_format format,
         printf("malloc video frame failed!\n");
         return NULL;
     }
-
-    memset(offsets, 0, sizeof(offsets));
-
-    switch (format) {
-    case VIDEO_FORMAT_I420:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[0] = size;
-        size += (width / 2) * (height / 2);
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[1] = size;
-        size += (width / 2) * (height / 2);
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
-        frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
-        frame->linesize[0] = width;
-        frame->linesize[1] = width / 2;
-        frame->linesize[2] = width / 2;
-        break;
-    case VIDEO_FORMAT_NV12:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[0] = size;
-        size += (width / 2) * (height / 2) * 2;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
-        frame->linesize[0] = width;
-        frame->linesize[1] = width;
-        break;
-    case VIDEO_FORMAT_Y800:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->linesize[0] = width;
-        break;
-    case VIDEO_FORMAT_YVYU:
-    case VIDEO_FORMAT_YUY2:
-    case VIDEO_FORMAT_UYVY:
-        size = width * height * 2;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->linesize[0] = width * 2;
-        break;
-    case VIDEO_FORMAT_RGBA:
-    case VIDEO_FORMAT_BGRA:
-    case VIDEO_FORMAT_BGRX:
-    case VIDEO_FORMAT_AYUV:
-        size = width * height * 4;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->linesize[0] = width * 4;
-        break;
-    case VIDEO_FORMAT_I444:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size * 3);
-        frame->data[1] = (uint8_t *)frame->data[0] + size;
-        frame->data[2] = (uint8_t *)frame->data[1] + size;
-        frame->linesize[0] = width;
-        frame->linesize[1] = width;
-        frame->linesize[2] = width;
-        break;
-    case VIDEO_FORMAT_BGR3:
-        size = width * height * 3;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->linesize[0] = width * 3;
-        break;
-    case VIDEO_FORMAT_I422:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[0] = size;
-        size += (width / 2) * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[1] = size;
-        size += (width / 2) * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
-        frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
-        frame->linesize[0] = width;
-        frame->linesize[1] = width / 2;
-        frame->linesize[2] = width / 2;
-        break;
-    case VIDEO_FORMAT_I40A:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[0] = size;
-        size += (width / 2) * (height / 2);
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[1] = size;
-        size += (width / 2) * (height / 2);
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[2] = size;
-        size += width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
-        frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
-        frame->data[3] = (uint8_t *)frame->data[0] + offsets[2];
-        frame->linesize[0] = width;
-        frame->linesize[1] = width / 2;
-        frame->linesize[2] = width / 2;
-        frame->linesize[3] = width;
-        break;
-    case VIDEO_FORMAT_I42A:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[0] = size;
-        size += (width / 2) * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[1] = size;
-        size += (width / 2) * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[2] = size;
-        size += width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
-        frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
-        frame->data[3] = (uint8_t *)frame->data[0] + offsets[2];
-        frame->linesize[0] = width;
-        frame->linesize[1] = width / 2;
-        frame->linesize[2] = width / 2;
-        frame->linesize[3] = width;
-        break;
-    case VIDEO_FORMAT_YUVA:
-        size = width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[0] = size;
-        size += width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[1] = size;
-        size += width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        offsets[2] = size;
-        size += width * height;
-        size = ALIGN_SIZE(size, ALIGNMENT);
-        frame->total_size = size;
-        frame->data[0] = memalign(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + offsets[0];
-        frame->data[2] = (uint8_t *)frame->data[0] + offsets[1];
-        frame->data[3] = (uint8_t *)frame->data[0] + offsets[2];
-        frame->linesize[0] = width;
-        frame->linesize[1] = width;
-        frame->linesize[2] = width;
-        frame->linesize[3] = width;
-        break;
-    default:
-        printf("unsupport video format %d\n", format);
+    if (0 != video_frame_init(frame, format, width, height, flag)) {
+        printf("video_frame_init failed!\n");
         free(frame);
         frame = NULL;
-        break;
     }
+
     return frame;
 }
 
-void video_frame_free(struct video_frame *frame)
+void video_frame_destroy(struct video_frame *frame)
 {
     if (frame) {
-        free(frame->data[0]);
+        if (frame->flag == VFC_ALLOC) {
+            free(frame->data[0]);
+        }
         free(frame);
     }
 }

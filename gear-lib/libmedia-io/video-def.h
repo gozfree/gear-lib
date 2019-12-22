@@ -80,23 +80,33 @@ enum video_format video_format_from_fourcc(uint32_t fourcc);
 /**
  * This structure describes decoded (raw) video data.
  */
+#ifndef VIDEO_MAX_PLANES
 #define VIDEO_MAX_PLANES 8
+#endif
 struct video_frame {
-    uint8_t *data[VIDEO_MAX_PLANES];
-    uint32_t linesize[VIDEO_MAX_PLANES];
+    uint8_t           *data[VIDEO_MAX_PLANES];
+    uint32_t          linesize[VIDEO_MAX_PLANES];
+    uint32_t          plane_offsets[VIDEO_MAX_PLANES];
     enum video_format format;
-    uint32_t width;
-    uint32_t height;
-    uint64_t timestamp;//ns
-    uint64_t total_size;
-    uint64_t id;
-    uint8_t **extended_data;
-    void    *opaque;
+    uint32_t          width;
+    uint32_t          height;
+    uint64_t          timestamp;//ns
+    uint8_t           planes;
+    uint64_t          total_size;
+    uint64_t          id;
+    int               flag;
+    uint8_t           **extended_data;
+    void              *opaque;
 };
 
+#define VFC_NONE    0   /* nothing to do */
+#define VFC_ALLOC   1   /* alloc frame->data */
+
+int video_frame_init(struct video_frame *frame, enum video_format format,
+                uint32_t width, uint32_t height, int flag);
 struct video_frame *video_frame_create(enum video_format format,
-                uint32_t width, uint32_t height);
-void video_frame_free(struct video_frame *frame);
+                uint32_t width, uint32_t height, int flag);
+void video_frame_destroy(struct video_frame *frame);
 
 struct video_frame *video_frame_copy(struct video_frame *dst,
 			     const struct video_frame *src);

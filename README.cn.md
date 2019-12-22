@@ -53,6 +53,7 @@
 * libuvc: USB摄像头库
 * libmp4parser: MP4解析库
 * libjpeg-ex:
+* libmedia-io: 音频视频格式定义
 
 ## 编译方法
 详细请参考[INSTALL.md](https://github.com/gozfree/gear-lib/blob/master/INSTALL.md)

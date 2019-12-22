@@ -101,7 +101,7 @@ static int v4l2_set_format(int fd, int *resolution, uint32_t *pixelformat, uint3
 static int v4l2_set_framerate(int fd, int *framerate);
 static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
 
-static inline int v4l2_pack_tuple(uint32_t a, uint32_t b)
+static int v4l2_pack_tuple(uint32_t a, uint32_t b)
 {
     return (a << 16) | (b & 0xffff);
 }
@@ -112,11 +112,10 @@ static void v4l2_unpack_tuple(uint32_t *a, uint32_t *b, int packed)
     *b = packed & 0xffff;
 }
 
-#define V4L2_FOURCC_STR(code)                                         \
-        (char[5])                                                     \
-{                                                                     \
-    (code&0xFF), ((code>>8)&0xFF), ((code>>16)&0xFF), ((code>>24)&0xFF),       \
-     0                                                    \
+#define V4L2_FOURCC_STR(code)                                               \
+        (char[5])                                                           \
+{                                                                           \
+    (code&0xFF), ((code>>8)&0xFF), ((code>>16)&0xFF), ((code>>24)&0xFF), 0  \
 }
 
 #define timeval2ns(tv) \
@@ -126,7 +125,6 @@ static void v4l2_unpack_tuple(uint32_t *a, uint32_t *b, int packed)
 static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, uint32_t height)
 {
     int fd = -1;
-    uint32_t fps_num, fps_denom;
     struct v4l2_ctx *vc = calloc(1, sizeof(struct v4l2_ctx));
     if (!vc) {
         printf("malloc v4l2_ctx failed!\n");
@@ -177,7 +175,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
 
     vc->resolution = v4l2_pack_tuple(width, height);
 
-    if (-1 == v4l2_set_format(vc->fd, &vc->resolution, &vc->pixfmt, &vc->linesize)) {
+    if (v4l2_set_format(vc->fd, &vc->resolution, &vc->pixfmt, &vc->linesize) < 0) {
         printf("v4l2_set_format failed\n");
         goto failed;
     }
@@ -187,18 +185,13 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
         printf("v4l2 format is forced to %dx%d\n", vc->width, vc->height);
     }
 
-    /* set framerate */
     if (v4l2_set_framerate(vc->fd, &vc->framerate) < 0) {
         printf("Unable to set framerate\n");
         goto failed;
     }
-    v4l2_unpack_tuple(&fps_num, &fps_denom, vc->framerate);
-    printf("Resolution: %dx%d\n", vc->width, vc->height);
-    printf("Pixelformat: %s\n", V4L2_FOURCC_STR(vc->pixfmt));
-    printf("Linesize: %d Bytes\n", vc->linesize);
-    printf("Framerate: %.2f fps\n", (float)fps_denom / fps_num);
+    v4l2_unpack_tuple(&uvc->fps_num, &uvc->fps_denom, vc->framerate);
 
-    if (-1 == v4l2_create_mmap(vc)) {
+    if (v4l2_create_mmap(vc) < 0) {
         printf("v4l2_create_mmap failed\n");
         goto failed;
     }
@@ -219,78 +212,6 @@ failed:
         free(vc);
     }
     return NULL;
-}
-
-
-static int v4l2_get_cap(struct v4l2_ctx *vc)
-{
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_QUERYCAP, &vc->cap)) {
-        printf("failed to VIDIOC_QUERYCAP\n");
-        return -1;
-    }
-
-    printf("[V4L2 Capability Information]:\n");
-    printf("\tcap.driver: \t\"%s\"\n", vc->cap.driver);
-    printf("\tcap.card: \t\"%s\"\n", vc->cap.card);
-    printf("\tcap.bus_info: \t\"%s\"\n", vc->cap.bus_info);
-    printf("\tcap.version: \t\"%d\"\n", vc->cap.version);
-    printf("\tcap.capabilities:\n");
-    if (vc->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
-        printf("\t\t\t VIDEO_CAPTURE\n");
-    if (vc->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)
-        printf("\t\t\t VIDEO_OUTPUT\n");
-    if (vc->cap.capabilities & V4L2_CAP_VIDEO_OVERLAY)
-        printf("\t\t\t VIDEO_OVERLAY\n");
-    if (vc->cap.capabilities & V4L2_CAP_VBI_CAPTURE)
-        printf("\t\t\t VBI_CAPTURE\n");
-    if (vc->cap.capabilities & V4L2_CAP_VBI_OUTPUT)
-        printf("\t\t\t VBI_OUTPUT\n");
-    if (vc->cap.capabilities & V4L2_CAP_RDS_CAPTURE)
-        printf("\t\t\t RDS_CAPTURE\n");
-    if (vc->cap.capabilities & V4L2_CAP_TUNER)
-        printf("\t\t\t TUNER\n");
-    if (vc->cap.capabilities & V4L2_CAP_AUDIO)
-        printf("\t\t\t AUDIO\n");
-    if (vc->cap.capabilities & V4L2_CAP_READWRITE)
-        printf("\t\t\t READWRITE\n");
-    if (vc->cap.capabilities & V4L2_CAP_ASYNCIO)
-        printf("\t\t\t ASYNCIO\n");
-    if (vc->cap.capabilities & V4L2_CAP_STREAMING)
-        printf("\t\t\t STREAMING\n");
-    if (vc->cap.capabilities & V4L2_CAP_TIMEPERFRAME)
-        printf("\t\t\t TIMEPERFRAME\n");
-    if (!(vc->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-        printf("Device does not support capturing.\n");
-        return -1;
-    }
-    return 0;
-}
-
-static char *v4l2_fourcc_parse(char *buf, int len, uint32_t pix)
-{
-    if (len < 5) {
-        return NULL;
-    }
-    snprintf(buf, len, "%c%c%c%c", (pix&0x000000FF),
-                                   (pix&0x0000FF00)>>8,
-                                   (pix&0x00FF0000)>>16,
-                                   (pix&0xFF000000)>>24);
-    return buf;
-}
-
-static void v4l2_get_fmt(struct v4l2_ctx *vc)
-{
-    struct v4l2_fmtdesc fmtdesc;
-    char pixel[5] = {0};
-    fmtdesc.index = 0;
-    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    printf("[V4L2 Support Format]:\n");
-    while (-1 != v4l2_ioctl(vc->fd, VIDIOC_ENUM_FMT, &fmtdesc)) {
-        printf("\t%d. [%s] \"%s\"\n", fmtdesc.index,
-               v4l2_fourcc_parse(pixel, sizeof(pixel), fmtdesc.pixelformat),
-               fmtdesc.description);
-        ++fmtdesc.index;
-    }
 }
 
 static int v4l2_set_standard(int fd, int *standard)
@@ -349,11 +270,10 @@ static int v4l2_set_dv_timing(int fd, int *timing)
 
 static int v4l2_init(struct v4l2_ctx *vc)
 {
-    uint32_t input_caps = 0;
     struct v4l2_input in;
     memset(&in, 0, sizeof(in));
 
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_G_INPUT, &in.index)) {
+    if (v4l2_ioctl(vc->fd, VIDIOC_G_INPUT, &in.index) < 0) {
         printf("ioctl VIDIOC_G_INPUT failed\n");
         return -1;
     }
@@ -363,9 +283,7 @@ static int v4l2_init(struct v4l2_ctx *vc)
         return -1;
     }
 
-    input_caps = in.capabilities;
-
-    if (input_caps & V4L2_IN_CAP_STD) {
+    if (in.capabilities & V4L2_IN_CAP_STD) {
         if (v4l2_set_standard(vc->fd, &vc->standard) < 0) {
             printf("Unable to set video standard\n");
             return -1;
@@ -374,7 +292,7 @@ static int v4l2_init(struct v4l2_ctx *vc)
         vc->framerate = -1;
     }
 
-    if (input_caps & V4L2_IN_CAP_DV_TIMINGS) {
+    if (in.capabilities & V4L2_IN_CAP_DV_TIMINGS) {
         if (v4l2_set_dv_timing(vc->fd, &vc->dv_timing) < 0) {
             printf("Unable to set dv timing\n");
             return -1;
@@ -383,70 +301,6 @@ static int v4l2_init(struct v4l2_ctx *vc)
         vc->framerate = -1;
     }
     return 0;
-}
-
-static int v4l2_get_input(struct v4l2_ctx *vc)
-{
-    struct v4l2_input input;
-    struct v4l2_standard standard;
-    v4l2_std_id std_id;
-
-    memset(&input, 0, sizeof(input));
-
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_G_INPUT, &input.index)) {
-        printf("ioctl VIDIOC_G_INPUT failed\n");
-        return -1;
-    }
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_ENUMINPUT, &input)) {
-        printf("Unable to query input %d VIDIOC_ENUMINPUT,"
-               "if you use a WEBCAM change input value in conf by -1",
-              input.index);
-        return -1;
-    }
-    vc->channel = input.index;
-
-    printf("[V4L2 Input information]:\n");
-    printf("\tinput.name: \t\"%s\"\n", input.name);
-    if (input.type & V4L2_INPUT_TYPE_TUNER)
-        printf("\t\t\t TUNER\n");
-    if (input.type & V4L2_INPUT_TYPE_CAMERA)
-        printf("\t\t\t CAMERA\n");
-    if (-1 != v4l2_ioctl(vc->fd, VIDIOC_G_STD, &std_id)) {
-        memset(&standard, 0, sizeof(standard));
-        standard.index = 0;
-        while (v4l2_ioctl(vc->fd, VIDIOC_ENUMSTD, &standard) == 0) {
-            if (standard.id & std_id)
-                printf("\t\t- video standard %s\n", standard.name);
-            standard.index++;
-        }
-        printf("Set standard method %d\n", (int)std_id);
-    }
-    return 0;
-}
-
-static void v4l2_get_cid(struct v4l2_ctx *vc)
-{
-    int i;
-    struct v4l2_queryctrl *qctrl;
-    struct v4l2_control control;
-    printf("[V4L2 Supported Control]:\n");
-    for (i = 0; v4l2_cid_supported[i] != V4L2_CID_LASTP1; i++) {
-        qctrl = &vc->controls[i];
-        qctrl->id = v4l2_cid_supported[i];
-        if (-1 == v4l2_ioctl(vc->fd, VIDIOC_QUERYCTRL, qctrl)) {
-            continue;
-        }
-        vc->ctrl_flags |= 1 << i;
-        memset(&control, 0, sizeof (control));
-        control.id = v4l2_cid_supported[i];
-        if (-1 == v4l2_ioctl(vc->fd, VIDIOC_G_CTRL, &control)) {
-            continue;
-        }
-        printf("\t%s, range: [%d, %d], default: %d, current: %d\n",
-             qctrl->name,
-             qctrl->minimum, qctrl->maximum,
-             qctrl->default_value, control.value);
-    }
 }
 
 static int v4l2_set_format(int fd, int *resolution,
@@ -546,7 +400,7 @@ static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
     type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
 
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_STREAMOFF, &type)) {
+    if (v4l2_ioctl(vc->fd, VIDIOC_STREAMOFF, &type) < 0) {
         printf("%s ioctl(VIDIOC_STREAMOFF) failed: %d\n", __func__, errno);
     }
     for (i = 0; i < vc->req_count; i++) {
@@ -564,7 +418,7 @@ static int v4l2_create_mmap(struct v4l2_ctx *vc)
         .memory = V4L2_MEMORY_MMAP
     };
     //request buffer
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_REQBUFS, &req)) {
+    if (v4l2_ioctl(vc->fd, VIDIOC_REQBUFS, &req) < 0) {
         printf("%s ioctl(VIDIOC_REQBUFS) failed: %d\n", __func__, errno);
         return -1;
     }
@@ -580,7 +434,7 @@ static int v4l2_create_mmap(struct v4l2_ctx *vc)
 
     for (buf.index = 0; buf.index < vc->req_count; ++buf.index) {
         //query buffer
-        if (-1 == v4l2_ioctl(vc->fd, VIDIOC_QUERYBUF, &buf)) {
+        if (v4l2_ioctl(vc->fd, VIDIOC_QUERYBUF, &buf) < 0) {
             printf("%s ioctl(VIDIOC_QUERYBUF) failed: %d\n", __func__, errno);
             return -1;
         }
@@ -597,42 +451,6 @@ static int v4l2_create_mmap(struct v4l2_ctx *vc)
     return 0;
 }
 
-static void v4l2_prepare_frame(struct v4l2_ctx *vc,
-                struct video_frame *frame, size_t *plane_offsets)
-{
-    memset(frame, 0, sizeof(struct video_frame));
-    memset(plane_offsets, 0, sizeof(size_t) * VIDEO_MAX_PLANES);
-
-    frame->width = vc->width;
-    frame->height = vc->height;
-
-    switch (vc->pixfmt) {
-    case V4L2_PIX_FMT_NV12:
-        frame->linesize[0] = vc->linesize;
-        frame->linesize[1] = vc->linesize / 2;
-        plane_offsets[1] = vc->linesize * vc->height;
-        break;
-    case V4L2_PIX_FMT_YVU420:
-        frame->linesize[0] = vc->linesize;
-        frame->linesize[1] = vc->linesize / 2;
-        frame->linesize[2] = vc->linesize / 2;
-        plane_offsets[1] = vc->linesize * vc->height * 5 / 4;
-        plane_offsets[2] = vc->linesize * vc->height;
-        break;
-    case V4L2_PIX_FMT_YUV420:
-        frame->linesize[0] = vc->linesize;
-        frame->linesize[1] = vc->linesize / 2;
-        frame->linesize[2] = vc->linesize / 2;
-        plane_offsets[1] = vc->linesize * vc->height;
-        plane_offsets[2] = vc->linesize * vc->height * 5 / 4;
-        break;
-    case V4L2_PIX_FMT_UYVY:
-    default:
-        frame->linesize[0] = vc->linesize;
-        break;
-    }
-}
-
 static int uvc_v4l2_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
 {
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
@@ -645,7 +463,7 @@ static int uvc_v4l2_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
     if (vc->qbuf_done) {
         return 0;
     }
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_QBUF, &qbuf)) {
+    if (v4l2_ioctl(vc->fd, VIDIOC_QBUF, &qbuf) < 0) {
         printf("%s ioctl(VIDIOC_QBUF) failed: %d\n", __func__, errno);
         return -1;
     }
@@ -657,7 +475,6 @@ static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
 {
     int retry_cnt = 0;
     uint8_t *start;
-    size_t plane_offsets[VIDEO_MAX_PLANES];
     struct v4l2_buffer qbuf;
 
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
@@ -671,7 +488,7 @@ static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
     qbuf.memory = V4L2_MEMORY_MMAP;
 
 retry:
-    if (-1 == v4l2_ioctl(vc->fd, VIDIOC_DQBUF, &qbuf)) {
+    if (v4l2_ioctl(vc->fd, VIDIOC_DQBUF, &qbuf) < 0) {
         printf("%s ioctl(VIDIOC_DQBUF) failed: %d\n", __func__, errno);
         if (errno == EINTR || errno == EAGAIN) {
             if (++retry_cnt > MAX_V4L2_DQBUF_RETYR_CNT) {
@@ -686,20 +503,18 @@ retry:
     vc->qbuf_done = false;
     vc->buf_index = qbuf.index;
 
-    v4l2_prepare_frame(vc, frame, plane_offsets);
     frame->timestamp = timeval2ns(qbuf.timestamp);
     if (!vc->got_frame_cnt) {
         vc->first_ts = frame->timestamp;
     }
-    vc->got_frame_cnt++;
     frame->timestamp -= vc->first_ts;
     frame->id = vc->got_frame_cnt;
-    //printf("frame id=%zu, timestamp=%zu, gap=%zu\n", frame->id, frame->timestamp, frame->timestamp-vc->prev_ts);
+    vc->got_frame_cnt++;
 
     vc->prev_ts = frame->timestamp;
     start = (uint8_t *)vc->buf[qbuf.index].iov_base;
-    for (int i = 0; i < VIDEO_MAX_PLANES; ++i) {
-        frame->data[i] = start + plane_offsets[i];
+    for (int i = 0; i <= frame->planes; ++i) {
+        frame->data[i] = start + frame->plane_offsets[i];
     }
     frame->total_size = qbuf.bytesused;
 
@@ -715,6 +530,124 @@ static void uvc_v4l2_close(struct uvc_ctx *uvc)
     free(vc);
 }
 
+static int v4l2_get_input(struct v4l2_ctx *vc)
+{
+    struct v4l2_input input;
+    struct v4l2_standard standard;
+    v4l2_std_id std_id;
+
+    memset(&input, 0, sizeof(input));
+
+    if (v4l2_ioctl(vc->fd, VIDIOC_G_INPUT, &input.index) < 0) {
+        printf("ioctl VIDIOC_G_INPUT failed\n");
+        return -1;
+    }
+    if (v4l2_ioctl(vc->fd, VIDIOC_ENUMINPUT, &input) < 0) {
+        printf("Unable to query input %d VIDIOC_ENUMINPUT,"
+               "if you use a WEBCAM change input value in conf by -1",
+              input.index);
+        return -1;
+    }
+    vc->channel = input.index;
+
+    printf("[V4L2 Input information]:\n");
+    printf("\tinput.name: \t\"%s\"\n", input.name);
+    if (0 == v4l2_ioctl(vc->fd, VIDIOC_G_STD, &std_id)) {
+        memset(&standard, 0, sizeof(standard));
+        standard.index = 0;
+        while (v4l2_ioctl(vc->fd, VIDIOC_ENUMSTD, &standard) == 0) {
+            if (standard.id & std_id)
+                printf("\t\t- video standard %s\n", standard.name);
+            standard.index++;
+        }
+        printf("Set standard method %d\n", (int)std_id);
+    }
+    return 0;
+}
+
+static int v4l2_get_cap(struct v4l2_ctx *vc)
+{
+    if (v4l2_ioctl(vc->fd, VIDIOC_QUERYCAP, &vc->cap) < 0) {
+        printf("failed to VIDIOC_QUERYCAP\n");
+        return -1;
+    }
+
+    printf("[V4L2 Capability Information]:\n");
+    printf("\tcap.driver: \t\"%s\"\n", vc->cap.driver);
+    printf("\tcap.card: \t\"%s\"\n", vc->cap.card);
+    printf("\tcap.bus_info: \t\"%s\"\n", vc->cap.bus_info);
+    printf("\tcap.version: \t\"%d\"\n", vc->cap.version);
+    printf("\tcap.capabilities:\n");
+    if (vc->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
+        printf("\t\t\t VIDEO_CAPTURE\n");
+    if (vc->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)
+        printf("\t\t\t VIDEO_OUTPUT\n");
+    if (vc->cap.capabilities & V4L2_CAP_VIDEO_OVERLAY)
+        printf("\t\t\t VIDEO_OVERLAY\n");
+    if (vc->cap.capabilities & V4L2_CAP_VBI_CAPTURE)
+        printf("\t\t\t VBI_CAPTURE\n");
+    if (vc->cap.capabilities & V4L2_CAP_VBI_OUTPUT)
+        printf("\t\t\t VBI_OUTPUT\n");
+    if (vc->cap.capabilities & V4L2_CAP_RDS_CAPTURE)
+        printf("\t\t\t RDS_CAPTURE\n");
+    if (vc->cap.capabilities & V4L2_CAP_TUNER)
+        printf("\t\t\t TUNER\n");
+    if (vc->cap.capabilities & V4L2_CAP_AUDIO)
+        printf("\t\t\t AUDIO\n");
+    if (vc->cap.capabilities & V4L2_CAP_READWRITE)
+        printf("\t\t\t READWRITE\n");
+    if (vc->cap.capabilities & V4L2_CAP_ASYNCIO)
+        printf("\t\t\t ASYNCIO\n");
+    if (vc->cap.capabilities & V4L2_CAP_STREAMING)
+        printf("\t\t\t STREAMING\n");
+    if (vc->cap.capabilities & V4L2_CAP_TIMEPERFRAME)
+        printf("\t\t\t TIMEPERFRAME\n");
+    if (!(vc->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+        printf("Device does not support capturing.\n");
+        return -1;
+    }
+    return 0;
+}
+
+static void v4l2_get_fmt(struct v4l2_ctx *vc)
+{
+    struct v4l2_fmtdesc fmtdesc;
+    fmtdesc.index = 0;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    printf("[V4L2 Support Format]:\n");
+    while (0 == v4l2_ioctl(vc->fd, VIDIOC_ENUM_FMT, &fmtdesc)) {
+        printf("\t%d. [%s] \"%s\"\n", fmtdesc.index,
+               V4L2_FOURCC_STR(fmtdesc.pixelformat),
+               fmtdesc.description);
+        ++fmtdesc.index;
+    }
+}
+
+static void v4l2_get_cid(struct v4l2_ctx *vc)
+{
+    int i;
+    struct v4l2_queryctrl *qctrl;
+    struct v4l2_control control;
+    printf("[V4L2 Supported Control]:\n");
+    for (i = 0; v4l2_cid_supported[i] != V4L2_CID_LASTP1; i++) {
+        qctrl = &vc->controls[i];
+        qctrl->id = v4l2_cid_supported[i];
+        if (v4l2_ioctl(vc->fd, VIDIOC_QUERYCTRL, qctrl) < 0) {
+            continue;
+        }
+        vc->ctrl_flags |= 1 << i;
+        memset(&control, 0, sizeof (control));
+        control.id = v4l2_cid_supported[i];
+        if (v4l2_ioctl(vc->fd, VIDIOC_G_CTRL, &control) < 0) {
+            continue;
+        }
+        printf("\t%s, range: [%d, %d], default: %d, current: %d\n",
+             qctrl->name,
+             qctrl->minimum, qctrl->maximum,
+             qctrl->default_value, control.value);
+    }
+}
+
 static int uvc_v4l2_print_info(struct v4l2_ctx *vc)
 {
     v4l2_get_input(vc);
@@ -723,7 +656,6 @@ static int uvc_v4l2_print_info(struct v4l2_ctx *vc)
     v4l2_get_cid(vc);
     return 0;
 }
-
 
 static int uvc_v4l2_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 {

@@ -49,10 +49,11 @@ This is a collection of basic libraries.
 * libposix4win: posix adapter for Windows
 * libposix4rtos: posix adapter for FreeRTOS
 
-## Muiti-Media
+## Multi-Media
 * libuvc: USB video class V4L2/dshow
 * libmp4parser: MP4 format parser
 * libjpeg-ex:
+* libmedia-io: audio/video frame/packet define
 
 ## How To Build
 Please refer to [INSTALL.md](https://github.com/gozfree/gear-lib/blob/master/INSTALL.md) file for detailed information.
