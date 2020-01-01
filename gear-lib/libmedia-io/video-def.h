@@ -23,6 +23,7 @@
 #define VIDEO_DEF_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
  * This file reference to ffmpeg and obs define
@@ -109,15 +110,16 @@ struct video_frame *video_frame_create(enum video_format format,
 void video_frame_destroy(struct video_frame *frame);
 
 struct video_frame *video_frame_copy(struct video_frame *dst,
-			     const struct video_frame *src);
+                const struct video_frame *src);
 /**
  * This structure stores compressed data.
  */
 struct video_packet {
-    uint8_t *data;
-    int     size;
-    int64_t pts;
-    int64_t dts;
+    uint8_t     *data;
+    int         size;
+    uint64_t    pts;
+    uint64_t    dts;
+    bool        keyframe; /**< Is a keyframe */
 };
 
 #ifdef __cplusplus

@@ -62,6 +62,10 @@ struct audio_frame {
     void    *opaque;
 };
 
+struct audio_packet {
+
+};
+
 #ifdef __cplusplus
 }
 #endif

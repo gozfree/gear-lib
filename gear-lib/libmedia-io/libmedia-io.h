@@ -29,10 +29,23 @@ extern "C" {
 #include "audio-def.h"
 #include "video-def.h"
 
+/**
+ * This structure describes decoded (raw) data.
+ */
 struct media_frame {
     union {
         struct audio_frame audio;
         struct video_frame video;
+    };
+};
+
+/**
+ * This structure stores compressed data.
+ */
+struct media_packet {
+    union {
+        struct audio_packet audio;
+        struct video_packet video;
     };
 };
 
