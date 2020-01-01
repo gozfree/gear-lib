@@ -353,11 +353,11 @@ static int sdp_generate(struct media_source *ms)
 static int live_read(struct media_source *ms, void **data, size_t *len)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    struct uvc_frame frame;
+    struct video_frame frame;
     memset(c->data.iov_base, 0, c->data.iov_len);
     int size = uvc_query_frame(c->uvc, &frame);
     c->data.iov_base = frame.data[0];
-    c->data.iov_len = frame.size;
+    c->data.iov_len = frame.total_size;
     struct iovec in, out;
     in.iov_base = c->data.iov_base;
     in.iov_len = size;

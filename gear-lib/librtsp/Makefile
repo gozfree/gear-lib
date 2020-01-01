@@ -68,7 +68,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -L$(OUTLIBPATH)/lib -pthread -lfile -lskt -lgevent -llog -ldict -lthread -ltime \
-	   -lvector -luvc -lx264 -lmacro -lqueue
+	   -lvector -luvc -lmedia-io -lx264 -lmacro -lqueue
 
 ###############################################################################
 # target
