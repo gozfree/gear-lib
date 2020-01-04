@@ -30,7 +30,7 @@ int g711_write_header(struct rtmp *rtmp)
 
 int write_g711_frame(struct rtmp *rtmp, unsigned char *frame,int len,unsigned int timestamp)
 {
-    struct rtmp_private_buf *buf = rtmp->buf;
+    struct rtmp_private_buf *buf = rtmp->priv_buf;
     put_byte(buf, FLV_TAG_TYPE_AUDIO);
     put_be24(buf, len + 1);
     put_be24(buf, timestamp);

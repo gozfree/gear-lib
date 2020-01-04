@@ -153,7 +153,7 @@ int rtmp_flush(struct rtmp *rtmp)
 {
     if (RTMP_IsConnected(rtmp->base)) {
 
-        int ret = RTMP_Write(rtmp->base, (const char *)rtmp->buf->data, rtmp->buf->d_cur, 0);
+        int ret = RTMP_Write(rtmp->base, (const char *)rtmp->priv_buf->data, rtmp->priv_buf->d_cur, 0);
         if (ret == -1) {
             printf("RTMP_Write() failed\n");
             return -1;
@@ -166,7 +166,7 @@ int rtmp_flush(struct rtmp *rtmp)
 
 int flush_data_force(struct rtmp *rtmp, int sent)
 {
-    if (!rtmp->buf->d_cur) {
+    if (!rtmp->priv_buf->d_cur) {
         return 0;
     }
     if (sent) {
@@ -174,18 +174,18 @@ int flush_data_force(struct rtmp *rtmp, int sent)
             return -1;
         }
     }
-    rtmp->buf->d_total += rtmp->buf->d_cur;
-    rtmp->buf->d_cur = 0;
+    rtmp->priv_buf->d_total += rtmp->priv_buf->d_cur;
+    rtmp->priv_buf->d_cur = 0;
     return 0;
 }
 
 int flush_data(struct rtmp *rtmp, int sent)
 {
-    if (!rtmp->buf->d_cur) {
+    if (!rtmp->priv_buf->d_cur) {
         printf("flush_data empty\n");
         return 0;
     }
-    if (rtmp->buf->d_cur > 1024) {
+    if (rtmp->priv_buf->d_cur > 1024) {
         return flush_data_force(rtmp, sent);
     }
     return 0;

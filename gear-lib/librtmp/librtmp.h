@@ -73,7 +73,7 @@ struct rtmp {
     void *base;
     struct rtmp_video_params *video;
     struct rtmp_audio_params *audio;
-    struct rtmp_private_buf *buf;
+    struct rtmp_private_buf *priv_buf;
     struct queue *q;
     struct iovec tmp_buf;
     struct thread *thread;

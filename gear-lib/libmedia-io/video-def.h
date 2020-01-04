@@ -97,7 +97,6 @@ struct video_frame {
     uint64_t          id;
     int               flag;
     uint8_t           **extended_data;
-    void              *opaque;
 };
 
 #define VFC_NONE    0   /* nothing to do */

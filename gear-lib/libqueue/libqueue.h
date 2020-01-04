@@ -59,7 +59,7 @@ struct item {
 struct queue;
 
 typedef void *(alloc_hook)(void *data, size_t len);
-typedef void *(free_hook)(void *data);
+typedef void (free_hook)(void *data);
 
 struct queue_branch {
     char *name;

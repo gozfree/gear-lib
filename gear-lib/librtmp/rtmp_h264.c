@@ -549,7 +549,7 @@ static int strip_nalu_sps_pps(uint8_t *data, int len)
             got_pps = 1;
             break;
         default:
-            printf("nal_type=%d\n", nal_type);
+            //printf("nal_type=%d\n", nal_type);
             break;
         }
         if (got_sps && got_pps) {
@@ -636,7 +636,7 @@ int h264_write_header(struct rtmp *rtmp)
          (((const unsigned char*)(x))[2] <<  8) |   \
          ((const unsigned char*)(x))[3])
 
-    struct rtmp_private_buf *buf = rtmp->buf;
+    struct rtmp_private_buf *buf = rtmp->priv_buf;
     unsigned int timestamp = 0;
     put_byte(buf, FLV_TAG_TYPE_VIDEO);
     put_be24(buf, 0); //size patched later
@@ -695,7 +695,7 @@ int h264_write_header(struct rtmp *rtmp)
 
 int h264_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
 {
-    struct rtmp_private_buf *buf = rtmp->buf;
+    struct rtmp_private_buf *buf = rtmp->priv_buf;
     put_byte(buf, FLV_TAG_TYPE_VIDEO);
     put_be24(buf, pkt->len + 5);
     put_be24(buf, pkt->timestamp); //timestamp is dts

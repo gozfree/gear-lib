@@ -395,5 +395,8 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
         memcpy(dst->data[3], src->data[3], src->linesize[3] * src->height);
         break;
     }
+    dst->timestamp = src->timestamp;
+    dst->id = src->id;
+    dst->extended_data = src->extended_data;
     return dst;
 }

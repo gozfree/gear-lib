@@ -109,7 +109,7 @@ int aac_add(struct rtmp *rtmp, struct iovec *data)
 
 int aac_write_header(struct rtmp *rtmp)
 {
-    struct rtmp_private_buf *buf = rtmp->buf;
+    struct rtmp_private_buf *buf = rtmp->priv_buf;
     unsigned int timestamp = 0;
     put_byte(buf, FLV_TAG_TYPE_AUDIO);
     put_be24(buf, 0); //size patched later
@@ -131,7 +131,7 @@ int aac_write_header(struct rtmp *rtmp)
 
 int aac_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
 {
-    struct rtmp_private_buf *buf = rtmp->buf;
+    struct rtmp_private_buf *buf = rtmp->priv_buf;
     put_byte(buf, FLV_TAG_TYPE_AUDIO);
     put_be24(buf, pkt->len + 2);
     put_be24(buf, pkt->timestamp);

@@ -70,7 +70,7 @@ static void *item_alloc_hook(void *data, size_t len)
     return pkt;
 }
 
-static void *item_free_hook(void *data)
+static void item_free_hook(void *data)
 {
     struct rtmp_packet *pkt = (struct rtmp_packet *)data;
     if (pkt) {
@@ -81,7 +81,6 @@ static void *item_free_hook(void *data)
         free(pkt);
         pkt = NULL;
     }
-    return NULL;
 }
 
 struct rtmp *rtmp_create(const char *url)
@@ -117,17 +116,17 @@ struct rtmp *rtmp_create(const char *url)
         goto failed;
     }
 
-    rtmp->buf = calloc(1, sizeof(struct rtmp_private_buf));
-    if (!rtmp->buf) {
+    rtmp->priv_buf = calloc(1, sizeof(struct rtmp_private_buf));
+    if (!rtmp->priv_buf) {
         printf("malloc private buffer failed!\n");
         goto failed;
     }
-    rtmp->buf->data = calloc(1, MAX_DATA_LEN);
-    if (!rtmp->buf->data) {
+    rtmp->priv_buf->data = calloc(1, MAX_DATA_LEN);
+    if (!rtmp->priv_buf->data) {
         printf("malloc private buffer failed!\n");
         goto failed;
     }
-    rtmp->buf->d_max = MAX_DATA_LEN;
+    rtmp->priv_buf->d_max = MAX_DATA_LEN;
     rtmp->q = queue_create();
     if (!rtmp->q) {
         printf("queue_create failed!\n");
@@ -156,8 +155,11 @@ failed:
         if (rtmp->q) {
             queue_destroy(rtmp->q);
         }
-        if (rtmp->buf->data) {
-            free(rtmp->buf->data);
+        if (rtmp->priv_buf) {
+            if (rtmp->priv_buf->data) {
+                free(rtmp->priv_buf->data);
+            }
+            free(rtmp->priv_buf);
         }
         free(rtmp);
     }
@@ -184,7 +186,7 @@ int write_header(struct rtmp *rtmp)
 {
     int audio_exist = !!rtmp->audio;
     int video_exist = !!rtmp->video;
-    struct rtmp_private_buf *buf = rtmp->buf;
+    struct rtmp_private_buf *buf = rtmp->priv_buf;
 
     put_tag(buf, "FLV"); // Signature
     put_byte(buf, 1);    // Version
