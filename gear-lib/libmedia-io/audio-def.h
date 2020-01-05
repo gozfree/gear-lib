@@ -63,7 +63,9 @@ struct audio_frame {
 };
 
 struct audio_packet {
-
+    uint8_t     *data;
+    int         size;
+    uint64_t    pts;
 };
 
 #ifdef __cplusplus

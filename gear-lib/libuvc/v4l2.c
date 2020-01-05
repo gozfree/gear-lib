@@ -476,6 +476,7 @@ static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
     int retry_cnt = 0;
     uint8_t *start;
     struct v4l2_buffer qbuf;
+    int i;
 
     struct v4l2_ctx *vc = (struct v4l2_ctx *)uvc->opaque;
     if (!vc->qbuf_done) {
@@ -513,8 +514,16 @@ retry:
 
     vc->prev_ts = frame->timestamp;
     start = (uint8_t *)vc->buf[qbuf.index].iov_base;
-    for (int i = 0; i <= frame->planes; ++i) {
-        frame->data[i] = start + frame->plane_offsets[i];
+
+    if (frame->flag == VFC_NONE) {//frame data ptr
+        for (i = 0; i < frame->planes; ++i) {
+            frame->data[i] = start + frame->plane_offsets[i];
+        }
+    } else {//frame data copy
+        for (i = 0; i < frame->planes; ++i) {
+            memcpy(frame->data[i], start + frame->plane_offsets[i],
+                   frame->linesize[i]*frame->height);
+        }
     }
     frame->total_size = qbuf.bytesused;
 

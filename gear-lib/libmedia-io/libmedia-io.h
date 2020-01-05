@@ -42,11 +42,18 @@ struct media_frame {
 /**
  * This structure stores compressed data.
  */
+
+enum media_packet_type {
+	MEDIA_PACKET_AUDIO,
+	MEDIA_PACKET_VIDEO
+};
+
 struct media_packet {
     union {
-        struct audio_packet audio;
-        struct video_packet video;
+        struct audio_packet *audio;
+        struct video_packet *video;
     };
+    enum media_packet_type type;
 };
 
 

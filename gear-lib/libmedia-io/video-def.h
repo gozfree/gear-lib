@@ -110,6 +110,9 @@ void video_frame_destroy(struct video_frame *frame);
 
 struct video_frame *video_frame_copy(struct video_frame *dst,
                 const struct video_frame *src);
+void video_frame_convert(const struct video_frame *input,
+                         struct video_frame *output);
+
 /**
  * This structure stores compressed data.
  */
@@ -118,6 +121,9 @@ struct video_packet {
     int         size;
     uint64_t    pts;
     uint64_t    dts;
+    uint32_t    timebase_num;
+    uint32_t    timebase_den;
+
     bool        keyframe; /**< Is a keyframe */
 };
 

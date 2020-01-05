@@ -70,6 +70,7 @@ const char *video_format_name(enum video_format format)
 #define MAKE_FOURCC(a, b, c, d) \
     ((uint32_t)(((d) << 24) | ((c) << 16) | ((b) << 8) | (a)))
 
+
 enum video_format video_format_from_fourcc(uint32_t fourcc)
 {
     switch (fourcc) {
@@ -94,6 +95,18 @@ enum video_format video_format_from_fourcc(uint32_t fourcc)
         return VIDEO_FORMAT_YUY2;
     case MAKE_FOURCC('Y', 'V', 'Y', 'U'):
         return VIDEO_FORMAT_YVYU;
+    case MAKE_FOURCC('Y', 'V', '1', '2'):
+        return VIDEO_FORMAT_I420;
+    case MAKE_FOURCC('Y', 'U', '1', '2'):
+        return VIDEO_FORMAT_I420;
+    case MAKE_FOURCC('N', 'V', '1', '2'):
+        return VIDEO_FORMAT_NV12;
+    case MAKE_FOURCC('X', 'R', '2', '4'):
+        return VIDEO_FORMAT_BGRX;
+    case MAKE_FOURCC('B', 'G', 'R', '3'):
+        return VIDEO_FORMAT_BGR3;
+    case MAKE_FOURCC('A', 'R', '2', '4'):
+        return VIDEO_FORMAT_BGRA;
     case MAKE_FOURCC('Y', '8', '0', '0'):
         return VIDEO_FORMAT_Y800;
     }
@@ -110,6 +123,7 @@ int video_frame_init(struct video_frame *frame, enum video_format format,
         return -1;
     }
 
+    memset(frame, 0, sizeof(struct video_frame));
     frame->format = format;
     frame->width = width;
     frame->height = height;
@@ -399,4 +413,97 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
     dst->id = src->id;
     dst->extended_data = src->extended_data;
     return dst;
+}
+
+static void _video_convert_plane(uint32_t width, uint32_t height,
+                uint32_t linesize_input, uint32_t linesize_output,
+                const uint8_t *in, uint8_t *out)
+{
+    if ((width == linesize_input) && (width == linesize_output)) {
+        size_t total = width * height;
+        memcpy(out, in, total);
+        in += total;
+    } else {
+        for (size_t y = 0; y < height; y++) {
+            memcpy(out, in, width);
+            out += linesize_output;
+            in += linesize_input;
+        }
+    }
+}
+
+void video_frame_convert(const struct video_frame *input,
+                         struct video_frame *output)
+{
+    switch (output->format) {
+    case VIDEO_FORMAT_I420: {
+        const uint32_t width = output->width;
+        const uint32_t height = output->height;
+
+        _video_convert_plane(width, height,
+                        input->linesize[0], output->linesize[0],
+                        input->data[0], output->data[0]);
+
+        const uint32_t width_d2 = width / 2;
+        const uint32_t height_d2 = height / 2;
+
+        _video_convert_plane(width_d2, height_d2,
+                        input->linesize[1], output->linesize[1],
+                        input->data[1], output->data[1]);
+
+        _video_convert_plane(width_d2, height_d2,
+                        input->linesize[2], output->linesize[2],
+                        input->data[2],
+                        output->data[2]);
+    } break;
+    case VIDEO_FORMAT_NV12: {
+        const uint32_t width = output->width;
+        const uint32_t height = output->height;
+
+        _video_convert_plane(width, height,
+                        input->linesize[0], output->linesize[0],
+                        input->data[0], output->data[0]);
+
+        const uint32_t height_d2 = height / 2;
+        _video_convert_plane(width, height_d2,
+                        input->linesize[1],
+                        output->linesize[1],
+                        input->data[1],
+                        output->data[1]);
+    } break;
+    case VIDEO_FORMAT_I444: {
+        const uint32_t width = output->width;
+        const uint32_t height = output->height;
+
+        _video_convert_plane(width, height,
+                        input->linesize[0], output->linesize[0],
+                        input->data[0], output->data[0]);
+
+        _video_convert_plane(width, height,
+                        input->linesize[1], output->linesize[1],
+                        input->data[1], output->data[1]);
+
+        _video_convert_plane(width, height,
+                        input->linesize[2], output->linesize[2],
+                        input->data[2], output->data[2]);
+    } break;
+
+    case VIDEO_FORMAT_NONE:
+    case VIDEO_FORMAT_YVYU:
+    case VIDEO_FORMAT_YUY2:
+    case VIDEO_FORMAT_UYVY:
+    case VIDEO_FORMAT_RGBA:
+    case VIDEO_FORMAT_BGRA:
+    case VIDEO_FORMAT_BGRX:
+    case VIDEO_FORMAT_Y800:
+    case VIDEO_FORMAT_BGR3:
+    case VIDEO_FORMAT_I422:
+    case VIDEO_FORMAT_I40A:
+    case VIDEO_FORMAT_I42A:
+    case VIDEO_FORMAT_YUVA:
+    case VIDEO_FORMAT_AYUV:
+        printf("unimplemented convert from %s to %s\n", video_format_name(input->format), video_format_name(output->format));
+        /* unimplemented */
+        break;
+    }
 }
