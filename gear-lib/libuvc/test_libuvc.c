@@ -55,8 +55,8 @@ int main(int argc, char **argv)
         uvc_close(uvc);
         return -1;
     }
-    logi("%s %dx%d@%.2f fps format:%s\n", VIDEO_DEV, uvc->width, uvc->height,
-        (float)(uvc->fps_den / uvc->fps_num), video_format_name(uvc->format));
+    logi("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->width, uvc->height,
+        uvc->fps_num, uvc->fps_den, video_format_name(uvc->format));
     //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open("uvc.yuv", F_CREATE);
     uvc_start_stream(uvc, NULL);
