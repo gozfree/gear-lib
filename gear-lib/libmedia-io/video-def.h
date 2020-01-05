@@ -110,9 +110,6 @@ void video_frame_destroy(struct video_frame *frame);
 
 struct video_frame *video_frame_copy(struct video_frame *dst,
                 const struct video_frame *src);
-void video_frame_convert(const struct video_frame *input,
-                         struct video_frame *output);
-
 
 enum video_encode_format {
     VIDEO_ENCODE_H264,
