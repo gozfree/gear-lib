@@ -24,6 +24,7 @@
 
 #include <libqueue.h>
 #include <libthread.h>
+#include <libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>
 #if defined (__linux__) || defined (__CYGWIN__)
@@ -34,13 +35,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-enum rtmp_data_type {
-    RTMP_DATA_H264,
-    RTMP_DATA_AAC,
-    RTMP_DATA_G711_A,
-    RTMP_DATA_G711_U,
-};
 
 struct rtmp_video_params {
     int codec_id;
@@ -80,24 +74,16 @@ struct rtmp {
     bool is_run;
     bool is_start;
     bool is_keyframe_got;
+    uint64_t start_dts_offset;
     uint32_t prev_msec;
     uint32_t prev_timestamp;
 };
 
-struct rtmp_packet {
-    int type;
-    uint8_t *data;
-    int len;
-    uint32_t timestamp;
-    int key_frame;
-    struct rtmp *parent;
-};
-
 struct rtmp *rtmp_create(const char *push_url);
-int rtmp_stream_add(struct rtmp *rtmp, enum rtmp_data_type type, struct iovec *data);
+int rtmp_stream_add(struct rtmp *rtmp, struct media_packet *pkt);
 int rtmp_stream_start(struct rtmp *rtmp);
 void rtmp_stream_stop(struct rtmp *rtmp);
-int rtmp_send_data(struct rtmp *rtmp, enum rtmp_data_type type, uint8_t *data, int len, uint32_t timestamp);
+int rtmp_send_packet(struct rtmp *rtmp, struct media_packet *pkt);
 void rtmp_destroy(struct rtmp *rtmp);
 
 #ifdef __cplusplus

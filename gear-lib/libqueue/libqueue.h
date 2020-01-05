@@ -58,7 +58,7 @@ struct item {
 
 struct queue;
 
-typedef void *(alloc_hook)(void *data, size_t len);
+typedef void *(alloc_hook)(void *data, size_t len, void *arg);
 typedef void (free_hook)(void *data);
 
 struct queue_branch {
@@ -83,7 +83,7 @@ struct queue {
     struct iovec opaque;
 };
 
-struct item *item_alloc(struct queue *q, void *data, size_t len);
+struct item *item_alloc(struct queue *q, void *data, size_t len, void *arg);
 void item_free(struct queue *q, struct item *item);
 struct iovec *item_get_data(struct queue *q, struct item *it);
 

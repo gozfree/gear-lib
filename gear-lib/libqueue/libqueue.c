@@ -44,7 +44,7 @@ struct iovec *item_get_data(struct queue *q, struct item *it)
     }
 }
 
-struct item *item_alloc(struct queue *q, void *data, size_t len)
+struct item *item_alloc(struct queue *q, void *data, size_t len, void *arg)
 {
     struct item *item;
     if (!q) {
@@ -56,7 +56,7 @@ struct item *item_alloc(struct queue *q, void *data, size_t len)
         return NULL;
     }
     if (q->alloc_hook) {
-        item->opaque.iov_base = (q->alloc_hook)(data, len);
+        item->opaque.iov_base = (q->alloc_hook)(data, len, arg);
         item->opaque.iov_len = len;
     } else {
         item->data.iov_base = memdup(data, len);

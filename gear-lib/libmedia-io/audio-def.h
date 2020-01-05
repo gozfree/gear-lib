@@ -64,12 +64,13 @@ struct audio_frame {
 
 enum audio_encode_format {
     AUDIO_ENCODE_AAC,
-
+    AUDIO_ENCODE_G711_A,
+    AUDIO_ENCODE_G711_U,
 };
 
 struct audio_packet {
     uint8_t                  *data;
-    int                      size;
+    size_t                   size;
     enum audio_encode_format format;
     uint64_t                 pts;
 };

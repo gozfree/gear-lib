@@ -38,7 +38,7 @@ int write_g711_frame(struct rtmp *rtmp, unsigned char *frame,int len,unsigned in
     put_be24(buf, 0);//streamId, always 0
 
     int flags = FLV_SAMPLERATE_SPECIAL | FLV_SAMPLESSIZE_16BIT | FLV_MONO;
-    if (rtmp->audio->codec_id == RTMP_DATA_G711_A) {
+    if (rtmp->audio->codec_id == AUDIO_ENCODE_G711_A) {
         flags |= FLV_CODECID_G711_ALAW;
     } else {
         flags |= FLV_CODECID_G711_MULAW;
@@ -51,11 +51,11 @@ int write_g711_frame(struct rtmp *rtmp, unsigned char *frame,int len,unsigned in
 
 static unsigned char g711_buffer[160];
 static int g711_data_size;
-int g711_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
+int g711_write_packet(struct rtmp *rtmp, struct audio_packet *pkt)
 {
     static const int g711_frame_size = 80; //10 ms
-    unsigned int timestamp = pkt->timestamp;
-    int remained_len = pkt->len;
+    unsigned int timestamp = pkt->pts;
+    int remained_len = pkt->size;
     unsigned char *data = pkt->data;
     if (g711_data_size) {
         memcpy(&g711_buffer[g711_data_size],data,g711_frame_size -g711_data_size);

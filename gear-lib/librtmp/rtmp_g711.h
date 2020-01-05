@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 
-int g711_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt);
+int g711_write_packet(struct rtmp *rtmp, struct audio_packet *pkt);
 int g711_write_header(struct rtmp *rtmp);
 
 #ifdef __cplusplus

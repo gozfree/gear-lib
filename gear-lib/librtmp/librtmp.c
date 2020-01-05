@@ -51,36 +51,37 @@ void rtmp_destroy(struct rtmp *rtmp)
     free(rtmp);
 }
 
-static void *item_alloc_hook(void *data, size_t len)
+static void *item_alloc_hook(void *data, size_t len, void *arg)
 {
-    struct rtmp_packet *pkt = (struct rtmp_packet *)calloc(1, sizeof(struct rtmp_packet));
+    struct media_packet *pkt = (struct media_packet *)arg;
     if (!pkt) {
         printf("calloc packet failed!\n");
         return NULL;
     }
     int alloc_size = (len + 15)/16*16;
-    pkt->data = (uint8_t *)calloc(1,alloc_size);
-    if (!pkt->data) {
-        printf("calloc packet data failed!\n");
-        free(pkt);
-        return NULL;
+    switch (pkt->type) {
+    case MEDIA_PACKET_AUDIO:
+        pkt->audio->data = calloc(1, alloc_size);
+        memcpy(pkt->audio->data, data, len);
+        pkt->audio->size = len;
+        break;
+    case MEDIA_PACKET_VIDEO:
+        pkt->video->data = calloc(1, alloc_size);
+        memcpy(pkt->video->data, data, len);
+        pkt->video->size = len;
+        break;
+    default:
+        printf("item alloc unsupport type %d\n", pkt->type);
+        break;
     }
-    memcpy(pkt->data, data, len);
-    pkt->len = len;
+
     return pkt;
 }
 
 static void item_free_hook(void *data)
 {
-    struct rtmp_packet *pkt = (struct rtmp_packet *)data;
-    if (pkt) {
-        if (pkt->data) {
-            free(pkt->data);
-            pkt->data = NULL;
-        }
-        free(pkt);
-        pkt = NULL;
-    }
+    struct media_packet *pkt = (struct media_packet *)data;
+    media_packet_destroy(pkt);
 }
 
 struct rtmp *rtmp_create(const char *url)
@@ -166,15 +167,15 @@ failed:
     return NULL;
 }
 
-int rtmp_stream_add(struct rtmp *rtmp, enum rtmp_data_type type, struct iovec *data)
+int rtmp_stream_add(struct rtmp *rtmp, struct media_packet *pkt)
 {
     int ret = 0;
-    switch (type) {
-    case RTMP_DATA_H264:
-        ret = h264_add(rtmp, data);
+    switch (pkt->type) {
+    case MEDIA_PACKET_VIDEO:
+        ret = h264_add(rtmp, pkt->video);
         break;
-    case RTMP_DATA_AAC:
-        ret = aac_add(rtmp, data);
+    case MEDIA_PACKET_AUDIO:
+        ret = aac_add(rtmp, pkt->audio);
         break;
     default:
         break;
@@ -250,13 +251,13 @@ int write_header(struct rtmp *rtmp)
         unsigned int codec_id = 0xffffffff;
 
         switch (rtmp->audio->codec_id) {
-        case RTMP_DATA_AAC:
+        case AUDIO_ENCODE_AAC:
             codec_id = 10;
             break;
-        case RTMP_DATA_G711_A:
+        case AUDIO_ENCODE_G711_A:
             codec_id = 7;
             break;
-        case RTMP_DATA_G711_U:
+        case AUDIO_ENCODE_G711_U:
             codec_id = 8;
             break;
         default:
@@ -282,11 +283,11 @@ int write_header(struct rtmp *rtmp)
     }
     if (audio_exist) {
         switch (rtmp->audio->codec_id) {
-        case RTMP_DATA_AAC:
+        case AUDIO_ENCODE_AAC:
             aac_write_header(rtmp);
             break;
-        case RTMP_DATA_G711_A:
-        case RTMP_DATA_G711_U:
+        case AUDIO_ENCODE_G711_A:
+        case AUDIO_ENCODE_G711_U:
             g711_write_header(rtmp);
             break;
         default:
@@ -300,32 +301,34 @@ int write_header(struct rtmp *rtmp)
     return 0;
 }
 
-int write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
+static int write_packet(struct rtmp *rtmp, struct media_packet *pkt)
 {
     switch (pkt->type) {
-    case RTMP_DATA_H264:
-        return h264_write_packet(rtmp, pkt);
+    case MEDIA_PACKET_VIDEO:
+        return h264_write_packet(rtmp, pkt->video);
         break;
-    case RTMP_DATA_AAC:
-        return aac_write_packet(rtmp, pkt);
+    case MEDIA_PACKET_AUDIO:
+        return aac_write_packet(rtmp, pkt->audio);
         break;
+#if 0
     case RTMP_DATA_G711_A:
     case RTMP_DATA_G711_U:
-        return g711_write_packet(rtmp, pkt);
+        return g711_write_packet(rtmp, pkt->audio);
         break;
+#endif
     }
     return 0;
 }
 
-int rtmp_send_data(struct rtmp *rtmp, enum rtmp_data_type type, uint8_t *data, int len, uint32_t timestamp)
+int rtmp_send_packet(struct rtmp *rtmp, struct media_packet *pkt)
 {
     int ret = 0;
-    switch (type) {
-    case RTMP_DATA_H264:
-        ret = h264_send_data(rtmp, data, len, timestamp);
+    switch (pkt->type) {
+    case MEDIA_PACKET_VIDEO:
+        ret = h264_send_packet(rtmp, pkt->video);
         break;
-    case RTMP_DATA_AAC:
-        ret = aac_send_data(rtmp, data, len, timestamp);
+    case MEDIA_PACKET_AUDIO:
+        ret = aac_send_packet(rtmp, pkt->audio);
         break;
     default:
         ret = -1;
@@ -349,7 +352,7 @@ static void *rtmp_stream_thread(struct thread *t, void *arg)
             usleep(200000);
             continue;
         }
-        struct rtmp_packet *pkt = (struct rtmp_packet *)it->opaque.iov_base;
+        struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
         if (0 != write_packet(rtmp, pkt)) {
             printf("write_packet failed!\n");
             rtmp->is_run = false;

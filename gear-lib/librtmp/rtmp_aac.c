@@ -73,10 +73,10 @@ static uint16_t frame_length(struct aac_adts_header *h)
       | (h->framelength_11to4 << 3) | (h->framelength_3to1));
 }
 
-int aac_add(struct rtmp *rtmp, struct iovec *data)
+int aac_add(struct rtmp *rtmp, struct audio_packet *pkt)
 {
     rtmp->audio = (struct rtmp_audio_params *)calloc(1, sizeof(struct rtmp_audio_params));
-    rtmp->audio->codec_id = RTMP_DATA_AAC;
+    rtmp->audio->codec_id = AUDIO_ENCODE_AAC;
     rtmp->audio->bitrate = 0;
     rtmp->audio->sample_size = 0;
     rtmp->audio->sample_rate = 0;
@@ -129,21 +129,21 @@ int aac_write_header(struct rtmp *rtmp)
     return 0;
 }
 
-int aac_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
+int aac_write_packet(struct rtmp *rtmp, struct audio_packet *pkt)
 {
     struct rtmp_private_buf *buf = rtmp->priv_buf;
     put_byte(buf, FLV_TAG_TYPE_AUDIO);
-    put_be24(buf, pkt->len + 2);
-    put_be24(buf, pkt->timestamp);
-    put_byte(buf, (pkt->timestamp >> 24)&0x7f);
+    put_be24(buf, pkt->size + 2);
+    put_be24(buf, pkt->pts);
+    put_byte(buf, (pkt->pts >> 24)&0x7f);
     put_be24(buf, 0);//streamId, always 0
 
     int flags = FLV_CODECID_AAC | FLV_SAMPLERATE_44100HZ | FLV_SAMPLESSIZE_16BIT | FLV_STEREO;
     put_byte(buf, flags);
     put_byte(buf, 1);// AAC raw
-    append_data(buf, pkt->data, pkt->len);
+    append_data(buf, pkt->data, pkt->size);
 
-    put_be32(buf, 11 + pkt->len  + 2);
+    put_be32(buf, 11 + pkt->size  + 2);
 
     if (flush_data(rtmp, 1)) {
         return -1;
@@ -151,10 +151,10 @@ int aac_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
     return 0;
 }
 
-int aac_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp)
+int aac_send_packet(struct rtmp *rtmp, struct audio_packet *pkt)
 {
 #define ADTS_AU_HEADER_LEN  7
-    if (len <= ADTS_AU_HEADER_LEN) {
+    if (pkt->size <= ADTS_AU_HEADER_LEN) {
         printf("AAC data length is invalid\n");
         return -1;
     }
@@ -162,13 +162,16 @@ int aac_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp)
     // need split to strip header
     int frame_len = 0;
     int sent_len = 0;
-    uint8_t *frame_ptr = data;
+    uint8_t *frame_ptr = pkt->data;
 
-    while (sent_len < len) {
+    while (sent_len < pkt->size) {
         struct aac_adts_header *adts = (struct aac_adts_header *)frame_ptr;
         if (is_sync_word_ok(adts)) {
             frame_len = frame_length(adts);
-            struct item *pkt = item_alloc(rtmp->q, frame_ptr + 7, frame_len - 7);
+
+            struct media_packet *mpkt = media_packet_create(MEDIA_PACKET_AUDIO, NULL, 0);
+            mpkt->audio->pts = pkt->pts;
+            struct item *pkt = item_alloc(rtmp->q, frame_ptr + 7, frame_len - 7, mpkt);
             if (!pkt) {
                 queue_push(rtmp->q, pkt);
             } else {

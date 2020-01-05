@@ -95,18 +95,18 @@ struct v4l2_ctx {
     struct uvc_ctx *parent;
 };
 
-static int v4l2_init(struct v4l2_ctx *vc);
-static int v4l2_create_mmap(struct v4l2_ctx *vc);
-static int v4l2_set_format(int fd, int *resolution, uint32_t *pixelformat, uint32_t *bytesperline);
-static int v4l2_set_framerate(int fd, int *framerate);
+static int uvc_v4l2_init(struct v4l2_ctx *vc);
+static int uvc_v4l2_create_mmap(struct v4l2_ctx *vc);
+static int uvc_v4l2_set_format(int fd, int *resolution, uint32_t *pixelformat, uint32_t *bytesperline);
+static int uvc_v4l2_set_framerate(int fd, int *framerate);
 static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
 
-static int v4l2_pack_tuple(uint32_t a, uint32_t b)
+static int uvc_v4l2_pack_tuple(uint32_t a, uint32_t b)
 {
     return (a << 16) | (b & 0xffff);
 }
 
-static void v4l2_unpack_tuple(uint32_t *a, uint32_t *b, int packed)
+static void uvc_v4l2_unpack_tuple(uint32_t *a, uint32_t *b, int packed)
 {
     *a = packed >> 16;
     *b = packed & 0xffff;
@@ -168,31 +168,31 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
     vc->framerate = -1;
     vc->dv_timing = -1;
 
-    if (-1 == v4l2_init(vc)) {
-        printf("v4l2_init failed\n");
+    if (-1 == uvc_v4l2_init(vc)) {
+        printf("uvc_v4l2_init failed\n");
         goto failed;
     }
 
-    vc->resolution = v4l2_pack_tuple(width, height);
+    vc->resolution = uvc_v4l2_pack_tuple(width, height);
 
-    if (v4l2_set_format(vc->fd, &vc->resolution, &vc->pixfmt, &vc->linesize) < 0) {
-        printf("v4l2_set_format failed\n");
+    if (uvc_v4l2_set_format(vc->fd, &vc->resolution, &vc->pixfmt, &vc->linesize) < 0) {
+        printf("uvc_v4l2_set_format failed\n");
         goto failed;
     }
 
-    v4l2_unpack_tuple(&vc->width, &vc->height, vc->resolution);
+    uvc_v4l2_unpack_tuple(&vc->width, &vc->height, vc->resolution);
     if (vc->width != width || vc->height != height) {
         printf("v4l2 format is forced to %dx%d\n", vc->width, vc->height);
     }
 
-    if (v4l2_set_framerate(vc->fd, &vc->framerate) < 0) {
+    if (uvc_v4l2_set_framerate(vc->fd, &vc->framerate) < 0) {
         printf("Unable to set framerate\n");
         goto failed;
     }
-    v4l2_unpack_tuple(&uvc->fps_num, &uvc->fps_denom, vc->framerate);
+    uvc_v4l2_unpack_tuple(&uvc->fps_num, &uvc->fps_den, vc->framerate);
 
-    if (v4l2_create_mmap(vc) < 0) {
-        printf("v4l2_create_mmap failed\n");
+    if (uvc_v4l2_create_mmap(vc) < 0) {
+        printf("uvc_v4l2_create_mmap failed\n");
         goto failed;
     }
 
@@ -268,7 +268,7 @@ static int v4l2_set_dv_timing(int fd, int *timing)
     return 0;
 }
 
-static int v4l2_init(struct v4l2_ctx *vc)
+static int uvc_v4l2_init(struct v4l2_ctx *vc)
 {
     struct v4l2_input in;
     memset(&in, 0, sizeof(in));
@@ -303,7 +303,7 @@ static int v4l2_init(struct v4l2_ctx *vc)
     return 0;
 }
 
-static int v4l2_set_format(int fd, int *resolution,
+static int uvc_v4l2_set_format(int fd, int *resolution,
                 uint32_t *pixelformat, uint32_t *bytesperline)
 {
     bool set = false;
@@ -319,7 +319,7 @@ static int v4l2_set_format(int fd, int *resolution,
     }
 
     if (*resolution != -1) {
-        v4l2_unpack_tuple(&width, &height, *resolution);
+        uvc_v4l2_unpack_tuple(&width, &height, *resolution);
         fmt.fmt.pix.width = width;
         fmt.fmt.pix.height = height;
         set = true;
@@ -333,13 +333,13 @@ static int v4l2_set_format(int fd, int *resolution,
     if (set && (v4l2_ioctl(fd, VIDIOC_S_FMT, &fmt) < 0))
         return -1;
 
-    *resolution = v4l2_pack_tuple(fmt.fmt.pix.width, fmt.fmt.pix.height);
+    *resolution = uvc_v4l2_pack_tuple(fmt.fmt.pix.width, fmt.fmt.pix.height);
     *pixelformat = fmt.fmt.pix.pixelformat;
     *bytesperline = fmt.fmt.pix.bytesperline;
     return 0;
 }
 
-static int v4l2_set_framerate(int fd, int *framerate)
+static int uvc_v4l2_set_framerate(int fd, int *framerate)
 {
     bool set = false;
     uint32_t num, denom;
@@ -352,7 +352,7 @@ static int v4l2_set_framerate(int fd, int *framerate)
         return -1;
 
     if (*framerate != -1) {
-        v4l2_unpack_tuple(&num, &denom, *framerate);
+        uvc_v4l2_unpack_tuple(&num, &denom, *framerate);
         par.parm.capture.timeperframe.numerator = num;
         par.parm.capture.timeperframe.denominator = denom;
         set = true;
@@ -361,7 +361,7 @@ static int v4l2_set_framerate(int fd, int *framerate)
     if (set && (v4l2_ioctl(fd, VIDIOC_S_PARM, &par) < 0))
         return -1;
 
-    *framerate = v4l2_pack_tuple(par.parm.capture.timeperframe.numerator,
+    *framerate = uvc_v4l2_pack_tuple(par.parm.capture.timeperframe.numerator,
                     par.parm.capture.timeperframe.denominator);
     return 0;
 }
@@ -409,7 +409,7 @@ static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
     return 0;
 }
 
-static int v4l2_create_mmap(struct v4l2_ctx *vc)
+static int uvc_v4l2_create_mmap(struct v4l2_ctx *vc)
 {
     struct v4l2_buffer buf;
     struct v4l2_requestbuffers req = {

@@ -478,6 +478,7 @@ static int h264_parse(uint8_t *data, int len, uint8_t *out_buf, int *total_len, 
     return 0;
 }
 
+#if 0
 static int gettimeofday_clock(struct timeval *tv, int *tz)
 {
     struct timespec now;
@@ -486,13 +487,16 @@ static int gettimeofday_clock(struct timeval *tv, int *tz)
     tv->tv_usec = now.tv_nsec/1000;
     return 0;
 }
+#endif
 
-static void update_timestamp(struct rtmp_packet *pkt)
+#if 0
+static void update_timestamp(struct media_packet *pkt, struct video_packet *vp)
 {
+#if 0
     struct rtmp *rtmp = (struct rtmp *)pkt->parent;
     struct timeval now;
     gettimeofday_clock(&now, NULL);
-    unsigned long long msecs = now.tv_sec * 1000 + now.tv_usec/1000; 
+    unsigned long long msecs = now.tv_sec * 1000 + now.tv_usec/1000;
     unsigned long curr_msecs = (unsigned long)(msecs & 0xffffffff);
     if (!rtmp->prev_msec) {
         rtmp->prev_msec = curr_msecs;
@@ -508,7 +512,15 @@ static void update_timestamp(struct rtmp_packet *pkt)
 
     pkt->timestamp = rtmp->prev_timestamp + diff;
     rtmp->prev_timestamp += diff;
+#else
+    pkt->video->dts = vp->dts;
+    pkt->video->pts = vp->pts;
+    pkt->video->timebase_num = vp->timebase_num;
+    pkt->video->timebase_den = vp->timebase_den;
+
+#endif
 }
+#endif
 
 static int strip_nalu_sps_pps(uint8_t *data, int len)
 {
@@ -559,49 +571,65 @@ static int strip_nalu_sps_pps(uint8_t *data, int len)
     return 0;
 }
 
-int h264_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp)
+#define MILLISECOND_DEN 1000
+
+static int32_t get_ms_time(struct video_packet *packet, int64_t val)
 {
-    if (len <= 4) {
+	return (int32_t)(val * MILLISECOND_DEN / packet->timebase_den);
+}
+
+static int32_t get_ms_time2(struct video_packet *packet, int64_t val)
+{
+	return (int32_t)(val * MILLISECOND_DEN / packet->timebase_den);
+}
+
+int h264_send_packet(struct rtmp *rtmp, struct video_packet *pkt)
+{
+    if (pkt->size <= 4) {
         printf("H264 data length is invalid\n");
         return -1;
     }
     int total_len = 0;
     int key_frame = 0;
     int ret = 0;
-    int offset = strip_nalu_sps_pps(data, len);
+    int offset = strip_nalu_sps_pps(pkt->data, pkt->size);
     if (offset) {
-        data += offset;
-        len -= offset;
+        pkt->data += offset;
+        pkt->size -= offset;
     }
 
-    ret = h264_parse(data, len, rtmp->tmp_buf.iov_base, &total_len, &key_frame);
+    ret = h264_parse(pkt->data, pkt->size, rtmp->tmp_buf.iov_base, &total_len, &key_frame);
     if (ret != 0) {
         printf("h264_parse failed!\n");
         return -1;
     }
     if (!rtmp->is_keyframe_got) {
         if (key_frame) {
+            rtmp->start_dts_offset = get_ms_time(pkt, pkt->dts);
             rtmp->is_keyframe_got = true;
+            printf("start_dts_offset=%zu, dts=%zu, timebase_den=%u\n", rtmp->start_dts_offset, pkt->dts, pkt->timebase_den);
         } else {
             printf("wait for key frame\n");
             return 0;
         }
     }
 
-    struct item *item = item_alloc(rtmp->q, rtmp->tmp_buf.iov_base, total_len);
-    struct rtmp_packet *pkt = (struct rtmp_packet *)item->opaque.iov_base;
-    pkt->type = RTMP_DATA_H264;
-    pkt->timestamp = 0;
-    pkt->key_frame = key_frame;
-    pkt->parent = rtmp;
-    update_timestamp(pkt);
+    struct media_packet *mpkt = media_packet_create(MEDIA_PACKET_VIDEO, NULL, 0);
+    mpkt->video->key_frame = key_frame;
+    mpkt->video->dts = pkt->dts;
+    mpkt->video->pts = pkt->pts;
+    mpkt->video->timebase_num = pkt->timebase_num;
+    mpkt->video->timebase_den = pkt->timebase_den;
+
+    struct item *item = item_alloc(rtmp->q, rtmp->tmp_buf.iov_base, total_len, mpkt);
+
     if (0 != queue_push(rtmp->q, item)) {
         printf("queue_push failed!\n");
     }
     return 0;
 }
 
-int h264_add(struct rtmp *rtmp, struct iovec *data)
+int h264_add(struct rtmp *rtmp, struct video_packet *pkt)
 {
 #define MAX_EXTRA_LEN   32*1024
     int extra_len = 0;
@@ -613,7 +641,7 @@ int h264_add(struct rtmp *rtmp, struct iovec *data)
         printf("calloc failed\n");
         return -1;
     }
-    if (-1 == h264_get_extra_data(data->iov_base, data->iov_len, rtmp->video->extra_data, &extra_len)) {
+    if (-1 == h264_get_extra_data(pkt->data, pkt->size, rtmp->video->extra_data, &extra_len)) {
         printf("h264_get_extra_data failed!\n");
         return -1;
     }
@@ -693,21 +721,27 @@ int h264_write_header(struct rtmp *rtmp)
     return 0;
 }
 
-int h264_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt)
+int h264_write_packet(struct rtmp *rtmp, struct video_packet *pkt)
 {
     struct rtmp_private_buf *buf = rtmp->priv_buf;
+
+	int64_t offset = pkt->pts - pkt->dts;
+	int32_t time_ms = get_ms_time2(pkt, pkt->dts) - rtmp->start_dts_offset;
+
     put_byte(buf, FLV_TAG_TYPE_VIDEO);
-    put_be24(buf, pkt->len + 5);
-    put_be24(buf, pkt->timestamp); //timestamp is dts
-    put_byte(buf, (pkt->timestamp >> 24)&0x7f);// timestamps are 32bits _signed_
+    put_be24(buf, pkt->size + 5);
+    put_be24(buf, time_ms); //timestamp is dts
+    put_byte(buf, (time_ms >> 24)&0x7f);// timestamps are 32bits _signed_
     put_be24(buf, 0);//streamId, always 0
 
+    printf("pkt->key_frame=%d, time_ms=%d, get_ms_time=%d\n", pkt->key_frame,
+        time_ms, get_ms_time2(pkt, pkt->dts));
     int tag_flags = FLV_CODECID_H264 | (pkt->key_frame ? FLV_FRAME_KEY: FLV_FRAME_INTER);
     put_byte(buf, tag_flags);
     put_byte(buf, 1);// AVC NALU
-    put_be24(buf, 0);// composition time offset, TODO, pts - dts
-    append_data(buf, pkt->data, pkt->len);
-    put_be32(buf, 11 + pkt->len + 5);
+    put_be24(buf, get_ms_time2(pkt, offset));// composition time offset, TODO, pts - dts
+    append_data(buf, pkt->data, pkt->size);
+    put_be32(buf, 11 + pkt->size + 5);
     if (flush_data(rtmp, 1)) {
         return -1;
     }

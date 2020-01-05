@@ -46,10 +46,10 @@ struct rtmp_h264_info {
     int time_base_den;
 };
 
-int h264_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp);
-int h264_add(struct rtmp *rtmp, struct iovec *data);
+int h264_add(struct rtmp *rtmp, struct video_packet *pkt);
 int h264_write_header(struct rtmp *rtmp);
-int h264_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt);
+int h264_write_packet(struct rtmp *rtmp, struct video_packet *pkt);
+int h264_send_packet(struct rtmp *rtmp, struct video_packet *pkt);
 
 #ifdef __cplusplus
 }

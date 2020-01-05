@@ -25,6 +25,7 @@
 
 int main(int argc, char **argv)
 {
+#if 0
     const char *url = "rtmp://localhost";
     struct rtmp *rtmp = rtmp_create(url);
     struct iovec h264_data = {
@@ -35,7 +36,8 @@ int main(int argc, char **argv)
     rtmp_stream_start(rtmp);
     while (1) {
         //get_h264_data(&h264_data);
-        rtmp_send_data(rtmp, RTMP_DATA_H264, h264_data.iov_base, h264_data.iov_len, 0);
+        //rtmp_send_data(rtmp, RTMP_DATA_H264, h264_data.iov_base, h264_data.iov_len, 0);
     }
+#endif
     return 0;
 }

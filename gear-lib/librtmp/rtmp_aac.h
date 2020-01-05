@@ -30,10 +30,10 @@
 extern "C" {
 #endif
 
-int aac_add(struct rtmp *rtmp, struct iovec *data);
+int aac_add(struct rtmp *rtmp, struct audio_packet *pkt);
 int aac_write_header(struct rtmp *rtmp);
-int aac_write_packet(struct rtmp *rtmp, struct rtmp_packet *pkt);
-int aac_send_data(struct rtmp *rtmp, uint8_t *data, int len, uint32_t timestamp);
+int aac_write_packet(struct rtmp *rtmp, struct audio_packet *pkt);
+int aac_send_packet(struct rtmp *rtmp, struct audio_packet *pkt);
 
 #ifdef __cplusplus
 }

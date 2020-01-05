@@ -124,13 +124,13 @@ enum video_encode_format {
  */
 struct video_packet {
     uint8_t                  *data;
-    int                      size;
+    size_t                   size;
     enum video_encode_format format;
     uint64_t                 pts;
     uint64_t                 dts;
     uint32_t                 timebase_num;
     uint32_t                 timebase_den;
-    bool                     keyframe;
+    bool                     key_frame;
 };
 
 struct video_packet *video_packet_create(void *data, size_t len);
