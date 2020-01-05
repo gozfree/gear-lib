@@ -507,3 +507,25 @@ void video_frame_convert(const struct video_frame *input,
         break;
     }
 }
+
+struct video_packet *video_packet_create(void *data, size_t len)
+{
+    struct video_packet *packet;
+    packet = calloc(1, sizeof(struct video_packet));
+    if (!packet) {
+        return NULL;
+    }
+    packet->data = data;
+    packet->size = len;
+    return packet;
+}
+
+void video_packet_destroy(struct video_packet *packet)
+{
+    if (packet) {
+        if (packet->data) {
+            free(packet->data);
+        }
+        free(packet);
+    }
+}

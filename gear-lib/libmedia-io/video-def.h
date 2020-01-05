@@ -113,19 +113,28 @@ struct video_frame *video_frame_copy(struct video_frame *dst,
 void video_frame_convert(const struct video_frame *input,
                          struct video_frame *output);
 
+
+enum video_encode_format {
+    VIDEO_ENCODE_H264,
+    VIDEO_ENCODE_H265,
+};
+
 /**
  * This structure stores compressed data.
  */
 struct video_packet {
-    uint8_t     *data;
-    int         size;
-    uint64_t    pts;
-    uint64_t    dts;
-    uint32_t    timebase_num;
-    uint32_t    timebase_den;
-
-    bool        keyframe; /**< Is a keyframe */
+    uint8_t                  *data;
+    int                      size;
+    enum video_encode_format format;
+    uint64_t                 pts;
+    uint64_t                 dts;
+    uint32_t                 timebase_num;
+    uint32_t                 timebase_den;
+    bool                     keyframe;
 };
+
+struct video_packet *video_packet_create(void *data, size_t len);
+void video_packet_destroy(struct video_packet *packet);
 
 #ifdef __cplusplus
 }

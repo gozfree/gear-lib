@@ -23,3 +23,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct media_packet *media_packet_create(enum media_packet_type type, void *data, size_t len)
+{
+    struct media_packet *packet;
+    packet = calloc(1, sizeof(struct media_packet));
+    if (!packet) {
+        return NULL;
+    }
+    packet->type = type;
+    switch (packet->type) {
+    case MEDIA_PACKET_AUDIO:
+        packet->audio = audio_packet_create(data, len);
+        break;
+    case MEDIA_PACKET_VIDEO:
+        packet->video = video_packet_create(data, len);
+        break;
+    default:
+        printf("unsupport create %d media packet\n", packet->type);
+        break;
+    }
+    return packet;
+}
+
+void media_packet_destroy(struct media_packet *packet)
+{
+    if (!packet) {
+        return;
+    }
+    switch (packet->type) {
+    case MEDIA_PACKET_AUDIO:
+        audio_packet_destroy(packet->audio);
+        break;
+    case MEDIA_PACKET_VIDEO:
+        video_packet_destroy(packet->video);
+        break;
+    default:
+        printf("unsupport destroy %d media packet\n", packet->type);
+        break;
+    }
+    free(packet);
+}

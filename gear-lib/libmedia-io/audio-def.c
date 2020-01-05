@@ -19,65 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef AUDIO_DEF_H
-#define AUDIO_DEF_H
+#include "libmedia-io.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <malloc.h>
 
-#include <stdint.h>
 
-/**
- * This file reference to ffmpeg and obs define
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-enum audio_format {
-    AUDIO_FORMAT_UNKNOWN,
-
-    AUDIO_FORMAT_U8BIT,
-    AUDIO_FORMAT_16BIT,
-    AUDIO_FORMAT_32BIT,
-    AUDIO_FORMAT_FLOAT,
-
-    AUDIO_FORMAT_U8BIT_PLANAR,
-    AUDIO_FORMAT_16BIT_PLANAR,
-    AUDIO_FORMAT_32BIT_PLANAR,
-    AUDIO_FORMAT_FLOAT_PLANAR,
-};
-
-/**
- * This structure describes decoded (raw) audio data.
- */
-#define AUDIO_MAX_CHANNELS 8
-struct audio_frame {
-    uint8_t *data[AUDIO_MAX_CHANNELS];
-    uint32_t linesize[AUDIO_MAX_CHANNELS];
-    int      format;
-    int      nb_samples;
-    uint64_t timestamp;//ns
-    uint64_t size;
-    uint64_t id;
-    uint8_t **extended_data;
-    void    *opaque;
-};
-
-enum audio_encode_format {
-    AUDIO_ENCODE_AAC,
-
-};
-
-struct audio_packet {
-    uint8_t                  *data;
-    int                      size;
-    enum audio_encode_format format;
-    uint64_t                 pts;
-};
-
-struct audio_packet *audio_packet_create(void *data, size_t len);
-void audio_packet_destroy(struct audio_packet *packet);
-
-#ifdef __cplusplus
+struct audio_packet *audio_packet_create(void *data, size_t len)
+{
+    struct audio_packet *packet;
+    packet = calloc(1, sizeof(struct audio_packet));
+    if (!packet) {
+        return NULL;
+    }
+    packet->data = data;
+    packet->size = len;
+    return packet;
 }
-#endif
-#endif
+
+void audio_packet_destroy(struct audio_packet *packet)
+{
+    if (packet) {
+        if (packet->data) {
+            free(packet->data);
+        }
+        free(packet);
+    }
+}

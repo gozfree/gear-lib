@@ -22,6 +22,8 @@
 #ifndef LIBMEDIA_IO_H
 #define LIBMEDIA_IO_H
 
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,8 +46,8 @@ struct media_frame {
  */
 
 enum media_packet_type {
-	MEDIA_PACKET_AUDIO,
-	MEDIA_PACKET_VIDEO
+    MEDIA_PACKET_AUDIO,
+    MEDIA_PACKET_VIDEO
 };
 
 struct media_packet {
@@ -54,8 +56,12 @@ struct media_packet {
         struct video_packet *video;
     };
     enum media_packet_type type;
+    void *opaque;
 };
 
+struct media_packet *media_packet_create(enum media_packet_type type,
+                                            void *data, size_t len);
+void media_packet_destroy(struct media_packet *packet);
 
 #ifdef __cplusplus
 }
