@@ -31,7 +31,10 @@ int main(int argc, char **argv)
     for (j = 0; j < 10; j++) {
         da_push_back(i, &j);
     }
-    for (j = 0; j < 10; j++) {
+    for (j = 10; j < 20; j++) {
+        da_push_back_array(i, &j, sizeof(j));
+    }
+    for (j = 0; j < 20; j++) {
         printf("tmp=%x\n", i.array[j]);
     }
     da_free(i);

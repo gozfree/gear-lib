@@ -39,17 +39,14 @@ struct darray {
 
 void darray_init(struct darray *dst);
 void darray_free(struct darray *dst);
-size_t darray_push_back(const size_t element_size,
-                struct darray *dst, const void *item);
-void darray_pop_back(const size_t element_size,
-                struct darray *dst);
-size_t darray_find(const size_t element_size,
-                const struct darray *da, const void *item,
+size_t darray_push_back(const size_t size, struct darray *dst, const void *item);
+void darray_pop_back(const size_t size, struct darray *dst);
+size_t darray_find(const size_t size, const struct darray *da, const void *item,
                 const size_t idx);
-void *darray_end(const size_t element_size,
-                const struct darray *da);
-void darray_reserve(const size_t element_size, struct darray *dst,
-                const size_t capacity);
+void *darray_end(const size_t size, const struct darray *da);
+void darray_reserve(const size_t size, struct darray *dst, const size_t capacity);
+size_t darray_push_back_array(const size_t size, struct darray *dst,
+                const void *array, const size_t num);
 
 
 /*

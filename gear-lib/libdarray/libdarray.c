@@ -190,7 +190,7 @@ static inline void *darray_push_back_new(const size_t element_size,
     return last;
 }
 
-static inline size_t darray_push_back_array(const size_t element_size,
+size_t darray_push_back_array(const size_t element_size,
                 struct darray *dst,
                 const void *array, const size_t num)
 {
