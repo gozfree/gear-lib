@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/github/license/gozfree/gear-lib.svg)](https://github.com/gozfree/gear-lib/blob/master/LICENSE.MIT)
 
 这是一组通用的Ｃ基础库
-* 全部用POSIX C实现，目标是为了跨平台兼容x86, arm, android, ios.
+* 全部用POSIX C实现，目标是为了跨平台兼容linux, windows, android, ios.
 * 适用于物联网，嵌入式，以及网络服务开发等场景
 
 ## 数据结构
@@ -19,6 +19,7 @@
 * libsort:
 * libvector: 容器库
 * libmacro: 通用宏定义
+* libdarray: 动态数组
 
 ## 网络库
 * librtsp: RTSP协议，适合IPCamera和NVR开发
@@ -27,6 +28,7 @@
 * librpc: 远程过程调用库
 * libipc: 进程间通信
 * libp2p: p2p穿透传输
+* libhomekit: Apple homekit协议库
 
 ## 异步
 * libgevent: 事件驱动
@@ -39,21 +41,24 @@
 * liblog: 日志库
 * libfile: 文件操作库
 * libstrex:
-* libsubmask:
-
-## 其他
-* libdebug: 调试辅助库
-* libhal: 硬件抽象层
-* libplugin: 动态加载库
-* libtime: 时间库
-* libposix4win: windows平台poxix适配库
-* libposix4rtos: FreeRTOS平台poxix适配库
+* libsubmask: 网络地址翻译
 
 ## 多媒体
 * libuvc: USB摄像头库
 * libmp4parser: MP4解析库
 * libjpeg-ex:
 * libmedia-io: 音频视频格式定义
+
+## 系统抽象层
+* libposix4win: windows平台poxix适配库
+* libposix4rtos: FreeRTOS平台poxix适配库
+
+## 其他
+* libdebug: 调试辅助库
+* libhal: 硬件抽象层
+* libplugin: 动态加载库
+* libtime: 时间库
+* libfsm: 有限状态机
 
 ## 编译方法
 详细请参考[INSTALL.md](https://github.com/gozfree/gear-lib/blob/master/INSTALL.md)
