@@ -74,6 +74,7 @@ struct rtmp {
     bool is_run;
     bool is_start;
     bool is_keyframe_got;
+    bool sent_headers;
     uint64_t start_dts_offset;
     uint32_t prev_msec;
     uint32_t prev_timestamp;

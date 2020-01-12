@@ -417,18 +417,93 @@ static void set_nal_len(uint8_t *buf, int len)
     *(buf + 3) = len >> 0;
 }
 
+static const uint8_t *avc_find_startcode_internal(const uint8_t *p,
+						     const uint8_t *end)
+{
+	const uint8_t *a = p + 4 - ((intptr_t)p & 3);
+
+	for (end -= 3; p < a && p < end; p++) {
+		if (p[0] == 0 && p[1] == 0 && p[2] == 1)
+			return p;
+	}
+
+	for (end -= 3; p < end; p += 4) {
+		uint32_t x = *(const uint32_t *)p;
+
+		if ((x - 0x01010101) & (~x) & 0x80808080) {
+			if (p[1] == 0) {
+				if (p[0] == 0 && p[2] == 1)
+					return p;
+				if (p[2] == 0 && p[3] == 1)
+					return p + 1;
+			}
+
+			if (p[3] == 0) {
+				if (p[2] == 0 && p[4] == 1)
+					return p + 2;
+				if (p[4] == 0 && p[5] == 1)
+					return p + 3;
+			}
+		}
+	}
+
+	for (end += 3; p < end; p++) {
+		if (p[0] == 0 && p[1] == 0 && p[2] == 1)
+			return p;
+	}
+
+	return end + 3;
+}
+
+const uint8_t *avc_find_startcode(const uint8_t *p, const uint8_t *end)
+{
+	const uint8_t *out = avc_find_startcode_internal(p, end);
+	if (p < out && out < end && !out[-1])
+		out--;
+	return out;
+}
+
+bool is_keyframe(const uint8_t *data, size_t size)
+{
+	const uint8_t *nal_start, *nal_end;
+	const uint8_t *end = data + size;
+	int type;
+
+	nal_start = avc_find_startcode(data, end);
+	while (true) {
+		while (nal_start < end && !*(nal_start++))
+			;
+
+		if (nal_start == end)
+			break;
+
+		type = nal_start[0] & 0x1F;
+
+		if (type == H264_NAL_IDR_SLICE || type == H264_NAL_SLICE)
+			return (type == H264_NAL_IDR_SLICE);
+
+		nal_end = avc_find_startcode(nal_start, end);
+		nal_start = nal_end;
+	}
+
+	return false;
+}
+
 static int h264_parse(uint8_t *data, int len, uint8_t *out_buf, int *total_len, int *key_frame)
 {
+    int pos = 0,prepos;
+    int nal_len,nal_type;
+    uint8_t *nal;
+
     if (len > MAX_NALS_LEN) {
         printf("h264_parse failed len=%d\n", len);
         return -1;
     }
+
     *total_len = 0;
     *key_frame = 0;
 
-    int pos = 0,prepos;
-    int nal_len,nal_type;
-    uint8_t *nal;
+
     while (pos < len - 4) {
         if (NAL_HEADER_PREFIX((data+pos))) {
             break;
@@ -734,8 +809,6 @@ int h264_write_packet(struct rtmp *rtmp, struct video_packet *pkt)
     put_byte(buf, (time_ms >> 24)&0x7f);// timestamps are 32bits _signed_
     put_be24(buf, 0);//streamId, always 0
 
-    printf("pkt->key_frame=%d, time_ms=%d, get_ms_time=%d\n", pkt->key_frame,
-        time_ms, get_ms_time2(pkt, pkt->dts));
     int tag_flags = FLV_CODECID_H264 | (pkt->key_frame ? FLV_FRAME_KEY: FLV_FRAME_INTER);
     put_byte(buf, tag_flags);
     put_byte(buf, 1);// AVC NALU

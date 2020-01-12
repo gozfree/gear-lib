@@ -474,14 +474,14 @@ static int uvc_v4l2_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
 
 retry:
     if (v4l2_ioctl(c->fd, VIDIOC_DQBUF, &qbuf) < 0) {
-        printf("%s ioctl(VIDIOC_DQBUF) failed: %d\n", __func__, errno);
         if (errno == EINTR || errno == EAGAIN) {
             if (++retry_cnt > MAX_V4L2_DQBUF_RETYR_CNT) {
                 return -1;
             }
             goto retry;
         } else {
-                return -1;
+            printf("%s ioctl(VIDIOC_DQBUF) failed: %d\n", __func__, errno);
+            return -1;
         }
     }
 

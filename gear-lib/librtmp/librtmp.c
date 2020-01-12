@@ -183,7 +183,7 @@ int rtmp_stream_add(struct rtmp *rtmp, struct media_packet *pkt)
     return ret;
 }
 
-int write_header(struct rtmp *rtmp)
+int rtmp_write_header(struct rtmp *rtmp)
 {
     int audio_exist = !!rtmp->audio;
     int video_exist = !!rtmp->video;
@@ -340,10 +340,6 @@ int rtmp_send_packet(struct rtmp *rtmp, struct media_packet *pkt)
 static void *rtmp_stream_thread(struct thread *t, void *arg)
 {
     struct rtmp *rtmp = (struct rtmp *)arg;
-    if (0 != write_header(rtmp)) {
-        printf("write_header failed!\n");
-        return NULL;
-    }
     queue_flush(rtmp->q);
     rtmp->is_run = true;
     while (rtmp->is_run) {
@@ -351,6 +347,10 @@ static void *rtmp_stream_thread(struct thread *t, void *arg)
         if (!it) {
             usleep(200000);
             continue;
+        }
+        if (!rtmp->sent_headers) {
+            rtmp_write_header(rtmp);
+            rtmp->sent_headers = true;
         }
         struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
         if (0 != write_packet(rtmp, pkt)) {
