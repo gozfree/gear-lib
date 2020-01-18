@@ -73,6 +73,8 @@ struct audio_packet {
     size_t                   size;
     enum audio_encode_format format;
     uint64_t                 pts;
+    uint8_t                  *extra_data;
+    size_t                   extra_size;
 };
 
 struct audio_packet *audio_packet_create(void *data, size_t len);

@@ -128,6 +128,8 @@ struct video_packet {
     uint32_t                 timebase_num;
     uint32_t                 timebase_den;
     bool                     key_frame;
+    uint8_t                  *extra_data;
+    size_t                   extra_size;
 };
 
 struct video_packet *video_packet_create(void *data, size_t len);

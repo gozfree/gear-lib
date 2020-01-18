@@ -706,24 +706,29 @@ int h264_send_packet(struct rtmp *rtmp, struct video_packet *pkt)
 
 int h264_add(struct rtmp *rtmp, struct video_packet *pkt)
 {
-#define MAX_EXTRA_LEN   32*1024
     int extra_len = 0;
     struct rtmp_h264_info info;
 
     rtmp->video = (struct rtmp_video_params *)calloc(1, sizeof(struct rtmp_video_params));
-    rtmp->video->extra_data = calloc(1, MAX_EXTRA_LEN);
+    if (!pkt->extra_data || pkt->extra_size == 0) {
+        printf("video packet no extra_data\n");
+        return -1;
+    }
+    rtmp->video->extra_data = calloc(1, pkt->extra_size);
     if (!rtmp->video->extra_data) {
         printf("calloc failed\n");
         return -1;
     }
-    if (-1 == h264_get_extra_data(pkt->data, pkt->size, rtmp->video->extra_data, &extra_len)) {
+    if (-1 == h264_get_extra_data(pkt->extra_data, pkt->extra_size, rtmp->video->extra_data, &extra_len)) {
         printf("h264_get_extra_data failed!\n");
         return -1;
     }
-    if (-1 == get_h264_info(rtmp->video->extra_data + 5, extra_len-5, &info)) {
+
+    if (-1 == get_h264_info(rtmp->video->extra_data, extra_len, &info)) {
         printf("get_h264_info failed!\n");
         return -1;
     }
+
     rtmp->video->extra_data_len = extra_len;
     rtmp->video->width = info.width;
     rtmp->video->height = info.height;
