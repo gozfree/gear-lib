@@ -74,7 +74,7 @@ EXTRA_CFLAGS	+= -I../libmacro/
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
-EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib -ldict -lgevent
+EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib -ldict -lgevent -ldarray
 EXTRA_LDFLAGS	+= -pthread -lrt
 
 

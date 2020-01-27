@@ -25,7 +25,7 @@ esac
 PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
-BASIC_LIBS="libmacro libtime liblog libgevent libworkq libdict libhash libsort \
+BASIC_LIBS="libmacro libtime liblog libdarray libgevent libworkq libdict libhash libsort \
 	    librbtree libringbuffer libthread libvector libbase64 libmedia-io \
             libdebug libfile libuvc libmp4parser libqueue libplugin libhal libsubmask"
 FRAMEWORK_LIBS="libipc"
@@ -152,7 +152,7 @@ build_module()
 	*)
 		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT} MODE=${MODE}"
 		if [[ ${ARCH} == "linux" || ${ARCH} == "pi" || ${ARCH} == "android" ]]; then
-			${MAKE} > /dev/null
+			${MAKE}  > /dev/null
 		else
 			echo "${ARCH} not support now" #make -f Makefile.${ARCH} > /dev/null
 		fi

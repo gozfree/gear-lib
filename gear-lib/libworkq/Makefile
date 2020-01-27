@@ -66,7 +66,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib -lgevent
+LDFLAGS	+= -L$(OUTLIBPATH)/lib -lgevent -ldarray
 LDFLAGS	+= -pthread
 
 ###############################################################################

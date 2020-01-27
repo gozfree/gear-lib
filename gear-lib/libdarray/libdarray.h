@@ -51,7 +51,8 @@ void darray_insert(const size_t element_size, struct darray *dst,
                 const size_t idx, const void *item);
 void darray_erase(const size_t element_size, struct darray *dst,
                 const size_t idx);
-
+void darray_erase_item(const size_t element_size,
+                struct darray *dst, const void *item);
 
 
 /*
