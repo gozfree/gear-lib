@@ -215,7 +215,7 @@ static inline size_t darray_push_back_darray(const size_t element_size,
     return darray_push_back_array(element_size, dst, da->array, da->num);
 }
 
-static inline void darray_insert(const size_t element_size, struct darray *dst,
+void darray_insert(const size_t element_size, struct darray *dst,
                 const size_t idx, const void *item)
 {
     void *new_item;
@@ -292,7 +292,7 @@ static inline void darray_insert_darray(const size_t element_size,
     darray_insert_array(element_size, dst, idx, da->array, da->num);
 }
 
-static inline void darray_erase(const size_t element_size, struct darray *dst,
+void darray_erase(const size_t element_size, struct darray *dst,
                 const size_t idx)
 {
     if (idx >= dst->num)
@@ -306,7 +306,7 @@ static inline void darray_erase(const size_t element_size, struct darray *dst,
                     element_size * (dst->num - idx));
 }
 
-static inline void darray_erase_item(const size_t element_size,
+void darray_erase_item(const size_t element_size,
                 struct darray *dst, const void *item)
 {
     size_t idx = darray_find(element_size, dst, item, 0);

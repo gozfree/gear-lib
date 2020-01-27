@@ -31,6 +31,8 @@ int main(int argc, char **argv)
     for (j = 0; j < 10; j++) {
         da_push_back(i, &j);
     }
+    da_erase(i, 0);
+    da_erase(i, 4);
     for (j = 10; j < 20; j++) {
         da_push_back_array(i, &j, sizeof(j));
     }

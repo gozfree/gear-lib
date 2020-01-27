@@ -45,6 +45,7 @@ extern const struct gevent_ops iocpops;
 static const struct gevent_ops *eventops[] = {
 #if defined (__linux__)
 //    &selectops,
+//    &pollops,
 #ifndef __CYGWIN__
     &epollops,
 #endif
@@ -211,7 +212,7 @@ struct gevent *gevent_timer_create(time_t msec,
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     enum gevent_flags flags = 0;
-    struct gevent_cbs *evcb; 
+    struct gevent_cbs *evcb;
     int fd;
     time_t sec = msec/1000;
     long nsec = (msec-sec*1000)*1000000;

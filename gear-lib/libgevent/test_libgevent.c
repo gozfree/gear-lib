@@ -31,6 +31,8 @@ struct gevent_base *evbase = NULL;
 
 static void on_input(int fd, void *arg)
 {
+    char ch[2];
+    read(fd, &ch, 2);
     printf("on_input fd = %d\n", fd);
 }
 
@@ -38,9 +40,15 @@ static int foo(void)
 {
     struct gevent *event_2000;
     struct gevent *event_1500;
+    struct gevent *event_stdin;
     evbase = gevent_base_create();
     if (!evbase) {
         printf("gevent_base_create failed!\n");
+        return -1;
+    }
+    event_stdin = gevent_create(0, on_input, NULL, NULL, NULL);
+    if (!event_stdin) {
+        printf("gevent_create failed!\n");
         return -1;
     }
     event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_input, NULL);
@@ -51,6 +59,10 @@ static int foo(void)
     event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_input, NULL);
     if (!event_1500) {
         printf("gevent_create failed!\n");
+        return -1;
+    }
+    if (-1 == gevent_add(evbase, event_stdin)) {
+        printf("gevent_add failed!\n");
         return -1;
     }
     if (-1 == gevent_add(evbase, event_2000)) {

@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libgevent.h"
+#include "libdarray.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,16 +35,17 @@
 
 struct poll_ctx {
     nfds_t nfds;
-    int event_count;
     struct pollfd *fds;
+    int ev_num;
+    DARRAY(struct gevent) ev_list;
 };
 
 static void *poll_init(void)
 {
-    struct poll_ctx *pc;
+    struct poll_ctx *c;
     struct pollfd *fds;
-    pc = (struct poll_ctx *)calloc(1, sizeof(struct poll_ctx));
-    if (!pc) {
+    c = (struct poll_ctx *)calloc(1, sizeof(struct poll_ctx));
+    if (!c) {
         printf("malloc poll_ctx failed!\n");
         return NULL;
     }
@@ -52,47 +54,56 @@ static void *poll_init(void)
         printf("malloc pollfd failed!\n");
         return NULL;
     }
-    pc->fds = fds;
+    c->fds = fds;
 
-    return pc;
+    return c;
 }
 
 static void poll_deinit(void *ctx)
 {
-    struct poll_ctx *pc = (struct poll_ctx *)ctx;
-    if (!ctx) {
-        return;
+    struct poll_ctx *c = (struct poll_ctx *)ctx;
+    if (c) {
+        da_free(c->ev_list);
+        free(c->fds);
+        free(c);
     }
-    free(pc->fds);
-    free(pc);
 }
 
 static int poll_add(struct gevent_base *eb, struct gevent *e)
 {
-    struct poll_ctx *pc = (struct poll_ctx *)eb->ctx;
+    struct poll_ctx *c = (struct poll_ctx *)eb->ctx;
+    int i = c->ev_num;
 
-    pc->fds[0].fd = e->evfd;
+    if (c->nfds < e->evfd)
+        c->nfds = e->evfd;
+
+    c->fds[i].fd = e->evfd;
 
     if (e->flags & EVENT_READ)
-        pc->fds[0].events |= POLLIN;
+        c->fds[i].events |= POLLIN;
     if (e->flags & EVENT_WRITE)
-        pc->fds[0].events |= POLLOUT;
+        c->fds[i].events |= POLLOUT;
     if (e->flags & EVENT_EXCEPT)
-        pc->fds[0].events |= POLLERR;
+        c->fds[i].events |= POLLERR;
+
+    da_push_back(c->ev_list, e);
+    c->ev_num++;
 
     return 0;
 }
+
 static int poll_del(struct gevent_base *eb, struct gevent *e)
 {
-//    struct poll_ctx *pc = eb->base;
-
+    struct poll_ctx *c = (struct poll_ctx *)eb->ctx;
+    da_erase_item(c->ev_list, e);
+    c->ev_num--;
     return 0;
 }
+
 static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
 {
-    struct poll_ctx *pc = (struct poll_ctx *)eb->ctx;
+    struct poll_ctx *c = (struct poll_ctx *)eb->ctx;
     int i, n;
-    int flags;
     int timeout = -1;
 
     if (tv != NULL) {
@@ -104,7 +115,7 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
         timeout = -1;
     }
 
-    n = poll(pc->fds, pc->nfds, timeout);
+    n = poll(c->fds, c->nfds, timeout);
     if (-1 == n) {
         printf("errno=%d %s\n", errno, strerror(errno));
         return -1;
@@ -113,15 +124,30 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
         printf("poll timeout\n");
         return 0;
     }
-    for (i = 0; i < n; i++) {
-        if (pc->fds[i].revents & POLLIN)
-            flags |= EVENT_READ;
-        if (pc->fds[i].revents & POLLOUT)
-            flags |= EVENT_WRITE;
-        if (pc->fds[i].revents & (POLLERR|POLLHUP|POLLNVAL))
-            flags |= EVENT_EXCEPT;
-        pc->fds[i].revents = 0;
+    for (i = 0; i < c->ev_list.num; i++) {
+        struct gevent *e = &c->ev_list.array[i];
+        if ((c->fds[i].revents & POLLIN) && e->evcb->ev_in) {
+            e->evcb->ev_in(e->evfd, e->evcb->args);
+        }
+        if ((c->fds[i].revents & POLLOUT) && e->evcb->ev_out) {
+            e->evcb->ev_out(e->evfd, e->evcb->args);
+        }
+        if ((c->fds[i].revents & (POLLERR|POLLHUP|POLLNVAL)) && e->evcb->ev_err) {
+            e->evcb->ev_err(e->evfd, e->evcb->args);
+        }
+        c->fds[i].revents = 0;
     }
+#if 0
+    for (i = 0; i < n; i++) {
+        if (c->fds[i].revents & POLLIN)
+            flags |= EVENT_READ;
+        if (c->fds[i].revents & POLLOUT)
+            flags |= EVENT_WRITE;
+        if (c->fds[i].revents & (POLLERR|POLLHUP|POLLNVAL))
+            flags |= EVENT_EXCEPT;
+        c->fds[i].revents = 0;
+    }
+#endif
     return 0;
 }
 

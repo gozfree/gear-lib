@@ -47,6 +47,11 @@ void *darray_end(const size_t size, const struct darray *da);
 void darray_reserve(const size_t size, struct darray *dst, const size_t capacity);
 size_t darray_push_back_array(const size_t size, struct darray *dst,
                 const void *array, const size_t num);
+void darray_insert(const size_t element_size, struct darray *dst,
+                const size_t idx, const void *item);
+void darray_erase(const size_t element_size, struct darray *dst,
+                const size_t idx);
+
 
 
 /*
