@@ -33,7 +33,7 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= librtmp
+LIBNAME		= librtmpc
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
@@ -50,10 +50,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 # cflags and ldflags
 ###############################################################################
 ifeq ($(MODE), release)
-CFLAGS	:= -O2 -Wall -Werror -fPIC
+CFLAGS  := -O2 -Wall -Werror -fPIC
 LTYPE   := release
 else
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS  := -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
 ifeq ($(OUTPUT),/usr/local)

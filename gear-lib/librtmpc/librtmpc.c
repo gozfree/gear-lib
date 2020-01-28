@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include "librtmp.h"
+#include "librtmpc.h"
 #include "rtmp_util.h"
 #include "rtmp_h264.h"
 #include "rtmp_aac.h"
@@ -36,19 +36,19 @@
 #define AMF_END_OF_OBJECT         0x09
 
 
-void rtmp_destroy(struct rtmp *rtmp)
+void rtmp_destroy(struct rtmpc *rtmpc)
 {
-    if (!rtmp) {
+    if (!rtmpc) {
         return;
     }
-    RTMP_Close(rtmp->base);
-    RTMP_Free(rtmp->base);
-    rtmp->base = NULL;
-    free(rtmp->video);
-    free(rtmp->audio);
-    queue_destroy(rtmp->q);
-    free(rtmp->tmp_buf.iov_base);
-    free(rtmp);
+    RTMP_Close(rtmpc->base);
+    RTMP_Free(rtmpc->base);
+    rtmpc->base = NULL;
+    free(rtmpc->video);
+    free(rtmpc->audio);
+    queue_destroy(rtmpc->q);
+    free(rtmpc->tmp_buf.iov_base);
+    free(rtmpc);
 }
 
 static void *item_alloc_hook(void *data, size_t len, void *arg)
@@ -84,11 +84,11 @@ static void item_free_hook(void *data)
     media_packet_destroy(pkt);
 }
 
-struct rtmp *rtmp_create(const char *url)
+struct rtmpc *rtmp_create(const char *url)
 {
-    struct rtmp *rtmp = (struct rtmp *)calloc(1, sizeof(struct rtmp));
-    if (!rtmp) {
-        printf("malloc rtmp failed!\n");
+    struct rtmpc *rtmpc = (struct rtmpc *)calloc(1, sizeof(struct rtmpc));
+    if (!rtmpc) {
+        printf("malloc rtmpc failed!\n");
         goto failed;
     }
     RTMP *base = RTMP_Alloc();
@@ -117,65 +117,65 @@ struct rtmp *rtmp_create(const char *url)
         goto failed;
     }
 
-    rtmp->priv_buf = calloc(1, sizeof(struct rtmp_private_buf));
-    if (!rtmp->priv_buf) {
+    rtmpc->priv_buf = calloc(1, sizeof(struct rtmp_private_buf));
+    if (!rtmpc->priv_buf) {
         printf("malloc private buffer failed!\n");
         goto failed;
     }
-    rtmp->priv_buf->data = calloc(1, MAX_DATA_LEN);
-    if (!rtmp->priv_buf->data) {
+    rtmpc->priv_buf->data = calloc(1, MAX_DATA_LEN);
+    if (!rtmpc->priv_buf->data) {
         printf("malloc private buffer failed!\n");
         goto failed;
     }
-    rtmp->priv_buf->d_max = MAX_DATA_LEN;
-    rtmp->q = queue_create();
-    if (!rtmp->q) {
+    rtmpc->priv_buf->d_max = MAX_DATA_LEN;
+    rtmpc->q = queue_create();
+    if (!rtmpc->q) {
         printf("queue_create failed!\n");
         goto failed;
     }
-    queue_set_hook(rtmp->q, item_alloc_hook, item_free_hook);
-    rtmp->tmp_buf.iov_len = MAX_NALS_LEN;
-    rtmp->tmp_buf.iov_base = calloc(1, MAX_NALS_LEN);
-    if (!rtmp->tmp_buf.iov_base) {
+    queue_set_hook(rtmpc->q, item_alloc_hook, item_free_hook);
+    rtmpc->tmp_buf.iov_len = MAX_NALS_LEN;
+    rtmpc->tmp_buf.iov_base = calloc(1, MAX_NALS_LEN);
+    if (!rtmpc->tmp_buf.iov_base) {
         printf("malloc tmp buf failed!\n");
         goto failed;
     }
-    rtmp->base = base;
-    rtmp->is_run = false;
-    rtmp->is_start = false;
-    rtmp->is_keyframe_got = false;
-    rtmp->prev_msec = 0;
-    rtmp->prev_timestamp = 0;
-    return rtmp;
+    rtmpc->base = base;
+    rtmpc->is_run = false;
+    rtmpc->is_start = false;
+    rtmpc->is_keyframe_got = false;
+    rtmpc->prev_msec = 0;
+    rtmpc->prev_timestamp = 0;
+    return rtmpc;
 
 failed:
-    if (rtmp) {
-        if (rtmp->tmp_buf.iov_base) {
-            free(rtmp->tmp_buf.iov_base);
+    if (rtmpc) {
+        if (rtmpc->tmp_buf.iov_base) {
+            free(rtmpc->tmp_buf.iov_base);
         }
-        if (rtmp->q) {
-            queue_destroy(rtmp->q);
+        if (rtmpc->q) {
+            queue_destroy(rtmpc->q);
         }
-        if (rtmp->priv_buf) {
-            if (rtmp->priv_buf->data) {
-                free(rtmp->priv_buf->data);
+        if (rtmpc->priv_buf) {
+            if (rtmpc->priv_buf->data) {
+                free(rtmpc->priv_buf->data);
             }
-            free(rtmp->priv_buf);
+            free(rtmpc->priv_buf);
         }
-        free(rtmp);
+        free(rtmpc);
     }
     return NULL;
 }
 
-int rtmp_stream_add(struct rtmp *rtmp, struct media_packet *pkt)
+int rtmp_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
     case MEDIA_PACKET_VIDEO:
-        ret = h264_add(rtmp, pkt->video);
+        ret = h264_add(rtmpc, pkt->video);
         break;
     case MEDIA_PACKET_AUDIO:
-        ret = aac_add(rtmp, pkt->audio);
+        ret = aac_add(rtmpc, pkt->audio);
         break;
     default:
         break;
@@ -183,11 +183,11 @@ int rtmp_stream_add(struct rtmp *rtmp, struct media_packet *pkt)
     return ret;
 }
 
-int rtmp_write_header(struct rtmp *rtmp)
+int rtmp_write_header(struct rtmpc *rtmpc)
 {
-    int audio_exist = !!rtmp->audio;
-    int video_exist = !!rtmp->video;
-    struct rtmp_private_buf *buf = rtmp->priv_buf;
+    int audio_exist = !!rtmpc->audio;
+    int video_exist = !!rtmpc->video;
+    struct rtmp_private_buf *buf = rtmpc->priv_buf;
 
     put_tag(buf, "FLV"); // Signature
     put_byte(buf, 1);    // Version
@@ -218,13 +218,13 @@ int rtmp_write_header(struct rtmp *rtmp)
 
     if (video_exist) {
         put_amf_string(buf, "width");
-        put_amf_double(buf, rtmp->video->width);
+        put_amf_double(buf, rtmpc->video->width);
 
         put_amf_string(buf, "height");
-        put_amf_double(buf, rtmp->video->height);
+        put_amf_double(buf, rtmpc->video->height);
 
         put_amf_string(buf, "videodatarate");
-        put_amf_double(buf, rtmp->video->bitrate/1024.0);
+        put_amf_double(buf, rtmpc->video->bitrate/1024.0);
 
         put_amf_string(buf, "framerate");
         put_amf_double(buf, 0/*video->framerate*/);//TODO
@@ -235,22 +235,22 @@ int rtmp_write_header(struct rtmp *rtmp)
 
     if (audio_exist) {
         put_amf_string(buf, "audiodatarate");
-        put_amf_double(buf, rtmp->audio->bitrate /1024.0);
+        put_amf_double(buf, rtmpc->audio->bitrate /1024.0);
 
         put_amf_string(buf, "audiosamplerate");
-        put_amf_double(buf, rtmp->audio->sample_rate);
+        put_amf_double(buf, rtmpc->audio->sample_rate);
 
         put_amf_string(buf, "audiosamplesize");
-        put_amf_double(buf, rtmp->audio->sample_size);
+        put_amf_double(buf, rtmpc->audio->sample_size);
 
         put_amf_string(buf, "stereo");
         put_byte(buf, AMF_DATA_TYPE_BOOL);
-        put_byte(buf, !!(rtmp->audio->channels == 2));
+        put_byte(buf, !!(rtmpc->audio->channels == 2));
 
         put_amf_string(buf, "audiocodecid");
         unsigned int codec_id = 0xffffffff;
 
-        switch (rtmp->audio->codec_id) {
+        switch (rtmpc->audio->codec_id) {
         case AUDIO_ENCODE_AAC:
             codec_id = 10;
             break;
@@ -279,56 +279,56 @@ int rtmp_write_header(struct rtmp *rtmp)
     put_be32(buf, data_size + 11);
 
     if (video_exist) {
-        h264_write_header(rtmp);
+        h264_write_header(rtmpc);
     }
     if (audio_exist) {
-        switch (rtmp->audio->codec_id) {
+        switch (rtmpc->audio->codec_id) {
         case AUDIO_ENCODE_AAC:
-            aac_write_header(rtmp);
+            aac_write_header(rtmpc);
             break;
         case AUDIO_ENCODE_G711_A:
         case AUDIO_ENCODE_G711_U:
-            g711_write_header(rtmp);
+            g711_write_header(rtmpc);
             break;
         default:
             break;
         }
     }
-    if (flush_data_force(rtmp, 1) < 0){
+    if (flush_data_force(rtmpc, 1) < 0){
         printf("flush_data_force FAILED\n");
         return -1;
     }
     return 0;
 }
 
-static int write_packet(struct rtmp *rtmp, struct media_packet *pkt)
+static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     switch (pkt->type) {
     case MEDIA_PACKET_VIDEO:
-        return h264_write_packet(rtmp, pkt->video);
+        return h264_write_packet(rtmpc, pkt->video);
         break;
     case MEDIA_PACKET_AUDIO:
-        return aac_write_packet(rtmp, pkt->audio);
+        return aac_write_packet(rtmpc, pkt->audio);
         break;
 #if 0
     case RTMP_DATA_G711_A:
     case RTMP_DATA_G711_U:
-        return g711_write_packet(rtmp, pkt->audio);
+        return g711_write_packet(rtmpc, pkt->audio);
         break;
 #endif
     }
     return 0;
 }
 
-int rtmp_send_packet(struct rtmp *rtmp, struct media_packet *pkt)
+int rtmp_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
     case MEDIA_PACKET_VIDEO:
-        ret = h264_send_packet(rtmp, pkt->video);
+        ret = h264_send_packet(rtmpc, pkt->video);
         break;
     case MEDIA_PACKET_AUDIO:
-        ret = aac_send_packet(rtmp, pkt->audio);
+        ret = aac_send_packet(rtmpc, pkt->audio);
         break;
     default:
         ret = -1;
@@ -339,53 +339,53 @@ int rtmp_send_packet(struct rtmp *rtmp, struct media_packet *pkt)
 
 static void *rtmp_stream_thread(struct thread *t, void *arg)
 {
-    struct rtmp *rtmp = (struct rtmp *)arg;
-    queue_flush(rtmp->q);
-    rtmp->is_run = true;
-    while (rtmp->is_run) {
-        struct item *it = queue_pop(rtmp->q);
+    struct rtmpc *rtmpc = (struct rtmpc *)arg;
+    queue_flush(rtmpc->q);
+    rtmpc->is_run = true;
+    while (rtmpc->is_run) {
+        struct item *it = queue_pop(rtmpc->q);
         if (!it) {
             usleep(200000);
             continue;
         }
-        if (!rtmp->sent_headers) {
-            rtmp_write_header(rtmp);
-            rtmp->sent_headers = true;
+        if (!rtmpc->sent_headers) {
+            rtmp_write_header(rtmpc);
+            rtmpc->sent_headers = true;
         }
         struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
-        if (0 != write_packet(rtmp, pkt)) {
+        if (0 != write_packet(rtmpc, pkt)) {
             printf("write_packet failed!\n");
-            rtmp->is_run = false;
+            rtmpc->is_run = false;
         }
-        item_free(rtmp->q, it);
+        item_free(rtmpc->q, it);
     }
     return NULL;
 }
 
-void rtmp_stream_stop(struct rtmp *rtmp)
+void rtmp_stream_stop(struct rtmpc *rtmpc)
 {
-    if (rtmp) {
-        thread_destroy(rtmp->thread);
-        rtmp->thread = NULL;
-        rtmp->is_start = false;
+    if (rtmpc) {
+        thread_destroy(rtmpc->thread);
+        rtmpc->thread = NULL;
+        rtmpc->is_start = false;
     }
 }
 
-int rtmp_stream_start(struct rtmp *rtmp)
+int rtmp_stream_start(struct rtmpc *rtmpc)
 {
-    if (!rtmp) {
+    if (!rtmpc) {
         return -1;
     }
-    if (rtmp->is_start) {
-        printf("rtmp stream already start!\n");
+    if (rtmpc->is_start) {
+        printf("rtmpc stream already start!\n");
         return -1;
     }
-    rtmp->thread = thread_create(rtmp_stream_thread, rtmp);
-    if (!rtmp->thread) {
-        rtmp->is_start = false;
+    rtmpc->thread = thread_create(rtmp_stream_thread, rtmpc);
+    if (!rtmpc->thread) {
+        rtmpc->is_start = false;
         printf("thread_create failed!\n");
         return -1;
     }
-    rtmp->is_start = true;
+    rtmpc->is_start = true;
     return 0;
 }

@@ -22,7 +22,7 @@
 #ifndef RTMP_UTIL_H
 #define RTMP_UTIL_H
 
-#include "librtmp.h"
+#include "librtmpc.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,9 +120,9 @@ int update_amf_byte(struct rtmp_private_buf *buf, unsigned int value, unsigned i
 int update_amf_be24(struct rtmp_private_buf *buf, uint32_t value, int pos);
 int tell(struct rtmp_private_buf *buf);
 
-int flush_data(struct rtmp *rtmp, int sent);
-int flush_data_force(struct rtmp *rtmp, int sent);
-int rtmp_flush(struct rtmp *rtmp);
+int flush_data(struct rtmpc *rtmpc, int sent);
+int flush_data_force(struct rtmpc *rtmpc, int sent);
+int rtmp_flush(struct rtmpc *rtmpc);
 
 #ifdef __cplusplus
 }

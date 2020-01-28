@@ -19,18 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef RTMP_G711_H
-#define RTMP_G711_H
+#ifndef RTMP_AAC_H
+#define RTMP_AAC_H
 
-#include "librtmp.h"
+#include "librtmpc.h"
+#include <stdio.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-int g711_write_packet(struct rtmp *rtmp, struct audio_packet *pkt);
-int g711_write_header(struct rtmp *rtmp);
+int aac_add(struct rtmpc *rtmpc, struct audio_packet *pkt);
+int aac_write_header(struct rtmpc *rtmpc);
+int aac_write_packet(struct rtmpc *rtmpc, struct audio_packet *pkt);
+int aac_send_packet(struct rtmpc *rtmpc, struct audio_packet *pkt);
 
 #ifdef __cplusplus
 }

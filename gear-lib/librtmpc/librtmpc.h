@@ -19,37 +19,77 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef RTMP_H264_H
-#define RTMP_H264_H
+#ifndef LIBRTMPC_H
+#define LIBRTMPC_H
 
-#include "librtmp.h"
+#include <libqueue.h>
+#include <libthread.h>
+#include <libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>
+#if defined (__linux__) || defined (__CYGWIN__)
+#include <stdbool.h>
+#include <sys/uio.h>
+#endif
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef SYSTEM_MEM_SMALL
-#define MAX_NALS_LEN    (320* 1024)
-#define MAX_DATA_LEN    (64* 1024)
-#else
-#define MAX_NALS_LEN    (4*1024*1024)
-#define MAX_DATA_LEN    (320* 1024)
-#endif
-
-
-struct rtmp_h264_info {
+struct rtmp_video_params {
+    int codec_id;
     int width;
     int height;
-    int time_base_num;
-    int time_base_den;
+    double framerate;
+    int bitrate;
+    uint8_t *extra_data;
+    int extra_data_len;
 };
 
-int h264_add(struct rtmp *rtmp, struct video_packet *pkt);
-int h264_write_header(struct rtmp *rtmp);
-int h264_write_packet(struct rtmp *rtmp, struct video_packet *pkt);
-int h264_send_packet(struct rtmp *rtmp, struct video_packet *pkt);
+struct rtmp_audio_params {
+    int codec_id;
+    int bitrate;
+    int sample_rate;
+    int sample_size;
+    int channels;
+    uint8_t *extra_data;
+    int extra_data_len;
+};
+
+struct rtmp_private_buf {
+    uint8_t *data;
+    int d_cur;
+    int d_max;
+    uint64_t d_total;
+};
+
+struct rtmpc {
+    void *base;
+    struct rtmp_video_params *video;
+    struct rtmp_audio_params *audio;
+    struct rtmp_private_buf *priv_buf;
+    struct queue *q;
+    struct iovec tmp_buf;
+    struct thread *thread;
+    bool is_run;
+    bool is_start;
+    bool is_keyframe_got;
+    bool sent_headers;
+    uint64_t start_dts_offset;
+    uint32_t prev_msec;
+    uint32_t prev_timestamp;
+};
+
+struct rtmpc *rtmp_create(const char *push_url);
+int rtmp_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt);
+int rtmp_stream_start(struct rtmpc *rtmpc);
+void rtmp_stream_stop(struct rtmpc *rtmpc);
+int rtmp_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt);
+void rtmp_destroy(struct rtmpc *rtmpc);
+
+
+
 
 #ifdef __cplusplus
 }

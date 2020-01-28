@@ -23,7 +23,7 @@ This is a collection of basic libraries.
 
 ## Network
 * librtsp: Real Time Streaming Protocol server for ipcamera or NVR
-* librtmp: Real Time Messaging Protocol client for liveshow
+* librtmpc: Real Time Messaging Protocol client for liveshow
 * libskt: socket warpper api for easily use
 * librpc: Remote Procedure Call library
 * libipc: Inter-Process Communication, support mqueue/netlink/shm

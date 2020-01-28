@@ -109,7 +109,6 @@ check_output()
 
 install_dep()
 {
-	sudo apt-get install libjansson-dev
 }
 
 build_module()

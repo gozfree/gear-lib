@@ -23,7 +23,7 @@
 
 ## 网络库
 * librtsp: RTSP协议，适合IPCamera和NVR开发
-* librtmp: RTMP协议，适合推流直播
+* librtmpc: RTMP协议，适合推流直播
 * libskt: Socket封装
 * librpc: 远程过程调用库
 * libipc: 进程间通信
