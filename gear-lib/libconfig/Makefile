@@ -93,7 +93,6 @@ endif
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS += -L$(OUTLIBPATH)/lib -lmacro
 ifeq ($(ENABLE_LUA), 1)
 LDFLAGS	+= `pkg-config --libs lua5.2`
 endif

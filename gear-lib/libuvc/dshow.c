@@ -23,14 +23,9 @@
 #include "dshow.h"
 #include "libuvc.h"
 #include "libposix4win.h"
+#include <libfile.h>
 
-#pragma comment(lib,"ole32.lib")
-#pragma comment(lib,"strmiids.lib")
-#pragma comment(lib,"uuid.lib")
-#pragma comment(lib,"oleaut32.lib")
-#pragma comment(lib,"shlwapi.lib")
-#pragma comment(lib,"libposix4win.lib")
-
+struct file *fp;
 
 struct dshow_ctx {
     int                    fd;
@@ -59,8 +54,8 @@ DECLARE_QUERYINTERFACE(dshow_enum_pins, {{&IID_IUnknown,0}, {&IID_IEnumPins,0}})
 DECLARE_ADDREF(dshow_enum_pins)
 DECLARE_RELEASE(dshow_enum_pins)
 
-long WINAPI dshow_enum_pins_Next(dshow_enum_pins *this, unsigned long n, IPin **pins,
-                   unsigned long *fetched)
+long WINAPI dshow_enum_pins_Next(dshow_enum_pins *this, unsigned long n,
+                                IPin **pins, unsigned long *fetched)
 {
     int count = 0;
     dshowdebug("dshow_enum_pins_Next(%p)\n", this);
@@ -108,7 +103,8 @@ long WINAPI dshow_enum_pins_Clone(dshow_enum_pins *this, dshow_enum_pins **pins)
     return S_OK;
 }
 
-static int dshow_enum_pins_Setup(dshow_enum_pins *this, dshow_pin *pin, dshow_filter *filter)
+static int dshow_enum_pins_Setup(dshow_enum_pins *this, dshow_pin *pin,
+                                 dshow_filter *filter)
 {
     IEnumPinsVtbl *vtbl = this->vtbl;
     SETVTBL(vtbl, dshow_enum_pins, QueryInterface);
@@ -132,7 +128,8 @@ static int dshow_enum_pins_Cleanup(dshow_enum_pins *this)
     return 1;
 }
 
-DECLARE_CREATE(dshow_enum_pins, dshow_enum_pins_Setup(this, pin, filter), dshow_pin *pin, dshow_filter *filter)
+DECLARE_CREATE(dshow_enum_pins, dshow_enum_pins_Setup(this, pin, filter),
+               dshow_pin *pin, dshow_filter *filter)
 DECLARE_DESTROY(dshow_enum_pins, dshow_enum_pins_Cleanup)
 
 /*****************************************************************************
@@ -171,7 +168,8 @@ long WINAPI dshow_filter_Run(dshow_filter *this, REFERENCE_TIME start)
     return S_OK;
 }
 
-long WINAPI dshow_filter_GetState(dshow_filter *this, DWORD ms, FILTER_STATE *state)
+long WINAPI dshow_filter_GetState(dshow_filter *this, DWORD ms,
+                                  FILTER_STATE *state)
 {
     dshowdebug("dshow_filter_GetState(%p)\n", this);
     if (!state)
@@ -275,7 +273,8 @@ long WINAPI dshow_filter_QueryVendorInfo(dshow_filter *this, wchar_t **info)
     return E_NOTIMPL; /* don't have to do anything here */
 }
 
-static int dshow_filter_setup(dshow_filter *this, void *priv_data, void *callback, int type)
+static int dshow_filter_setup(dshow_filter *this, void *priv_data,
+                              void *callback, int type)
 {
     IBaseFilterVtbl *vtbl = this->vtbl;
     SETVTBL(vtbl, dshow_filter, QueryInterface);
@@ -308,14 +307,16 @@ static int dshow_filter_Cleanup(dshow_filter *this)
     return 1;
 }
 
-DECLARE_CREATE(dshow_filter, dshow_filter_setup(this, priv_data, callback, type), void *priv_data, void *callback, int type)
+DECLARE_CREATE(dshow_filter, dshow_filter_setup(this, priv_data, callback, type),
+               void *priv_data, void *callback, int type)
 DECLARE_DESTROY(dshow_filter, dshow_filter_Cleanup)
 
 
 /*****************************************************************************
  * dshow_pin
  ****************************************************************************/
-DECLARE_QUERYINTERFACE(dshow_pin, {{&IID_IUnknown,0}, {&IID_IPin,0}, {&IID_IMemInputPin,imemoffset}})
+DECLARE_QUERYINTERFACE(dshow_pin, {{&IID_IUnknown,0}, {&IID_IPin,0},
+                      {&IID_IMemInputPin,imemoffset}})
 DECLARE_ADDREF(dshow_pin)
 DECLARE_RELEASE(dshow_pin)
 
@@ -491,8 +492,8 @@ long WINAPI dshow_pin_EndFlush(dshow_pin *this)
     return S_OK;
 }
 
-long WINAPI dshow_pin_NewSegment(dshow_pin *this, REFERENCE_TIME start, REFERENCE_TIME stop,
-                    double rate)
+long WINAPI dshow_pin_NewSegment(dshow_pin *this, REFERENCE_TIME start,
+                                 REFERENCE_TIME stop, double rate)
 {
     dshowdebug("dshow_pin_NewSegment(%p)\n", this);
     /* I don't care. */
@@ -558,8 +559,8 @@ DECLARE_DESTROY(dshow_pin, nothing)
 /*****************************************************************************
  * dshow_input_pin
  ****************************************************************************/
-long WINAPI dshow_input_pin_QueryInterface(dshow_input_pin *this, const GUID *riid,
-                                void **ppvObject)
+long WINAPI dshow_input_pin_QueryInterface(dshow_input_pin *this,
+                                           const GUID *riid, void **ppvObject)
 {
     struct dshow_pin *pin = (struct dshow_pin *) ((uint8_t *) this - imemoffset);
     dshowdebug("dshow_input_pin_QueryInterface(%p)\n", this);
@@ -612,7 +613,7 @@ long WINAPI dshow_input_pin_Receive(dshow_input_pin *this, IMediaSample *sample)
     int64_t graphtime;
     IReferenceClock *clock = pin->filter->clock;
     int64_t dummy;
-    struct dshow_ctx *ctx;
+    struct dshow_ctx *c;
 
 
     dshowdebug("dshow_input_pin_Receive(%p)\n", this);
@@ -628,12 +629,9 @@ long WINAPI dshow_input_pin_Receive(dshow_input_pin *this, IMediaSample *sample)
     buf_size = IMediaSample_GetActualDataLength(sample);
     IMediaSample_GetPointer(sample, &buf);
     priv_data = pin->filter->priv_data;
-    ctx = priv_data;
+    c = priv_data;
     index = pin->filter->stream_index;
 
-    printf("dshow passing through packet of size %8d "
-        "timestamp %"PRId64" orig timestamp %"PRId64" graph timestamp %"PRId64" diff %"PRId64" \n",
-        buf_size, curtime, orig_curtime, graphtime, graphtime - orig_curtime);
     pin->filter->callback(priv_data, index, buf, buf_size, curtime, 0);
 
     return S_OK;
@@ -756,31 +754,31 @@ DECLARE_DESTROY(dshow_enum_media_types, nothing)
  * xxxx
  ****************************************************************************/
 
-static int create_dshow_graph(struct dshow_ctx *ctx)
+static int create_dshow_graph(struct dshow_ctx *c)
 {
     int ret;
     ret = CoCreateInstance(&CLSID_FilterGraph, NULL, CLSCTX_INPROC,
-                    &IID_IGraphBuilder, (void **)&ctx->graph);
+                    &IID_IGraphBuilder, (void **)&c->graph);
     if (FAILED(ret)) {
         printf("CoCreateInstance IID_IGraphBuilder failed!\n");
         goto exit;
     }
 
     ret = CoCreateInstance(&CLSID_CaptureGraphBuilder2, NULL, CLSCTX_INPROC,
-                    &IID_ICaptureGraphBuilder2, (void **)&ctx->capgraph);
+                    &IID_ICaptureGraphBuilder2, (void **)&c->capgraph);
     if (FAILED(ret)) {
         printf("CoCreateInstance IID_ICaptureGraphBuilder2 failed!\n");
         goto exit;
     }
 
-    ret = ICaptureGraphBuilder2_SetFiltergraph(ctx->capgraph, ctx->graph);
+    ret = ICaptureGraphBuilder2_SetFiltergraph(c->capgraph, c->graph);
     if (FAILED(ret)) {
         printf("Could not set graph for CaptureGraphBuilder2\n");
         goto exit;
     }
 
-    ret = IGraphBuilder_QueryInterface(ctx->graph, &IID_IMediaControl,
-                    (void **)&ctx->mctrl);
+    ret = IGraphBuilder_QueryInterface(c->graph, &IID_IMediaControl,
+                    (void **)&c->mctrl);
     if (FAILED(ret)) {
         printf("QueryInterface IID_IMediaControl failed\n");
         goto exit;
@@ -790,7 +788,7 @@ exit:
     return ret;
 }
 
-static int find_device(struct dshow_ctx *ctx)
+static int find_device(struct dshow_ctx *c)
 {
     int ret;
     ICreateDevEnum *devenum = NULL;
@@ -844,13 +842,13 @@ static int find_device(struct dshow_ctx *ctx)
 
         ret = IMoniker_BindToObject(m, 0, 0, &IID_IBaseFilter, (void *)&device_filter);
         if (ret != S_OK) {
-            printf("Unable to BindToObject for %s\n", ctx->name);
+            printf("Unable to BindToObject for %s\n", c->name);
             goto fail1;
         }
-        ctx->unique_name = strdup(unique_name);
+        c->unique_name = strdup(unique_name);
 
         printf("friendly_name=\"%s\"\n", friendly_name);
-        printf("unique_name=\"%s\"\n", unique_name);
+        //printf("unique_name=\"%s\"\n", unique_name);
         free(unique_name);
 
 fail1:
@@ -865,21 +863,21 @@ fail1:
     }
     IEnumMoniker_Release(classenum);
     if (device_filter) {
-        ctx->dev_filter = device_filter;
+        c->dev_filter = device_filter;
     }
 
 exit:
     return ret;
 }
 
-static int enum_device(struct dshow_ctx *ctx)
+static int enum_device(struct dshow_ctx *c)
 {
     int ret;
     IEnumPins *pins = NULL;
     IPin *device_pin = NULL;
     IPin *pin;
 
-    ret = IBaseFilter_EnumPins(ctx->dev_filter, &pins);
+    ret = IBaseFilter_EnumPins(c->dev_filter, &pins);
     if (ret != S_OK) {
         printf("Could not enumerate pins.\n");
         goto exit;
@@ -892,7 +890,6 @@ static int enum_device(struct dshow_ctx *ctx)
         AM_MEDIA_TYPE *type;
         GUID category;
         DWORD r2;
-        char *name_buf = NULL;
         wchar_t *pin_id = NULL;
         char *pin_buf = NULL;
 
@@ -908,7 +905,6 @@ static int enum_device(struct dshow_ctx *ctx)
             goto next;
         if (!IsEqualGUID(&category, &PIN_CATEGORY_CAPTURE))
             goto next;
-        name_buf = dup_wchar_to_utf8(info.achName);
 
         ret = IPin_QueryId(pin, &pin_id);
         if (ret != S_OK) {
@@ -924,7 +920,6 @@ static int enum_device(struct dshow_ctx *ctx)
         while (!device_pin && IEnumMediaTypes_Next(types, 1, &type, NULL) == S_OK) {
             if (IsEqualGUID(&type->majortype, &MEDIATYPE_Video)) {
                 device_pin = pin;
-                printf("Selecting pin %s\n", name_buf);
                 goto next;
             }
             CoTaskMemFree(type);
@@ -937,7 +932,6 @@ next:
             IKsPropertySet_Release(p);
         if (device_pin != pin)
             IPin_Release(pin);
-        free(name_buf);
         free(pin_buf);
         if (pin_id)
             CoTaskMemFree(pin_id);
@@ -947,195 +941,199 @@ next:
         printf("could not find capture device\n");
         ret = -1;
     } else {
-        ctx->device_pin = device_pin;
+        c->device_pin = device_pin;
     }
 
 exit:
     return ret;
 }
 
-static void
-dshow_callback(void *priv_data, int index, uint8_t *buf, int buf_size, int64_t time, int devtype)
+static void dshow_callback(void *priv_data, int index, uint8_t *buf, int buf_size,
+                           int64_t time, int devtype)
 {
-    struct dshow_ctx *ctx = priv_data;
+    struct dshow_ctx *c = priv_data;
 
-//    dump_videohdr(s, vdhdr);
+    //printf("%s index=%d, buf=%p, buf_size=%d, time=%d, devtype=%d\n", __func__,
+    //       index, buf, buf_size, time, devtype);
 
-    WaitForSingleObject(ctx->mutex, INFINITE);
-
-    printf("%s index=%d, buf=%p, buf_size=%d, time=%d, devtype=%d\n", __func__,
-           index, buf, buf_size, time, devtype);
+    file_write(fp, buf, buf_size);
 #if 0
-    if(shall_we_drop(s, index, devtype))
-        goto fail;
-
-    pktl_next = av_mallocz(sizeof(AVPacketList));
-    if(!pktl_next)
-        goto fail;
-
-    if(av_new_packet(&pktl_next->pkt, buf_size) < 0) {
-        av_free(pktl_next);
-        goto fail;
-    }
-
-    pktl_next->pkt.stream_index = index;
-    pktl_next->pkt.pts = time;
-    memcpy(pktl_next->pkt.data, buf, buf_size);
-
-    for(ppktl = &ctx->pktl ; *ppktl ; ppktl = &(*ppktl)->next);
-    *ppktl = pktl_next;
-    ctx->curbufsize[index] += buf_size;
-
-    SetEvent(ctx->event[1]);
+    SetEvent(c->event[1]);
 #endif
-    ReleaseMutex(ctx->mutex);
 
-    return;
-fail:
-    ReleaseMutex(ctx->mutex);
     return;
 }
 
-static int open_device(struct dshow_ctx *ctx)
+static int open_device(struct dshow_ctx *c)
 {
     int ret;
     HANDLE media_event_handle;
     HANDLE proc;
 
-    ctx->cap_filter = dshow_filter_Create(ctx, dshow_callback, ctx);
-    if (!ctx->cap_filter) {
+    c->cap_filter = dshow_filter_Create(c, dshow_callback, VideoDevice);
+    if (!c->cap_filter) {
         printf("dshow_filter_Create failed!\n");
         goto exit;
     }
 
-    ret = IGraphBuilder_AddFilter(ctx->graph, ctx->dev_filter, NULL);
+    ret = IGraphBuilder_AddFilter(c->graph, c->dev_filter, NULL);
     if (ret != S_OK) {
         printf("Could not add device filter to graph.\n");
         goto exit;
     }
 
-    ret = IGraphBuilder_AddFilter(ctx->graph, (IBaseFilter *)ctx->cap_filter, NULL);
+    ret = IGraphBuilder_AddFilter(c->graph, (IBaseFilter *)c->cap_filter, NULL);
     if (ret != S_OK) {
         printf("Could not add device filter to graph.\n");
         goto exit;
     }
 
-    dshow_pin_AddRef(ctx->cap_filter->pin);
+    dshow_pin_AddRef(c->cap_filter->pin);
 
-    ret = ICaptureGraphBuilder2_RenderStream(ctx->capgraph, NULL, NULL, (IUnknown *)ctx->device_pin, NULL,
-        (IBaseFilter *)ctx->cap_filter); /* connect pins, optionally insert intermediate filters like crossbar if necessary */
+    ret = ICaptureGraphBuilder2_RenderStream(c->capgraph, NULL, NULL,
+                  (IUnknown *)c->device_pin, NULL, (IBaseFilter *)c->cap_filter);
+    /* connect pins, optionally insert intermediate filters like crossbar if necessary */
 
     if (ret != S_OK) {
         printf("Could not RenderStream to connect pins\n");
         goto exit;
     }
 
-    ctx->mutex = CreateMutex(NULL, 0, NULL);
-    if (!ctx->mutex) {
+    c->mutex = CreateMutex(NULL, 0, NULL);
+    if (!c->mutex) {
         printf("Could not create Mutex\n");
         goto exit;
     }
-    ctx->event[1] = CreateEvent(NULL, 1, 0, NULL);
-    if (!ctx->event[1]) {
+    c->event[1] = CreateEvent(NULL, 1, 0, NULL);
+    if (!c->event[1]) {
         printf("Could not create Event\n");
         goto exit;
     }
 
-    ret = IGraphBuilder_QueryInterface(ctx->graph, &IID_IMediaControl, (void **)&ctx->mctrl);
+    ret = IGraphBuilder_QueryInterface(c->graph, &IID_IMediaControl, (void **)&c->mctrl);
     if (ret != S_OK) {
         printf("Could not get media control.\n");
         goto exit;
     }
 
-    ret = IGraphBuilder_QueryInterface(ctx->graph, &IID_IMediaEvent, (void **)&ctx->mevent);
+    ret = IGraphBuilder_QueryInterface(c->graph, &IID_IMediaEvent, (void **)&c->mevent);
     if (ret != S_OK) {
         printf("Could not get media event.\n");
         goto exit;
     }
 
-    ret = IMediaEvent_GetEventHandle(ctx->mevent, (void *)&media_event_handle);
+    ret = IMediaEvent_GetEventHandle(c->mevent, (void *)&media_event_handle);
     if (ret != S_OK) {
         printf("Could not get media event handle.\n");
         goto exit;
     }
     proc = GetCurrentProcess();
-    ret = DuplicateHandle(proc, media_event_handle, proc, &ctx->event[0],
+    ret = DuplicateHandle(proc, media_event_handle, proc, &c->event[0],
                         0, 0, DUPLICATE_SAME_ACCESS);
     if (!ret) {
         printf("Could not duplicate media event handle.\n");
         goto exit;
     }
 
-    ret = IMediaControl_Run(ctx->mctrl);
-    if (ret == S_FALSE) {
-        OAFilterState pfs;
-        ret = IMediaControl_GetState(ctx->mctrl, 0, &pfs);
-    }
-    if (ret != S_OK) {
-        printf("Could not run graph (sometimes caused by a device already in use by other application)\n");
-        goto exit;
-    }
+    return 0;
 
 exit:
-
     return ret;
 }
 
-static int dshow_init(struct dshow_ctx *ctx)
+static void *dshow_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, uint32_t height)
 {
-    CoInitialize(0);
-
-    printf("create_dshow_graph!\n");
-    if (create_dshow_graph(ctx)) {
-        printf("create_dshow_graph failed!\n");
-    }
-    printf("find_device!\n");
-    if (find_device(ctx)) {
-        printf("find_device failed!\n");
-    }
-    printf("enum_device\n");
-    if (enum_device(ctx)) {
-        printf("enum_device failed\n");
-    }
-    printf("open_device!\n");
-    if (open_device(ctx)) {
-        printf("open_device failed!\n");
-    }
-    return 0;
-}
-
-
-static void dshow_deinit()
-{
-    CoUninitialize();
-}
-
-static struct dshow_ctx *dshow_open(struct uvc_ctx *uvc, const char *dev, int width, int height)
-{
-    struct dshow_ctx *dc = calloc(1, sizeof(struct dshow_ctx));
-    if (!dc) {
+    struct dshow_ctx *c = calloc(1, sizeof(struct dshow_ctx));
+    if (!c) {
         printf("malloc dshow_ctx failed!\n");
         return NULL;
     }
-    dc->name = strdup(dev);
-    dc->width = width;
-    dc->height = height;
-    dshow_init(dc);
+    c->name = strdup(dev);
+    c->width = width;
+    c->height = height;
+    uvc->format = VIDEO_FORMAT_I420;
 
-    return dc;
+    CoInitialize(0);
+
+    fp = file_open("uvc.yuv", F_CREATE);
+    if (create_dshow_graph(c)) {
+        printf("create_dshow_graph failed!\n");
+        goto exit;
+    }
+    if (find_device(c)) {
+        printf("find_device failed!\n");
+        goto exit;
+    }
+    if (enum_device(c)) {
+        printf("enum_device failed\n");
+        goto exit;
+    }
+    if (open_device(c)) {
+        printf("open_device failed!\n");
+        goto exit;
+    }
+
+    return c;
+exit:
+    if (c)
+        free(c);
+    return NULL;
 }
 
 static void dshow_close(struct uvc_ctx *uvc)
 {
-    dshow_deinit();
+    CoUninitialize();
+}
+
+static int dshow_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
+{
+    return 0;
+}
+
+static int dshow_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
+{
+    return 0;
+}
+
+static int dshow_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
+{
+    return 0;
+}
+
+static int dshow_start_stream(struct uvc_ctx *uvc)
+{
+    int ret;
+    struct dshow_ctx *c = (struct dshow_ctx *)uvc->opaque;
+
+    ret = IMediaControl_Run(c->mctrl);
+    if (ret == S_FALSE) {
+        OAFilterState pfs;
+        ret = IMediaControl_GetState(c->mctrl, 0, &pfs);
+        return -1;
+    }
+    if (ret != S_OK) {
+        printf("Could not run graph (sometimes caused by a device already"
+                "in use by other application)\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int dshow_stop_stream(struct uvc_ctx *uvc)
+{
+    int ret;
+    struct dshow_ctx *c = (struct dshow_ctx *)uvc->opaque;
+    IMediaControl_Stop(c->mctrl);
+    return 0;
 }
 
 struct uvc_ops dshow_ops = {
-    dshow_open,
-    dshow_close,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*.open        = */ dshow_open,
+    /*.close       = */ dshow_close,
+    /*.dequeue     = */ dshow_dequeue,
+    /*.enqueue     = */ dshow_enqueue,
+    /*.ioctl       = */ dshow_ioctl,
+    /*.printf_info = */ NULL,
+    /*.start_stream= */ dshow_start_stream,
+    /*.stop_stream = */ dshow_stop_stream,
 };

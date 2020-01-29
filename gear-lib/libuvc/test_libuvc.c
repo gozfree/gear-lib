@@ -20,19 +20,11 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuvc.h"
-#include <liblog.h>
 #include <libfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-
-
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
-#pragma comment(lib , "libfile.lib")
-#endif
+//#include <unistd.h>
 
 #define VIDEO_DEV       "/dev/video0"
 #define VIDEO_WIDTH     640
@@ -55,7 +47,7 @@ int main(int argc, char **argv)
         uvc_close(uvc);
         return -1;
     }
-    logi("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->width, uvc->height,
+    printf("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->width, uvc->height,
         uvc->fps_num, uvc->fps_den, video_format_name(uvc->format));
     //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open("uvc.yuv", F_CREATE);
@@ -66,7 +58,7 @@ int main(int argc, char **argv)
             continue;
         }
         file_write(fp, frm->data[0], frm->total_size);
-        logi("frm[%zu] size=%zu, ts=%zu ms\n", frm->id, frm->total_size, frm->timestamp/1000000);
+        printf("frm[%zu] size=%zu, ts=%zu ms\n", frm->id, frm->total_size, frm->timestamp/1000000);
     }
     video_frame_destroy(frm);
     file_close(fp);

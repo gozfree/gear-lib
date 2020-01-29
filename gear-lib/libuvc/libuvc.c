@@ -93,15 +93,15 @@ int uvc_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
     arg = va_arg(ap, void *);
     va_end(ap);
 
-    struct video_ctrl *vctrl;
     switch (cmd) {
     case UVC_GET_CAP:
         uvc->ops->ioctl(uvc, cmd, NULL);
         break;
-    case UVC_SET_CTRL:
+    case UVC_SET_CTRL: {
+        struct video_ctrl *vctrl;
         vctrl = (struct video_ctrl *)arg;
         uvc->ops->ioctl(uvc, vctrl->cmd, vctrl->val);
-        break;
+    } break;
     default:
         printf("cmd %lu not supported yet!\n", cmd);
         break;

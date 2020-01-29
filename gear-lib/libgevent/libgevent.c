@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
 #endif
 #include <errno.h>
 

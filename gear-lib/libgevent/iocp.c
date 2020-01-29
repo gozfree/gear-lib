@@ -20,15 +20,20 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libgevent.h"
+#include "libposix4win.h"
+
 
 struct iocp_ctx {
     HANDLE port;
+    ULONG_PTR key;
     int thread_nums;
     pthread_t *tids;
     bool is_run;
 
     long ms;
 };
+
+
 
 #define NOTIFICATION_KEY ((ULONG_PTR)-1)
 
@@ -58,7 +63,7 @@ static void *iocp_thread(void *arg)
     }
     return NULL;
 }
- 
+
 static void *iocp_init(void)
 {
     int i;
@@ -79,7 +84,7 @@ static void *iocp_init(void)
 
     c->port = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
     c->is_run = true;
-    c->ms = -1;
+    c->ms = INFINITE;
     for (i = 0; i < c->thread_nums; i++) {
         pthread_create(&c->tids[i], NULL, iocp_thread, c);
     }
@@ -96,8 +101,11 @@ static void iocp_deinit(void *ctx)
 
 static int iocp_add(struct gevent_base *eb, struct gevent *e)
 {
-    struct iocp_ctx *c = (struct iocp_ctx *)ctx;
-    CreateIoCompletionPort((HANDLE)(PerSocketData->socket), completionPort, (DWORD)PerSocketData, 0); 
+    struct iocp_ctx *c = (struct iocp_ctx *)eb->ctx;
+    if (INVALID_HANDLE_VALUE == CreateIoCompletionPort((HANDLE)e->evfd, c->port, c->key, c->thread_nums)) {
+        printf("CreateIoCompletionPort failed!\n");
+        return -1;
+    }
 
     return 0;
 }

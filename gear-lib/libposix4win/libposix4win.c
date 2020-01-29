@@ -311,7 +311,7 @@ int get_proc_name(char *name, size_t len)
                 strncpy(name, pe32.szExeFile, len);
                 break;
             }
-	} while(Process32Next(hd, &pe32));
+        } while(Process32Next(hd, &pe32));
     }
     CloseHandle(hd);
     if (got) {

@@ -24,12 +24,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#if defined (__linux__) || defined (__CYGWIN__)
-#include <unistd.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#endif
-#include <libmacro.h>
 #include <errno.h>
 
 
@@ -73,7 +67,7 @@ static struct config_ops *find_backend(const char *name)
         printf("config name can not be NULL\n");
         return NULL;
     }
-    max_list = ARRAY_SIZE(conf_ops_list);
+    max_list = sizeof(conf_ops_list)/sizeof(conf_ops_list[0]);
     suffix = get_file_suffix(name);
     if (!suffix) {
         printf("there is no suffix in config name\n");
@@ -99,7 +93,7 @@ struct config *conf_load(const char *name)
         printf("can not find valid config backend\n");
         return NULL;
     }
-    c = CALLOC(1, struct config);
+    c = (struct config *)calloc(1, sizeof(struct config));
     if (!c) {
         printf("malloc failed!\n");
         return NULL;

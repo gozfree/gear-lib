@@ -30,6 +30,10 @@ extern "C" {
 #define ALIGNMENT 32
 #define ALIGN_SIZE(size, align) (((size) + (align - 1)) & (~(align - 1)))
 
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#define memalign(align, size)     _aligned_malloc(size, align)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

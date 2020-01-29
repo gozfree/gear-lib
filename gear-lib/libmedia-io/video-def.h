@@ -23,7 +23,6 @@
 #define VIDEO_DEF_H
 
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * This file reference to ffmpeg and obs define
@@ -127,7 +126,7 @@ struct video_packet {
     uint64_t                 dts;
     uint32_t                 timebase_num;
     uint32_t                 timebase_den;
-    bool                     key_frame;
+    int                      key_frame;
     uint8_t                  *extra_data;
     size_t                   extra_size;
 };

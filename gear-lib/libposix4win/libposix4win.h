@@ -80,6 +80,8 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 char *dup_wchar_to_utf8(wchar_t *w);
 
+#define memalign(align, size)     _aligned_malloc(size, align)
+
 
 /******************************************************************************
  * sys file APIs
@@ -199,7 +201,7 @@ struct timezone
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 #define localtime_r(timep,result) localtime_s(result, timep)
-#define sleep Sleep
+#define sleep(n) Sleep(n*1000)
 
 /******************************************************************************
  * driver IOC APIs
