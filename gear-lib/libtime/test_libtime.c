@@ -24,20 +24,22 @@
 #define __STDC_FORMAT_MACROS
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <inttypes.h>
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#include "libposix4win.h"
 #endif
 #include "libtime.h"
 
 void foo()
 {
     char time[32];
-    printf("time_get_sec_str:     %s", time_get_sec_str());
-    printf("time_get_msec_str:    %s\n", time_get_msec_str(time, sizeof(time)));
-    printf("time_get_sec:         %" PRIu64 "\n", time_get_sec());
-    printf("time_get_msec:        %" PRIu64 "\n", time_get_msec());
-    printf("time_get_msec:        %" PRIu64 "\n", time_get_usec(NULL)/1000);
-    printf("time_get_usec:        %" PRIu64 "\n", time_get_usec(NULL));
-    printf("time_get_nsec:        %" PRIu64 "\n", time_get_nsec());
-    printf("time_get_nsec_bootup: %" PRIu64 "\n", time_get_nsec_bootup());
+    printf("time_sec_str:     %s", time_sec_str());
+    printf("time_msec_str:    %s\n", time_msec_str(time, sizeof(time)));
+    printf("time_sec:         %" PRIu64 "\n", time_sec());
+    printf("time_msec:        %" PRIu64 "\n", time_msec());
+    printf("time_msec:        %" PRIu64 "\n", time_usec(NULL)/1000);
+    printf("time_usec:        %" PRIu64 "\n", time_usec(NULL));
+    printf("time_nsec:        %" PRIu64 "\n", time_nsec());
+    printf("time_nsec_bootup: %" PRIu64 "\n", time_nsec_bootup());
 }
 
 int main(int argc, char **argv)

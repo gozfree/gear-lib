@@ -20,7 +20,7 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /Iinclude /I../libposix4win/ /I../libmedia-io/ /I.  /I../libfile/
+CFLAGS	= /I../libposix4win/ /I../libmedia-io/ /I../libfile/ /I.
 !IF "$(MODE)"=="release"
 CFLAGS  = $(CFLAGS) /O2 /GF
 !ELSE
@@ -43,10 +43,10 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR) $(OBJS_LIB) $(LIBS) /out:$(TGT_LIB_A)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) $(LIBS)
+	$(LD) /Dll $(OBJS_LIB) $(LIBS)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
-	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /link $(LDFLAGS) $(LIBS)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /link $(LIBS)
 
 clean:
 	$(RM) $(OBJS)

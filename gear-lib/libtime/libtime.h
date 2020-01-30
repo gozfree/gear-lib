@@ -25,8 +25,6 @@
 #include <stdint.h>
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <stdbool.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
 #endif
 #include <time.h>
 
@@ -51,35 +49,35 @@ struct time_info {
 /*
  * accuracy second
  */
-uint64_t time_get_sec();
-char *time_get_sec_str();
-char *time_get_str_human(char *str, int len);
-char *time_get_str_human_by_utc(uint32_t utc, char *str, int len);
-char *time_get_str_human_by_msec(uint64_t msec, char *str, int len);
-char *time_get_str_human_by_timeval(struct timeval *val, char *str, int len);
+uint64_t time_sec();
+char *time_sec_str();
+char *time_str_human(char *str, int len);
+char *time_str_human_by_utc(uint32_t utc, char *str, int len);
+char *time_str_human_by_msec(uint64_t msec, char *str, int len);
+char *time_str_human_by_timeval(struct timeval *val, char *str, int len);
 
 /*
  * accuracy milli second
  */
-uint64_t time_get_msec();
-char *time_get_msec_str(char *str, int len);
+uint64_t time_msec();
+char *time_msec_str(char *str, int len);
 int time_sleep_ms(uint64_t ms);
 
 /*
  * accuracy micro second
  */
-uint64_t time_get_usec(struct timeval *tv);
+uint64_t time_usec(struct timeval *tv);
 
 /*
  * accuracy nano second
  */
-uint64_t time_get_nsec();
-uint64_t time_get_nsec_bootup();
+uint64_t time_nsec();
+uint64_t time_nsec_bootup();
 char *time_nsec_to_str(uint64_t nsec);
 
-int time_get_info(struct time_info *ti);
-int time_get_info_by_utc(uint32_t utc, struct time_info *ti);
-int time_get_info_by_msec(uint64_t msec, struct time_info *ti);
+int time_info(struct time_info *ti);
+int time_info_by_utc(uint32_t utc, struct time_info *ti);
+int time_info_by_msec(uint64_t msec, struct time_info *ti);
 
 bool time_passed_sec(int sec);
 

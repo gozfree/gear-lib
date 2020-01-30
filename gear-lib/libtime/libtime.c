@@ -29,10 +29,6 @@
 #include <sys/timeb.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
-typedef int clockid_t;
-#define CLOCK_REALTIME		((clockid_t) 1)
-#define CLOCK_MONOTONIC		((clockid_t) 4)
 #endif
 
 #include "libtime.h"
@@ -40,7 +36,7 @@ typedef int clockid_t;
 #define TIME_FORMAT "%Y%m%d%H%M%S"
 
 
-uint64_t time_get_sec()
+uint64_t time_sec()
 {
     time_t t;
     t = time(NULL);
@@ -50,7 +46,7 @@ uint64_t time_get_sec()
     return t;
 }
 
-char *time_get_sec_str()
+char *time_sec_str()
 {
     time_t t;
     struct tm *tm;
@@ -65,10 +61,10 @@ char *time_get_sec_str()
     return asctime(tm);
 }
 
-char *time_get_str_human(char *str, int len)
+char *time_str_human(char *str, int len)
 {
     struct time_info ti;
-    if (-1 == time_get_info(&ti)) {
+    if (-1 == time_info(&ti)) {
         return NULL;
     }
     snprintf(str, len, "%04d%02d%02d%02d%02d%02d",
@@ -76,10 +72,10 @@ char *time_get_str_human(char *str, int len)
     return str;
 }
 
-char *time_get_str_human_by_utc(uint32_t utc, char *str, int len)
+char *time_str_human_by_utc(uint32_t utc, char *str, int len)
 {
     struct time_info ti;
-    if (-1 == time_get_info_by_utc(utc, &ti)) {
+    if (-1 == time_info_by_utc(utc, &ti)) {
         return NULL;
     }
     snprintf(str, len, "%04d%02d%02d%02d%02d%02d",
@@ -87,10 +83,10 @@ char *time_get_str_human_by_utc(uint32_t utc, char *str, int len)
     return str;
 }
 
-char *time_get_str_human_by_msec(uint64_t msec, char *str, int len)
+char *time_str_human_by_msec(uint64_t msec, char *str, int len)
 {
     struct time_info ti;
-    if (-1 == time_get_info_by_msec(msec, &ti)) {
+    if (-1 == time_info_by_msec(msec, &ti)) {
         return NULL;
     }
     snprintf(str, len, "%04d-%02d-%02d %02d:%02d:%02d.%03d",
@@ -99,13 +95,13 @@ char *time_get_str_human_by_msec(uint64_t msec, char *str, int len)
 }
 
 
-char *time_get_str_human_by_timeval(struct timeval *tv, char *str, int len)
+char *time_str_human_by_timeval(struct timeval *tv, char *str, int len)
 {
-    uint32_t sec = time_get_usec(tv)/1000000;
-    return time_get_str_human_by_utc(sec, str, len);
+    uint32_t sec = time_usec(tv)/1000000;
+    return time_str_human_by_utc(sec, str, len);
 }
 
-uint64_t time_get_usec(struct timeval *val)
+uint64_t time_usec(struct timeval *val)
 {
     struct timeval tv;
     if (val == NULL) {
@@ -132,7 +128,7 @@ uint64_t _time_clock_gettime(clockid_t clk_id)
 #endif
 }
 
-uint64_t time_get_msec()
+uint64_t time_msec()
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     struct timeb tb;
@@ -143,17 +139,17 @@ uint64_t time_get_msec()
 #endif
 }
 
-uint64_t time_get_nsec()
+uint64_t time_nsec()
 {
     return _time_clock_gettime(CLOCK_REALTIME);
 }
 
-uint64_t time_get_nsec_bootup()
+uint64_t time_nsec_bootup()
 {
     return _time_clock_gettime(CLOCK_MONOTONIC);
 }
 
-char *time_get_msec_str(char *str, int len)
+char *time_msec_str(char *str, int len)
 {
     char date_fmt[20];
     char date_ms[4];
@@ -171,7 +167,7 @@ char *time_get_msec_str(char *str, int len)
     }
     now_sec = tv.tv_sec;
     now_ms = tv.tv_usec/1000;
-    if (NULL == localtime_r(&now_sec, &now_tm)) {
+    if (NULL != localtime_r(&now_sec, &now_tm)) {
         printf("localtime_r failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }
@@ -190,7 +186,7 @@ int time_sleep_ms(uint64_t ms)
     return select(0, NULL, NULL, NULL, &tv);
 }
 
-int time_get_info_by_utc(uint32_t utc, struct time_info *ti)
+int time_info_by_utc(uint32_t utc, struct time_info *ti)
 {
     struct timeval tv;
     struct timezone tz;
@@ -224,7 +220,7 @@ int time_get_info_by_utc(uint32_t utc, struct time_info *ti)
     return 0;
 }
 
-int time_get_info_by_msec(uint64_t msec, struct time_info *ti)
+int time_info_by_msec(uint64_t msec, struct time_info *ti)
 {
     struct timeval tv;
     struct timezone tz;
@@ -264,7 +260,7 @@ int time_get_info_by_msec(uint64_t msec, struct time_info *ti)
     return 0;
 }
 
-int time_get_info(struct time_info *ti)
+int time_info(struct time_info *ti)
 {
     time_t utc;
     struct timeval tv;
@@ -335,7 +331,7 @@ bool time_passed_sec(int sec)
     bool ret = false;
     static uint64_t last_sec = 0;
     static uint64_t now_sec = 0;
-    now_sec = time_get_sec();
+    now_sec = time_sec();
     if (last_sec == 0) {
         last_sec = now_sec;
     }

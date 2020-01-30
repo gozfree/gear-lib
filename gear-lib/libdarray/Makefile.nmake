@@ -19,16 +19,12 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /Iinclude /I.
+CFLAGS	= /I.
 !IF "$(MODE)"=="release"
 CFLAGS  = $(CFLAGS) /O2 /GF
 !ELSE
 CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
-
-LDFLAGS	= /NOLOGO
-
-LIBS    = ws2_32.lib
 
 ###############################################################################
 # target
@@ -40,13 +36,13 @@ OBJS	= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 all: $(TGT)
 
 $(TGT_LIB_A): $(OBJS_LIB)
-	$(AR) $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_A)
+	$(AR) $(OBJS_LIB) /out:$(TGT_LIB_A)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_SO)
+	$(LD) /Dll $(OBJS_LIB)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
-	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /o $(TGT_UNIT_TEST)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST)
 
 clean:
 	$(RM) $(OBJS)

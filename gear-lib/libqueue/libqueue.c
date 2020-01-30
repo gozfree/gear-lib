@@ -26,10 +26,6 @@
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
 #include <sys/time.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
-#pragma comment(lib , "libmacro.lib")
 #endif
 #include "libqueue.h"
 
@@ -269,7 +265,11 @@ struct queue_branch *queue_branch_new(struct queue *q, const char *name)
 int queue_branch_del(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
+#if defined (__linux__) || defined (__CYGWIN__)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#else
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
         if (!strcmp(qb->name, name)) {
             list_del(&qb->hook);
             free(qb->name);
@@ -287,7 +287,11 @@ struct queue_branch *queue_branch_get(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
 
+#if defined (__linux__) || defined (__CYGWIN__)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
         if (!strcmp(qb->name, name)) {
             return qb;
         }
@@ -300,7 +304,12 @@ int queue_branch_notify(struct queue *q)
     struct queue_branch *qb, *next;
     char notify = '1';
 
+#if defined (__linux__) || defined (__CYGWIN__)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
+
         if (write(qb->WR_FD, &notify, sizeof(notify)) != 1) {
             printf("write pipe failed: %s\n", strerror(errno));
         }
@@ -313,7 +322,12 @@ struct item *queue_branch_pop(struct queue *q, const char *name)
     struct queue_branch *qb, *next;
     char notify = '1';
 
+#if defined (__linux__) || defined (__CYGWIN__)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
+
         if (!strcmp(qb->name, name)) {
             if (read(qb->RD_FD, &notify, sizeof(notify)) != 1) {
                 printf("read pipe failed: %s\n", strerror(errno));

@@ -5,10 +5,11 @@
 LD	= link
 AR	= lib
 RM	= del
+
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libposix4rtos
+LIBNAME		= libqueue
 TGT_LIB_A	= $(LIBNAME).lib
 TGT_LIB_SO	= $(LIBNAME).dll
 TGT_UNIT_TEST	= test_$(LIBNAME).exe
@@ -19,16 +20,15 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /Iinclude /I.
+CFLAGS	= /I../libposix4win/ /I../libmacro/ /I.
+
 !IF "$(MODE)"=="release"
 CFLAGS  = $(CFLAGS) /O2 /GF
 !ELSE
 CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
 
-LDFLAGS	= /NOLOGO
-
-LIBS    = ws2_32.lib
+LIBS	= ../libposix4win/libposix4win.lib
 
 ###############################################################################
 # target
@@ -40,13 +40,12 @@ OBJS	= $(OBJS_LIB) $(OBJS_UNIT_TEST)
 all: $(TGT)
 
 $(TGT_LIB_A): $(OBJS_LIB)
-	$(AR) $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_A)
+	$(AR) $(OBJS_LIB) $(LIBS) /out:$(TGT_LIB_A)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
-	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /o $(TGT_UNIT_TEST)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /link $(LIBS)
 
 clean:
 	$(RM) $(OBJS)

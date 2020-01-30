@@ -27,10 +27,6 @@
 #include <errno.h>
 #include <stdarg.h>
 
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#pragma comment(lib , "libposix4win.lib")
-#endif
-
 #define CALLOC(size, type) \
     (type *)calloc(size, sizeof(type))
 
