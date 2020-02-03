@@ -67,7 +67,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -ldarray
+LDFLAGS	+= -pthread
 
 ###############################################################################
 # target
@@ -94,7 +94,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib -ldarray
 
 clean:
 	$(RM_V) -f $(OBJS)

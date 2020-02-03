@@ -109,6 +109,7 @@ check_output()
 
 install_dep()
 {
+	return
 }
 
 build_module()

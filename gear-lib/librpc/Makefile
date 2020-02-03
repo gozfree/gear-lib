@@ -68,7 +68,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib -lgevent -lworkq -lhash -lskt -lthread -ltime
+LDFLAGS	+= -L$(OUTLIBPATH)/lib -ldarray -lgevent -lworkq -lhash -lskt -lthread -ltime
 LDFLAGS	+= -pthread -lrt
 LDFLAGS	+= -L$(PLATFORM_LIB)
 LDFLAGS	+= $($(ARCH)_LDFLAGS)

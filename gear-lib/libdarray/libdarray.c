@@ -40,7 +40,7 @@ void darray_free(struct darray *dst)
     dst->capacity = 0;
 }
 
-static size_t darray_alloc_size(const size_t element_size,
+size_t darray_alloc_size(const size_t element_size,
                 const struct darray *da)
 {
     return element_size * da->num;
@@ -141,7 +141,7 @@ static void darray_copy_array(const size_t element_size,
     memcpy(dst->array, array, element_size * dst->num);
 }
 
-static void darray_move(struct darray *dst, struct darray *src)
+void darray_move(struct darray *dst, struct darray *src)
 {
     darray_free(dst);
     memcpy(dst, src, sizeof(struct darray));
@@ -240,7 +240,7 @@ void darray_insert(const size_t element_size, struct darray *dst,
     memcpy(new_item, item, element_size);
 }
 
-static void *darray_insert_new(const size_t element_size,
+void *darray_insert_new(const size_t element_size,
                 struct darray *dst, const size_t idx)
 {
     void *item;
@@ -285,7 +285,7 @@ static void darray_insert_array(const size_t element_size,
     memcpy(darray_item(element_size, dst, idx), array, element_size * num);
 }
 
-static void darray_insert_darray(const size_t element_size,
+void darray_insert_darray(const size_t element_size,
                 struct darray *dst, const size_t idx,
                 const struct darray *da)
 {
@@ -314,7 +314,7 @@ void darray_erase_item(const size_t element_size,
             darray_erase(element_size, dst, idx);
 }
 
-static void darray_erase_range(const size_t element_size,
+void darray_erase_range(const size_t element_size,
                 struct darray *dst, const size_t start,
                 const size_t end)
 {
@@ -355,14 +355,14 @@ void darray_pop_back(const size_t element_size,
             darray_erase(element_size, dst, dst->num - 1);
 }
 
-static void darray_join(const size_t element_size, struct darray *dst,
+void darray_join(const size_t element_size, struct darray *dst,
                 struct darray *da)
 {
     darray_push_back_darray(element_size, dst, da);
     darray_free(da);
 }
 
-static void darray_split(const size_t element_size, struct darray *dst1,
+void darray_split(const size_t element_size, struct darray *dst1,
                 struct darray *dst2, const struct darray *da,
                 const size_t idx)
 {
@@ -392,7 +392,7 @@ static void darray_split(const size_t element_size, struct darray *dst1,
     darray_free(&temp);
 }
 
-static void darray_move_item(const size_t element_size,
+void darray_move_item(const size_t element_size,
                 struct darray *dst, const size_t from,
                 const size_t to)
 {
@@ -418,7 +418,7 @@ static void darray_move_item(const size_t element_size,
     free(temp);
 }
 
-static void darray_swap(const size_t element_size, struct darray *dst,
+void darray_swap(const size_t element_size, struct darray *dst,
                 const size_t a, const size_t b)
 {
     void *temp, *a_ptr, *b_ptr;

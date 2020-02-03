@@ -104,7 +104,7 @@ void print_packet(struct rpc_packet *pkt)
     printf("header.msg_id      = 0x%08x\n", pkt->header.msg_id);
     printf("header.timestamp   = %" PRIu64 "\n", pkt->header.timestamp);
     printf("header.timestamp   = %s\n",
-            time_get_str_human_by_msec(pkt->header.timestamp, ts, sizeof(ts)));
+            time_str_human_by_msec(pkt->header.timestamp, ts, sizeof(ts)));
     printf("header.payload_len = %d\n", pkt->header.payload_len);
     printf("header.checksum    = 0x%08x\n", pkt->header.checksum);
     dump_packet(pkt);
@@ -132,7 +132,7 @@ static size_t pack_msg(struct rpc_packet *pkt, uint32_t msg_id,
 
     hdr = &(pkt->header);
     hdr->msg_id = msg_id;
-    time_get_info(&ti);
+    time_info(&ti);
     hdr->timestamp = ti.utc_msec;
 
     if (in_arg) {
@@ -169,7 +169,7 @@ int rpc_send(struct rpc *r, const void *buf, size_t len)
     struct rpc_packet *pkt = &r->send_pkt;
     struct time_info ti;
 
-    time_get_info(&ti);
+    time_info(&ti);
     pkt->header.timestamp = ti.utc_msec;
     pkt->header.payload_len = len;
     pkt->payload = (void *)buf;
@@ -688,7 +688,7 @@ void on_server_init(struct rpc *r, int fd, uint32_t ip, uint16_t port)
     r->send_pkt.header.msg_id = 0;
     r->send_pkt.header.payload_len = sizeof(uuid_hash);
     r->send_pkt.payload = &uuid_hash;
-    time_get_info(&ti);
+    time_info(&ti);
     r->send_pkt.header.timestamp =  ti.utc_msec;
     printf("%s:%d before rpc_send\n", __func__, __LINE__);
     ret = rpc_send(r, r->send_pkt.payload, r->send_pkt.header.payload_len);
