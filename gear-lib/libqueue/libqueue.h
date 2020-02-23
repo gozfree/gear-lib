@@ -28,7 +28,7 @@
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
 #endif
-#include "libmacro.h"
+#include <gear-lib/libmacro.h>
 
 /*
  * queue is multi-reader single-writer

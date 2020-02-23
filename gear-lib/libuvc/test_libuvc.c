@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuvc.h"
-#include <libfile.h>
+#include <gear-lib/libfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

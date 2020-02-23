@@ -31,7 +31,7 @@
 #include "libposix4win.h"
 #endif
 
-#include <libmedia-io.h>
+#include <gear-lib/libmedia-io.h>
 
 #ifdef __cplusplus
 extern "C" {

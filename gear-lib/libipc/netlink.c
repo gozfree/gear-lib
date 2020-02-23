@@ -28,9 +28,9 @@
 #include <sys/time.h>
 #include <linux/netlink.h>
 #include <semaphore.h>
-#include <libmacro.h>
-#include <libgevent.h>
-#include <libthread.h>
+#include <gear-lib/libmacro.h>
+#include <gear-lib/libgevent.h>
+#include <gear-lib/libthread.h>
 #include "libipc.h"
 #include "netlink_driver.h"
 

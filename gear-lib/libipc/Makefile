@@ -74,7 +74,7 @@ EXTRA_CFLAGS	+= -I../libmacro/
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
-EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib -ldict -lgevent -ldarray
+EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldict -lgevent -ldarray
 EXTRA_LDFLAGS	+= -pthread -lrt
 
 
@@ -135,18 +135,18 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
-	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib
+	@if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include/gear-lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib/gear-lib
 
 driver_install:
 	$(MAKE) -C $(KERNEL_DIR) M=$(shell pwd) modules_install
 
 
 uninstall:
-	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/gear-lib/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO_VER)

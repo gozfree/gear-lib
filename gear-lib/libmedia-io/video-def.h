@@ -72,6 +72,9 @@ enum video_format {
 
     /* packed 4:4:4 with alpha */
     VIDEO_FORMAT_AYUV,
+
+    VIDEO_FORMAT_JPEG,
+    VIDEO_FORMAT_MJPG,
 };
 
 const char *video_format_name(enum video_format format);

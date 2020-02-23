@@ -25,7 +25,7 @@
 #include "media_source.h"
 #include "rtsp_parser.h"
 #include "rtp.h"
-#include <libthread.h>
+#include <gear-lib/libthread.h>
 #include <stdint.h>
 #include <stddef.h>
 

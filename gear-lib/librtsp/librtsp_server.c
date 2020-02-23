@@ -26,11 +26,9 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/time.h>
-#include <libmacro.h>
-#include <liblog.h>
-#include <libgevent.h>
-#include <libthread.h>
-#include <libdict.h>
+#include <gear-lib/libmacro.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libdict.h>
 #include "librtsp.h"
 #include "media_source.h"
 #include "transport_session.h"

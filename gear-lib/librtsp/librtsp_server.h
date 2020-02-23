@@ -22,9 +22,9 @@
 #ifndef LIBRTSP_SERVER_H
 #define LIBRTSP_SERVER_H
 
-#include <libthread.h>
-#include <libgevent.h>
-#include <libskt.h>
+#include <gear-lib/libthread.h>
+#include <gear-lib/libgevent.h>
+#include <gear-lib/libskt.h>
 #include "media_source.h"
 
 #ifdef __cplusplus

@@ -22,9 +22,9 @@
 #ifndef LIBRTMPC_H
 #define LIBRTMPC_H
 
-#include <libqueue.h>
-#include <libthread.h>
-#include <libmedia-io.h>
+#include <gear-lib/libqueue.h>
+#include <gear-lib/libthread.h>
+#include <gear-lib/libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>
 #if defined (__linux__) || defined (__CYGWIN__)

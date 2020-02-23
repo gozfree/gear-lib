@@ -26,10 +26,10 @@
 #include "rtp.h"
 #include "sdp.h"
 #include "uri_parse.h"
-#include <liblog.h>
-#include <libdict.h>
-#include <libmacro.h>
-#include <libfile.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libdict.h>
+#include <gear-lib/libmacro.h>
+#include <gear-lib/libfile.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -155,7 +155,7 @@ static int on_setup(struct rtsp_request *req, char *url)
         //set local ipaddr to source
         struct skt_addr addr;
         skt_getaddr_by_fd(req->fd, &addr);
-        strncpy(req->transport.source, addr.ip_str, sizeof(addr.ip_str));
+        strncpy(req->transport.source, addr.ip_str, sizeof(req->transport.source));
     }
     if (0 == strlen(req->transport.destination)) {
         skt_addr_ntop(req->transport.destination, req->client.ip);

@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libuvc.h>
-#include <liblog.h>
-#include <libmacro.h>
+#include <gear-lib/libuvc.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libmacro.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>

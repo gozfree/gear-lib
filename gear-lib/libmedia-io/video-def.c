@@ -61,6 +61,10 @@ const char *video_format_name(enum video_format format)
         return "YUVA";
     case VIDEO_FORMAT_AYUV:
         return "AYUV";
+    case VIDEO_FORMAT_JPEG:
+        return "JPEG";
+    case VIDEO_FORMAT_MJPG:
+        return "MJPG";
     case VIDEO_FORMAT_NONE:;
     }
 
@@ -109,7 +113,12 @@ enum video_format video_format_from_fourcc(uint32_t fourcc)
         return VIDEO_FORMAT_BGRA;
     case MAKE_FOURCC('Y', '8', '0', '0'):
         return VIDEO_FORMAT_Y800;
+    case MAKE_FOURCC('J', 'P', 'E', 'G'):
+        return VIDEO_FORMAT_JPEG;
+    case MAKE_FOURCC('M', 'J', 'P', 'G'):
+        return VIDEO_FORMAT_MJPG;
     }
+    printf("video_format_from_fourcc failed!\n");
     return VIDEO_FORMAT_NONE;
 }
 
@@ -408,6 +417,8 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
         memcpy(dst->data[2], src->data[2], src->linesize[2] * src->height);
         memcpy(dst->data[3], src->data[3], src->linesize[3] * src->height);
         break;
+    default:
+        return NULL;
     }
     dst->timestamp = src->timestamp;
     dst->id = src->id;

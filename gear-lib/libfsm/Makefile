@@ -5,7 +5,7 @@
 ARCH		?= linux
 CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
-BUILD_DIR	:= $(shell pwd)/../build/
+BUILD_DIR	:= $(shell pwd)/../../build/
 ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
 COLOR_INC	:= $(BUILD_DIR)/color.inc
 
@@ -55,13 +55,18 @@ else
 CFLAGS  := -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
+ifeq ($(OUTPUT),/usr/local)
+OUTLIBPATH :=/usr/local
+else
+OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
+endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lgevent
+LDFLAGS	+= -pthread
 
 ###############################################################################
 # target
@@ -88,7 +93,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib/gear-lib -lgevent -ldarray
 
 clean:
 	$(RM_V) -f $(OBJS)
@@ -99,14 +104,14 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
-	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
+	@if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include/gear-lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib/gear-lib
 
 uninstall:
-	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/gear-lib/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/gear-lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/gear-lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/gear-lib/$(TGT_LIB_SO_VER)

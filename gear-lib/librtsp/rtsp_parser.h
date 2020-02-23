@@ -22,8 +22,8 @@
 #ifndef RTSP_PARSER_H
 #define RTSP_PARSER_H
 
-#include <libskt.h>
 #include <stdint.h>
+#include <gear-lib/libskt.h>
 
 #ifdef __cplusplus
 extern "C" {

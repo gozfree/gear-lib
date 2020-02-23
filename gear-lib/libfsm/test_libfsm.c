@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libfsm.h"
-#include <libgevent.h>
+#include <gear-lib/libgevent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

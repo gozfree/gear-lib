@@ -101,9 +101,11 @@ config_arch()
 
 check_output()
 {
-	if [ ! -d "${OUTPUT}/debug" ]; then
-		mkdir -p ${OUTPUT}/include
-		mkdir -p ${OUTPUT}/{release,debug}/lib
+	if [ ! -d "${OUTPUT}/include/gear-lib" ]; then
+		mkdir -p ${OUTPUT}/include/gear-lib
+	fi
+	if [ ! -d "${OUTPUT}/{release,debug}/lib/gear-lib" ]; then
+		mkdir -p ${OUTPUT}/{release,debug}/lib/gear-lib
 	fi
 }
 

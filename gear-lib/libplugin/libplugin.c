@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
-#include <libmacro.h>
 
 struct plugin_manager *plugin_manager_create()
 {

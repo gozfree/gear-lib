@@ -20,8 +20,8 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "rtp.h"
-#include <liblog.h>
-#include <libmacro.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libmacro.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>

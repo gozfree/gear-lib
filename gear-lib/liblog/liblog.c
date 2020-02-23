@@ -380,7 +380,7 @@ static int _log_fclose(void)
 static ssize_t _log_fwrite(struct iovec *vec, int n)
 {
     int i, ret;
-    char log_rename[FILENAME_LEN] = {0};
+    char log_rename[FILENAME_LEN*3] = {0};
     unsigned long long tmp_size = get_file_size_by_fp(_log_fp);
     if (UNLIKELY(tmp_size > _log_file_size)) {
         if (_log_rotate) {
@@ -454,7 +454,7 @@ static int _log_close(void)
 
 static ssize_t _log_write(struct iovec *vec, int n)
 {
-    char log_rename[FILENAME_LEN] = {0};
+    char log_rename[FILENAME_LEN*3] = {0};
     unsigned long long tmp_size = get_file_size(_log_name);
     if (UNLIKELY(tmp_size > _log_file_size)) {
         if (_log_rotate) {
@@ -511,7 +511,7 @@ static int _log_print(int lvl, const char *tag,
     char s_time[LOG_TIME_SIZE];
     char s_lvl[LOG_LEVEL_SIZE];
     char s_tag[LOG_TAG_SIZE];
-    char s_pname[LOG_PNAME_SIZE];
+    char s_pname[LOG_PNAME_SIZE*2];
     char s_pid[LOG_PNAME_SIZE];
     char s_tid[LOG_PNAME_SIZE];
     char s_file[LOG_TEXT_SIZE];
