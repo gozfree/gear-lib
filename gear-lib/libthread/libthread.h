@@ -24,12 +24,14 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#if defined (__linux__) || defined (__CYGWIN__)
 #include <stdbool.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <pthread.h>
 #include <semaphore.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
+#elif defined (FREERTOS)
+#include "libposix4rtos/libposix4rtos.h"
 #endif
 
 #ifdef __cplusplus
@@ -90,6 +92,9 @@ void rwlock_deinit(rw_lock_t *lock);
 /*
  * sem lock implemented by Unnamed semaphores (memory-based semaphores) APIs
  */
+#if defined (FREERTOS)
+typedef void* sem_t;
+#endif
 typedef sem_t sem_lock_t;
 int sem_lock_init(sem_lock_t *lock);
 int sem_lock_wait(sem_lock_t *lock, int64_t ms);

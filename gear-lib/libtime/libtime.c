@@ -167,7 +167,7 @@ char *time_msec_str(char *str, int len)
     }
     now_sec = tv.tv_sec;
     now_ms = tv.tv_usec/1000;
-    if (NULL != localtime_r(&now_sec, &now_tm)) {
+    if (NULL == localtime_r(&now_sec, &now_tm)) {
         printf("localtime_r failed %d:%s\n", errno, strerror(errno));
         return NULL;
     }

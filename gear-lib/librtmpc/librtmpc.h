@@ -81,14 +81,12 @@ struct rtmpc {
     uint32_t prev_timestamp;
 };
 
-struct rtmpc *rtmp_create(const char *push_url);
-int rtmp_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt);
-int rtmp_stream_start(struct rtmpc *rtmpc);
-void rtmp_stream_stop(struct rtmpc *rtmpc);
-int rtmp_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt);
-void rtmp_destroy(struct rtmpc *rtmpc);
-
-
+struct rtmpc *rtmpc_create(const char *push_url);
+int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt);
+int rtmpc_stream_start(struct rtmpc *rtmpc);
+void rtmpc_stream_stop(struct rtmpc *rtmpc);
+int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt);
+void rtmpc_destroy(struct rtmpc *rtmpc);
 
 
 #ifdef __cplusplus

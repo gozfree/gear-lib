@@ -27,6 +27,8 @@
 #include <pthread.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
+#elif defined (FREERTOS)
+#include "libposix4rtos/libposix4rtos.h"
 #endif
 #include <gear-lib/libmacro.h>
 

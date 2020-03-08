@@ -80,8 +80,6 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 char *dup_wchar_to_utf8(wchar_t *w);
 
-#define memalign(align, size)     _aligned_malloc(size, align)
-
 
 /******************************************************************************
  * sys file APIs
@@ -252,6 +250,12 @@ typedef int clockid_t;
  ******************************************************************************/
 
 int get_nprocs();
+
+/******************************************************************************
+ * memory APIs
+ ******************************************************************************/
+#define memalign(align, size)     _aligned_malloc(size, align)
+
 
 
 #ifdef __cplusplus

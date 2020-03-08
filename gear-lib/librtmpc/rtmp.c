@@ -189,6 +189,7 @@ RTMP_GetTime()
 #else
     struct tms t;
     if (!clk_tck) clk_tck = sysconf(_SC_CLK_TCK);
+    if (clk_tck == 0) clk_tck = 1;//div 0 will cause error
     return times(&t) * 1000 / clk_tck;
 #endif
 }
@@ -852,10 +853,12 @@ add_addr_info(struct sockaddr_storage *service, socklen_t *addrlen, AVal *host, 
 
     if (err)
     {
+#ifndef FREERTOS
 #ifndef _WIN32
 #define gai_strerrorA gai_strerror
 #endif
         RTMP_Log(RTMP_LOGERROR, "Could not resolve %s: %s (%d)", hostname, gai_strerrorA(GetSockError()), GetSockError());
+#endif
         *socket_error = GetSockError();
         ret = FALSE;
         goto finish;

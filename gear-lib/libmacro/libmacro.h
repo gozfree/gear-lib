@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined (__linux__) || defined (__CYGWIN__) || defined (__APPLE__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (__APPLE__) || defined (FREERTOS)
 #include <stdbool.h>
 #include <sys/uio.h>
 #include "kernel_list.h"

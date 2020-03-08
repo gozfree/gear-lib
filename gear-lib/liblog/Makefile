@@ -49,10 +49,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 # cflags and ldflags
 ###############################################################################
 ifeq ($(MODE), release)
-CFLAGS	:= -O2 -Wall -Werror -Wformat-truncation=0
+CFLAGS	:= -O2 -Wall -Werror -Wno-format-truncation
 LTYPE   := release
 else
-CFLAGS	:= -g -Wall -Wformat-truncation=0
+CFLAGS	:= -g -Wall -Wno-format-truncation
 LTYPE   := debug
 endif
 ifeq ($(OUTPUT),/usr/local)

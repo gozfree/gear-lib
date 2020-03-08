@@ -139,7 +139,7 @@ int queue_flush(struct queue *q)
         return -1;
     }
     pthread_mutex_lock(&q->lock);
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(item, next, &q->head, entry) {
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     list_for_each_entry_safe(item, struct item, next, struct item, &q->head, entry) {
@@ -207,7 +207,7 @@ struct item *queue_pop(struct queue *q)
 
     pthread_mutex_lock(&q->lock);
     while (list_empty(&q->head)) {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
         struct timeval now;
         struct timespec outtime;
         gettimeofday(&now, NULL);
@@ -265,7 +265,7 @@ struct queue_branch *queue_branch_new(struct queue *q, const char *name)
 int queue_branch_del(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #else
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
@@ -287,7 +287,7 @@ struct queue_branch *queue_branch_get(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
@@ -304,7 +304,7 @@ int queue_branch_notify(struct queue *q)
     struct queue_branch *qb, *next;
     char notify = '1';
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
@@ -322,7 +322,7 @@ struct item *queue_branch_pop(struct queue *q, const char *name)
     struct queue_branch *qb, *next;
     char notify = '1';
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {

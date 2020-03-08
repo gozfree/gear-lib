@@ -65,7 +65,9 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#ifndef FREERTOS
 #include <netinet/tcp.h>
+#endif
 #include <arpa/inet.h>
 #define GetSockError()	errno
 #define SetSockError(e)	errno = e

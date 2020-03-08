@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 /*
 67 42 e0 0a 89 95 42 c1 2c 80     67 sps
@@ -682,7 +684,8 @@ int h264_send_packet(struct rtmpc *rtmpc, struct video_packet *pkt)
         if (key_frame) {
             rtmpc->start_dts_offset = get_ms_time(pkt, pkt->dts);
             rtmpc->is_keyframe_got = true;
-            printf("start_dts_offset=%zu, dts=%zu, timebase_den=%u\n", rtmpc->start_dts_offset, pkt->dts, pkt->timebase_den);
+            printf("got key frame\n");
+            printf("start_dts_offset=%" PRIu64 ", dts=%" PRIu64 ", timebase_den=%u\n", rtmpc->start_dts_offset, pkt->dts, pkt->timebase_den);
         } else {
             printf("wait for key frame\n");
             return 0;
@@ -697,6 +700,9 @@ int h264_send_packet(struct rtmpc *rtmpc, struct video_packet *pkt)
     mpkt->video->timebase_den = pkt->timebase_den;
 
     struct item *item = item_alloc(rtmpc->q, rtmpc->tmp_buf.iov_base, total_len, mpkt);
+    if (!item) {
+        printf("item_alloc failed!\n");
+    }
 
     if (0 != queue_push(rtmpc->q, item)) {
         printf("queue_push failed!\n");

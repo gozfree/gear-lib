@@ -137,6 +137,24 @@ struct video_packet {
 struct video_packet *video_packet_create(void *data, size_t len);
 void video_packet_destroy(struct video_packet *packet);
 
+/**
+ * This structure describe video attribute.
+ */
+struct video_attr {
+    enum video_format format;
+    uint32_t          width;
+    uint32_t          height;
+    uint64_t          timestamp;//ns
+    uint64_t          id;
+    uint32_t          fps_num;
+    uint32_t          fps_den;
+    uint8_t          *extra_data;
+    size_t            extra_size;
+};
+
+struct video_attr *video_attr_init();
+
+
 #ifdef __cplusplus
 }
 #endif

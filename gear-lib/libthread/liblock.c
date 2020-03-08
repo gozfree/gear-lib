@@ -487,16 +487,19 @@ int rwlock_unlock(rw_lock_t *ptr)
  *****************************************************************************/
 int sem_lock_init(sem_lock_t *lock)
 {
+#ifndef FREERTOS
     int pshared = 0;//0: threads, 1: processes
     if (0 != sem_init(lock, pshared, 0)) {
         printf("sem_init failed %d:%s\n", errno, strerror(errno));
         return -1;
     }
+#endif
     return 0;
 }
 
 void sem_lock_deinit(sem_lock_t *ptr)
 {
+#ifndef FREERTOS
     sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return;
@@ -504,6 +507,7 @@ void sem_lock_deinit(sem_lock_t *ptr)
     if (0 != sem_destroy(lock)) {
         printf("sem_destroy %d:%s\n", errno , strerror(errno));
     }
+#endif
 }
 
 int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
@@ -572,7 +576,8 @@ int sem_lock_trywait(sem_lock_t *ptr)
 
 int sem_lock_signal(sem_lock_t *ptr)
 {
-    int ret;
+    int ret = 0;
+#ifndef FREERTOS
     sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return -1;
@@ -588,5 +593,6 @@ int sem_lock_signal(sem_lock_t *ptr)
             break;
         }
     }
+#endif
     return ret;
 }

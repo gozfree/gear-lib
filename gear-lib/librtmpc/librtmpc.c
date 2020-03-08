@@ -36,7 +36,7 @@
 #define AMF_END_OF_OBJECT         0x09
 
 
-void rtmp_destroy(struct rtmpc *rtmpc)
+void rtmpc_destroy(struct rtmpc *rtmpc)
 {
     if (!rtmpc) {
         return;
@@ -84,7 +84,7 @@ static void item_free_hook(void *data)
     media_packet_destroy(pkt);
 }
 
-struct rtmpc *rtmp_create(const char *url)
+struct rtmpc *rtmpc_create(const char *url)
 {
     struct rtmpc *rtmpc = (struct rtmpc *)calloc(1, sizeof(struct rtmpc));
     if (!rtmpc) {
@@ -167,7 +167,7 @@ failed:
     return NULL;
 }
 
-int rtmp_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
+int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
@@ -183,7 +183,7 @@ int rtmp_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
     return ret;
 }
 
-int rtmp_write_header(struct rtmpc *rtmpc)
+static int write_header(struct rtmpc *rtmpc)
 {
     int audio_exist = !!rtmpc->audio;
     int video_exist = !!rtmpc->video;
@@ -320,7 +320,7 @@ static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
     return 0;
 }
 
-int rtmp_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
+int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
@@ -337,7 +337,7 @@ int rtmp_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
     return ret;
 }
 
-static void *rtmp_stream_thread(struct thread *t, void *arg)
+static void *rtmpc_stream_thread(struct thread *t, void *arg)
 {
     struct rtmpc *rtmpc = (struct rtmpc *)arg;
     queue_flush(rtmpc->q);
@@ -349,7 +349,10 @@ static void *rtmp_stream_thread(struct thread *t, void *arg)
             continue;
         }
         if (!rtmpc->sent_headers) {
-            rtmp_write_header(rtmpc);
+            if (0 != write_header(rtmpc)) {
+                printf("write_header failed!\n");
+                rtmpc->is_run = false;
+            }
             rtmpc->sent_headers = true;
         }
         struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
@@ -362,7 +365,7 @@ static void *rtmp_stream_thread(struct thread *t, void *arg)
     return NULL;
 }
 
-void rtmp_stream_stop(struct rtmpc *rtmpc)
+void rtmpc_stream_stop(struct rtmpc *rtmpc)
 {
     if (rtmpc) {
         thread_destroy(rtmpc->thread);
@@ -371,7 +374,7 @@ void rtmp_stream_stop(struct rtmpc *rtmpc)
     }
 }
 
-int rtmp_stream_start(struct rtmpc *rtmpc)
+int rtmpc_stream_start(struct rtmpc *rtmpc)
 {
     if (!rtmpc) {
         return -1;
@@ -380,7 +383,7 @@ int rtmp_stream_start(struct rtmpc *rtmpc)
         printf("rtmpc stream already start!\n");
         return -1;
     }
-    rtmpc->thread = thread_create(rtmp_stream_thread, rtmpc);
+    rtmpc->thread = thread_create(rtmpc_stream_thread, rtmpc);
     if (!rtmpc->thread) {
         rtmpc->is_start = false;
         printf("thread_create failed!\n");

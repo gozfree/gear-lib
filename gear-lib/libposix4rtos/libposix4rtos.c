@@ -167,3 +167,22 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms)
     } while (!(xEventGroupGetBits(cond->event) & cond->evbits))
     return 0;
 }
+
+
+void *rtos_aligned_alloc(size_t alignment, size_t size)
+{
+    long diff;
+    void *ptr = malloc(size + alignment);
+    if (ptr) {
+        diff = ((~(long)ptr) & (alignment - 1)) + 1;
+        ptr = (char *)ptr + diff;
+        ((char *)ptr)[-1] = (char)diff;
+    }
+    return ptr;
+}
+
+void rtos_aligned_free(void *ptr)
+{
+	if (ptr)
+		free((char *)ptr - ((char *)ptr)[-1]);
+}

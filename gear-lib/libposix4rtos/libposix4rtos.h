@@ -91,6 +91,15 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms);
 int pthread_cond_signal(pthread_cond_t *cond);
 
+
+/******************************************************************************
+ * memory APIs
+ ******************************************************************************/
+void *rtos_aligned_alloc(size_t alignment, size_t size);
+void rtos_aligned_free(void *ptr);
+
+#define aligned_alloc(align, size)    rtos_aligned_alloc(align, size)
+#define aligned_free(ptr)             rtos_aligned_free(ptr)
 #ifdef __cplusplus
 }
 #endif

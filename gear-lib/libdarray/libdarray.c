@@ -98,7 +98,7 @@ static void darray_ensure_capacity(const size_t element_size,
     dst->capacity = new_cap;
 }
 
-static void darray_resize(const size_t element_size, struct darray *dst,
+void darray_resize(const size_t element_size, struct darray *dst,
                 const size_t size)
 {
     int b_clear;

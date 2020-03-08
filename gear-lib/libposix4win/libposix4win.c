@@ -420,3 +420,22 @@ int get_nprocs()
     GetSystemInfo(&si);
     return si.dwNumberOfProcessors;
 }
+
+void *align_malloc(size_t size)
+{
+    long diff;
+    void *ptr = malloc(size + ALIGNMENT);
+    if (ptr) {
+        diff = ((~(long)ptr) & (ALIGNMENT - 1)) + 1;
+        ptr = (char *)ptr + diff;
+        ((char *)ptr)[-1] = (char)diff;
+    }
+    return ptr;
+}
+
+void align_free(void *ptr)
+{
+    if (ptr)
+        free((char *)ptr - ((char *)ptr)[-1]);
+}
+

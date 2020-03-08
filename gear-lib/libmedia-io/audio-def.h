@@ -80,6 +80,18 @@ struct audio_packet {
 struct audio_packet *audio_packet_create(void *data, size_t len);
 void audio_packet_destroy(struct audio_packet *packet);
 
+/**
+ * This structure describe audio attribute.
+ */
+struct audio_attr {
+    enum audio_format format;
+    uint8_t          *extra_data;
+    size_t            extra_size;
+};
+
+struct audio_attr *audio_attr_init();
+
+
 #ifdef __cplusplus
 }
 #endif

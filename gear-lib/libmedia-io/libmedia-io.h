@@ -63,6 +63,21 @@ struct media_packet *media_packet_create(enum media_packet_type type,
                                             void *data, size_t len);
 void media_packet_destroy(struct media_packet *packet);
 
+
+enum media_type {
+    MEDIA_AUDIO,
+    MEDIA_VIDEO
+};
+
+struct media_attr {
+    union {
+        struct audio_attr audio;
+        struct video_attr video;
+    };
+    enum media_type type;
+};
+
+
 #ifdef __cplusplus
 }
 #endif
