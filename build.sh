@@ -17,7 +17,7 @@ case $# in
 	MODE=debug;;
 2)
 	MODE=debug;;
-	
+
 esac
 
 
@@ -25,11 +25,11 @@ esac
 PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
-BASIC_LIBS="libmacro libtime liblog libgevent libworkq libdict libhash libsort \
-	    librbtree libringbuffer libthread libconfig libvector libbase64 \
+BASIC_LIBS="libmacro libtime liblog libdarray libgevent libworkq libdict libhash libsort \
+	    librbtree libringbuffer libthread libvector libbase64 libmedia-io \
             libdebug libfile libuvc libmp4parser libqueue libplugin libhal libsubmask"
 FRAMEWORK_LIBS="libipc"
-NETWORK_LIBS="libskt librpc librtsp"
+NETWORK_LIBS="libskt librpc "
 
 usage()
 {
@@ -101,15 +101,17 @@ config_arch()
 
 check_output()
 {
-	if [ ! -d "${OUTPUT}/debug" ]; then
-		mkdir -p ${OUTPUT}/include
-		mkdir -p ${OUTPUT}/{release,debug}/lib
+	if [ ! -d "${OUTPUT}/include/gear-lib" ]; then
+		mkdir -p ${OUTPUT}/include/gear-lib
+	fi
+	if [ ! -d "${OUTPUT}/{release,debug}/lib/gear-lib" ]; then
+		mkdir -p ${OUTPUT}/{release,debug}/lib/gear-lib
 	fi
 }
 
 install_dep()
 {
-	sudo apt-get install libjansson-dev
+	return
 }
 
 build_module()
@@ -122,7 +124,6 @@ build_module()
 		return
 	fi
 	cd ${LIBS_DIR}/${MODULE}/
-	echo "cd ${LIBS_DIR}/${MODULE}/"
 
 	case $ACTION in
 	"clean")
@@ -153,7 +154,7 @@ build_module()
 	*)
 		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT} MODE=${MODE}"
 		if [[ ${ARCH} == "linux" || ${ARCH} == "pi" || ${ARCH} == "android" ]]; then
-			${MAKE} > /dev/null
+			${MAKE}  > /dev/null
 		else
 			echo "${ARCH} not support now" #make -f Makefile.${ARCH} > /dev/null
 		fi

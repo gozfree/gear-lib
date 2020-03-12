@@ -331,9 +331,9 @@ chmod a+x ${VERSION_SH}
 link_libfoo()
 {
 	cd ../../include/
-	ln -s ../gear-lib/${LIBFOO_H} .
+	ln -s ../gear-lib/${MODULE}/${LIBFOO_H} .
 	cd ../src/
-	ln -s ../gear-lib/${LIBFOO_C} .
+	ln -s ../gear-lib/${MODULE}/${LIBFOO_C} .
 }
 
 case $# in

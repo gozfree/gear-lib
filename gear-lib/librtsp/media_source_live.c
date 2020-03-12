@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libuvc.h>
-#include <liblog.h>
-#include <libmacro.h>
+#include <gear-lib/libuvc.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libmacro.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>
@@ -297,6 +297,10 @@ static int live_open(struct media_source *ms, const char *name)
         loge("uvc open failed!\n");
         return -1;
     }
+    if (uvc_start_stream(c->uvc, NULL)) {
+        loge("uvc start stream failed!\n");
+        return -1;
+    }
     c->uvc_opened = true;
     ms->opaque = c;
     c->x264 = x264_open(c);
@@ -349,14 +353,18 @@ static int sdp_generate(struct media_source *ms)
 static int live_read(struct media_source *ms, void **data, size_t *len)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
+    struct video_frame frame;
     memset(c->data.iov_base, 0, c->data.iov_len);
-    int size = uvc_read(c->uvc, c->data.iov_base, c->data.iov_len);
+    int size = uvc_query_frame(c->uvc, &frame);
+    c->data.iov_base = frame.data[0];
+    c->data.iov_len = frame.total_size;
     struct iovec in, out;
     in.iov_base = c->data.iov_base;
     in.iov_len = size;
     x264_encode(c->x264, &in, &out);
     *data = out.iov_base;
     *len = out.iov_len;
+    loge("x264_encode len=%d\n", *len);
     return 0;
 }
 

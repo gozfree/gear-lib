@@ -42,7 +42,7 @@
 #include "libringbuffer.h"
 #include "librpc.h"
 #include "librpc_stub.h"
-#include "librtmp.h"
+#include "librtmpc.h"
 #include "librtsp.h"
 #include "libskt.h"
 #include "libsort.h"

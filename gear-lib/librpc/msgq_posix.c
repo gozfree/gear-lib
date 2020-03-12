@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "librpc.h"
-#include <libmacro.h>
+#include <gear-lib/libmacro.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>

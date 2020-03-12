@@ -63,7 +63,7 @@ void default_struct()
 {
     int i;
     int sum = 0;
-    int *tmp;
+    int *tmp = (int *)calloc(1, sizeof(int));
 #if defined (__linux__) || defined (__CYGWIN__)
 #else
     int itmp = 0;
@@ -88,7 +88,7 @@ void default_struct()
 
     while (!vector_empty(a)) {
 #if defined (__linux__) || defined (__CYGWIN__)
-        tmp = vector_back(a, int);
+        memcpy(tmp, vector_back(a, int), sizeof(int));
 #else
         memcpy(itmp, vector_last(a), a->type_size);
         tmp = &itmp;
@@ -96,6 +96,7 @@ void default_struct()
         sum += *tmp;
         vector_pop_back(a);
     }
+    free(tmp);
     printf("sum is %d\n", sum);
     printf("size = %zu\n", a->size);
     printf("type_size = %zu\n", a->type_size);

@@ -75,6 +75,8 @@ static void foo(void)
 static void foo2(void)
 {
     struct file_systat *stat = file_get_systat("./Makefile");
+    if (!stat)
+        return;
     printf("total = %" PRIu64 "MB\n", stat->size_total/(1024*1024));
     printf("avail = %" PRIu64 "MB\n", stat->size_avail/(1024*1024));
     printf("free = %" PRIu64 "MB\n", stat->size_free/(1024*1024));

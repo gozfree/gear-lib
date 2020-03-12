@@ -21,8 +21,12 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
-#include <libmacro.h>
+#include <stddef.h>
 #include "librbtree.h"
+
+#define container_of(ptr, type, member) ({			\
+	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+	(type *)( (char *)__mptr - offsetof(type,member) );})
 
 #ifndef false
 #define false   (0)
@@ -98,7 +102,7 @@ static void test(struct rb_root *mytree, int *input, size_t len)
     int res;
     int i;
     for (i = 0; i < (int)len; i++) {
-        struct my_rbnode *entry = CALLOC(1, struct my_rbnode);
+        struct my_rbnode *entry = (struct my_rbnode *)calloc(1, sizeof(struct my_rbnode));
         entry->key = input[i];
         res = my_insert(mytree, entry);
         printf("insert %d: %d, res %d\n", i, input[i], res);

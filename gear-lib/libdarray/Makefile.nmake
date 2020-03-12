@@ -1,0 +1,50 @@
+###############################################################################
+# common
+###############################################################################
+#ARCH: linux/pi/android/ios/win
+LD	= link
+AR	= lib
+RM	= del
+###############################################################################
+# target and object
+###############################################################################
+LIBNAME		= libdarray
+TGT_LIB_A	= $(LIBNAME).lib
+TGT_LIB_SO	= $(LIBNAME).dll
+TGT_UNIT_TEST	= test_$(LIBNAME).exe
+
+OBJS_LIB	= $(LIBNAME).obj
+OBJS_UNIT_TEST	= test_$(LIBNAME).obj
+
+###############################################################################
+# cflags and ldflags
+###############################################################################
+CFLAGS	= /I.
+!IF "$(MODE)"=="release"
+CFLAGS  = $(CFLAGS) /O2 /GF
+!ELSE
+CFLAGS  = $(CFLAGS) /Od /W3 /Zi
+!ENDIF
+
+###############################################################################
+# target
+###############################################################################
+TGT	= $(TGT_LIB_A)  $(TGT_LIB_SO) $(TGT_UNIT_TEST)
+
+OBJS	= $(OBJS_LIB) $(OBJS_UNIT_TEST)
+
+all: $(TGT)
+
+$(TGT_LIB_A): $(OBJS_LIB)
+	$(AR) $(OBJS_LIB) /out:$(TGT_LIB_A)
+
+$(TGT_LIB_SO): $(OBJS_LIB)
+	$(LD) /Dll $(OBJS_LIB)
+
+$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST)
+
+clean:
+	$(RM) $(OBJS)
+	$(RM) $(TGT)
+	$(RM) $(TGT_LIB_SO)*

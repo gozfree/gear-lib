@@ -20,9 +20,9 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "rtp.h"
-#include <liblog.h>
-#include <libskt.h>
-#include <libmacro.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libskt.h>
+#include <gear-lib/libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

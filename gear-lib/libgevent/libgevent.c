@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
 #endif
 #include <errno.h>
 
@@ -45,6 +44,7 @@ extern const struct gevent_ops iocpops;
 static const struct gevent_ops *eventops[] = {
 #if defined (__linux__)
 //    &selectops,
+//    &pollops,
 #ifndef __CYGWIN__
     &epollops,
 #endif
@@ -211,7 +211,7 @@ struct gevent *gevent_timer_create(time_t msec,
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     enum gevent_flags flags = 0;
-    struct gevent_cbs *evcb; 
+    struct gevent_cbs *evcb;
     int fd;
     time_t sec = msec/1000;
     long nsec = (msec-sec*1000)*1000000;

@@ -26,15 +26,21 @@
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
 #include <sys/time.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
-#pragma comment(lib , "libmacro.lib")
 #endif
 #include "libqueue.h"
 
 #define QUEUE_MAX_DEPTH 200
-struct item *item_alloc(struct queue *q, void *data, size_t len)
+
+struct iovec *item_get_data(struct queue *q, struct item *it)
+{
+    if (q->alloc_hook) {
+        return &it->opaque;
+    } else {
+        return &it->data;
+    }
+}
+
+struct item *item_alloc(struct queue *q, void *data, size_t len, void *arg)
 {
     struct item *item;
     if (!q) {
@@ -46,7 +52,7 @@ struct item *item_alloc(struct queue *q, void *data, size_t len)
         return NULL;
     }
     if (q->alloc_hook) {
-        item->opaque.iov_base = (q->alloc_hook)(data, len);
+        item->opaque.iov_base = (q->alloc_hook)(data, len, arg);
         item->opaque.iov_len = len;
     } else {
         item->data.iov_base = memdup(data, len);
@@ -133,7 +139,7 @@ int queue_flush(struct queue *q)
         return -1;
     }
     pthread_mutex_lock(&q->lock);
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(item, next, &q->head, entry) {
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     list_for_each_entry_safe(item, struct item, next, struct item, &q->head, entry) {
@@ -201,7 +207,7 @@ struct item *queue_pop(struct queue *q)
 
     pthread_mutex_lock(&q->lock);
     while (list_empty(&q->head)) {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
         struct timeval now;
         struct timespec outtime;
         gettimeofday(&now, NULL);
@@ -240,7 +246,7 @@ struct item *queue_pop(struct queue *q)
     return item;
 }
 
-struct queue_branch *queue_branch_add(struct queue *q, const char *name)
+struct queue_branch *queue_branch_new(struct queue *q, const char *name)
 {
     struct queue_branch *qb = CALLOC(1, struct queue_branch);
     if (!q || !qb || !name) {
@@ -259,7 +265,11 @@ struct queue_branch *queue_branch_add(struct queue *q, const char *name)
 int queue_branch_del(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#else
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
         if (!strcmp(qb->name, name)) {
             list_del(&qb->hook);
             free(qb->name);
@@ -277,7 +287,11 @@ struct queue_branch *queue_branch_get(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
 
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
         if (!strcmp(qb->name, name)) {
             return qb;
         }
@@ -290,7 +304,12 @@ int queue_branch_notify(struct queue *q)
     struct queue_branch *qb, *next;
     char notify = '1';
 
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
+
         if (write(qb->WR_FD, &notify, sizeof(notify)) != 1) {
             printf("write pipe failed: %s\n", strerror(errno));
         }
@@ -303,7 +322,12 @@ struct item *queue_branch_pop(struct queue *q, const char *name)
     struct queue_branch *qb, *next;
     char notify = '1';
 
+#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+    list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
+#endif
+
         if (!strcmp(qb->name, name)) {
             if (read(qb->RD_FD, &notify, sizeof(notify)) != 1) {
                 printf("read pipe failed: %s\n", strerror(errno));

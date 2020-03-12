@@ -14,8 +14,14 @@
 #include <vfwmsgs.h>
 #include <stdint.h>
 
+enum dshowDeviceType {
+    VideoDevice = 0,
+    AudioDevice = 1,
+};
 
-#define dshowdebug(...) printf(__VA_ARGS__)
+
+//#define dshowdebug(...) printf(__VA_ARGS__)
+#define dshowdebug(...) do{} while(0)
 
 struct GUIDoffset {
     const GUID *iid;
@@ -128,7 +134,7 @@ struct dshow_filter {
     void *priv_data;
     int stream_index;
     int64_t start_time;
-    void (*callback)(void *priv, int index, uint8_t *buf, int size, int64_t time);
+    void (*callback)(void *priv, int index, uint8_t *buf, int size, int64_t time, int devtype);
 };
 
 

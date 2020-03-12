@@ -22,7 +22,7 @@
 #ifndef LIBPLUGIN_H
 #define LIBPLUGIN_H
 
-#include <libmacro.h>
+#include <gear-lib/libmacro.h>
 #include <stdio.h>
 
 #ifdef __cplusplus

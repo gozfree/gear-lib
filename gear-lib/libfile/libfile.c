@@ -36,10 +36,6 @@
 #include <limits.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#pragma comment(lib , "libposix4win.lib")
 #endif
 
 
@@ -326,7 +322,7 @@ char *file_path_pwd()
     if (!tmp) {
         printf("getcwd failed: %s\n", strerror(errno));
     }
-    return tmp;
+    return local_path;
 }
 
 char *file_path_suffix(char *path)

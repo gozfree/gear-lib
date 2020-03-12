@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libmacro.h>
 #include "libconfig.h"
 #include "config_util.h"
 #include "luatables.h"

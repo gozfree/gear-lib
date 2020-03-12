@@ -19,10 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <liblog.h>
-#include <libfile.h>
-#include <libmacro.h>
-#include <libvector.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libfile.h>
+#include <gear-lib/libmacro.h>
+#include <gear-lib/libvector.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>

@@ -25,14 +25,14 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /Iinclude /I../libposix4win/ /I../libmacro/ /I.
+CFLAGS	= /I../libposix4win/ /I.
 !IF "$(MODE)"=="release"
 CFLAGS  = $(CFLAGS) /Od /GF
 !ELSE
 CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
 
-LDFLAGS	= /LIBPATH:../libposix4win/ /LIBPATH:../libmacro/ /LIBPATH:./
+LDFLAGS	= /LIBPATH:../libposix4win/ /LIBPATH:./
 
 ###############################################################################
 # target
@@ -49,13 +49,13 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	copy /Y ini_config.obj ini
 	copy /Y json_config.obj json
 	copy /Y cJSON.obj json
-	$(AR) $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_A)
+	$(AR) $(OBJS_LIB) /out:$(TGT_LIB_A)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) $(LIBS) /o:$(TGT_LIB_SO)
+	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
-	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /o $(TGT_UNIT_TEST) /link $(LDFLAGS)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /link $(LDFLAGS)
 
 clean:
 	$(RM) $(OBJS)

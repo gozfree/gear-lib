@@ -27,8 +27,10 @@
 #include <pthread.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
+#elif defined (FREERTOS)
+#include "libposix4rtos/libposix4rtos.h"
 #endif
-#include "libmacro.h"
+#include <gear-lib/libmacro.h>
 
 /*
  * queue is multi-reader single-writer
@@ -58,8 +60,8 @@ struct item {
 
 struct queue;
 
-typedef void *(alloc_hook)(void *data, size_t len);
-typedef void *(free_hook)(void *data);
+typedef void *(alloc_hook)(void *data, size_t len, void *arg);
+typedef void (free_hook)(void *data);
 
 struct queue_branch {
     char *name;
@@ -83,8 +85,9 @@ struct queue {
     struct iovec opaque;
 };
 
-struct item *item_alloc(struct queue *q, void *data, size_t len);
+struct item *item_alloc(struct queue *q, void *data, size_t len, void *arg);
 void item_free(struct queue *q, struct item *item);
+struct iovec *item_get_data(struct queue *q, struct item *it);
 
 struct queue *queue_create();
 void queue_destroy(struct queue *q);

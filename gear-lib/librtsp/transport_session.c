@@ -22,11 +22,11 @@
 #include "transport_session.h"
 #include "media_source.h"
 #include "rtp.h"
-#include <liblog.h>
-#include <libtime.h>
-#include <libdict.h>
-#include <libmacro.h>
-#include <libgevent.h>
+#include <gear-lib/liblog.h>
+#include <gear-lib/libtime.h>
+#include <gear-lib/libdict.h>
+#include <gear-lib/libmacro.h>
+#include <gear-lib/libgevent.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -102,7 +102,7 @@ static void *send_thread(struct thread *t, void *ptr)
     }
     ms->is_active = true;
     unsigned int ssrc = (unsigned int)rtp_ssrc();
-    uint64_t pts = time_get_msec();
+    uint64_t pts = time_msec();
     unsigned int seq = ssrc;
     while (t->run) {
         if (-1 == ms->read(ms, &data, &len)) {

@@ -106,7 +106,7 @@ static void *event_thread(void *arg)
 
 static void *sk_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
-    char stub_name[256];
+    char stub_name[64];
     struct sk_ctx *c = CALLOC(1, struct sk_ctx);
     if (!c) {
         printf("malloc failed!\n");

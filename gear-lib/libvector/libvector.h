@@ -88,9 +88,9 @@ void vector_pop_back(struct vector *v);
 #if defined (__linux__) || defined (__CYGWIN__)
 #define vector_back(v, type_t) \
     ({ \
-        type_t tmp; \
-        memcpy(&tmp, vector_last(v), v->type_size); \
-        &tmp; \
+        type_t __tmp; \
+        memcpy(&__tmp, vector_last(v), v->type_size); \
+        &__tmp; \
     })
 #endif
 

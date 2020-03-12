@@ -27,7 +27,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/sysinfo.h>
-#include <libmacro.h>
+#include <gear-lib/libmacro.h>
 
 static void wq_worker_destroy(struct worker *w);
 static struct workq_pool _wpool;
