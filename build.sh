@@ -109,6 +109,17 @@ check_output()
 	fi
 }
 
+check_install()
+{
+	if [ ! -d "/usr/local/include/gear-lib" ]; then
+		mkdir -p /usr/local/include/gear-lib
+	fi
+	if [ ! -d "/usr/local/lib/gear-lib" ]; then
+		mkdir -p /usr/local/lib/gear-lib
+	fi
+}
+
+
 install_dep()
 {
 	return
@@ -195,6 +206,7 @@ do_build()
 	"dep")
 		install_dep;;
 	"install")
+		check_install
 		build_all install;;
 	"uninstall")
 		build_all uninstall;;

@@ -1,1 +1,1 @@
-../gear-lib/librtmp/rtmp_g711.c
+../gear-lib/librtmpc/rtmp_g711.c

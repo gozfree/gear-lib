@@ -1,1 +1,1 @@
-../gear-lib/librtmp/log.h
+../gear-lib/librtmpc/log.h

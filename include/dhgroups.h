@@ -1,1 +1,1 @@
-../gear-lib/librtmp/dhgroups.h
+../gear-lib/librtmpc/dhgroups.h

@@ -1,1 +1,1 @@
-../gear-lib/librtmp/rtmp_sys.h
+../gear-lib/librtmpc/rtmp_sys.h

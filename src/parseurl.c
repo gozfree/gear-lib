@@ -1,1 +1,1 @@
-../gear-lib/librtmp/parseurl.c
+../gear-lib/librtmpc/parseurl.c

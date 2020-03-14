@@ -1,1 +1,1 @@
-../gear-lib/librtmp/handshake.h
+../gear-lib/librtmpc/handshake.h
