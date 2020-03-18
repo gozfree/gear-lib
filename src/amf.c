@@ -1,1 +1,1 @@
-../gear-lib/librtmp/amf.c
+../gear-lib/librtmpc/amf.c

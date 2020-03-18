@@ -1,1 +1,1 @@
-../gear-lib/librtmp/rtmp_util.c
+../gear-lib/librtmpc/rtmp_util.c

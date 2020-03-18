@@ -1,1 +1,1 @@
-../gear-lib/librtmp/md5.h
+../gear-lib/librtmpc/md5.h

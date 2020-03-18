@@ -1,1 +1,1 @@
-../gear-lib/librtmp/hashswf.c
+../gear-lib/librtmpc/hashswf.c

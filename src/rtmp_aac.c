@@ -1,1 +1,1 @@
-../gear-lib/librtmp/rtmp_aac.c
+../gear-lib/librtmpc/rtmp_aac.c

@@ -1,1 +1,1 @@
-../gear-lib/librtmp/rtmp_h264.h
+../gear-lib/librtmpc/rtmp_h264.h

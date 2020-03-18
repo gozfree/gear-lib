@@ -1,1 +1,1 @@
-../gear-lib/librtmp/http.h
+../gear-lib/librtmpc/http.h
