@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
+#define INET_ADDRSTRLEN 16
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #include "libposix4win.h"
 #endif
@@ -40,7 +41,6 @@ extern "C" {
 #endif
 
 #define MAX_ADDR_STRING (65)
-#define INET_ADDRSTRLEN 16
 
 //socket structs
 
@@ -83,10 +83,13 @@ int skt_unix_bind_listen(const char *host, uint16_t port);
 
 //socket common apis
 void skt_close(int fd);
+void skt_destory();
 
 int skt_send(int fd, const void *buf, size_t len);
 int skt_sendto(int fd, const char *ip, uint16_t port,
                 const void *buf, size_t len);
+int skt_send_sync_recv(int fd, const void *sbuf, size_t slen,
+                void *rbuf, size_t rlen, int timeout);
 int skt_recv(int fd, void *buf, size_t len);
 int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port,
                 void *buf, size_t len);

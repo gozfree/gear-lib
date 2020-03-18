@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2014-2020 Zhifeng Gong <gozfree@163.com>
+ *  (C) 2014-2020 Zhifeng Gong <gozfree@163.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#if defined (__linux__) || defined (__CYGWIN__)
 #include <unistd.h>
 #include <signal.h>
 #include <arpa/inet.h>
@@ -31,6 +32,11 @@
 #include <gear-lib/libgevent.h>
 #include <gear-lib/libthread.h>
 #include <gear-lib/libmacro.h>
+#else
+#include <libgevent.h>
+#include <libthread.h>
+#include <libmacro.h>
+#endif
 
 struct skt_connection *g_sc = NULL;
 
@@ -40,8 +46,9 @@ static uint8_t socket_id = -1;
 void on_read(int fd, void *arg)
 {
     char buf[14];
+    int ret=0;
     memset(buf, 0, sizeof(buf));
-    int ret = skt_recv(fd, buf, sizeof(buf));
+    ret = skt_recv(fd, buf, sizeof(buf));
     if (ret > 0) {
         DUMP_BUFFER(buf, sizeof(buf));
         socket_id = buf[6];
@@ -55,8 +62,9 @@ void on_read(int fd, void *arg)
 void on_recv(int fd, void *arg)
 {
     char buf[2048];
+    int ret=0;
     memset(buf, 0, sizeof(buf));
-    int ret = skt_recv(fd, buf, 2048);
+    ret = skt_recv(fd, buf, 2048);
     if (ret > 0) {
         printf("recv buf = %s\n", buf);
     } else if (ret == 0) {
@@ -71,6 +79,7 @@ void on_error(int fd, void *arg)
 }
 static void *tcp_client_thread(struct thread *thread, void *arg)
 {
+		struct gevent *e =NULL;
     struct skt_connection *sc = (struct skt_connection *)arg;
     g_evbase = gevent_base_create();
     if (!g_evbase) {
@@ -80,7 +89,7 @@ static void *tcp_client_thread(struct thread *thread, void *arg)
         printf("skt_set_nonblock failed!\n");
         return NULL;
     }
-    struct gevent *e = gevent_create(sc->fd, on_recv, NULL, on_error, (void *)&sc->fd);
+    e = gevent_create(sc->fd, on_recv, NULL, on_error, (void *)&sc->fd);
     if (-1 == gevent_add(g_evbase, e)) {
         printf("event_add failed!\n");
     }
@@ -93,8 +102,10 @@ int tcp_client(const char *host, uint16_t port)
     char str_ip[INET_ADDRSTRLEN];
     int n, ret;
     char buf[64];
+    struct thread *thread =NULL;
+    #if defined (__linux__) || defined (__CYGWIN__)
     struct tcp_info tcpi;
-
+		#endif
     g_sc = skt_tcp_connect(host, port);
     if (g_sc == NULL) {
         printf("connect failed!\n");
@@ -106,8 +117,9 @@ int tcp_client(const char *host, uint16_t port)
     skt_addr_ntop(str_ip, g_sc->remote.ip);
     printf("remote ip = %s, port = %d\n", str_ip, g_sc->remote.port);
     skt_set_tcp_keepalive(g_sc->fd, 1);
-    memset(&tcpi, 0, sizeof(tcpi));
+    
 #if defined (__linux__) || defined (__CYGWIN__)
+		memset(&tcpi, 0, sizeof(tcpi));
     ret = skt_get_tcp_info(g_sc->fd, &tcpi);
     if (ret == 0) {
         printf("unrecovered=%u "
@@ -128,7 +140,7 @@ int tcp_client(const char *host, uint16_t port)
              tcpi.tcpi_total_retrans);  // Total retransmits for entire connection
     }
 #endif
-    struct thread *thread = thread_create(tcp_client_thread, g_sc);
+    thread = thread_create(tcp_client_thread, g_sc);
     if (!thread) {
         printf("thread_create failed!\n");
     }
@@ -160,6 +172,7 @@ void on_connect(int fd, void *arg)
     int afd;
     uint32_t ip;
     uint16_t port;
+    struct gevent *e =NULL;
     afd = skt_accept(fd, &ip, &port);
     if (afd == -1) {
         printf("errno=%d %s\n", errno, strerror(errno));
@@ -171,7 +184,7 @@ void on_connect(int fd, void *arg)
         printf("skt_set_nonblock failed!\n");
         return;
     }
-    struct gevent *e = gevent_create(afd, on_recv, NULL, on_error, (void *)&afd);
+    e = gevent_create(afd, on_recv, NULL, on_error, (void *)&afd);
     if (-1 == gevent_add(g_evbase, e)) {
         printf("event_add failed!\n");
     }
@@ -180,6 +193,7 @@ void on_connect(int fd, void *arg)
 int udp_server(uint16_t port)
 {
     int fd;
+    struct gevent *e =NULL;
     fd = skt_udp_bind(NULL, port);
     if (fd == -1) {
         return -1;
@@ -190,7 +204,7 @@ int udp_server(uint16_t port)
     }
 
     skt_set_noblk(fd, true);
-    struct gevent *e = gevent_create(fd, on_recv, NULL, on_error, NULL);
+    e = gevent_create(fd, on_recv, NULL, on_error, NULL);
     if (-1 == gevent_add(g_evbase, e)) {
         printf("event_add failed!\n");
     }
@@ -202,11 +216,13 @@ int udp_server(uint16_t port)
 int tcp_server(uint16_t port)
 {
     int fd;
+    struct gevent *e =NULL;
+    struct skt_addr addr;
     fd = skt_tcp_bind_listen(NULL, port);
     if (fd == -1) {
         return -1;
     }
-    struct skt_addr addr;
+    
     skt_getaddr_by_fd(fd, &addr);
     printf("addr = %s\n", addr.ip_str);
     g_evbase = gevent_base_create();
@@ -214,7 +230,7 @@ int tcp_server(uint16_t port)
         return -1;
     }
 
-    struct gevent *e = gevent_create(fd, on_connect, NULL, on_error, NULL);
+    e = gevent_create(fd, on_connect, NULL, on_error, NULL);
     if (-1 == gevent_add(g_evbase, e)) {
         printf("event_add failed!\n");
     }
@@ -253,7 +269,7 @@ void domain_test()
             printf("ip = %s port = %d\n", str, tmp->addr.port);
         }
     }
-#endif
+
 
     if (0 == skt_getaddrinfo(&tmp, "www.sina.com", "3478")) {
         for (; tmp; tmp = tmp->next) {
@@ -273,6 +289,7 @@ void domain_test()
         if (tmp) tmp = tmp->next;
         if (p) free(p);
     } while (tmp);
+    #endif
 }
 
 void ctrl_c_op(int signo)
@@ -287,12 +304,14 @@ int main(int argc, char **argv)
 {
     uint16_t port;
     const char *ip;
-    skt_get_local_info();
     if (argc < 2) {
         usage();
         exit(0);
     }
+    #if defined (__linux__) || defined (__CYGWIN__)
+    skt_get_local_info();
     signal(SIGINT, ctrl_c_op);
+    #endif
     if (!strcmp(argv[1], "-s")) {
         if (argc == 3)
             port = atoi(argv[2]);
