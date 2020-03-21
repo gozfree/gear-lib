@@ -35,9 +35,11 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 typedef int SOCKET;
+
 #endif
-
-
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#pragma warning(disable:4996)
+#endif
 #define LISTEN_MAX_BACKLOG  (128)
 #define MTU                 (1500 - 42 - 200)
 #define MAX_RETRY_CNT       (3)
@@ -58,10 +60,12 @@ static struct skt_connection *_skt_connect(int type,
     struct skt_connection *sc = NULL;
 #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     WSADATA Ws;
-    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-        printf("Init Windows Socket Failed\n");
-        return NULL;
-    }
+
+	    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+	        printf("Init Windows Socket Failed\n");
+	        return NULL;
+	    }
+
 #endif
     if (type < 0 || strlen(host) == 0 || port >= 0xFFFF) {
         printf("invalid paraments\n");
@@ -150,10 +154,12 @@ int skt_tcp_bind_listen(const char *host, uint16_t port)
     struct sockaddr_in si;
 #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     WSADATA Ws;
-    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-        printf("Init Windows Socket Failed\n");
-        return -1;
-    }
+
+	    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+	        printf("Init Windows Socket Failed\n");
+	        return -1;
+	    }
+
 #endif
     fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     //int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -183,7 +189,7 @@ int skt_tcp_bind_listen(const char *host, uint16_t port)
     return fd;
 fail:
     if (-1 != fd) {
-        close(fd);
+        skt_close(fd);
     }
     return -1;
 }
@@ -194,10 +200,12 @@ int skt_udp_bind(const char *host, uint16_t port)
     struct sockaddr_in si;
 #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     WSADATA Ws;
-    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-        printf("Init Windows Socket Failed\n");
-        return NULL;
-    }
+ 
+	    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+	        printf("Init Windows Socket Failed\n");
+	        return -1;
+	    }
+
 #endif
     si.sin_family = AF_INET;
     si.sin_addr.s_addr = host ? inet_addr(host) : INADDR_ANY;
@@ -220,16 +228,17 @@ int skt_udp_bind(const char *host, uint16_t port)
     return fd;
 }
 
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+//#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#if defined (__linux__) || defined (__CYGWIN__) 
 int skt_unix_bind_listen(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_un su;
-    WSADATA Ws;
-    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-        printf("Init Windows Socket Failed\n");
-        return NULL;
-    }
+   // WSADATA Ws;
+   // if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
+   //     printf("Init Windows Socket Failed\n");
+   //     return NULL;
+   // }
     su.sun_family = PF_UNIX;
     snprintf(su.sun_path, sizeof(su.sun_path), "%s", host);
     fd = socket(PF_UNIX, SOCK_SEQPACKET, 0);
@@ -271,7 +280,18 @@ int skt_accept(int fd, uint32_t *ip, uint16_t *port)
 
 void skt_close(int fd)
 {
+	#if defined (__linux__) || defined (__CYGWIN__) 
     close(fd);
+  #endif 
+  #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+  	closesocket(fd);
+  #endif
+}
+void skt_destory()
+{
+	#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+		WSACleanup();
+  #endif
 }
 
 #if defined (__linux__) || defined (__CYGWIN__)
@@ -510,13 +530,7 @@ int skt_get_local_info(void)
     char ip[32] = {0};
     char broadAddr[32] = {0};
     char subnetMask[32] = {0};
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-    WSADATA Ws;
-    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-        printf("Init Windows Socket Failed\n");
-        return NULL;
-    }
-#endif
+
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket");
         close(fd);
@@ -641,8 +655,9 @@ int skt_set_block(int fd)
 
 int skt_set_nonblock(int fd)
 {
-    int flag;
+    
 #if defined (__linux__) || defined (__CYGWIN__)
+		int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
         printf("fcntl: %s\n", strerror(errno));
@@ -661,13 +676,13 @@ int skt_set_reuse(int fd, int enable)
     int on = !!enable;
 
 #ifdef SO_REUSEPORT
-    if (-1 == setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on))) {
+    if (-1 == setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (unsigned char *)&on, sizeof(on))) {
         printf("setsockopt SO_REUSEPORT: %s\n", strerror(errno));
         return -1;
     }
 #endif
 #ifdef SO_REUSEADDR
-    if (-1 == setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) {
+    if (-1 == setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (unsigned char *)&on, sizeof(on))) {
         printf("setsockopt SO_REUSEADDR: %s\n", strerror(errno));
         return -1;
     }
@@ -820,7 +835,8 @@ int skt_recv(int fd, void *buf, size_t len)
         if (n > 0) {
             p += n;
             left -= n;
-            continue;
+            //continue;
+            break;
         } else if (n == 0) {
             //perror("recv");//peer connect closed, no need print
             return 0;
@@ -865,7 +881,8 @@ int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
         if (n > 0) {
             p += n;
             left -= n;
-            continue;
+            //continue;
+            break;
         } else if (n == 0) {
             perror("recvfrom");
             return -1;
