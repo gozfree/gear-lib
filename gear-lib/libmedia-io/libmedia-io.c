@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct media_packet *media_packet_create(enum media_packet_type type, void *data, size_t len)
+struct media_packet *media_packet_create(enum media_type type, void *data, size_t len)
 {
     struct media_packet *packet;
     packet = calloc(1, sizeof(struct media_packet));
@@ -32,10 +32,10 @@ struct media_packet *media_packet_create(enum media_packet_type type, void *data
     }
     packet->type = type;
     switch (packet->type) {
-    case MEDIA_PACKET_AUDIO:
+    case MEDIA_TYPE_AUDIO:
         packet->audio = audio_packet_create(data, len);
         break;
-    case MEDIA_PACKET_VIDEO:
+    case MEDIA_TYPE_VIDEO:
         packet->video = video_packet_create(data, len);
         break;
     default:
@@ -51,10 +51,10 @@ void media_packet_destroy(struct media_packet *packet)
         return;
     }
     switch (packet->type) {
-    case MEDIA_PACKET_AUDIO:
+    case MEDIA_TYPE_AUDIO:
         audio_packet_destroy(packet->audio);
         break;
-    case MEDIA_PACKET_VIDEO:
+    case MEDIA_TYPE_VIDEO:
         video_packet_destroy(packet->video);
         break;
     default:

@@ -118,19 +118,27 @@ enum video_encode_format {
     VIDEO_ENCODE_H265,
 };
 
+struct video_encoder {
+    void                    *ctx;
+    uint32_t                 width;
+    uint32_t                 height;
+    enum video_encode_format format;
+};
+
+
 /**
  * This structure stores compressed data.
  */
 struct video_packet {
-    uint8_t                  *data;
+    struct video_encoder    *encoder;
+    uint8_t                 *data;
     size_t                   size;
-    enum video_encode_format format;
     uint64_t                 pts;
     uint64_t                 dts;
     uint32_t                 timebase_num;
     uint32_t                 timebase_den;
     int                      key_frame;
-    uint8_t                  *extra_data;
+    uint8_t                 *extra_data;
     size_t                   extra_size;
 };
 

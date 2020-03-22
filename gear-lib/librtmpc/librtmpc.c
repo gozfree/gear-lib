@@ -60,12 +60,12 @@ static void *item_alloc_hook(void *data, size_t len, void *arg)
     }
     int alloc_size = (len + 15)/16*16;
     switch (pkt->type) {
-    case MEDIA_PACKET_AUDIO:
+    case MEDIA_TYPE_AUDIO:
         pkt->audio->data = calloc(1, alloc_size);
         memcpy(pkt->audio->data, data, len);
         pkt->audio->size = len;
         break;
-    case MEDIA_PACKET_VIDEO:
+    case MEDIA_TYPE_VIDEO:
         pkt->video->data = calloc(1, alloc_size);
         memcpy(pkt->video->data, data, len);
         pkt->video->size = len;
@@ -171,10 +171,10 @@ int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
-    case MEDIA_PACKET_VIDEO:
+    case MEDIA_TYPE_VIDEO:
         ret = h264_add(rtmpc, pkt->video);
         break;
-    case MEDIA_PACKET_AUDIO:
+    case MEDIA_TYPE_AUDIO:
         ret = aac_add(rtmpc, pkt->audio);
         break;
     default:
@@ -304,10 +304,10 @@ static int write_header(struct rtmpc *rtmpc)
 static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     switch (pkt->type) {
-    case MEDIA_PACKET_VIDEO:
+    case MEDIA_TYPE_VIDEO:
         return h264_write_packet(rtmpc, pkt->video);
         break;
-    case MEDIA_PACKET_AUDIO:
+    case MEDIA_TYPE_AUDIO:
         return aac_write_packet(rtmpc, pkt->audio);
         break;
 #if 0
@@ -316,6 +316,9 @@ static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
         return g711_write_packet(rtmpc, pkt->audio);
         break;
 #endif
+    case MEDIA_TYPE_SUBTITLE:
+    default:
+        break;
     }
     return 0;
 }
@@ -324,12 +327,13 @@ int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
-    case MEDIA_PACKET_VIDEO:
+    case MEDIA_TYPE_VIDEO:
         ret = h264_send_packet(rtmpc, pkt->video);
         break;
-    case MEDIA_PACKET_AUDIO:
+    case MEDIA_TYPE_AUDIO:
         ret = aac_send_packet(rtmpc, pkt->audio);
         break;
+    case MEDIA_TYPE_SUBTITLE:
     default:
         ret = -1;
         break;

@@ -68,6 +68,13 @@ enum audio_encode_format {
     AUDIO_ENCODE_G711_U,
 };
 
+struct audio_encoder {
+    void                    *ctx;
+    enum audio_encode_format format;
+    uint32_t                 samplerate;
+};
+
+
 struct audio_packet {
     uint8_t                  *data;
     size_t                   size;

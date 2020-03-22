@@ -692,7 +692,7 @@ int h264_send_packet(struct rtmpc *rtmpc, struct video_packet *pkt)
         }
     }
 
-    struct media_packet *mpkt = media_packet_create(MEDIA_PACKET_VIDEO, NULL, 0);
+    struct media_packet *mpkt = media_packet_create(MEDIA_TYPE_VIDEO, NULL, 0);
     mpkt->video->key_frame = key_frame;
     mpkt->video->dts = pkt->dts;
     mpkt->video->pts = pkt->pts;

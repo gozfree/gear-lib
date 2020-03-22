@@ -31,6 +31,13 @@ extern "C" {
 #include "audio-def.h"
 #include "video-def.h"
 
+enum media_type {
+    MEDIA_TYPE_AUDIO,
+    MEDIA_TYPE_VIDEO,
+    MEDIA_TYPE_SUBTITLE,
+};
+
+
 /**
  * This structure describes decoded (raw) data.
  */
@@ -45,29 +52,18 @@ struct media_frame {
  * This structure stores compressed data.
  */
 
-enum media_packet_type {
-    MEDIA_PACKET_AUDIO,
-    MEDIA_PACKET_VIDEO
-};
-
 struct media_packet {
     union {
         struct audio_packet *audio;
         struct video_packet *video;
     };
-    enum media_packet_type type;
+    enum media_type type;
     void *opaque;
 };
 
-struct media_packet *media_packet_create(enum media_packet_type type,
-                                            void *data, size_t len);
+struct media_packet *media_packet_create(enum media_type type, void *data,
+                                         size_t len);
 void media_packet_destroy(struct media_packet *packet);
-
-
-enum media_type {
-    MEDIA_AUDIO,
-    MEDIA_VIDEO
-};
 
 struct media_attr {
     union {
@@ -76,6 +72,15 @@ struct media_attr {
     };
     enum media_type type;
 };
+
+struct media_encoder {
+    union {
+        struct audio_encoder *audio;
+        struct video_encoder *video;
+    };
+    enum media_type type;
+};
+
 
 
 #ifdef __cplusplus

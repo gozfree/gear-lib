@@ -169,7 +169,7 @@ int aac_send_packet(struct rtmpc *rtmpc, struct audio_packet *pkt)
         if (is_sync_word_ok(adts)) {
             frame_len = frame_length(adts);
 
-            struct media_packet *mpkt = media_packet_create(MEDIA_PACKET_AUDIO, NULL, 0);
+            struct media_packet *mpkt = media_packet_create(MEDIA_TYPE_AUDIO, NULL, 0);
             mpkt->audio->pts = pkt->pts;
             struct item *pkt = item_alloc(rtmpc->q, frame_ptr + 7, frame_len - 7, mpkt);
             if (!pkt) {
