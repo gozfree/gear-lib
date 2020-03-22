@@ -44,7 +44,11 @@ int (*close_f)(int fd);
 int (*dup_f)(int fd);
 int (*ioctl_f)(int fd, unsigned long int request, ...);
 ssize_t (*read_f)(int fd, void *buffer, size_t n);
+#if HAVE_LIBV4L2
 void *(*mmap_f)(void *start, size_t length, int prot, int flags, int fd, int64_t offset);
+#else
+void *(*mmap_f)(void *start, size_t length, int prot, int flags, int fd, off_t offset);
+#endif
 int (*munmap_f)(void *_start, size_t length);
 
 /*
@@ -130,6 +134,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
     mmap_f   = prefix ## mmap;       \
     munmap_f = prefix ## munmap;     \
 } while (0)
+
 
 #if HAVE_LIBV4L2
         SET_WRAPPERS(v4l2_);

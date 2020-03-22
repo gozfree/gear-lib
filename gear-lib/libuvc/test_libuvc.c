@@ -24,7 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <unistd.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #define VIDEO_DEV       "/dev/video0"
 #define VIDEO_WIDTH     640
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
             continue;
         }
         file_write(fp, frm->data[0], frm->total_size);
-        printf("frm[%zu] size=%zu, ts=%zu ms\n", frm->id, frm->total_size, frm->timestamp/1000000);
+        printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->id, frm->total_size, frm->timestamp/1000000);
     }
     video_frame_destroy(frm);
     file_close(fp);
