@@ -28,34 +28,27 @@
 extern "C" {
 #endif
 
-enum serialize_seek_type {
-    SERIALIZE_SEEK_START,
-    SERIALIZE_SEEK_CURRENT,
-    SERIALIZE_SEEK_END
+struct array_data {
+	DARRAY(uint8_t) bytes;
 };
 
 struct serializer {
     void *data;
-
-    size_t (*read)(void *, void *, size_t);
-    size_t (*write)(void *, const void *, size_t);
-    int64_t (*seek)(void *, int64_t, enum serialize_seek_type);
-    int64_t (*get_pos)(void *);
+    size_t  (*read)(void *, void *, size_t);
+    size_t  (*write)(void *, const void *, size_t);
+    int64_t (*getpos)(void *);
+    void    (*free)(void *);
 };
 
-struct darray_data {
-    DARRAY(uint8_t) bytes;
-};
+int serializer_array_init(struct serializer *s, struct array_data *data);
+void serializer_array_deinit(struct serializer *s);
 
-void serializer_init(struct serializer *s,
-                struct darray_data *data);
-void serializer_data_free(struct darray_data *data);
+int serializer_file_init(struct serializer *s, const char *path);
+void serializer_file_deinit(struct serializer *s);
 
 size_t s_read(struct serializer *s, void *data, size_t size);
 size_t s_write(struct serializer *s, const void *data, size_t size);
-size_t serialize(struct serializer *s, void *data, size_t len);
-int64_t serializer_seek(struct serializer *s, int64_t offset, enum serialize_seek_type seek_type);
-int64_t serializer_get_pos(struct serializer *s);
+int64_t s_getpos(struct serializer *s);
 
 void s_w8(struct serializer *s, uint8_t u8);
 void s_wl16(struct serializer *s, uint16_t u16);

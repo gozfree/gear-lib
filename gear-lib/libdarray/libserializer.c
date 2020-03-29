@@ -19,147 +19,173 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <stdio.h>
 #include "libdarray.h"
 #include "libserializer.h"
 
-static size_t array_output_write(void *param, const void *data, size_t size)
+static size_t array_write(void *param, const void *data, size_t size)
 {
-	struct darray_data *output = param;
-	da_push_back_array(output->bytes, data, size);
-	return size;
+    struct array_data *da = param;
+    da_push_back_array(da->bytes, data, size);
+    return size;
 }
 
-static int64_t array_output_get_pos(void *param)
+static int64_t array_getpos(void *param)
 {
-	struct darray_data *data = param;
-	return (int64_t)data->bytes.num;
+    struct array_data *da = param;
+    return (int64_t)da->bytes.num;
 }
 
-void serializer_init(struct serializer *s, struct darray_data *data)
+static void array_free(void *param)
 {
-	memset(s, 0, sizeof(struct serializer));
-	memset(data, 0, sizeof(struct darray_data));
-	s->data = data;
-	s->write = array_output_write;
-	s->get_pos = array_output_get_pos;
+    struct array_data *da = param;
+    da_free(da->bytes);
 }
 
-void serializer_data_free(struct darray_data *data)
+int serializer_array_init(struct serializer *s, struct array_data *data)
 {
-	da_free(data->bytes);
+    memset(s, 0, sizeof(struct serializer));
+    memset(data, 0, sizeof(struct array_data));
+    s->data   = data;
+    s->read   = NULL;
+    s->write  = array_write;
+    s->getpos = array_getpos;
+    s->free   = array_free;
+    return 0;
+}
+
+void serializer_array_deinit(struct serializer *s)
+{
+    if (s->data)
+        free(s->data);
+    memset(s, 0, sizeof(struct serializer));
+}
+
+static size_t file_read(void *file, void *data, size_t size)
+{
+    return fread(data, 1, size, file);
+}
+
+static size_t file_write(void *file, const void *data, size_t size)
+{
+    return fwrite(data, 1, size, file);
+}
+
+static int64_t file_getpos(void *file)
+{
+    return ftell(file);
+}
+
+int serializer_file_init(struct serializer *s, const char *path)
+{
+    memset(s, 0, sizeof(struct serializer));
+    s->data = fopen(path, "rb");
+    if (!s->data)
+        return -1;
+
+    s->read = file_read;
+    s->write = file_write;
+    s->getpos = file_getpos;
+    return 0;
+}
+
+void serializer_file_deinit(struct serializer *s)
+{
+    if (s->data)
+        fclose(s->data);
+    memset(s, 0, sizeof(struct serializer));
 }
 
 size_t s_read(struct serializer *s, void *data, size_t size)
 {
-	if (s && s->read && data && size)
-		return s->read(s->data, (void *)data, size);
-	return 0;
+    if (s && s->read && data && size)
+        return s->read(s->data, (void *)data, size);
+    return 0;
 }
 
-size_t s_write(struct serializer *s, const void *data,
-			     size_t size)
+size_t s_write(struct serializer *s, const void *data, size_t size)
 {
-	if (s && s->write && data && size)
-		return s->write(s->data, (void *)data, size);
-	return 0;
+    if (s && s->write && data && size)
+        return s->write(s->data, (void *)data, size);
+    return 0;
 }
 
-size_t serialize(struct serializer *s, void *data, size_t len)
+int64_t s_getpos(struct serializer *s)
 {
-	if (s) {
-		if (s->write)
-			return s->write(s->data, data, len);
-		else if (s->read)
-			return s->read(s->data, data, len);
-	}
-
-	return 0;
-}
-
-int64_t serializer_seek(struct serializer *s, int64_t offset,
-				      enum serialize_seek_type seek_type)
-{
-	if (s && s->seek)
-		return s->seek(s->data, offset, seek_type);
-	return -1;
-}
-
-int64_t serializer_get_pos(struct serializer *s)
-{
-	if (s && s->get_pos)
-		return s->get_pos(s->data);
-	return -1;
+    if (s && s->getpos)
+        return s->getpos(s->data);
+    return -1;
 }
 
 void s_w8(struct serializer *s, uint8_t u8)
 {
-	s_write(s, &u8, sizeof(uint8_t));
+    s_write(s, &u8, sizeof(uint8_t));
 }
 
 void s_wl16(struct serializer *s, uint16_t u16)
 {
-	s_w8(s, (uint8_t)u16);
-	s_w8(s, u16 >> 8);
+    s_w8(s, (uint8_t)u16);
+    s_w8(s, u16 >> 8);
 }
 
 void s_wl24(struct serializer *s, uint32_t u24)
 {
-	s_w8(s, (uint8_t)u24);
-	s_wl16(s, (uint16_t)(u24 >> 8));
+    s_w8(s, (uint8_t)u24);
+    s_wl16(s, (uint16_t)(u24 >> 8));
 }
 
 void s_wl32(struct serializer *s, uint32_t u32)
 {
-	s_wl16(s, (uint16_t)u32);
-	s_wl16(s, (uint16_t)(u32 >> 16));
+    s_wl16(s, (uint16_t)u32);
+    s_wl16(s, (uint16_t)(u32 >> 16));
 }
 
 void s_wl64(struct serializer *s, uint64_t u64)
 {
-	s_wl32(s, (uint32_t)u64);
-	s_wl32(s, (uint32_t)(u64 >> 32));
+    s_wl32(s, (uint32_t)u64);
+    s_wl32(s, (uint32_t)(u64 >> 32));
 }
 
 void s_wlf(struct serializer *s, float f)
 {
-	s_wl32(s, *(uint32_t *)&f);
+    s_wl32(s, *(uint32_t *)&f);
 }
 
 void s_wld(struct serializer *s, double d)
 {
-	s_wl64(s, *(uint64_t *)&d);
+    s_wl64(s, *(uint64_t *)&d);
 }
 
 void s_wb16(struct serializer *s, uint16_t u16)
 {
-	s_w8(s, u16 >> 8);
-	s_w8(s, (uint8_t)u16);
+    s_w8(s, u16 >> 8);
+    s_w8(s, (uint8_t)u16);
 }
 
 void s_wb24(struct serializer *s, uint32_t u24)
 {
-	s_wb16(s, (uint16_t)(u24 >> 8));
-	s_w8(s, (uint8_t)u24);
+    s_wb16(s, (uint16_t)(u24 >> 8));
+    s_w8(s, (uint8_t)u24);
 }
 
 void s_wb32(struct serializer *s, uint32_t u32)
 {
-	s_wb16(s, (uint16_t)(u32 >> 16));
-	s_wb16(s, (uint16_t)u32);
+    s_wb16(s, (uint16_t)(u32 >> 16));
+    s_wb16(s, (uint16_t)u32);
 }
 
 void s_wb64(struct serializer *s, uint64_t u64)
 {
-	s_wb32(s, (uint32_t)(u64 >> 32));
-	s_wb32(s, (uint32_t)u64);
+    s_wb32(s, (uint32_t)(u64 >> 32));
+    s_wb32(s, (uint32_t)u64);
 }
 
 void s_wbf(struct serializer *s, float f)
 {
-	s_wb32(s, *(uint32_t *)&f);
+    s_wb32(s, *(uint32_t *)&f);
 }
 
 void s_wbd(struct serializer *s, double d)
 {
-	s_wb64(s, *(uint64_t *)&d);
+    s_wb64(s, *(uint64_t *)&d);
 }
