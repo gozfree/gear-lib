@@ -84,6 +84,12 @@ static void item_free_hook(void *data)
     media_packet_destroy(pkt);
 }
 
+static int flv_mux_output(void *ctx, uint8_t *data, size_t size, int strm_idx)
+{
+    RTMP *base = ctx;
+    return RTMP_Write(base, (const char *)data, size, strm_idx);
+}
+
 struct rtmpc *rtmpc_create(const char *url)
 {
     struct rtmpc *rtmpc = (struct rtmpc *)calloc(1, sizeof(struct rtmpc));
@@ -116,6 +122,8 @@ struct rtmpc *rtmpc_create(const char *url)
         printf("RTMP_ConnectStream failed!\n");
         goto failed;
     }
+
+    flv_mux_init(&rtmpc->flv, flv_mux_output, base);
 
     rtmpc->priv_buf = calloc(1, sizeof(struct rtmp_private_buf));
     if (!rtmpc->priv_buf) {
@@ -170,6 +178,7 @@ failed:
 int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
+#if 0
     switch (pkt->type) {
     case MEDIA_TYPE_VIDEO:
         ret = h264_add(rtmpc, pkt->video);
@@ -180,9 +189,14 @@ int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
     default:
         break;
     }
+#else
+    ret = flv_mux_add_media(&rtmpc->flv, pkt);
+
+#endif
     return ret;
 }
 
+#if 0
 static int write_header(struct rtmpc *rtmpc)
 {
     int audio_exist = !!rtmpc->audio;
@@ -300,7 +314,9 @@ static int write_header(struct rtmpc *rtmpc)
     }
     return 0;
 }
+#endif
 
+#if 0
 static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     switch (pkt->type) {
@@ -322,6 +338,7 @@ static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
     }
     return 0;
 }
+#endif
 
 int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
@@ -353,17 +370,25 @@ static void *rtmpc_stream_thread(struct thread *t, void *arg)
             continue;
         }
         if (!rtmpc->sent_headers) {
+#if 0
             if (0 != write_header(rtmpc)) {
                 printf("write_header failed!\n");
                 rtmpc->is_run = false;
             }
+#else
+            flv_write_header(&rtmpc->flv, NULL);
+#endif
             rtmpc->sent_headers = true;
         }
         struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
+#if 0
         if (0 != write_packet(rtmpc, pkt)) {
             printf("write_packet failed!\n");
             rtmpc->is_run = false;
         }
+#else
+        flv_write_packet(&rtmpc->flv, pkt);
+#endif
         item_free(rtmpc->q, it);
     }
     return NULL;

@@ -22,20 +22,29 @@
 #ifndef FLV_MUX_H
 #define FLV_MUX_H
 
+#include <gear-lib/libmedia-io.h>
+#include <gear-lib/libserializer.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct flv {
-    struct rtmp_video_params *video;
-    struct rtmp_audio_params *audio;
+typedef int (flv_mux_output_cb)(void *ctx, uint8_t *data, size_t size, int stream_idx);
+
+struct flv_muxer {
+    struct audio_encoder *audio;
+    struct video_encoder *video;
+    flv_mux_output_cb   *output_cb;
+    void                *output_cb_ctx;
+    struct serializer    s;
 };
 
-bool flv_write_header(obs_output_t *context, uint8_t **output, size_t *size,
-			  bool write_header, size_t audio_idx);
+int flv_mux_init(struct flv_muxer *flv, flv_mux_output_cb *cb, void *cb_ctx);
+int flv_mux_add_media(struct flv_muxer *flv, struct media_packet *pkt);
+void flv_mux_deinit(struct flv_muxer *flv);
 
-void flv_write_packet(struct encoder_packet *packet, int32_t dts_offset,
-			   uint8_t **output, size_t *size, bool is_header);
+int flv_write_header(struct flv_muxer *flv,  struct media_packet *pkt);
+int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt);
 
 #ifdef __cplusplus
 }

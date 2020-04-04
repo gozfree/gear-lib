@@ -30,6 +30,7 @@
 #define VIDEO_DEV       "/dev/video0"
 #define VIDEO_WIDTH     640
 #define VIDEO_HEIGHT    480
+#define OUTPUT_FILE     "uvc.yuv"
 
 int main(int argc, char **argv)
 {
@@ -49,9 +50,9 @@ int main(int argc, char **argv)
         return -1;
     }
     printf("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->width, uvc->height,
-        uvc->fps_num, uvc->fps_den, video_format_name(uvc->format));
+        uvc->fps_num, uvc->fps_den, pixel_format_name(uvc->format));
     //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
-    fp = file_open("uvc.yuv", F_CREATE);
+    fp = file_open(OUTPUT_FILE, F_CREATE);
     uvc_start_stream(uvc, NULL);
     for (i = 0; i < 32; ++i) {
         size = uvc_query_frame(uvc, frm);
@@ -59,11 +60,12 @@ int main(int argc, char **argv)
             continue;
         }
         file_write(fp, frm->data[0], frm->total_size);
-        printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->id, frm->total_size, frm->timestamp/1000000);
+        printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->frame_id, frm->total_size, frm->timestamp/1000000);
     }
     video_frame_destroy(frm);
     file_close(fp);
     uvc_stop_stream(uvc);
     uvc_close(uvc);
+    printf("write %s fininshed!\n", OUTPUT_FILE);
     return 0;
 }

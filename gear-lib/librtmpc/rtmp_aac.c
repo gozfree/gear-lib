@@ -76,7 +76,7 @@ static uint16_t frame_length(struct aac_adts_header *h)
 int aac_add(struct rtmpc *rtmpc, struct audio_packet *pkt)
 {
     rtmpc->audio = (struct rtmp_audio_params *)calloc(1, sizeof(struct rtmp_audio_params));
-    rtmpc->audio->codec_id = AUDIO_ENCODE_AAC;
+    rtmpc->audio->codec_id = AUDIO_CODEC_AAC;
     rtmpc->audio->bitrate = 0;
     rtmpc->audio->sample_size = 0;
     rtmpc->audio->sample_rate = 0;

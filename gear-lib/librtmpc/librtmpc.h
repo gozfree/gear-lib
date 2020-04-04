@@ -32,6 +32,8 @@
 #include <sys/uio.h>
 #endif
 
+#include "flv_mux.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +68,7 @@ struct rtmp_private_buf {
 
 struct rtmpc {
     void *base;
+    struct flv_muxer flv;
     struct rtmp_video_params *video;
     struct rtmp_audio_params *audio;
     struct rtmp_private_buf *priv_buf;

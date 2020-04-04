@@ -40,8 +40,10 @@ struct serializer {
     void    (*free)(void *);
 };
 
-int serializer_array_init(struct serializer *s, struct array_data *data);
+int serializer_array_init(struct serializer *s);
 void serializer_array_deinit(struct serializer *s);
+int serializer_array_get_data(struct serializer *s, uint8_t **output, size_t *size);
+void serializer_array_reset(struct serializer *s);
 
 int serializer_file_init(struct serializer *s, const char *path);
 void serializer_file_deinit(struct serializer *s);

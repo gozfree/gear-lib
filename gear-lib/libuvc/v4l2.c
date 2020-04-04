@@ -191,7 +191,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
     uvc->height = c->height;
     uvc->fps_num = c->fps_num;
     uvc->fps_den = c->fps_den;
-    uvc->format = video_format_from_fourcc(c->pixfmt);
+    uvc->format = pixel_format_from_fourcc(c->pixfmt);
     uvc->fd = fd;
     c->parent = uvc;
     return c;
@@ -498,7 +498,7 @@ retry:
         c->first_ts = frame->timestamp;
     }
     frame->timestamp -= c->first_ts;
-    frame->id = c->frame_id;
+    frame->frame_id = c->frame_id;
     c->frame_id++;
 
     c->prev_ts = frame->timestamp;

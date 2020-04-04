@@ -32,72 +32,85 @@
 extern "C" {
 #endif
 
-enum audio_format {
-    AUDIO_FORMAT_UNKNOWN,
+/******************************************************************************
+ * uncompressed audio define
+ ******************************************************************************/
 
-    AUDIO_FORMAT_U8BIT,
-    AUDIO_FORMAT_16BIT,
-    AUDIO_FORMAT_32BIT,
-    AUDIO_FORMAT_FLOAT,
+enum sample_format {
+    SAMPLE_FORMAT_UNKNOWN,
 
-    AUDIO_FORMAT_U8BIT_PLANAR,
-    AUDIO_FORMAT_16BIT_PLANAR,
-    AUDIO_FORMAT_32BIT_PLANAR,
-    AUDIO_FORMAT_FLOAT_PLANAR,
+    SAMPLE_FORMAT_U8BIT,
+    SAMPLE_FORMAT_16BIT,
+    SAMPLE_FORMAT_32BIT,
+    SAMPLE_FORMAT_FLOAT,
+
+    SAMPLE_FORMAT_U8BIT_PLANAR,
+    SAMPLE_FORMAT_16BIT_PLANAR,
+    SAMPLE_FORMAT_32BIT_PLANAR,
+    SAMPLE_FORMAT_FLOAT_PLANAR,
+
+    SAMPLE_FORMAT_CNT,
+};
+
+#ifndef AUDIO_MAX_CHANNELS
+#define AUDIO_MAX_CHANNELS 8
+#endif
+
+struct audio_frame {
+    uint8_t           *data[AUDIO_MAX_CHANNELS];
+    uint32_t           linesize[AUDIO_MAX_CHANNELS];
+    enum sample_format format;
+    int                nb_samples;
+    uint64_t           timestamp;//ns
+    uint64_t           total_size;
+};
+
+/******************************************************************************
+ * compressed audio define
+ ******************************************************************************/
+enum audio_codec_format {
+    AUDIO_CODEC_AAC,
+    AUDIO_CODEC_G711_A,
+    AUDIO_CODEC_G711_U,
+
+    AUDIO_CODEC_CNT,
+};
+
+typedef struct rational {
+    int num;
+    int den;
+} rational_t;
+
+/**
+ * This structure describe encoder attribute
+ */
+struct audio_encoder {
+    enum audio_codec_format format;
+    uint32_t                sample_rate;
+    uint32_t                sample_size;
+    int                     channels;
+    double                  bitrate;
+    rational_t              framerate;
+    rational_t              timebase;
+    uint32_t                start_dts_offset;
+    uint8_t                *extra_data;
+    size_t                  extra_size;
 };
 
 /**
- * This structure describes decoded (raw) audio data.
+ * This structure stores compressed data.
  */
-#define AUDIO_MAX_CHANNELS 8
-struct audio_frame {
-    uint8_t *data[AUDIO_MAX_CHANNELS];
-    uint32_t linesize[AUDIO_MAX_CHANNELS];
-    int      format;
-    int      nb_samples;
-    uint64_t timestamp;//ns
-    uint64_t size;
-    uint64_t id;
-    uint8_t **extended_data;
-    void    *opaque;
-};
-
-enum audio_encode_format {
-    AUDIO_ENCODE_AAC,
-    AUDIO_ENCODE_G711_A,
-    AUDIO_ENCODE_G711_U,
-};
-
-struct audio_encoder {
-    void                    *ctx;
-    enum audio_encode_format format;
-    uint32_t                 samplerate;
-};
-
-
 struct audio_packet {
-    uint8_t                  *data;
-    size_t                   size;
-    enum audio_encode_format format;
-    uint64_t                 pts;
-    uint8_t                  *extra_data;
-    size_t                   extra_size;
+    uint8_t             *data;
+    size_t               size;
+    uint64_t             pts;
+    uint64_t             dts;
+    int                  track_idx;
+    struct audio_encoder encoder;
 };
 
 struct audio_packet *audio_packet_create(void *data, size_t len);
 void audio_packet_destroy(struct audio_packet *packet);
-
-/**
- * This structure describe audio attribute.
- */
-struct audio_attr {
-    enum audio_format format;
-    uint8_t          *extra_data;
-    size_t            extra_size;
-};
-
-struct audio_attr *audio_attr_init();
-
 
 #ifdef __cplusplus
 }

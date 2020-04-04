@@ -42,11 +42,12 @@ static void array_free(void *param)
     da_free(da->bytes);
 }
 
-int serializer_array_init(struct serializer *s, struct array_data *data)
+int serializer_array_init(struct serializer *s)
 {
+    struct array_data data;
     memset(s, 0, sizeof(struct serializer));
-    memset(data, 0, sizeof(struct array_data));
-    s->data   = data;
+    memset(&data, 0, sizeof(struct array_data));
+    s->data   = &data;
     s->read   = NULL;
     s->write  = array_write;
     s->getpos = array_getpos;
@@ -54,10 +55,24 @@ int serializer_array_init(struct serializer *s, struct array_data *data)
     return 0;
 }
 
+int serializer_array_get_data(struct serializer *s, uint8_t **output, size_t *size)
+{
+    struct array_data *data = s->data;
+    *output = data->bytes.array;
+    *size = data->bytes.num;
+    return 0;
+}
+
+void serializer_array_reset(struct serializer *s)
+{
+    struct array_data *data = s->data;
+    memset(data, 0, sizeof(struct array_data));
+}
+
 void serializer_array_deinit(struct serializer *s)
 {
     if (s->data)
-        free(s->data);
+        s->free(s->data);
     memset(s, 0, sizeof(struct serializer));
 }
 

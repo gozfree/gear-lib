@@ -65,18 +65,10 @@ struct media_packet *media_packet_create(enum media_type type, void *data,
                                          size_t len);
 void media_packet_destroy(struct media_packet *packet);
 
-struct media_attr {
-    union {
-        struct audio_attr audio;
-        struct video_attr video;
-    };
-    enum media_type type;
-};
-
 struct media_encoder {
     union {
-        struct audio_encoder *audio;
-        struct video_encoder *video;
+        struct audio_encoder audio;
+        struct video_encoder video;
     };
     enum media_type type;
 };

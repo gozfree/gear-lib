@@ -47,7 +47,7 @@ struct uvc_ctx {
     uint32_t height;
     uint32_t fps_num;
     uint32_t fps_den;
-    enum video_format format;
+    enum pixel_format format;
     struct uvc_ops *ops;
     void *opaque;
     on_stream_data *on_data;
