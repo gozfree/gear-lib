@@ -23,6 +23,10 @@
 #include "libdarray.h"
 #include "libserializer.h"
 
+struct array_data {
+	DARRAY(uint8_t) bytes;
+};
+
 static size_t array_write(void *param, const void *data, size_t size)
 {
     struct array_data *da = param;
@@ -44,10 +48,10 @@ static void array_free(void *param)
 
 int serializer_array_init(struct serializer *s)
 {
-    struct array_data data;
+    struct array_data *data = calloc(1, sizeof(struct array_data));
     memset(s, 0, sizeof(struct serializer));
-    memset(&data, 0, sizeof(struct array_data));
-    s->data   = &data;
+    da_init(data->bytes);
+    s->data   = data;
     s->read   = NULL;
     s->write  = array_write;
     s->getpos = array_getpos;
@@ -73,6 +77,7 @@ void serializer_array_deinit(struct serializer *s)
 {
     if (s->data)
         s->free(s->data);
+    free(s->data);
     memset(s, 0, sizeof(struct serializer));
 }
 

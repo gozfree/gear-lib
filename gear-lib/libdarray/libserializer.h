@@ -28,10 +28,6 @@
 extern "C" {
 #endif
 
-struct array_data {
-	DARRAY(uint8_t) bytes;
-};
-
 struct serializer {
     void *data;
     size_t  (*read)(void *, void *, size_t);

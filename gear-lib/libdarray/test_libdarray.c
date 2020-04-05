@@ -20,12 +20,27 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libdarray.h"
+#include "libserializer.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+static int foo()
+{
+    struct serializer *s, ss;
+    s = &ss;
+    serializer_array_init(s);
+    s_w8(s, 1);           /* Version */
+    s_write(s, "FLV", 3);
+    serializer_array_deinit(s);
+
+    return 0;
+}
+
 
 int main(int argc, char **argv)
 {
     int j;
+    foo();
     DARRAY(int) i;
     da_init(i);
     for (j = 0; j < 10; j++) {
