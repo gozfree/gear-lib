@@ -34,7 +34,7 @@
 #include <signal.h>
 #include <errno.h>
 
-void *memdup(void *src, size_t len)
+void *memdup(const void *src, size_t len)
 {
     void *dst = calloc(1, len);
     if (LIKELY(dst != NULL)) {

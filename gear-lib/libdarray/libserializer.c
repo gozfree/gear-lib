@@ -34,10 +34,10 @@ static size_t array_write(void *param, const void *data, size_t size)
     return size;
 }
 
-static int64_t array_getpos(void *param)
+static size_t array_getpos(void *param)
 {
     struct array_data *da = param;
-    return (int64_t)da->bytes.num;
+    return (size_t)da->bytes.num;
 }
 
 static void array_free(void *param)
@@ -91,7 +91,7 @@ static size_t file_write(void *file, const void *data, size_t size)
     return fwrite(data, 1, size, file);
 }
 
-static int64_t file_getpos(void *file)
+static size_t file_getpos(void *file)
 {
     return ftell(file);
 }
@@ -130,7 +130,7 @@ size_t s_write(struct serializer *s, const void *data, size_t size)
     return 0;
 }
 
-int64_t s_getpos(struct serializer *s)
+size_t s_getpos(struct serializer *s)
 {
     if (s && s->getpos)
         return s->getpos(s->data);

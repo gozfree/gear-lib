@@ -122,6 +122,24 @@ enum video_codec_format {
     VIDEO_CODEC_HEVC = VIDEO_CODEC_H265,
 };
 
+enum h264_nal_type {
+    H264_NAL_UNKNOWN = 0,
+    H264_NAL_SLICE,
+    H264_NAL_DPA,
+    H264_NAL_DPB,
+    H264_NAL_DPC,
+    H264_NAL_IDR_SLICE,
+    H264_NAL_SEI,
+    H264_NAL_SPS,
+    H264_NAL_PPS,
+    H264_NAL_AUD,
+    H264_NAL_END_SEQUENCE,
+    H264_NAL_END_STREAM,
+    H264_NAL_FILLER_DATA,
+    H264_NAL_SPS_EXT,
+    H264_NAL_AUXILIARY_SLICE,
+};
+
 /**
  * This structure describe encoder attribute
  */
@@ -146,7 +164,7 @@ struct video_packet {
     size_t               size;
     uint64_t             pts;
     uint64_t             dts;
-    int                  key_frame;
+    bool                 key_frame;
     struct video_encoder encoder;
 };
 

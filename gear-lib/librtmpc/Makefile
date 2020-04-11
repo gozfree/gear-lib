@@ -43,8 +43,8 @@ TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o amf.o hashswf.o log.o parseurl.o rtmp.o md5.o \
-			cencode.o rtmp_util.o flv_mux.o rtmp_h264.o rtmp_aac.o
-#  rtmp_g711.o 
+			cencode.o flv_mux.o
+# rtmp_util.o rtmp_h264.o rtmp_aac.o rtmp_g711.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################

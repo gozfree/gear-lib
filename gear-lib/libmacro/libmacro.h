@@ -119,7 +119,7 @@ extern "C" {
 #endif
 #endif
 
-void *memdup(void *src, size_t len);
+void *memdup(const void *src, size_t len);
 struct iovec *iovec_create(size_t len);
 void iovec_destroy(struct iovec *);
 

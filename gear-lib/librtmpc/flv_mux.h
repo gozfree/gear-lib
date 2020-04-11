@@ -37,13 +37,14 @@ struct flv_muxer {
     flv_mux_output_cb   *output_cb;
     void                *output_cb_ctx;
     struct serializer    s;
+    bool                 is_header;
+    bool                 is_keyframe_got;
 };
 
-int flv_mux_init(struct flv_muxer *flv, flv_mux_output_cb *cb, void *cb_ctx);
+struct flv_muxer *flv_mux_create(flv_mux_output_cb *cb, void *cb_ctx);
 int flv_mux_add_media(struct flv_muxer *flv, struct media_packet *pkt);
-void flv_mux_deinit(struct flv_muxer *flv);
+void flv_mux_destroy(struct flv_muxer *flv);
 
-int flv_write_header(struct flv_muxer *flv,  struct media_packet *pkt);
 int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt);
 
 #ifdef __cplusplus

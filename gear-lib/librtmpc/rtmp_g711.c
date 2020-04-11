@@ -38,7 +38,7 @@ int write_g711_frame(struct rtmpc *rtmpc, unsigned char *frame,int len,unsigned 
     put_be24(buf, 0);//streamId, always 0
 
     int flags = FLV_SAMPLERATE_SPECIAL | FLV_SAMPLESSIZE_16BIT | FLV_MONO;
-    if (rtmpc->audio->codec_id == AUDIO_ENCODE_G711_A) {
+    if (rtmpc->audio->codec_id == AUDIO_CODEC_G711_A) {
         flags |= FLV_CODECID_G711_ALAW;
     } else {
         flags |= FLV_CODECID_G711_MULAW;

@@ -20,21 +20,12 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "librtmpc.h"
-#include "rtmp_util.h"
-#include "rtmp_h264.h"
-#include "rtmp_aac.h"
-#include "rtmp_g711.h"
 #include "rtmp.h"
 #include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
-#define RTMP_PKT_SIZE   1408
-
-#define AMF_END_OF_OBJECT         0x09
-
 
 void rtmpc_destroy(struct rtmpc *rtmpc)
 {
@@ -44,10 +35,8 @@ void rtmpc_destroy(struct rtmpc *rtmpc)
     RTMP_Close(rtmpc->base);
     RTMP_Free(rtmpc->base);
     rtmpc->base = NULL;
-    free(rtmpc->video);
-    free(rtmpc->audio);
     queue_destroy(rtmpc->q);
-    free(rtmpc->tmp_buf.iov_base);
+    flv_mux_destroy(rtmpc->flv);
     free(rtmpc);
 }
 
@@ -87,6 +76,7 @@ static void item_free_hook(void *data)
 static int flv_mux_output(void *ctx, uint8_t *data, size_t size, int strm_idx)
 {
     RTMP *base = ctx;
+    //DUMP_BUFFER(data, size);
     return RTMP_Write(base, (const char *)data, size, strm_idx);
 }
 
@@ -123,52 +113,23 @@ struct rtmpc *rtmpc_create(const char *url)
         goto failed;
     }
 
-    flv_mux_init(&rtmpc->flv, flv_mux_output, base);
+    rtmpc->flv = flv_mux_create(flv_mux_output, base);
 
-    rtmpc->priv_buf = calloc(1, sizeof(struct rtmp_private_buf));
-    if (!rtmpc->priv_buf) {
-        printf("malloc private buffer failed!\n");
-        goto failed;
-    }
-    rtmpc->priv_buf->data = calloc(1, MAX_DATA_LEN);
-    if (!rtmpc->priv_buf->data) {
-        printf("malloc private buffer failed!\n");
-        goto failed;
-    }
-    rtmpc->priv_buf->d_max = MAX_DATA_LEN;
     rtmpc->q = queue_create();
     if (!rtmpc->q) {
         printf("queue_create failed!\n");
         goto failed;
     }
     queue_set_hook(rtmpc->q, item_alloc_hook, item_free_hook);
-    rtmpc->tmp_buf.iov_len = MAX_NALS_LEN;
-    rtmpc->tmp_buf.iov_base = calloc(1, MAX_NALS_LEN);
-    if (!rtmpc->tmp_buf.iov_base) {
-        printf("malloc tmp buf failed!\n");
-        goto failed;
-    }
     rtmpc->base = base;
     rtmpc->is_run = false;
     rtmpc->is_start = false;
-    rtmpc->is_keyframe_got = false;
-    rtmpc->prev_msec = 0;
-    rtmpc->prev_timestamp = 0;
     return rtmpc;
 
 failed:
     if (rtmpc) {
-        if (rtmpc->tmp_buf.iov_base) {
-            free(rtmpc->tmp_buf.iov_base);
-        }
         if (rtmpc->q) {
             queue_destroy(rtmpc->q);
-        }
-        if (rtmpc->priv_buf) {
-            if (rtmpc->priv_buf->data) {
-                free(rtmpc->priv_buf->data);
-            }
-            free(rtmpc->priv_buf);
         }
         free(rtmpc);
     }
@@ -177,178 +138,30 @@ failed:
 
 int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
-    int ret = 0;
-#if 0
-    switch (pkt->type) {
-    case MEDIA_TYPE_VIDEO:
-        ret = h264_add(rtmpc, pkt->video);
-        break;
-    case MEDIA_TYPE_AUDIO:
-        ret = aac_add(rtmpc, pkt->audio);
-        break;
-    default:
-        break;
-    }
-#else
-    ret = flv_mux_add_media(&rtmpc->flv, pkt);
-
-#endif
-    return ret;
+    return flv_mux_add_media(rtmpc->flv, pkt);
 }
-
-#if 0
-static int write_header(struct rtmpc *rtmpc)
-{
-    int audio_exist = !!rtmpc->audio;
-    int video_exist = !!rtmpc->video;
-    struct rtmp_private_buf *buf = rtmpc->priv_buf;
-
-    put_tag(buf, "FLV"); // Signature
-    put_byte(buf, 1);    // Version
-    int flag = audio_exist * FLV_HEADER_FLAG_HASAUDIO + video_exist * FLV_HEADER_FLAG_HASVIDEO;
-    put_byte(buf, flag);  //Video/Audio
-    put_be32(buf, 9);    // DataOffset
-    put_be32(buf, 0);    // PreviousTagSize0
-
-    /* write meta_tag */
-    int metadata_size_pos;
-    put_byte(buf, FLV_TAG_TYPE_META); // tag type META
-    metadata_size_pos = tell(buf);
-    put_be24(buf, 0); // size of data part (sum of all parts below)
-    put_be24(buf, 0); // time stamp
-    put_be32(buf, 0); // reserved
-
-    /* now data of data_size size */
-    /* first event name as a string */
-    put_byte(buf, AMF_DATA_TYPE_STRING);
-    put_amf_string(buf, "onMetaData"); // 12 bytes
-
-    /* mixed array (hash) with size and string/type/data tuples */
-    put_byte(buf, AMF_DATA_TYPE_MIXEDARRAY);
-    put_be32(buf, 5*video_exist + 5*audio_exist + 2); // +2 for duration and file size
-
-    put_amf_string(buf, "duration");
-    put_amf_double(buf, 0/*s->duration / AV_TIME_BASE*/); // fill in the guessed duration, it'll be corrected later if incorrect
-
-    if (video_exist) {
-        put_amf_string(buf, "width");
-        put_amf_double(buf, rtmpc->video->width);
-
-        put_amf_string(buf, "height");
-        put_amf_double(buf, rtmpc->video->height);
-
-        put_amf_string(buf, "videodatarate");
-        put_amf_double(buf, rtmpc->video->bitrate/1024.0);
-
-        put_amf_string(buf, "framerate");
-        put_amf_double(buf, 0/*video->framerate*/);//TODO
-
-        put_amf_string(buf, "videocodecid");
-        put_amf_double(buf, FLV_CODECID_H264);
-    }
-
-    if (audio_exist) {
-        put_amf_string(buf, "audiodatarate");
-        put_amf_double(buf, rtmpc->audio->bitrate /1024.0);
-
-        put_amf_string(buf, "audiosamplerate");
-        put_amf_double(buf, rtmpc->audio->sample_rate);
-
-        put_amf_string(buf, "audiosamplesize");
-        put_amf_double(buf, rtmpc->audio->sample_size);
-
-        put_amf_string(buf, "stereo");
-        put_byte(buf, AMF_DATA_TYPE_BOOL);
-        put_byte(buf, !!(rtmpc->audio->channels == 2));
-
-        put_amf_string(buf, "audiocodecid");
-        unsigned int codec_id = 0xffffffff;
-
-        switch (rtmpc->audio->codec_id) {
-        case AUDIO_ENCODE_AAC:
-            codec_id = 10;
-            break;
-        case AUDIO_ENCODE_G711_A:
-            codec_id = 7;
-            break;
-        case AUDIO_ENCODE_G711_U:
-            codec_id = 8;
-            break;
-        default:
-            break;
-        }
-        if (codec_id != 0xffffffff){
-            put_amf_double(buf, codec_id);
-        }
-    }
-    put_amf_string(buf, "filesize");
-    put_amf_double(buf, 0); // delayed write
-
-    put_amf_string(buf, "");
-    put_byte(buf, AMF_END_OF_OBJECT);
-
-    /* write total size of tag */
-    int data_size= tell(buf) - metadata_size_pos - 10;
-    update_amf_be24(buf, data_size, metadata_size_pos);
-    put_be32(buf, data_size + 11);
-
-    if (video_exist) {
-        h264_write_header(rtmpc);
-    }
-    if (audio_exist) {
-        switch (rtmpc->audio->codec_id) {
-        case AUDIO_ENCODE_AAC:
-            aac_write_header(rtmpc);
-            break;
-        case AUDIO_ENCODE_G711_A:
-        case AUDIO_ENCODE_G711_U:
-            g711_write_header(rtmpc);
-            break;
-        default:
-            break;
-        }
-    }
-    if (flush_data_force(rtmpc, 1) < 0){
-        printf("flush_data_force FAILED\n");
-        return -1;
-    }
-    return 0;
-}
-#endif
-
-#if 0
-static int write_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
-{
-    switch (pkt->type) {
-    case MEDIA_TYPE_VIDEO:
-        return h264_write_packet(rtmpc, pkt->video);
-        break;
-    case MEDIA_TYPE_AUDIO:
-        return aac_write_packet(rtmpc, pkt->audio);
-        break;
-#if 0
-    case RTMP_DATA_G711_A:
-    case RTMP_DATA_G711_U:
-        return g711_write_packet(rtmpc, pkt->audio);
-        break;
-#endif
-    case MEDIA_TYPE_SUBTITLE:
-    default:
-        break;
-    }
-    return 0;
-}
-#endif
 
 int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     int ret = 0;
     switch (pkt->type) {
-    case MEDIA_TYPE_VIDEO:
-        ret = h264_send_packet(rtmpc, pkt->video);
-        break;
+    case MEDIA_TYPE_VIDEO: {
+        struct media_packet *mpkt = media_packet_create(MEDIA_TYPE_VIDEO, NULL, 0);
+        mpkt->video->key_frame = pkt->video->key_frame;
+        mpkt->video->dts = pkt->video->dts;
+        mpkt->video->pts = pkt->video->pts;
+        mpkt->video->encoder.timebase.num = pkt->video->encoder.timebase.num;
+        mpkt->video->encoder.timebase.den = pkt->video->encoder.timebase.den;
+        memcpy(&mpkt->video->encoder, &pkt->video->encoder, sizeof(struct video_encoder));
+        struct item *item = item_alloc(rtmpc->q, pkt->video->data, pkt->video->size, mpkt);
+        if (!item) {
+                printf("item_alloc failed!\n");
+        }
+        if (0 != queue_push(rtmpc->q, item)) {
+                printf("queue_push failed!\n");
+        }
+    } break;
     case MEDIA_TYPE_AUDIO:
-        ret = aac_send_packet(rtmpc, pkt->audio);
         break;
     case MEDIA_TYPE_SUBTITLE:
     default:
@@ -369,26 +182,8 @@ static void *rtmpc_stream_thread(struct thread *t, void *arg)
             usleep(200000);
             continue;
         }
-        if (!rtmpc->sent_headers) {
-#if 0
-            if (0 != write_header(rtmpc)) {
-                printf("write_header failed!\n");
-                rtmpc->is_run = false;
-            }
-#else
-            flv_write_header(&rtmpc->flv, NULL);
-#endif
-            rtmpc->sent_headers = true;
-        }
         struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
-#if 0
-        if (0 != write_packet(rtmpc, pkt)) {
-            printf("write_packet failed!\n");
-            rtmpc->is_run = false;
-        }
-#else
-        flv_write_packet(&rtmpc->flv, pkt);
-#endif
+        flv_write_packet(rtmpc->flv, pkt);
         item_free(rtmpc->q, it);
     }
     return NULL;

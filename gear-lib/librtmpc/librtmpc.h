@@ -39,49 +39,14 @@
 extern "C" {
 #endif
 
-struct rtmp_video_params {
-    int codec_id;
-    int width;
-    int height;
-    double framerate;
-    int bitrate;
-    uint8_t *extra_data;
-    int extra_data_len;
-};
-
-struct rtmp_audio_params {
-    int codec_id;
-    int bitrate;
-    int sample_rate;
-    int sample_size;
-    int channels;
-    uint8_t *extra_data;
-    int extra_data_len;
-};
-
-struct rtmp_private_buf {
-    uint8_t *data;
-    int d_cur;
-    int d_max;
-    uint64_t d_total;
-};
-
 struct rtmpc {
     void *base;
-    struct flv_muxer flv;
-    struct rtmp_video_params *video;
-    struct rtmp_audio_params *audio;
-    struct rtmp_private_buf *priv_buf;
+    struct flv_muxer *flv;
     struct queue *q;
-    struct iovec tmp_buf;
     struct thread *thread;
     bool is_run;
     bool is_start;
-    bool is_keyframe_got;
     bool sent_headers;
-    uint64_t start_dts_offset;
-    uint32_t prev_msec;
-    uint32_t prev_timestamp;
 };
 
 struct rtmpc *rtmpc_create(const char *push_url);

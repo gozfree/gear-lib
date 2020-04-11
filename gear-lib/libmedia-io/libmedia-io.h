@@ -23,6 +23,7 @@
 #define LIBMEDIA_IO_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

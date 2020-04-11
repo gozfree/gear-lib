@@ -153,6 +153,8 @@ int rtmp_flush(struct rtmpc *rtmpc)
 {
     if (RTMP_IsConnected(rtmpc->base)) {
 
+        printf("%s:%d RTMP_Write size=%d\n", __func__, __LINE__, rtmpc->priv_buf->d_cur);
+        //DUMP_BUFFER(rtmpc->priv_buf->data, rtmpc->priv_buf->d_cur);
         int ret = RTMP_Write(rtmpc->base, (const char *)rtmpc->priv_buf->data, rtmpc->priv_buf->d_cur, 0);
         if (ret == -1) {
             printf("RTMP_Write() failed\n");

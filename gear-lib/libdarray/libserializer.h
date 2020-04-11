@@ -32,7 +32,7 @@ struct serializer {
     void *data;
     size_t  (*read)(void *, void *, size_t);
     size_t  (*write)(void *, const void *, size_t);
-    int64_t (*getpos)(void *);
+    size_t  (*getpos)(void *);
     void    (*free)(void *);
 };
 
@@ -46,7 +46,7 @@ void serializer_file_deinit(struct serializer *s);
 
 size_t s_read(struct serializer *s, void *data, size_t size);
 size_t s_write(struct serializer *s, const void *data, size_t size);
-int64_t s_getpos(struct serializer *s);
+size_t s_getpos(struct serializer *s);
 
 void s_w8(struct serializer *s, uint8_t u8);
 void s_wl16(struct serializer *s, uint16_t u16);
