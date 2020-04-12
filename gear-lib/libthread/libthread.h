@@ -40,11 +40,11 @@ extern "C" {
 #endif
 
 enum lock_type {
-    LOCK_SPIN = 0,
-    LOCK_MUTEX,
-    LOCK_COND,
-    LOCK_RW,
-    LOCK_SEM,
+    THREAD_LOCK_SPIN = 0,
+    THREAD_LOCK_MUTEX,
+    THREAD_LOCK_COND,
+    THREAD_LOCK_RW,
+    THREAD_LOCK_SEM,
 };
 
 /*
