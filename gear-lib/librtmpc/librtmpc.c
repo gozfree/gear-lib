@@ -213,6 +213,7 @@ int rtmpc_stream_start(struct rtmpc *rtmpc)
         printf("thread_create failed!\n");
         return -1;
     }
+    thread_set_name(rtmpc->thread, "rtmpc_stream");
     rtmpc->is_start = true;
     return 0;
 }

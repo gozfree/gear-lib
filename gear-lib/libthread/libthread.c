@@ -19,6 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#if defined (__linux__) || defined (__CYGWIN__)
+#define _GNU_SOURCE
+#include <pthread.h>
+#endif
 #include "libthread.h"
 #include "libatomic.h"
 #include <stdio.h>
@@ -137,7 +141,20 @@ void thread_destroy(struct thread *t)
     free(t);
 }
 
-void thread_info(struct thread *t)
+int thread_set_name(struct thread *t, const char *name)
+{
+#if defined (__linux__) || defined (__CYGWIN__)
+
+    if (0 != pthread_setname_np(t->tid, name)) {
+        printf("pthread_setname_np %s failed: %d\n", name, errno);
+        return -1;
+    }
+    strncpy(t->name, name, strlen(name));
+    return 0;
+#endif
+}
+
+void thread_get_info(struct thread *t)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     int i;
@@ -182,6 +199,10 @@ void thread_info(struct thread *t)
 
     if (0 == pthread_attr_getstack(&t->attr, &stkaddr, &v)) {
         printf("stack address = %p, size = %zu\n", stkaddr, v);
+    }
+
+    if (0 == pthread_getname_np(t->tid, t->name, sizeof(t->name))) {
+        printf("thread name = %s\n", t->name);
     }
 #endif
 }

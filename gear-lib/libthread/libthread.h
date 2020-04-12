@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #if defined (__linux__) || defined (__CYGWIN__)
+#define _GNU_SOURCE
 #include <pthread.h>
 #include <semaphore.h>
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
@@ -102,10 +103,12 @@ int sem_lock_trywait(sem_lock_t *lock);
 int sem_lock_signal(sem_lock_t *lock);
 void sem_lock_deinit(sem_lock_t *lock);
 
+#define THREAD_NAME_LEN 16
 
 typedef struct thread {
     pthread_t tid;
     pthread_attr_t attr;
+    char name[THREAD_NAME_LEN];
     enum lock_type type;
     union {
         spin_lock_t spin;
@@ -120,7 +123,8 @@ typedef struct thread {
 
 struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...);
 void thread_destroy(struct thread *t);
-void thread_info(struct thread *t);
+void thread_get_info(struct thread *t);
+int thread_set_name(struct thread *t, const char *name);
 
 int thread_lock(struct thread *t);
 int thread_unlock(struct thread *t);
