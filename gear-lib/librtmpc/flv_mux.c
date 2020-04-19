@@ -520,8 +520,13 @@ int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt)
     uint8_t *data;
     size_t size;
     int strm_idx;
-    struct serializer *s = &flv->s;
+    struct serializer *s;
+    if (!flv || !pkt) {
+        printf("%s: invalid parameter!\n", __func__);
+        return -1;
+    }
 
+    s = &flv->s;
     if (flv->is_header) {
         int has_audio = !!flv->audio;
         int has_video = !!flv->video;
@@ -550,6 +555,7 @@ int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt)
         vpkt = video_packet_create(NULL, 0);
         vpkt->key_frame = true;
         vpkt->dts = pkt->video->dts;
+        vpkt->pts = pkt->video->pts;
         parse_avc_packet(pkt->video, vpkt);
         if (!flv->is_keyframe_got) {
             if (vpkt->key_frame) {
