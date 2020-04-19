@@ -22,6 +22,7 @@
 #include "libmedia-io.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct media_packet *media_packet_create(enum media_type type, void *data, size_t len)
 {
@@ -63,3 +64,30 @@ void media_packet_destroy(struct media_packet *packet)
     }
     free(packet);
 }
+
+struct media_packet *media_packet_copy(const struct media_packet *src)
+{
+    if (!src)
+        return NULL;
+
+    struct media_packet *dst = NULL;
+    switch (src->type) {
+    case MEDIA_TYPE_VIDEO:
+        dst = media_packet_create(MEDIA_TYPE_VIDEO, NULL, 0);
+        memcpy(dst->video, src->video, sizeof(struct video_packet));
+        dst->video->data = calloc(1, src->video->size);
+        memcpy(dst->video->data, src->video->data, src->video->size);
+        break;
+    case MEDIA_TYPE_AUDIO:
+        dst = media_packet_create(MEDIA_TYPE_AUDIO, NULL, 0);
+        memcpy(dst->audio, src->audio, sizeof(struct audio_packet));
+        dst->audio->data = calloc(1, src->audio->size);
+        memcpy(dst->audio->data, src->audio->data, src->audio->size);
+        break;
+    default:
+        printf("unsupport copy %d media packet\n", src->type);
+        break;
+    }
+    return dst;
+}
+

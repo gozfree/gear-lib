@@ -36,6 +36,9 @@ enum media_type {
     MEDIA_TYPE_AUDIO,
     MEDIA_TYPE_VIDEO,
     MEDIA_TYPE_SUBTITLE,
+    MEDIA_TYPE_ATTACHMENT,
+    MEDIA_TYPE_DATA,
+    MEDIA_TYPE_MAX
 };
 
 
@@ -59,12 +62,12 @@ struct media_packet {
         struct video_packet *video;
     };
     enum media_type type;
-    void *opaque;
 };
 
 struct media_packet *media_packet_create(enum media_type type, void *data,
                                          size_t len);
 void media_packet_destroy(struct media_packet *packet);
+struct media_packet *media_packet_copy(const struct media_packet *src);
 
 struct media_encoder {
     union {

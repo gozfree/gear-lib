@@ -47,24 +47,8 @@ static void *item_alloc_hook(void *data, size_t len, void *arg)
         printf("calloc packet failed!\n");
         return NULL;
     }
-    int alloc_size = (len + 15)/16*16;
-    switch (pkt->type) {
-    case MEDIA_TYPE_AUDIO:
-        pkt->audio->data = calloc(1, alloc_size);
-        memcpy(pkt->audio->data, data, len);
-        pkt->audio->size = len;
-        break;
-    case MEDIA_TYPE_VIDEO:
-        pkt->video->data = calloc(1, alloc_size);
-        memcpy(pkt->video->data, data, len);
-        pkt->video->size = len;
-        break;
-    default:
-        printf("item alloc unsupport type %d\n", pkt->type);
-        break;
-    }
-
-    return pkt;
+    struct media_packet *new_pkt = media_packet_copy(pkt);
+    return new_pkt;
 }
 
 static void item_free_hook(void *data)
@@ -143,32 +127,30 @@ int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 
 int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
-    int ret = 0;
+    if (!rtmpc || !pkt) {
+        printf("%s invalid parament!\n", __func__);
+        return -1;
+    }
+    struct item *item = NULL;
     switch (pkt->type) {
-    case MEDIA_TYPE_VIDEO: {
-        struct media_packet *mpkt = media_packet_create(MEDIA_TYPE_VIDEO, NULL, 0);
-        mpkt->video->key_frame = pkt->video->key_frame;
-        mpkt->video->dts = pkt->video->dts;
-        mpkt->video->pts = pkt->video->pts;
-        mpkt->video->encoder.timebase.num = pkt->video->encoder.timebase.num;
-        mpkt->video->encoder.timebase.den = pkt->video->encoder.timebase.den;
-        memcpy(&mpkt->video->encoder, &pkt->video->encoder, sizeof(struct video_encoder));
-        struct item *item = item_alloc(rtmpc->q, pkt->video->data, pkt->video->size, mpkt);
-        if (!item) {
-                printf("item_alloc failed!\n");
-        }
-        if (0 != queue_push(rtmpc->q, item)) {
-                printf("queue_push failed!\n");
-        }
-    } break;
     case MEDIA_TYPE_AUDIO:
+        item = item_alloc(rtmpc->q, pkt->audio->data, pkt->audio->size, pkt);
         break;
-    case MEDIA_TYPE_SUBTITLE:
+    case MEDIA_TYPE_VIDEO:
+        item = item_alloc(rtmpc->q, pkt->video->data, pkt->video->size, pkt);
+        break;
     default:
-        ret = -1;
         break;
     }
-    return ret;
+    if (!item) {
+        printf("item_alloc packet type %d failed!\n", pkt->type);
+        return -1;
+    }
+    if (0 != queue_push(rtmpc->q, item)) {
+        printf("queue_push failed!\n");
+        return -1;
+    }
+    return 0;
 }
 
 static void *rtmpc_stream_thread(struct thread *t, void *arg)
