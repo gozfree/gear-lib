@@ -87,6 +87,28 @@ static inline void nbo_write_rtp_header(uint8_t *ptr, const rtp_header_t *header
     nbo_w32(ptr+8, header->ssrc);
 }
 
+static void rtp_packet_dump_info(const struct rtp_packet *pkt)
+{
+    logi("rtp_packet header:\n");
+    logi("version:      %d\n", pkt->header.v);
+    logi("padding:      %d\n", pkt->header.p);
+    logi("extersion:    %d\n", pkt->header.x);
+    logi("csrc count:   %d\n", pkt->header.cc);
+    logi("marker bit:   %d\n", pkt->header.m);
+    logi("payload type: %d\n", pkt->header.pt);
+    logi("sequence:     %d\n", pkt->header.seq);
+    logi("timestamp:    %d\n", pkt->header.timestamp);
+    logi("ssrc:         %d\n", pkt->header.ssrc);
+    logi("rtp_packet body:\n");
+    logi("csrc[0]:      %d\n", pkt->csrc[0]);
+    logi("extension:    %p\n", pkt->extension);
+    logi("extlen:       %d\n", pkt->extlen);
+    logi("reserved:     %d\n", pkt->reserved);
+    logi("payload:      %p\n", pkt->payload);
+    logi("payloadlen:   %d\n", pkt->payloadlen);
+    logi("size:         %d\n", pkt->size);
+}
+
 int rtp_packet_serialize_header(const struct rtp_packet *pkt, void* data, int bytes)
 {
     int hdrlen;
@@ -132,6 +154,8 @@ int rtp_packet_serialize(const struct rtp_packet *pkt, void* data, int bytes)
         return -1;
 
     memcpy(((uint8_t*)data) + hdrlen, pkt->payload, pkt->payloadlen);
+
+    rtp_packet_dump_info(pkt);
     return hdrlen + pkt->payloadlen;
 }
 
@@ -391,13 +415,13 @@ int rtp_packet_getsize()
 }
 
 static const struct rtp_payload_type rtp_payload_types[] = {
-    {0,   "PCMU",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {RTP_PT_PCMU,   "PCMU",   MEDIA_TYPE_AUDIO,   8000,  1},
     {3,   "GSM",    MEDIA_TYPE_AUDIO,   8000,  1},
     {4,   "G723",   MEDIA_TYPE_AUDIO,   8000,  1},
     {5,   "DVI4",   MEDIA_TYPE_AUDIO,   8000,  1},
     {6,   "DVI4",   MEDIA_TYPE_AUDIO,   16000, 1},
     {7,   "LPC",    MEDIA_TYPE_AUDIO,   8000,  1},
-    {8,   "PCMA",   MEDIA_TYPE_AUDIO,   8000,  1},
+    {RTP_PT_PCMA,   "PCMA",   MEDIA_TYPE_AUDIO,   8000,  1},
     {9,   "G722",   MEDIA_TYPE_AUDIO,   8000,  1},
     {10,  "L16",    MEDIA_TYPE_AUDIO,   44100, 2},
     {11,  "L16",    MEDIA_TYPE_AUDIO,   44100, 1},
@@ -409,15 +433,15 @@ static const struct rtp_payload_type rtp_payload_types[] = {
     {17,  "DVI4",   MEDIA_TYPE_AUDIO,   22050, 1},
     {18,  "G729",   MEDIA_TYPE_AUDIO,   8000,  1},
     {25,  "CelB",   MEDIA_TYPE_VIDEO,   90000, 0},
-    {26,  "JPEG",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {RTP_PT_JPEG,  "JPEG",   MEDIA_TYPE_VIDEO,   90000, 0},
     {28,  "nv",     MEDIA_TYPE_VIDEO,   90000, 0},
     {31,  "H261",   MEDIA_TYPE_VIDEO,   90000, 0},
     {32,  "MPV",    MEDIA_TYPE_VIDEO,   90000, 0},
     {32,  "MPV",    MEDIA_TYPE_VIDEO,   90000, 0},
     {33,  "MP2T",   MEDIA_TYPE_DATA,    90000, 0},
     {34,  "H263",   MEDIA_TYPE_VIDEO,   90000, 0},
-    {96,  "H264",   MEDIA_TYPE_VIDEO,   90000, 0},
-    {97,  "H265",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {RTP_PT_H264,  "H264",   MEDIA_TYPE_VIDEO,   90000, 0},
+    {RTP_PT_H265,  "H265",   MEDIA_TYPE_VIDEO,   90000, 0},
 };
 
 const struct rtp_payload_type* rtp_payload_type_find(int payload)

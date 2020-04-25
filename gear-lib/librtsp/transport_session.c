@@ -91,6 +91,12 @@ struct transport_session *transport_session_lookup(void *pool, char *key)
     return (struct transport_session *)dict_get((dict *)pool, key, NULL);
 }
 
+#define MILLISECOND_DEN 1000
+
+static int32_t get_ms_time_v(struct video_packet *packet, int64_t val)
+{
+    return (int32_t)(val * MILLISECOND_DEN / packet->encoder.timebase.den);
+}
 static void *send_thread(struct thread *t, void *ptr)
 {
     struct transport_session *ts = (struct transport_session *)ptr;
@@ -120,9 +126,14 @@ static void *send_thread(struct thread *t, void *ptr)
         case MEDIA_TYPE_VIDEO: {
             logd("MEDIA_TYPE_VIDEO\n");
             struct video_packet *vpkt = pkt->video;
-            struct rtp_packet *pkt = rtp_packet_create(96, vpkt->size, seq, ssrc);
+            struct rtp_packet *pkt = rtp_packet_create(RTP_PT_H264, vpkt->size, seq, ssrc);
+            if (!pkt) {
+                loge("rtp_packet_create failed!\n");
+                break;
+            }
+            pts = get_ms_time_v(vpkt, vpkt->dts);
+            logi("rtp_packet_create video size=%d, pts=%d\n", vpkt->size, pts);
             rtp_payload_h264_encode(ts->rtp->sock, pkt, vpkt->data, vpkt->size, pts);
-            pts += 3000;
             seq = pkt->header.seq;
             rtp_packet_destroy(pkt);
         } break;

@@ -274,6 +274,15 @@ struct rtp_context *rtp_create(int frequence, int boundwidth);
 int rtp_payload_h264_encode(struct rtp_socket *sock, struct rtp_packet *pkt, const void* h264, int bytes, uint32_t timestamp);
 
 int rtcp_parse(/*struct rtp_context *ctx, */char* data, size_t bytes);
+
+enum rtp_payload_type_value {
+    RTP_PT_PCMU  = 0,
+    RTP_PT_PCMA  = 8,
+    RTP_PT_JPEG  = 26,
+    RTP_PT_H264  = 96,
+    RTP_PT_H265  = 97,
+};
+
 #ifdef __cplusplus
 }
 #endif
