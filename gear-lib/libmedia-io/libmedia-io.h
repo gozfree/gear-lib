@@ -64,10 +64,10 @@ struct media_packet {
     enum media_type type;
 };
 
-struct media_packet *media_packet_create(enum media_type type, void *data,
-                                         size_t len);
-void media_packet_destroy(struct media_packet *packet);
+struct media_packet *media_packet_create(enum media_type type, void *data, size_t len);
+void media_packet_destroy(struct media_packet *mp);
 struct media_packet *media_packet_copy(const struct media_packet *src);
+size_t media_packet_get_size(struct media_packet *mp);
 
 struct media_encoder {
     union {

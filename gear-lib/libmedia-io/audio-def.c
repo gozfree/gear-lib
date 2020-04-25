@@ -28,22 +28,22 @@
 
 struct audio_packet *audio_packet_create(void *data, size_t len)
 {
-    struct audio_packet *packet;
-    packet = calloc(1, sizeof(struct audio_packet));
-    if (!packet) {
+    struct audio_packet *ap;
+    ap = calloc(1, sizeof(struct audio_packet));
+    if (!ap) {
         return NULL;
     }
-    packet->data = data;
-    packet->size = len;
-    return packet;
+    ap->data = data;
+    ap->size = len;
+    return ap;
 }
 
-void audio_packet_destroy(struct audio_packet *packet)
+void audio_packet_destroy(struct audio_packet *ap)
 {
-    if (packet) {
-        if (packet->data) {
-            free(packet->data);
+    if (ap) {
+        if (ap->data) {
+            free(ap->data);
         }
-        free(packet);
+        free(ap);
     }
 }

@@ -65,3 +65,11 @@ struct media_source *rtsp_media_source_lookup(char *name)
     }
     return p;
 }
+
+bool rtsp_media_source_alive(struct media_source *ms)
+{
+    if (!ms) {
+        return false;
+    }
+    return ms->is_active;
+}

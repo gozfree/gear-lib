@@ -26,43 +26,42 @@
 
 struct media_packet *media_packet_create(enum media_type type, void *data, size_t len)
 {
-    struct media_packet *packet;
-    packet = calloc(1, sizeof(struct media_packet));
-    if (!packet) {
+    struct media_packet *mp = calloc(1, sizeof(struct media_packet));
+    if (!mp) {
         return NULL;
     }
-    packet->type = type;
-    switch (packet->type) {
+    mp->type = type;
+    switch (mp->type) {
     case MEDIA_TYPE_AUDIO:
-        packet->audio = audio_packet_create(data, len);
+        mp->audio = audio_packet_create(data, len);
         break;
     case MEDIA_TYPE_VIDEO:
-        packet->video = video_packet_create(data, len);
+        mp->video = video_packet_create(data, len);
         break;
     default:
-        printf("unsupport create %d media packet\n", packet->type);
+        printf("unsupport create %d media packet\n", mp->type);
         break;
     }
-    return packet;
+    return mp;
 }
 
-void media_packet_destroy(struct media_packet *packet)
+void media_packet_destroy(struct media_packet *mp)
 {
-    if (!packet) {
+    if (!mp) {
         return;
     }
-    switch (packet->type) {
+    switch (mp->type) {
     case MEDIA_TYPE_AUDIO:
-        audio_packet_destroy(packet->audio);
+        audio_packet_destroy(mp->audio);
         break;
     case MEDIA_TYPE_VIDEO:
-        video_packet_destroy(packet->video);
+        video_packet_destroy(mp->video);
         break;
     default:
-        printf("unsupport destroy %d media packet\n", packet->type);
+        printf("unsupport destroy %d media packet\n", mp->type);
         break;
     }
-    free(packet);
+    free(mp);
 }
 
 struct media_packet *media_packet_copy(const struct media_packet *src)
@@ -91,3 +90,15 @@ struct media_packet *media_packet_copy(const struct media_packet *src)
     return dst;
 }
 
+size_t media_packet_get_size(struct media_packet *mp)
+{
+    switch (mp->type) {
+    case MEDIA_TYPE_AUDIO:
+        return mp->audio->size;
+    case MEDIA_TYPE_VIDEO:
+        return mp->video->size;
+    default:
+        return 0;
+    }
+    return 0;
+}

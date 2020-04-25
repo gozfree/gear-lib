@@ -51,7 +51,7 @@ typedef struct media_source {
 } media_source_t;
 
 void media_source_register_all();
-struct media_source *rtsp_media_source_lookup(char *name);
+bool media_alive(struct media_source *ms);
 
 #ifdef __cplusplus
 }

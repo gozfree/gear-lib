@@ -433,22 +433,21 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
 
 struct video_packet *video_packet_create(void *data, size_t len)
 {
-    struct video_packet *packet;
-    packet = calloc(1, sizeof(struct video_packet));
-    if (!packet) {
+    struct video_packet *vp = calloc(1, sizeof(struct video_packet));
+    if (!vp) {
         return NULL;
     }
-    packet->data = data;
-    packet->size = len;
-    return packet;
+    vp->data = data;
+    vp->size = len;
+    return vp;
 }
 
-void video_packet_destroy(struct video_packet *packet)
+void video_packet_destroy(struct video_packet *vp)
 {
-    if (packet) {
-        if (packet->data) {
-            free(packet->data);
+    if (vp) {
+        if (vp->data) {
+            free(vp->data);
         }
-        free(packet);
+        free(vp);
     }
 }

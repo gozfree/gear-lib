@@ -46,7 +46,10 @@ struct rtsp_server {
 struct rtsp_server *rtsp_server_init(const char *host, uint16_t port);
 int rtsp_server_dispatch(struct rtsp_server *c);
 void rtsp_server_deinit(struct rtsp_server *c);
+
 int rtsp_media_source_register(struct media_source *ms);
+bool rtsp_media_source_alive(struct media_source *ms);
+struct media_source *rtsp_media_source_lookup(char *name);
 
 #ifdef __cplusplus
 }

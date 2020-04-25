@@ -169,7 +169,7 @@ struct video_packet {
 };
 
 struct video_packet *video_packet_create(void *data, size_t len);
-void video_packet_destroy(struct video_packet *packet);
+void video_packet_destroy(struct video_packet *vp);
 
 #ifdef __cplusplus
 }

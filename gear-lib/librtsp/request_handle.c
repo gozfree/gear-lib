@@ -85,7 +85,8 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
                     req->cseq,
                     get_date_string(),
                     msg?msg:"\r\n");
-    logd("rtsp response[%d]:\n<<<<<<<<\n%s\n", len, buf);
+    logi("rtsp response[%d]:\n==== c <<<< S ====\n%s\n==== c <<<< S ====\n",
+          len, buf);
     return skt_send(req->fd, buf, len);
 }
 
@@ -237,6 +238,8 @@ int handle_rtsp_request(struct rtsp_request *req)
     char url[2*RTSP_PARAM_STRING_MAX];
     strcat_url(url, req->url_prefix, req->url_suffix);
 
+    logi("rtsp request[%d]:\n==== c >>>> S ====\n%s\n==== c >>>> S ====\n",
+          req->raw->iov_len, req->raw->iov_base);
     switch (req->cmd[0]) {
     case 'o':
     case 'O':

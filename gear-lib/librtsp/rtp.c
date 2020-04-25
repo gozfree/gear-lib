@@ -199,7 +199,7 @@ int rtp_packet_deserialize(struct rtp_packet *pkt, const void* data, int bytes)
     return 0;
 }
 
-struct rtp_packet *rtp_packet_create(int size, uint8_t pt, uint16_t seq, uint32_t ssrc)
+struct rtp_packet *rtp_packet_create(uint8_t pt, int size, uint16_t seq, uint32_t ssrc)
 {
     struct rtp_packet *pkt = CALLOC(1, struct rtp_packet);
     if (!pkt) return NULL;
@@ -328,6 +328,7 @@ void rtp_socket_destroy(struct rtp_socket *s)
 
 ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len)
 {
+    logd("skt_sendto %s:%d len=%d\n", ip, port, len);
     return skt_sendto(s->rtp_fd, ip, port, buf, len);
 }
 
@@ -417,7 +418,6 @@ static const struct rtp_payload_type rtp_payload_types[] = {
     {34,  "H263",   MEDIA_TYPE_VIDEO,   90000, 0},
     {96,  "H264",   MEDIA_TYPE_VIDEO,   90000, 0},
     {97,  "H265",   MEDIA_TYPE_VIDEO,   90000, 0},
-    {-1,  "",       MEDIA_TYPE_UNKNOWN, -1,    0}
 };
 
 const struct rtp_payload_type* rtp_payload_type_find(int payload)
@@ -578,15 +578,13 @@ int rtp_payload_find(int payload, const char* encoding, struct rtp_payload_deleg
 
 void rtcp_rr_unpack(rtcp_header_t *header, const uint8_t* ptr)
 {
-    uint32_t ssrc, i;
+    uint32_t i;
     rtcp_rb_t rb;
 
     if (header->length * 4 < sizeof(rtcp_rr_t) + header->rc * sizeof(rtcp_rb_t)) {
         loge("error occur\n");
         return;
     }
-    ssrc = nbo_r32(ptr);
-    logi("Received RTCP packet from %08X\n", ssrc);
 
     ptr += sizeof(rtcp_rr_t);
     for (i = 0; i < header->rc; i++, ptr += sizeof(rtcp_rb_t)) {
