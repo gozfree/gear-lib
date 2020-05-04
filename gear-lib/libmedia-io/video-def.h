@@ -122,6 +122,14 @@ enum video_codec_format {
     VIDEO_CODEC_HEVC = VIDEO_CODEC_H265,
 };
 
+enum h264_frame_type {
+    H264_FRAME_UNKNOWN = 0,
+    H264_FRAME_IDR,
+    H264_FRAME_I,
+    H264_FRAME_P,
+    H264_FRAME_B,
+};
+
 enum h264_nal_type {
     H264_NAL_UNKNOWN = 0,
     H264_NAL_SLICE,
@@ -165,6 +173,7 @@ struct video_packet {
     uint64_t             pts;
     uint64_t             dts;
     bool                 key_frame;
+    int                  packet_type;
     struct video_encoder encoder;
 };
 

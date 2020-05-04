@@ -75,6 +75,8 @@ struct h264_fu_header
 #endif
 };
 
+#define MTU 1448
+
 typedef struct h264_fu_header H264_FU_HEADER;
 
 #define FU_START    0x80
@@ -132,14 +134,14 @@ static int rtp_h264_pack_fu_a(struct rtp_socket *sock, struct rtp_packet *pkt, c
 
     // FU-A start
     for (fu_header |= FU_START; bytes > 0; ++pkt->header.seq) {
-        if (bytes + RTP_FIXED_HEADER <= /*pkt->size*/1448 - N_FU_HEADER) {
+        if (bytes + RTP_FIXED_HEADER <= /*pkt->size*/MTU - N_FU_HEADER) {
             if (0 != (fu_header & FU_START)) {
                 return -1;
             }
             fu_header = FU_END | (fu_header & 0x1F); // FU-A end
             pkt->payloadlen = bytes;
         } else {
-            pkt->payloadlen = /*pkt->size*/1448 - RTP_FIXED_HEADER - N_FU_HEADER;
+            pkt->payloadlen = /*pkt->size*/MTU - RTP_FIXED_HEADER - N_FU_HEADER;
         }
         pkt->payload = nalu;
         n = RTP_FIXED_HEADER + N_FU_HEADER + pkt->payloadlen;
@@ -175,22 +177,20 @@ int rtp_payload_h264_encode(struct rtp_socket *sock, struct rtp_packet *pkt, con
     pkt->header.timestamp = timestamp;
 
     pend = (const uint8_t*)h264 + bytes;
+
     for (p1 = h264_nalu_find((const uint8_t*)h264, pend); p1 < pend && 0 == r; p1 = p2) {
         size_t nalu_size;
 
         p2 = h264_nalu_find(p1 + 1, pend);
         nalu_size = p2 - p1;
-        logi("nalu_size  %d\n", nalu_size);
 
         // filter suffix '00' bytes
         if (p2 != pend) --nalu_size;
         while(0 == p1[nalu_size-1]) --nalu_size;
 
-        if (nalu_size + RTP_FIXED_HEADER <= (size_t)pkt->size) {
-            logi("rtp_h264_pack_nalu %d\n", nalu_size);
+        if (nalu_size + RTP_FIXED_HEADER <= MTU) {
             r = rtp_h264_pack_nalu(sock, pkt, p1, nalu_size);
         } else {
-            logi("rtp_h264_pack_fu_a %d\n", nalu_size);
             r = rtp_h264_pack_fu_a(sock, pkt, p1, nalu_size);
         }
     }

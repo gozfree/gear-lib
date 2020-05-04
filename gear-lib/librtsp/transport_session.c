@@ -132,7 +132,7 @@ static void *send_thread(struct thread *t, void *ptr)
                 break;
             }
             pts = get_ms_time_v(vpkt, vpkt->dts);
-            logi("rtp_packet_create video size=%d, pts=%d\n", vpkt->size, pts);
+            logd("rtp_packet_create video size=%d, pts=%d\n", vpkt->size, pts);
             rtp_payload_h264_encode(ts->rtp->sock, pkt, vpkt->data, vpkt->size, pts);
             seq = pkt->header.seq;
             rtp_packet_destroy(pkt);

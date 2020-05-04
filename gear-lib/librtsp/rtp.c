@@ -89,24 +89,24 @@ static inline void nbo_write_rtp_header(uint8_t *ptr, const rtp_header_t *header
 
 static void rtp_packet_dump_info(const struct rtp_packet *pkt)
 {
-    logi("rtp_packet header:\n");
-    logi("version:      %d\n", pkt->header.v);
-    logi("padding:      %d\n", pkt->header.p);
-    logi("extersion:    %d\n", pkt->header.x);
-    logi("csrc count:   %d\n", pkt->header.cc);
-    logi("marker bit:   %d\n", pkt->header.m);
-    logi("payload type: %d\n", pkt->header.pt);
-    logi("sequence:     %d\n", pkt->header.seq);
-    logi("timestamp:    %d\n", pkt->header.timestamp);
-    logi("ssrc:         %d\n", pkt->header.ssrc);
-    logi("rtp_packet body:\n");
-    logi("csrc[0]:      %d\n", pkt->csrc[0]);
-    logi("extension:    %p\n", pkt->extension);
-    logi("extlen:       %d\n", pkt->extlen);
-    logi("reserved:     %d\n", pkt->reserved);
-    logi("payload:      %p\n", pkt->payload);
-    logi("payloadlen:   %d\n", pkt->payloadlen);
-    logi("size:         %d\n", pkt->size);
+    logd("rtp_packet header:\n");
+    logd("version:      %d\n", pkt->header.v);
+    logd("padding:      %d\n", pkt->header.p);
+    logd("extersion:    %d\n", pkt->header.x);
+    logd("csrc count:   %d\n", pkt->header.cc);
+    logd("marker bit:   %d\n", pkt->header.m);
+    logd("payload type: %d\n", pkt->header.pt);
+    logd("sequence:     %d\n", pkt->header.seq);
+    logd("timestamp:    %d\n", pkt->header.timestamp);
+    logd("ssrc:         %d\n", pkt->header.ssrc);
+    logd("rtp_packet body:\n");
+    logd("csrc[0]:      %d\n", pkt->csrc[0]);
+    logd("extension:    %p\n", pkt->extension);
+    logd("extlen:       %d\n", pkt->extlen);
+    logd("reserved:     %d\n", pkt->reserved);
+    logd("payload:      %p\n", pkt->payload);
+    logd("payloadlen:   %d\n", pkt->payloadlen);
+    logd("size:         %d\n", pkt->size);
 }
 
 int rtp_packet_serialize_header(const struct rtp_packet *pkt, void* data, int bytes)
