@@ -141,9 +141,9 @@ static void *send_thread(struct thread *t, void *ptr)
             loge("unsupport media type!\n");
             break;
         }
-
     }
     ms->is_active = false;
+    ms->close(ms);
     return NULL;
 }
 

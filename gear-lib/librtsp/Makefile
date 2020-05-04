@@ -69,7 +69,7 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread -lx264
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lskt -lgevent -llog -ldict \
-	   -lthread -ltime -lvector -luvc -lmedia-io  -lmacro -lqueue -ldarray
+	   -lthread -ltime -luvc -lmedia-io  -lmacro -lqueue -ldarray
 
 ###############################################################################
 # target

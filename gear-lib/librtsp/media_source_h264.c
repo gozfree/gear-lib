@@ -22,7 +22,8 @@
 #include <gear-lib/liblog.h>
 #include <gear-lib/libfile.h>
 #include <gear-lib/libmacro.h>
-#include <gear-lib/libvector.h>
+#include <gear-lib/libqueue.h>
+#include <gear-lib/libmedia-io.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>
@@ -31,51 +32,32 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-enum h264_nalu_type {
-    NAL_SLICE           = 1,
-    NAL_DPA             = 2,
-    NAL_DPB             = 3,
-    NAL_DPC             = 4,
-    NAL_IDR_SLICE       = 5,
-    NAL_SEI             = 6,
-    NAL_SPS             = 7,
-    NAL_PPS             = 8,
-    NAL_AUD             = 9,
-    NAL_END_SEQUENCE    = 10,
-    NAL_END_STREAM      = 11,
-    NAL_FILLER_DATA     = 12,
-    NAL_SPS_EXT         = 13,
-    NAL_AUXILIARY_SLICE = 19,
-    NAL_FF_IGNORE       = 0xff0f001,
-};
-
-#define H264_NAL(v)	(v & 0x1F)
-
-struct h264_frame
-{
-    const uint8_t* addr;
-    int64_t time;
-    long bytes;
-    enum h264_nalu_type type;
-};
-
-struct h264_media_source_handle {
-    int (*init)();
-    int (*injector)();
-    void (*deinit)();
-};
-
 struct h264_source_ctx {
     const char name[32];
-    struct iovec *data;
-    struct vector *frame;
-    vector_iter vit;
+    struct queue *q;
     int sps_cnt;
     int duration;
 };
 
+static void *item_alloc_hook(void *data, size_t len, void *arg)
+{
+    struct media_packet *pkt = (struct media_packet *)arg;
+    if (!pkt) {
+        loge("calloc packet failed!\n");
+        return NULL;
+    }
+    struct media_packet *new_pkt = media_packet_copy(pkt);
+    logd("media_packet size=%d\n", media_packet_get_size(new_pkt));
+    return new_pkt;
+}
 
-static inline const uint8_t* find_start_code(const uint8_t* ptr, const uint8_t* end)
+static void item_free_hook(void *data)
+{
+    struct media_packet *pkt = (struct media_packet *)data;
+    media_packet_destroy(pkt);
+}
+
+static inline const uint8_t* h264_find_start_code(const uint8_t* ptr, const uint8_t* end)
 {
     for (const uint8_t *p = ptr; p + 3 < end; p++) {
         if (0x00 == p[0] && 0x00 == p[1] && (0x01 == p[2] || (0x00==p[2] && 0x01==p[3]))) {
@@ -85,99 +67,83 @@ static inline const uint8_t* find_start_code(const uint8_t* ptr, const uint8_t* 
     return end;
 }
 
-static inline int h264_nal_type(const unsigned char* ptr)
+static int h264_parser_frame(struct h264_source_ctx *c, const char *name)
 {
-    int i = 2;
-    if (!(0x00 == ptr[0] && 0x00 == ptr[1])) {
-        return -1;
-    }
-    if (0x00 == ptr[2])
-        ++i;
-    if (0x01 != ptr[i]) {
-        return -1;
-    }
-    return H264_NAL(ptr[i+1]);
-}
-
-static int h264_parser_frame(struct h264_source_ctx *c)
-{
+    int ret = 0;
     size_t count = 0;
-//    bool spspps = true;
-
-    const uint8_t *start = c->data->iov_base;
-    const uint8_t *end = start + c->data->iov_len;
-    const uint8_t *nalu = find_start_code(start, end);
+    struct iovec *data = file_dump(name);
+    if (!data) {
+        loge("file_dump %s failed!\n", name);
+        return -1;
+    }
+    const uint8_t *start = data->iov_base;
+    const uint8_t *end = start + data->iov_len;
+    const uint8_t *nalu = h264_find_start_code(start, end);
 
     while (nalu < end) {
-        const unsigned char* nalu2 = find_start_code(nalu + 4, end);
+        const uint8_t *nalu2 = h264_find_start_code(nalu + 4, end);
         size_t bytes = nalu2 - nalu;
 
-        int nal_unit_type = h264_nal_type(nalu);
+        struct media_packet *pkt = media_packet_create(MEDIA_TYPE_VIDEO, (uint8_t *)nalu, bytes);
+        pkt->video->pts = 90000 * count++;
+        pkt->video->dts = 90000 * count++;
+        pkt->video->encoder.timebase.num = 30;
+        pkt->video->encoder.timebase.den = 1;
 
-        struct h264_frame frame;
-        frame.addr = nalu;
-        frame.bytes = bytes;
-        frame.time = 90000 * count++;
-        frame.type = nal_unit_type;
-        vector_push_back(c->frame, frame);
-#if 0
-        if (nal_unit_type <= 5) {
-            if(c->sps_cnt > 0) spspps = false; // don't need more sps/pps
-
-            struct h264_frame frame;
-            frame.addr = nalu;
-            frame.bytes = bytes;
-            frame.time = 40 * count++;
-            frame.type = nal_unit_type;
-            vector_push_back(c->frame, frame);
-        } else if(NAL_SPS == nal_unit_type || NAL_PPS == nal_unit_type) {
-            if(spspps) {
-                c->sps_cnt++;
-            }
+        struct item *it = item_alloc(c->q, pkt->video->data, pkt->video->size, pkt);
+        if (!it) {
+            loge("item_alloc packet type %d failed!\n", pkt->type);
+            ret = -1;
+            goto exit;
         }
-#endif
-
+        if (0 != queue_push(c->q, it)) {
+            loge("queue_push failed!\n");
+            ret = -1;
+            goto exit;
+        }
         nalu = nalu2;
     }
-
     c->duration = 40 * count;
-    return 0;
+
+exit:
+    free(data->iov_base);
+    return ret;
 }
 
 static int h264_file_open(struct media_source *ms, const char *name)
 {
     struct h264_source_ctx *c = CALLOC(1, struct h264_source_ctx);
-    c->data = file_dump(name);
-    if (!c->data) {
-        loge("file_dump %s failed!\n", name);
+    if (!c) {
+        loge("calloc h264_source_ctx failed!\n");
         return -1;
     }
-    c->frame = vector_create(struct h264_frame);
-    c->sps_cnt = 0;
-    h264_parser_frame(c);
-    c->vit = vector_begin(c->frame);
+
+    c->q = queue_create();
+    if (!c->q) {
+        loge("queue_create failed!\n");
+        return -1;
+    }
+    queue_set_hook(c->q, item_alloc_hook, item_free_hook);
     ms->opaque = c;
+    h264_parser_frame(c, name);
     return 0;
 }
 
 static void h264_file_close(struct media_source *ms)
 {
     struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
-    vector_destroy(c->frame);
-    free(c->data->iov_base);
+    queue_destroy(c->q);
+    free(c);
 }
 
 static int h264_file_read_frame(struct media_source *ms, void **data, size_t *len)
 {
     struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
-    struct h264_frame *frame;
-    if (c->vit == NULL || c->vit == vector_end(c->frame)) {
-        return -1;
-    }
-    frame = vector_iter_valuep(c->frame, c->vit, struct h264_frame);
-    *data = (void *)frame->addr;
-    *len = frame->bytes;
-    c->vit = vector_next(c->frame);
+    struct item *it = queue_pop(c->q);
+    *data = (struct media_packet *)it->opaque.iov_base;
+    *len = it->data.iov_len;
+    logd("queue_pop ptr=%p, data=%p, len=%d\n", it->opaque.iov_base, *data, it->opaque.iov_len);
+    //item_free(c->q, it);
     return 0;
 }
 
@@ -185,7 +151,6 @@ static int h264_file_write(struct media_source *ms, void *data, size_t len)
 {
     struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
     c = c;
-
     return 0;
 }
 
@@ -230,7 +195,6 @@ static int sdp_generate(struct media_source *ms)
     strcpy(ms->sdp, p);
     return 0;
 }
-
 
 struct media_source media_source_h264 = {
     .name         = "H264",
