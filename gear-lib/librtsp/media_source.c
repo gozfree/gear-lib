@@ -53,7 +53,9 @@ void media_source_register_all(void)
     registered = 1;
 
     REGISTER_MEDIA_SOURCE(h264);
+#ifdef ENABLE_LIVEVIEW
     REGISTER_MEDIA_SOURCE(uvc);
+#endif
 }
 
 struct media_source *rtsp_media_source_lookup(char *name)

@@ -33,6 +33,7 @@ endif
 ###############################################################################
 # target and object
 ###############################################################################
+ENABLE_LIVEVIEW	= 0
 LIBNAME		= librtsp
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
@@ -42,8 +43,11 @@ TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= librtsp_server.o media_source.o rtsp_parser.o request_handle.o sdp.o uri_parse.o media_source_live.o \
+OBJS_LIB	= librtsp_server.o media_source.o rtsp_parser.o request_handle.o sdp.o uri_parse.o \
 		  rtp.o rtp_h264.o media_source_h264.o transport_session.o
+ifeq ($(ENABLE_LIVEVIEW), 1)
+OBJS_LIB	+= media_source_live.o
+endif
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -64,12 +68,19 @@ endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 
+ifeq ($(ENABLE_LIVEVIEW), 1)
+CFLAGS	+= -DENABLE_LIVEVIEW
+endif
+
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread -lx264
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lskt -lgevent -llog -ldict \
-	   -lthread -ltime -luvc -lmedia-io  -lmacro -lqueue -ldarray
+	   -lthread -ltime -lmedia-io  -lmacro -lqueue -ldarray
+ifeq ($(ENABLE_LIVEVIEW), 1)
+LDFLAGS	+= -lx264 -luvc
+endif
 
 ###############################################################################
 # target
