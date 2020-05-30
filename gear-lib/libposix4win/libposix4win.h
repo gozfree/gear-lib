@@ -114,13 +114,8 @@ int access(const char *pathname, int mode);
 #define pthread_rwlock_t          SRWLOCK
 #define sem_t                     HANDLE
 
-typedef struct pthread_t {
-    void *handle;
-    void *(*func)(void* arg);
-    void *arg;
-    void *ret;
-} pthread_t;
 
+typedef unsigned long int pthread_t;
 
 typedef struct pthread_attr_t {
     void *unused;
@@ -129,6 +124,7 @@ typedef struct pthread_attr_t {
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr, 
                    void *(*start_routine)(void*), void *arg);
 int pthread_join(pthread_t thread, void **retval);
+pthread_t pthread_self(void);
 
 int pthread_attr_init(pthread_attr_t *attr);
 void pthread_attr_destroy(pthread_attr_t *attr);

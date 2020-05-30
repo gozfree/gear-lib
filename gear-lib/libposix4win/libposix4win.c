@@ -28,6 +28,16 @@
 #include <windows.h>
 #define HAVE_WINRT 1
 
+typedef struct pthread_win_t {
+    DWORD tid;
+    HANDLE handle;
+    void *(*func)(void* arg);
+    void *arg;
+    void *ret;
+} pthread_win_t;
+
+static pthread_win_t g_pthread_tbl[1024];
+
 int access(const char *file, int mode)
 {
     int ret = 0;
@@ -45,7 +55,7 @@ int access(const char *file, int mode)
 
 static unsigned __stdcall __thread_func(void *arg)
 {
-    pthread_t *h = (pthread_t *)arg;
+    pthread_win_t *h = (pthread_win_t *)arg;
     h->ret = h->func(h->arg);
     return 0;
 }
@@ -53,21 +63,47 @@ static unsigned __stdcall __thread_func(void *arg)
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
                    void *(*start_routine)(void*), void *arg)
 {
-    thread->func   = start_routine;
-    thread->arg    = arg;
+    HANDLE handle;
+    int i;
+    int thread_max = sizeof(g_pthread_tbl)/sizeof(g_pthread_tbl[0]);
+    for (i = 0; i < thread_max; i++) {
+        if (g_pthread_tbl[i].handle == 0) {
+            g_pthread_tbl[i].func = start_routine;
+            g_pthread_tbl[i].arg = arg;
 #if HAVE_WINRT //WINRT
-    thread->handle = (void*)CreateThread(NULL, 0, __thread_func, thread,
-                                           0, NULL);
+            handle = CreateThread(NULL, 0, __thread_func, &g_pthread_tbl[i], 0, &g_pthread_tbl[i].tid);
 #else //CRT
-    thread->handle = (void*)_beginthreadex(NULL, 0, __thread_func, thread,
-                                           0, NULL);
+            handle = _beginthreadex(NULL, 0, __thread_func, &g_pthread_tbl[i], 0, &g_pthread_tbl[i].tid);
 #endif
-    return !thread->handle;
+            if (handle == NULL) {
+                return -1;
+            }
+            g_pthread_tbl[i].handle = handle;
+            break;
+        }
+    }
+    if (i == thread_max) {
+        printf("thread stack reach max, need increase!\n");
+        return -1;
+    }
+    return 0;
 }
 
-int pthread_join(pthread_t thread, void **retval)
+int pthread_join(pthread_t tid, void **retval)
 {
-    DWORD ret = WaitForSingleObject(thread.handle, INFINITE);
+    int i;
+    DWORD ret;
+    pthread_win_t *thread = NULL;
+    for (i = 0; i < sizeof(g_pthread_tbl)/sizeof(g_pthread_tbl[0]); i++) {
+        if (g_pthread_tbl[i].tid == tid) {
+            thread = &g_pthread_tbl[i];
+            break;
+        }
+    }
+    if (thread == NULL) {
+        return -1;
+    }
+    ret = WaitForSingleObject(thread->handle, INFINITE);
     if (ret != WAIT_OBJECT_0) {
         if (ret == WAIT_ABANDONED)
             return EINVAL;
@@ -75,9 +111,14 @@ int pthread_join(pthread_t thread, void **retval)
             return EDEADLK;
     }
     if (retval)
-        *retval = thread.ret;
-    CloseHandle(thread.handle);
+        *retval = thread->ret;
+    CloseHandle(thread->handle);
     return 0;
+}
+
+pthread_t pthread_self(void)
+{
+
 }
 
 int pthread_attr_init(pthread_attr_t *attr)
@@ -421,12 +462,12 @@ int get_nprocs()
     return si.dwNumberOfProcessors;
 }
 
-void *align_malloc(size_t size)
+void *align_malloc(size_t size, size_t align)
 {
     long diff;
-    void *ptr = malloc(size + ALIGNMENT);
+    void *ptr = malloc(size + align);
     if (ptr) {
-        diff = ((~(long)ptr) & (ALIGNMENT - 1)) + 1;
+        diff = ((~(long)ptr) & (align - 1)) + 1;
         ptr = (char *)ptr + diff;
         ((char *)ptr)[-1] = (char)diff;
     }
