@@ -1127,13 +1127,16 @@ static int dshow_stop_stream(struct uvc_ctx *uvc)
     return 0;
 }
 
+static int dshow_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
+{
+    return 0;
+}
+
 struct uvc_ops dshow_ops = {
     /*.open        = */ dshow_open,
     /*.close       = */ dshow_close,
-    /*.dequeue     = */ dshow_dequeue,
-    /*.enqueue     = */ dshow_enqueue,
     /*.ioctl       = */ dshow_ioctl,
-    /*.printf_info = */ NULL,
     /*.start_stream= */ dshow_start_stream,
     /*.stop_stream = */ dshow_stop_stream,
+    /*.query_frame = */ dshow_query_frame,
 };

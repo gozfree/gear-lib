@@ -67,7 +67,7 @@ CFLAGS	+= -I$(OUTPUT)/include
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lmedia-io
+LDFLAGS	+= -pthread -lmedia-io -lthread
 # -lv4l2
 
 ###############################################################################

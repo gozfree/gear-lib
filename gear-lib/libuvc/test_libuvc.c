@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
@@ -32,39 +33,43 @@
 #define VIDEO_HEIGHT    480
 #define OUTPUT_FILE     "uvc.yuv"
 
+static struct file *fp;
+
+static int on_frame(struct uvc_ctx *c, struct video_frame *frm)
+{
+    printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->frame_id, frm->total_size, frm->timestamp/1000000);
+    file_write(fp, frm->data[0], frm->total_size);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
-    int i = 0;
-    int size = 0;
-    struct file *fp;
     struct video_frame *frm;
-    struct uvc_ctx *uvc = uvc_open(VIDEO_DEV, VIDEO_WIDTH, VIDEO_HEIGHT);
+    struct uvc_config conf = {
+        .width  = VIDEO_WIDTH,
+        .height = VIDEO_HEIGHT,
+        .fps    = {30, 1},
+    };
+    struct uvc_ctx *uvc = uvc_open(VIDEO_DEV, &conf);
     if (!uvc) {
         printf("uvc_open failed!\n");
         return -1;
     }
-    frm = video_frame_create(uvc->format, uvc->width, uvc->height, VFC_NONE);
+    frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_NONE);
     if (!frm) {
         printf("video_frame_create failed!\n");
         uvc_close(uvc);
         return -1;
     }
-    printf("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->width, uvc->height,
-        uvc->fps_num, uvc->fps_den, pixel_format_name(uvc->format));
+    printf("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->conf.width, uvc->conf.height,
+        uvc->conf.fps.num, uvc->conf.fps.den, pixel_format_name(uvc->conf.format));
     //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open(OUTPUT_FILE, F_CREATE);
-    uvc_start_stream(uvc, NULL);
-    for (i = 0; i < 32; ++i) {
-        size = uvc_query_frame(uvc, frm);
-        if (size == -1) {
-            continue;
-        }
-        file_write(fp, frm->data[0], frm->total_size);
-        printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->frame_id, frm->total_size, frm->timestamp/1000000);
-    }
-    video_frame_destroy(frm);
-    file_close(fp);
+    uvc_start_stream(uvc, on_frame);
+    sleep(5);
     uvc_stop_stream(uvc);
+    file_close(fp);
+    video_frame_destroy(frm);
     uvc_close(uvc);
     printf("write %s fininshed!\n", OUTPUT_FILE);
     return 0;

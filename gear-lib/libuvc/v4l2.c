@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuvc.h"
+#include <gear-lib/libthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -30,6 +31,7 @@
 #include <stdarg.h>
 #include <sys/uio.h>
 #include <sys/mman.h>
+#include <sys/epoll.h>
 #include <linux/videodev2.h>
 
 /*
@@ -81,7 +83,6 @@ struct v4l2_ctx {
     uint32_t pixfmt;
     uint32_t linesize;
     int dv_timing;
-    char *name;
     uint32_t width;
     uint32_t height;
     uint32_t fps_num;
@@ -97,6 +98,10 @@ struct v4l2_ctx {
     uint32_t ctrl_flags;
     struct v4l2_queryctrl controls[MAX_V4L2_CID];
     struct uvc_ctx *parent;
+    struct thread *thread;
+    bool is_streaming;
+    int epfd;
+    struct epoll_event events;
 };
 
 static int uvc_v4l2_init(struct v4l2_ctx *c);
@@ -116,7 +121,7 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
     (((uint64_t)tv.tv_sec * 1000000000) + ((uint64_t)tv.tv_usec * 1000))
 
 
-static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, uint32_t height)
+static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf)
 {
     int fd = -1;
     struct v4l2_ctx *c = calloc(1, sizeof(struct v4l2_ctx));
@@ -155,16 +160,15 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
         printf("open %s failed: %d\n", dev, errno);
         goto failed;
     }
-    c->name = strdup(dev);
     c->fd = fd;
 
     c->channel = -1;
     c->standard = -1;
     c->dv_timing = -1;
-    c->width = width;
-    c->height = height;
-    c->fps_num = -1;//unlimit fps
-    c->fps_den = 1;
+    c->width = conf->width;
+    c->height = conf->height;
+    c->fps_num = conf->fps.num;//unlimit fps
+    c->fps_den = conf->fps.den;
     c->frame_id = 0;
 
     if (-1 == uvc_v4l2_init(c)) {
@@ -172,7 +176,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
         goto failed;
     }
 
-    if (uvc_v4l2_set_format(c->fd, &width, &height, &c->pixfmt, &c->linesize) < 0) {
+    if (uvc_v4l2_set_format(c->fd, &c->width, &c->height, &c->pixfmt, &c->linesize) < 0) {
         printf("uvc_v4l2_set_format failed\n");
         goto failed;
     }
@@ -187,11 +191,11 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
         goto failed;
     }
 
-    uvc->width = c->width;
-    uvc->height = c->height;
-    uvc->fps_num = c->fps_num;
-    uvc->fps_den = c->fps_den;
-    uvc->format = pixel_format_from_fourcc(c->pixfmt);
+    uvc->conf.width = c->width;
+    uvc->conf.height = c->height;
+    uvc->conf.fps.num = c->fps_num;
+    uvc->conf.fps.den = c->fps_den;
+    uvc->conf.format = pixel_format_from_fourcc(c->pixfmt);
     uvc->fd = fd;
     c->parent = uvc;
     return c;
@@ -199,9 +203,6 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, uint32_t width,
 failed:
     if (fd != -1) {
         v4l2_close(fd);
-    }
-    if (c->name) {
-        free(c->name);
     }
     if (c) {
         free(c);
@@ -355,91 +356,6 @@ static int uvc_v4l2_set_framerate(int fd, uint32_t *fps_num, uint32_t *fps_den)
     return 0;
 }
 
-static int uvc_v4l2_start_stream(struct uvc_ctx *uvc)
-{
-    enum v4l2_buf_type type;
-    struct v4l2_buffer enq;
-    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
-
-    memset(&enq, 0, sizeof(enq));
-    enq.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    enq.memory = V4L2_MEMORY_MMAP;
-
-    for (enq.index = 0; enq.index < c->req_count; ++enq.index) {
-        if (v4l2_ioctl(c->fd, VIDIOC_QBUF, &enq) < 0) {
-            printf("unable to queue buffer\n");
-            return -1;
-        }
-    }
-    c->qbuf_done = true;
-
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (v4l2_ioctl(c->fd, VIDIOC_STREAMON, &type) < 0) {
-        printf("unable to start stream\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
-{
-    int i;
-    enum v4l2_buf_type type;
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
-
-    if (v4l2_ioctl(c->fd, VIDIOC_STREAMOFF, &type) < 0) {
-        printf("%s ioctl(VIDIOC_STREAMOFF) failed: %d\n", __func__, errno);
-    }
-    for (i = 0; i < c->req_count; i++) {
-        v4l2_munmap(c->buf[i].iov_base, c->buf[i].iov_len);
-    }
-    return 0;
-}
-
-static int uvc_v4l2_create_mmap(struct v4l2_ctx *c)
-{
-    struct v4l2_buffer buf;
-    struct v4l2_requestbuffers req = {
-        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-        .count = MAX_V4L_REQBUF_CNT,
-        .memory = V4L2_MEMORY_MMAP
-    };
-    //request buffer
-    if (v4l2_ioctl(c->fd, VIDIOC_REQBUFS, &req) < 0) {
-        printf("%s ioctl(VIDIOC_REQBUFS) failed: %d\n", __func__, errno);
-        return -1;
-    }
-    c->req_count = req.count;
-    if (req.count > MAX_V4L_REQBUF_CNT || req.count < 2) {
-        printf("Insufficient buffer memory\n");
-        return -1;
-    }
-
-    memset(&buf, 0, sizeof(buf));
-    buf.type = req.type;
-    buf.memory = req.memory;
-
-    for (buf.index = 0; buf.index < c->req_count; ++buf.index) {
-        //query buffer
-        if (v4l2_ioctl(c->fd, VIDIOC_QUERYBUF, &buf) < 0) {
-            printf("%s ioctl(VIDIOC_QUERYBUF) failed: %d\n", __func__, errno);
-            return -1;
-        }
-        //mmap buffer
-        c->buf[buf.index].iov_len = buf.length;
-        c->buf[buf.index].iov_base =
-                v4l2_mmap(NULL, buf.length, PROT_READ|PROT_WRITE,
-                                MAP_SHARED, c->fd, buf.m.offset);
-        if (MAP_FAILED == c->buf[buf.index].iov_base) {
-            printf("mmap failed: %d\n", errno);
-            return -1;
-        }
-    }
-    return 0;
-}
-
 static int uvc_v4l2_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
 {
     struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
@@ -519,12 +435,208 @@ retry:
     return frame->total_size;
 }
 
+static int uvc_v4l2_poll_init(struct v4l2_ctx *c)
+{
+    struct epoll_event epev;
+    memset(&epev, 0, sizeof(epev));
+    c->epfd = epoll_create(1);
+    if (c->epfd == -1) {
+        printf("epoll_create failed %d!\n", errno);
+        return -1;
+    }
+
+    epev.events = EPOLLIN | EPOLLOUT | EPOLLPRI | EPOLLET | EPOLLERR;
+    epev.data.fd = c->fd;
+    epev.data.ptr = (void *)c;
+    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_ADD, c->fd, &epev)) {
+        printf("epoll_ctl EPOLL_CTL_ADD failed %d!\n", errno);
+        return -1;
+    }
+    return 0;
+}
+
+static int uvc_v4l2_poll(struct uvc_ctx *uvc, int timeout)
+{
+    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
+    int ret = 0;
+
+    int n = epoll_wait(c->epfd, &c->events, 1, timeout);
+    switch (n) {
+    case 0:
+        printf("poll timeout\n");
+        ret = -1;
+        break;
+    case -1:
+        printf("poll error %d\n", errno);
+        ret = -1;
+        break;
+    default:
+        ret = 0;
+        break;
+    }
+
+    return ret;
+}
+
+static void uvc_v4l2_poll_deinit(struct v4l2_ctx *c)
+{
+    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_DEL, c->fd, NULL)) {
+        printf("epoll_ctl EPOLL_CTL_DEL failed %d!\n", errno);
+    }
+    close(c->epfd);
+}
+
+static void *v4l2_thread(struct thread *t, void *arg)
+{
+    struct uvc_ctx *uvc = arg;
+    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
+    struct video_frame frame;
+
+    if (uvc_v4l2_poll_init(c) == -1) {
+        printf("uvc_v4l2_poll_init failed!\n");
+    }
+    video_frame_init(&frame, uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_NONE);
+    c->is_streaming = true;
+    while (c->is_streaming) {
+        if (uvc_v4l2_enqueue(uvc, NULL, 0) != 0) {
+            printf("uvc_v4l2_enqueue failed\n");
+            continue;
+        }
+        if (uvc_v4l2_poll(uvc, -1) != 0) {
+            printf("uvc_v4l2_poll failed\n");
+            continue;
+        }
+
+        if (uvc_v4l2_dequeue(uvc, &frame) == -1) {
+            printf("uvc_v4l2_dequeue failed\n");
+        }
+        uvc->on_video_frame(uvc, &frame);
+    }
+    uvc_v4l2_poll_deinit(c);
+    return NULL;
+}
+
+static int uvc_v4l2_start_stream(struct uvc_ctx *uvc)
+{
+    enum v4l2_buf_type type;
+    struct v4l2_buffer enq;
+    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
+
+    if (c->is_streaming) {
+        printf("v4l2 is streaming already!\n");
+        return -1;
+    }
+    memset(&enq, 0, sizeof(enq));
+    enq.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    enq.memory = V4L2_MEMORY_MMAP;
+
+    for (enq.index = 0; enq.index < c->req_count; ++enq.index) {
+        if (v4l2_ioctl(c->fd, VIDIOC_QBUF, &enq) < 0) {
+            printf("unable to queue buffer\n");
+            return -1;
+        }
+    }
+    c->qbuf_done = true;
+
+    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (v4l2_ioctl(c->fd, VIDIOC_STREAMON, &type) < 0) {
+        printf("unable to start stream\n");
+        return -1;
+    }
+
+    if (uvc->on_video_frame) {
+        c->thread = thread_create(v4l2_thread, uvc);
+    }
+
+    return 0;
+}
+
+static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
+{
+    int i;
+    enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
+
+    if (!c->is_streaming) {
+        printf("v4l2 stream stopped already!\n");
+        return -1;
+    }
+
+    if (uvc->on_video_frame) {
+        c->is_streaming = false;
+        thread_destroy(c->thread);
+    }
+
+    if (v4l2_ioctl(c->fd, VIDIOC_STREAMOFF, &type) < 0) {
+        printf("%s ioctl(VIDIOC_STREAMOFF) failed: %d\n", __func__, errno);
+    }
+    for (i = 0; i < c->req_count; i++) {
+        v4l2_munmap(c->buf[i].iov_base, c->buf[i].iov_len);
+    }
+    return 0;
+}
+
+static int uvc_v4l2_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
+{
+    if (uvc_v4l2_enqueue(uvc, NULL, 0) != 0) {
+        printf("uvc_v4l2_enqueue failed\n");
+        return -1;
+    }
+    if (uvc_v4l2_dequeue(uvc, frame) == -1) {
+        printf("uvc_v4l2_dequeue failed\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int uvc_v4l2_create_mmap(struct v4l2_ctx *c)
+{
+    struct v4l2_buffer buf;
+    struct v4l2_requestbuffers req = {
+        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+        .count = MAX_V4L_REQBUF_CNT,
+        .memory = V4L2_MEMORY_MMAP
+    };
+    //request buffer
+    if (v4l2_ioctl(c->fd, VIDIOC_REQBUFS, &req) < 0) {
+        printf("%s ioctl(VIDIOC_REQBUFS) failed: %d\n", __func__, errno);
+        return -1;
+    }
+    c->req_count = req.count;
+    if (req.count > MAX_V4L_REQBUF_CNT || req.count < 2) {
+        printf("Insufficient buffer memory\n");
+        return -1;
+    }
+
+    memset(&buf, 0, sizeof(buf));
+    buf.type = req.type;
+    buf.memory = req.memory;
+
+    for (buf.index = 0; buf.index < c->req_count; ++buf.index) {
+        //query buffer
+        if (v4l2_ioctl(c->fd, VIDIOC_QUERYBUF, &buf) < 0) {
+            printf("%s ioctl(VIDIOC_QUERYBUF) failed: %d\n", __func__, errno);
+            return -1;
+        }
+        //mmap buffer
+        c->buf[buf.index].iov_len = buf.length;
+        c->buf[buf.index].iov_base =
+                v4l2_mmap(NULL, buf.length, PROT_READ|PROT_WRITE,
+                                MAP_SHARED, c->fd, buf.m.offset);
+        if (MAP_FAILED == c->buf[buf.index].iov_base) {
+            printf("mmap failed: %d\n", errno);
+            return -1;
+        }
+    }
+    return 0;
+}
+
 static void uvc_v4l2_close(struct uvc_ctx *uvc)
 {
     struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
     uvc_v4l2_stop_stream(uvc);
-    free(c->name);
     v4l2_close(c->fd);
+    close(c->epfd);
     free(c);
 }
 
@@ -681,9 +793,8 @@ static int uvc_v4l2_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 struct uvc_ops v4l2_ops = {
     .open         = uvc_v4l2_open,
     .close        = uvc_v4l2_close,
-    .dequeue      = uvc_v4l2_dequeue,
-    .enqueue      = uvc_v4l2_enqueue,
     .ioctl        = uvc_v4l2_ioctl,
     .start_stream = uvc_v4l2_start_stream,
     .stop_stream  = uvc_v4l2_stop_stream,
+    .query_frame  = uvc_v4l2_query_frame,
 };
