@@ -32,6 +32,7 @@ static int foo()
         printf("uac_open failed!\n");
         return -1;
     }
+    uac_start_stream(uac, NULL);
 
     return 0;
 }

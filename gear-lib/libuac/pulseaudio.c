@@ -41,6 +41,9 @@ struct pulse_ctx {
     pa_threaded_mainloop *mainloop;
     pa_context           *ctx;
     pa_context_state_t    state;
+    pa_sample_spec        sample_spec;
+    pa_channel_map        channel_map;
+    pa_stream            *stream_record;
 };
 
 #define timeval2ns(tv) \
@@ -106,8 +109,49 @@ static void pa_server_info_cb(pa_context *ctx, const pa_server_info *info, void 
     printf("         Sample Size: %lu\n",  pa_sample_size(&info->sample_spec));
     printf(" ChannelMap Channels: %hhu\n", info->channel_map.channels);
 
+    memcpy(&c->channel_map, &info->channel_map, sizeof(pa_channel_map));
+    pa_channel_map_init_stereo(&c->channel_map);
     pa_threaded_mainloop_signal(c->mainloop, 0);
 }
+
+static void pa_source_info_list_cb(pa_context *ctx, const pa_source_info *info,
+                                         int eol, void *data)
+{
+    struct pulse_ctx *c = data;
+
+    if (c->ctx != ctx) {
+        printf("c->ctx=%p, ctx=%p\n", c->ctx, ctx);
+        return;
+    }
+    if (!eol) {
+        printf("========pulse audio source info list========\n");
+        printf("       Source Index: %u\n", info->index);
+        printf("        Source Name: %s\n", info->name);
+        printf(" Source Description: %s\n", info->description);
+        printf("      Source Driver: %s\n", info->driver);
+    }
+    pa_threaded_mainloop_signal(c->mainloop, 0);
+}
+
+static void pa_sink_info_list_cb(pa_context *ctx, const pa_sink_info *info,
+                                         int eol, void *data)
+{
+    struct pulse_ctx *c = data;
+
+    if (c->ctx != ctx) {
+        printf("c->ctx=%p, ctx=%p\n", c->ctx, ctx);
+        return;
+    }
+    if (!eol) {
+        printf("========pulse audio sink info list========\n");
+        printf("       Sink Index: %u\n", info->index);
+        printf("        Sink Name: %s\n", info->name);
+        printf(" Sink Description: %s\n", info->description);
+        printf("      Sink Driver: %s\n", info->driver);
+    }
+    pa_threaded_mainloop_signal(c->mainloop, 0);
+}
+
 
 static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config *conf)
 {
@@ -144,20 +188,44 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
     pa_context_set_state_callback(c->ctx, NULL, c);
 
 
-    pa_operation *op = NULL;
+    pa_operation *pa_op = NULL;
     pa_operation_state_t op_state;
 
     pa_threaded_mainloop_lock(c->mainloop);
-    op = pa_context_get_server_info(c->ctx, pa_server_info_cb, c);
-    while ((op_state = pa_operation_get_state(op)) != PA_OPERATION_DONE) {
+    pa_op = pa_context_get_server_info(c->ctx, pa_server_info_cb, c);
+    while ((op_state = pa_operation_get_state(pa_op)) != PA_OPERATION_DONE) {
         if (op_state == PA_OPERATION_CANCELLED) {
             printf("Get server info operation cancelled!");
             break;
         }
-        printf("%s:%d xxxx\n", __func__, __LINE__);
         pa_threaded_mainloop_wait(c->mainloop);
       }
-    pa_operation_unref(op);
+    pa_operation_unref(pa_op);
+    pa_threaded_mainloop_unlock(c->mainloop);
+
+    pa_threaded_mainloop_lock(c->mainloop);
+    pa_op = pa_context_get_sink_info_list(c->ctx, pa_sink_info_list_cb, c);
+    while ((op_state = pa_operation_get_state(pa_op)) != PA_OPERATION_DONE) {
+        if (op_state == PA_OPERATION_CANCELLED) {
+            printf("Getting source information operation is cancelled!");
+            break;
+        }
+        pa_threaded_mainloop_wait(c->mainloop);
+    }
+    pa_operation_unref(pa_op);
+    pa_threaded_mainloop_unlock(c->mainloop);
+
+
+    pa_threaded_mainloop_lock(c->mainloop);
+    pa_op = pa_context_get_source_info_list(c->ctx, pa_source_info_list_cb, c);
+    while ((op_state = pa_operation_get_state(pa_op)) != PA_OPERATION_DONE) {
+        if (op_state == PA_OPERATION_CANCELLED) {
+            printf("Getting source information operation is cancelled!");
+            break;
+        }
+        pa_threaded_mainloop_wait(c->mainloop);
+    }
+    pa_operation_unref(pa_op);
     pa_threaded_mainloop_unlock(c->mainloop);
 
     c->parent = uac;
@@ -165,8 +233,27 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
     return c;
 }
 
+static void pa_read_cb(pa_stream *stream, size_t bytes, void *data)
+{
+    printf("%s:%d xxxx\n", __func__, __LINE__);
+
+}
+
+static void pa_overflow_cb(pa_stream *stream, void *data)
+{
+    printf("%s:%d xxxx\n", __func__, __LINE__);
+
+}
+
 static int uac_pa_start_stream(struct uac_ctx *uac)
 {
+    struct pulse_ctx *c = (struct pulse_ctx *)uac->opaque;
+
+    c->stream_record = pa_stream_new(c->ctx, NULL, &c->sample_spec, &c->channel_map);
+
+    pa_stream_set_read_callback(c->stream_record, pa_read_cb, c);
+    pa_stream_set_overflow_callback(c->stream_record, pa_overflow_cb, c);
+    //pa_stream_set_state_callback(c->stream_record, pa_stream_state_cb, c);
     return 0;
 }
 
