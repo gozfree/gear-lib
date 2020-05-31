@@ -40,10 +40,11 @@ struct pulse_ctx {
     bool is_streaming;
     pa_threaded_mainloop *mainloop;
     pa_context           *ctx;
+    pa_stream            *stream;
     pa_context_state_t    state;
+    pa_stream_state_t     stream_state;
     pa_sample_spec        sample_spec;
     pa_channel_map        channel_map;
-    pa_stream            *stream_record;
 };
 
 #define timeval2ns(tv) \
@@ -236,24 +237,82 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
 static void pa_read_cb(pa_stream *stream, size_t bytes, void *data)
 {
     printf("%s:%d xxxx\n", __func__, __LINE__);
-
 }
 
 static void pa_overflow_cb(pa_stream *stream, void *data)
 {
     printf("%s:%d xxxx\n", __func__, __LINE__);
+}
 
+static void pa_underflow_cb(pa_stream *stream, void *data)
+{
+    printf("%s:%d xxxx\n", __func__, __LINE__);
+}
+
+static void stream_state_cb(pa_stream *ctx, void * userdata)
+{
+    struct pulse_ctx *c = userdata;
+
+    if (c->stream != ctx) {
+        printf("c->ctx=%p, ctx=%p\n", c->stream, ctx);
+        return;
+    }
+
+    printf("%s:%d xxxx\n", __func__, __LINE__);
+    switch (pa_stream_get_state(ctx)) {
+        case PA_STREAM_CREATING:
+        case PA_STREAM_UNCONNECTED:
+            break;
+        case PA_STREAM_READY:
+        case PA_STREAM_FAILED:
+        case PA_STREAM_TERMINATED:
+            pa_threaded_mainloop_signal(c->mainloop, 0);
+            break;
+    }
 }
 
 static int uac_pa_start_stream(struct uac_ctx *uac)
 {
     struct pulse_ctx *c = (struct pulse_ctx *)uac->opaque;
+    int ret;
+    pa_buffer_attr attr = { -1 };
 
-    c->stream_record = pa_stream_new(c->ctx, NULL, &c->sample_spec, &c->channel_map);
+    c->sample_spec.format = PA_SAMPLE_ALAW;
+    c->sample_spec.rate  = 48000;
+    c->sample_spec.channels = 2;
+    pa_channel_map_init_extend(&c->channel_map, 2, PA_CHANNEL_MAP_WAVEEX);
 
-    pa_stream_set_read_callback(c->stream_record, pa_read_cb, c);
-    pa_stream_set_overflow_callback(c->stream_record, pa_overflow_cb, c);
-    //pa_stream_set_state_callback(c->stream_record, pa_stream_state_cb, c);
+    c->stream = pa_stream_new(c->ctx, "record", &c->sample_spec, &c->channel_map);
+    if (!c->stream) {
+        printf("pa_stream_new failed!\n");
+    }
+
+    pa_stream_set_state_callback(c->stream, stream_state_cb, c);
+    pa_stream_set_read_callback(c->stream, pa_read_cb, c);
+    pa_stream_set_overflow_callback(c->stream, pa_overflow_cb, c);
+    pa_stream_set_underflow_callback(c->stream, pa_underflow_cb, c);
+
+    //attr.fragsize = pd->fragment_size;
+    ret = pa_stream_connect_record(c->stream, "default", &attr,
+                                   PA_STREAM_INTERPOLATE_TIMING
+                                   |PA_STREAM_ADJUST_LATENCY
+                                   |PA_STREAM_AUTO_TIMING_UPDATE);
+
+    if (ret < 0) {
+        printf("pa_stream_connect_record failed %d", pa_context_errno(c->ctx));
+    }
+
+    pa_threaded_mainloop_lock(c->mainloop);
+    while ((c->stream_state = pa_stream_get_state(c->stream)) != PA_STREAM_READY) {
+        if (c->stream_state == PA_STREAM_FAILED ||
+            c->stream_state == PA_STREAM_TERMINATED) {
+            printf("%s:%d xxxx\n", __func__, __LINE__);
+            break;
+        }
+            printf("%s:%d xxxx\n", __func__, __LINE__);
+        pa_threaded_mainloop_wait(c->mainloop);
+    }
+    pa_threaded_mainloop_unlock(c->mainloop);
     return 0;
 }
 
