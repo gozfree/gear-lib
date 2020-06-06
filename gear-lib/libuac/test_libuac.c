@@ -22,6 +22,7 @@
 #include "libuac.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 static int foo()
 {
@@ -33,6 +34,9 @@ static int foo()
         return -1;
     }
     uac_start_stream(uac, NULL);
+    while (1) {
+        sleep(10);
+    }
 
     return 0;
 }

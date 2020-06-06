@@ -58,8 +58,9 @@ enum sample_format {
 
 struct audio_frame {
     uint8_t           *data[AUDIO_MAX_CHANNELS];
-    uint32_t           linesize[AUDIO_MAX_CHANNELS];
+    uint32_t           frames;
     enum sample_format format;
+    uint32_t           samples_per_sec;
     int                nb_samples;
     uint64_t           timestamp;//ns
     uint64_t           total_size;
@@ -75,11 +76,6 @@ enum audio_codec_format {
 
     AUDIO_CODEC_CNT,
 };
-
-typedef struct rational {
-    int num;
-    int den;
-} rational_t;
 
 /**
  * This structure describe encoder attribute

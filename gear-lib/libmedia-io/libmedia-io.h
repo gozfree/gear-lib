@@ -29,6 +29,11 @@
 extern "C" {
 #endif
 
+typedef struct rational {
+    int num;
+    int den;
+} rational_t;
+
 #include "audio-def.h"
 #include "video-def.h"
 
