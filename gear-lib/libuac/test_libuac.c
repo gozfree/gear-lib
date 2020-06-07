@@ -23,6 +23,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
+static int on_frame(struct uac_ctx *c, struct audio_frame *frm)
+{
+    printf("frm[%" PRIu64 "] cnt=%d size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->frame_id, frm->frames, frm->total_size, frm->timestamp/1000000);
+    //file_write(fp, frm->data[0], frm->total_size);
+    return 0;
+}
 
 static int foo()
 {
@@ -33,7 +42,7 @@ static int foo()
         printf("uac_open failed!\n");
         return -1;
     }
-    uac_start_stream(uac, NULL);
+    uac_start_stream(uac, on_frame);
     while (1) {
         sleep(10);
     }

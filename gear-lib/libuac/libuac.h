@@ -36,6 +36,10 @@ struct uac_ops;
 typedef int (audio_frame_cb)(struct uac_ctx *c, struct audio_frame *frame);
 
 struct uac_config {
+    enum sample_format format;
+    uint32_t           sample_rate;
+    uint8_t            channels;
+    const char        *device;
 };
 
 struct uac_ctx {

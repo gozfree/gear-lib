@@ -46,10 +46,17 @@ enum speaker_layout {
 };
 
 struct pulse_ctx {
-    int fd;
-    struct uac_ctx *parent;
-    bool is_streaming;
-    const char *device;
+    int                   fd;
+    struct uac_ctx       *parent;
+    bool                  is_streaming;
+    const char           *device;
+    uint64_t              frame_id;
+    pa_sample_format_t    format;
+    uint32_t              sample_rate;
+    uint32_t              bytes_per_frame;
+    uint8_t               channels;
+    uint64_t              first_ts;
+    enum speaker_layout   speakers;
 
     /* pulseaudio defination */
     pa_threaded_mainloop *pa_mainloop;
@@ -59,44 +66,33 @@ struct pulse_ctx {
     pa_stream_state_t     pa_stream_state;
     pa_sample_spec        pa_sample_spec;
     pa_channel_map        pa_channel_map;
-
     pa_server_info        pa_server_info;
-    /* server info */
-    pa_sample_format_t format;
-    uint32_t samples_per_sec;
-    uint32_t bytes_per_frame;
-    uint8_t channels;
-    uint64_t first_ts;
-    enum speaker_layout speakers;
 };
 
 #define NSEC_PER_SEC 1000000000LL
 #define NSEC_PER_MSEC 1000000L
 
-uint64_t os_gettime_ns(void)
-{
-	struct timespec ts;
-	clock_gettime(CLOCK_MONOTONIC, &ts);
-	return ((uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec);
-}
-static inline uint64_t samples_to_ns(size_t frames, uint32_t rate)
+#define timespec2ns(tv) \
+    (((uint64_t)tv.tv_sec * 1000000000UL) + ((uint64_t)tv.tv_nsec))
+
+static uint64_t samples_to_ns(size_t frames, uint32_t rate)
 {
     return frames * NSEC_PER_SEC / rate;
 }
 
-static inline uint64_t get_sample_time(size_t frames, uint_fast32_t rate)
+static inline uint64_t get_sample_time(size_t frames, uint32_t rate)
 {
-    return os_gettime_ns() - samples_to_ns(frames, rate);
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return timespec2ns(ts) - samples_to_ns(frames, rate);
 }
 
 static pa_proplist *pulse_properties()
 {
     pa_proplist *p = pa_proplist_new();
-
     pa_proplist_sets(p, PA_PROP_APPLICATION_NAME, "libuac");
     pa_proplist_sets(p, PA_PROP_APPLICATION_ICON_NAME, "libuac");
     pa_proplist_sets(p, PA_PROP_MEDIA_ROLE, "production");
-
     return p;
 }
 
@@ -114,15 +110,27 @@ static int pulse_context_ready(struct pulse_ctx *c)
     return 0;
 }
 
+static int pulse_stream_ready(struct pulse_ctx *c)
+{
+    pa_threaded_mainloop_lock(c->pa_mainloop);
+    if (!PA_STREAM_IS_GOOD(pa_stream_get_state(c->pa_stream))) {
+        pa_threaded_mainloop_unlock(c->pa_mainloop);
+        return -1;
+    }
+    while (pa_stream_get_state(c->pa_stream) != PA_STREAM_READY) {
+        pa_threaded_mainloop_wait(c->pa_mainloop);
+    }
+    pa_threaded_mainloop_unlock(c->pa_mainloop);
+    return 0;
+}
+
 static void pulse_state_cb(pa_context *pc, void *arg)
 {
     struct pulse_ctx *c = arg;
-
     if (c->pa_ctx != pc) {
         printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
         return;
     }
-
     switch (pa_context_get_state(pc)) {
         case PA_CONTEXT_UNCONNECTED:
             break;
@@ -148,7 +156,6 @@ static void pulse_state_cb(pa_context *pc, void *arg)
 static void server_info_cb(pa_context *pc, const pa_server_info *info, void *arg)
 {
     struct pulse_ctx *c = arg;
-
     if (c->pa_ctx != pc) {
         printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
         return;
@@ -171,7 +178,6 @@ static void server_info_cb(pa_context *pc, const pa_server_info *info, void *arg
     c->device = strdup(info->default_source_name);
 
     memcpy(&c->pa_channel_map, &info->channel_map, sizeof(pa_channel_map));
-    //pa_channel_map_init_stereo(&c->pa_channel_map);
     pa_threaded_mainloop_signal(c->pa_mainloop, 0);
 }
 
@@ -262,7 +268,7 @@ static void source_info_cb(pa_context *pc, const pa_source_info *info,
     }
 
     c->format = format;
-    c->samples_per_sec = info->sample_spec.rate;
+    c->sample_rate = info->sample_spec.rate;
     c->channels = channels;
     c->speakers = speakers;
 
@@ -422,6 +428,8 @@ exit:
 static void read_cb(pa_stream *ps, size_t bytes, void *arg)
 {
     struct pulse_ctx *c = arg;
+    struct uac_ctx *uac = c->parent;
+    struct audio_frame frame;
 
     const void *frames;
     size_t nbytes;
@@ -439,23 +447,21 @@ static void read_cb(pa_stream *ps, size_t bytes, void *arg)
             goto exit;
     }
 
-    struct audio_frame out;
-    //out.speakers = c->speakers;
-    out.samples_per_sec = c->samples_per_sec;
-    out.format = pulse_to_sample_format(c->format);
-    out.data[0] = (uint8_t *)frames;
-    out.frames = nbytes / c->bytes_per_frame;
-    out.timestamp = get_sample_time(out.frames, out.samples_per_sec);
-    printf("%s:%d xxxx bytes=%zu, nbytes=%zu, ts=%zu\n", __func__, __LINE__, bytes, nbytes, out.timestamp);
+    frame.sample_rate = c->sample_rate;
+    frame.format = pulse_to_sample_format(c->format);
+    frame.data[0] = (uint8_t *)frames;
+    frame.total_size = nbytes;
+    frame.frames = nbytes / c->bytes_per_frame;
+    frame.timestamp = get_sample_time(frame.frames, frame.sample_rate);
 
-//    if (!data->first_ts)
-//            data->first_ts = out.timestamp + STARTUP_TIMEOUT_NS;
+    if (c->frame_id == 0) {
+        c->first_ts = frame.timestamp;
+    }
+    frame.timestamp -= c->first_ts;
+    frame.frame_id = c->frame_id;
+    c->frame_id++;
 
-//    if (out.timestamp > data->first_ts)
-//            source_output_audio(data->source, &out);
-
-//    data->packets++;
-//    data->frames += out.frames;
+    uac->on_audio_frame(uac, &frame);
 
     pa_stream_drop(ps);
 exit:
@@ -489,22 +495,16 @@ static void stream_state_cb(pa_stream *pa_ctx, void *arg)
         printf("c->pa_ctx=%p, pa_ctx=%p\n", c->pa_stream, pa_ctx);
         return;
     }
-
     switch (pa_stream_get_state(pa_ctx)) {
         case PA_STREAM_CREATING:
-            printf("%s:%d PA_STREAM_CREATING\n", __func__, __LINE__);
             break;
         case PA_STREAM_UNCONNECTED:
-            printf("%s:%d PA_STREAM_UNCONNECTED\n", __func__, __LINE__);
             break;
         case PA_STREAM_READY:
-            printf("%s:%d PA_STREAM_READY\n", __func__, __LINE__);
             break;
         case PA_STREAM_FAILED:
-            printf("%s:%d PA_STREAM_FAILED %s\n", __func__, __LINE__, pa_strerror(pa_context_errno(c->pa_ctx)));
             break;
         case PA_STREAM_TERMINATED:
-            printf("%s:%d PA_STREAM_UNCONNECTED\n", __func__, __LINE__);
             break;
     }
     pa_threaded_mainloop_signal(c->pa_mainloop, 0);
@@ -555,7 +555,6 @@ static int pulse_channel_map(pa_channel_map *pm, enum speaker_layout speakers)
     return 0;
 }
 
-
 static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config *conf)
 {
     struct pulse_ctx *c = calloc(1, sizeof(struct pulse_ctx));
@@ -594,7 +593,12 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
     pulse_get_sink_list(c);
     pulse_get_source_list(c);
 
+    uac->conf.sample_rate = c->sample_rate;
+    uac->conf.channels = c->channels;
+    uac->conf.format = pulse_to_sample_format(c->format);
+
     c->parent = uac;
+    c->frame_id = 0;
 
     return c;
 
@@ -611,10 +615,10 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
     int ret;
     pa_buffer_attr attr = { -1 };
 
-    pulse_get_source_info(c, c->pa_server_info.default_source_name);
+    pulse_get_source_info(c, c->device);
 
     c->pa_sample_spec.format = c->format;
-    c->pa_sample_spec.rate  = c->samples_per_sec;
+    c->pa_sample_spec.rate  = c->sample_rate;
     c->pa_sample_spec.channels = c->channels;
 
     if (!pa_sample_spec_valid(&c->pa_sample_spec)) {
@@ -625,7 +629,7 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
     c->bytes_per_frame = pa_frame_size(&c->pa_sample_spec);
 
     pulse_channel_map(&c->pa_channel_map, c->speakers);
-    printf("pa_stream_new %s\n", c->device);
+
     pa_proplist *p = pulse_properties();
 
     c->pa_stream = pa_stream_new_with_proplist(c->pa_ctx, c->device, &c->pa_sample_spec, &c->pa_channel_map, p);
@@ -633,7 +637,6 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
         printf("pa_stream_new failed!\n");
     }
 
-    printf("c=%p\n", c);
     pa_threaded_mainloop_lock(c->pa_mainloop);
     pa_stream_set_read_callback(c->pa_stream, read_cb, c);
     pa_stream_set_write_callback(c->pa_stream, write_cb, c);
@@ -649,7 +652,6 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
     attr.prebuf = (uint32_t)-1;
     attr.tlength = (uint32_t)-1;
 
-    printf("gggxxx %s\n", pa_context_get_server(c->pa_ctx));
     pa_stream_flags_t flags = PA_STREAM_INTERPOLATE_TIMING
                             | PA_STREAM_ADJUST_LATENCY
                             | PA_STREAM_AUTO_TIMING_UPDATE;
@@ -660,18 +662,10 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
     if (ret < 0) {
         printf("pa_stream_connect_record failed %d", pa_context_errno(c->pa_ctx));
     }
-
-    pa_threaded_mainloop_lock(c->pa_mainloop);
-    while ((c->pa_stream_state = pa_stream_get_state(c->pa_stream)) != PA_STREAM_READY) {
-        if (c->pa_stream_state == PA_STREAM_FAILED ||
-            c->pa_stream_state == PA_STREAM_TERMINATED) {
-            printf("%s:%d xxxx\n", __func__, __LINE__);
-            break;
-        }
-            printf("%s:%d xxxx\n", __func__, __LINE__);
-        pa_threaded_mainloop_wait(c->pa_mainloop);
+    if (pulse_stream_ready(c) == -1) {
+        printf("pulse_context not ready\n");
+        return -1;
     }
-    pa_threaded_mainloop_unlock(c->pa_mainloop);
     return 0;
 }
 
