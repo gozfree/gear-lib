@@ -25,6 +25,27 @@
 #include <string.h>
 #include <malloc.h>
 
+const char *sample_format_name(enum sample_format format)
+{
+    switch (format) {
+    case SAMPLE_FORMAT_U8BIT:
+        return "u8";
+    case SAMPLE_FORMAT_16BIT:
+        return "s16le";
+    case SAMPLE_FORMAT_32BIT:
+        return "s32le";
+    case SAMPLE_FORMAT_FLOAT:
+        return "f32le";
+    case SAMPLE_FORMAT_U8BIT_PLANAR:
+    case SAMPLE_FORMAT_16BIT_PLANAR:
+    case SAMPLE_FORMAT_32BIT_PLANAR:
+    case SAMPLE_FORMAT_FLOAT_PLANAR:
+    case SAMPLE_FORMAT_UNKNOWN:
+    case SAMPLE_FORMAT_CNT:;
+    }
+
+    return "None";
+}
 
 struct audio_packet *audio_packet_create(void *data, size_t len)
 {

@@ -128,7 +128,7 @@ static void pulse_state_cb(pa_context *pc, void *arg)
 {
     struct pulse_ctx *c = arg;
     if (c->pa_ctx != pc) {
-        printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
+        printf("%s: c->pa_ctx=%p, pc=%p\n", __func__, c->pa_ctx, pc);
         return;
     }
     switch (pa_context_get_state(pc)) {
@@ -157,10 +157,10 @@ static void server_info_cb(pa_context *pc, const pa_server_info *info, void *arg
 {
     struct pulse_ctx *c = arg;
     if (c->pa_ctx != pc) {
-        printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
+        printf("%s: c->pa_ctx=%p, pc=%p\n", __func__, c->pa_ctx, pc);
         return;
     }
-#if 1
+#if 0
     printf("========pulse audio information========\n");
     printf("      Server Version: %s\n",   info->server_version);
     printf("         Server Name: %s\n",   info->server_name);
@@ -187,7 +187,7 @@ static void source_info_list_cb(pa_context *pc, const pa_source_info *info,
     struct pulse_ctx *c = arg;
 
     if (c->pa_ctx != pc) {
-        printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
+        printf("%s: c->pa_ctx=%p, pc=%p\n", __func__, c->pa_ctx, pc);
         return;
     }
 #if 0
@@ -245,7 +245,7 @@ static void source_info_cb(pa_context *pc, const pa_source_info *info,
 {
     struct pulse_ctx *c = arg;
     if (c->pa_ctx != pc) {
-        printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
+        printf("%s: c->pa_ctx=%p, pc=%p\n", __func__, c->pa_ctx, pc);
         return;
     }
     if (eol != 0) {
@@ -282,7 +282,7 @@ static void sink_info_list_cb(pa_context *pc, const pa_sink_info *info,
     struct pulse_ctx *c = arg;
 
     if (c->pa_ctx != pc) {
-        printf("c->pa_ctx=%p, pc=%p\n", c->pa_ctx, pc);
+        printf("%s: c->pa_ctx=%p, pc=%p\n", __func__, c->pa_ctx, pc);
         return;
     }
 #if 0
@@ -435,7 +435,7 @@ static void read_cb(pa_stream *ps, size_t bytes, void *arg)
     size_t nbytes;
 
     if (c->pa_stream != ps) {
-        printf("c->pa_ctx=%p, ps=%p\n", c->pa_stream, ps);
+        printf("%s: c->pa_ctx=%p, ps=%p\n", __func__, c->pa_ctx, ps);
         return;
     }
     pa_stream_peek(ps, &frames, &nbytes);
@@ -488,14 +488,14 @@ static void stream_latency_update_cb(pa_stream *s, void *arg)
     printf("%s:%d xxxx\n", __func__, __LINE__);
 }
 
-static void stream_state_cb(pa_stream *pa_ctx, void *arg)
+static void stream_state_cb(pa_stream *ps, void *arg)
 {
     struct pulse_ctx *c = arg;
-    if (c->pa_stream != pa_ctx) {
-        printf("c->pa_ctx=%p, pa_ctx=%p\n", c->pa_stream, pa_ctx);
+    if (c->pa_stream != ps) {
+        printf("%s: c->pa_ctx=%p, ps=%p\n", __func__, c->pa_ctx, ps);
         return;
     }
-    switch (pa_stream_get_state(pa_ctx)) {
+    switch (pa_stream_get_state(ps)) {
         case PA_STREAM_CREATING:
             break;
         case PA_STREAM_UNCONNECTED:
@@ -582,7 +582,6 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
         pa_threaded_mainloop_wait(c->pa_mainloop);
     }
     pa_threaded_mainloop_unlock(c->pa_mainloop);
-    //pa_context_set_state_callback(c->pa_ctx, NULL, c);
 
     if (c->pa_state != PA_CONTEXT_READY) {
         printf("pa_context_state is not ready!\n");
@@ -593,9 +592,10 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
     pulse_get_sink_list(c);
     pulse_get_source_list(c);
 
-    uac->conf.sample_rate = c->sample_rate;
-    uac->conf.channels = c->channels;
-    uac->conf.format = pulse_to_sample_format(c->format);
+    uac->conf.sample_rate = c->pa_server_info.sample_spec.rate;
+    uac->conf.channels = c->pa_server_info.sample_spec.channels;
+    uac->conf.format = pulse_to_sample_format(c->pa_server_info.sample_spec.format);
+    uac->conf.device = strdup(c->device);
 
     c->parent = uac;
     c->frame_id = 0;
@@ -603,7 +603,6 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
     return c;
 
 failed:
-
     pa_threaded_mainloop_stop(c->pa_mainloop);
     free(c);
     return NULL;
@@ -627,6 +626,10 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
     }
 
     c->bytes_per_frame = pa_frame_size(&c->pa_sample_spec);
+    if (c->bytes_per_frame == 0) {
+        printf("pa_frame_size cannot be zero!\n");
+        return -1;
+    }
 
     pulse_channel_map(&c->pa_channel_map, c->speakers);
 
@@ -671,16 +674,37 @@ static int uac_pa_start_stream(struct uac_ctx *uac)
 
 static int uac_pa_stop_stream(struct uac_ctx *uac)
 {
-   return 0;
+    struct pulse_ctx *c = (struct pulse_ctx *)uac->opaque;
+
+    pa_threaded_mainloop_lock(c->pa_mainloop);
+    pa_stream_set_state_callback(c->pa_stream, NULL, NULL);
+    pa_stream_disconnect(c->pa_stream);
+    pa_stream_unref(c->pa_stream);
+    c->pa_stream = NULL;
+    pa_threaded_mainloop_unlock(c->pa_mainloop);
+
+    return 0;
 }
 
 static int uac_pa_query_frame(struct uac_ctx *uac, struct audio_frame *frame)
 {
+    printf("%s not support\n", __func__);
     return 0;
 }
 
 static void uac_pa_close(struct uac_ctx *uac)
 {
+    struct pulse_ctx *c = (struct pulse_ctx *)uac->opaque;
+
+    pa_threaded_mainloop_lock(c->pa_mainloop);
+    pa_context_set_state_callback(c->pa_ctx, NULL, NULL);
+    pa_context_disconnect(c->pa_ctx);
+    pa_context_unref(c->pa_ctx);
+    pa_threaded_mainloop_unlock(c->pa_mainloop);
+
+    pa_threaded_mainloop_stop(c->pa_mainloop);
+    pa_threaded_mainloop_free(c->pa_mainloop);
+    free(c);
 }
 
 struct uac_ops pa_ops = {

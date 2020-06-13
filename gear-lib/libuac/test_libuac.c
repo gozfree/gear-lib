@@ -20,32 +20,48 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuac.h"
+#include <gear-lib/libfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
+#define OUTPUT_FILE     "uac.pcm"
+
+static struct file *fp;
+
 static int on_frame(struct uac_ctx *c, struct audio_frame *frm)
 {
-    printf("frm[%" PRIu64 "] cnt=%d size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->frame_id, frm->frames, frm->total_size, frm->timestamp/1000000);
-    //file_write(fp, frm->data[0], frm->total_size);
+    printf("frm[%" PRIu64 "] cnt=%d size=%" PRIu64 ", ts=%" PRIu64 " ms\n",
+           frm->frame_id, frm->frames, frm->total_size, frm->timestamp/1000000);
+    file_write(fp, frm->data[0], frm->total_size);
     return 0;
 }
 
 static int foo()
 {
     struct uac_config conf = {
+        .format = SAMPLE_FORMAT_16BIT,
+        .sample_rate = 44100,
+        .channels = 2,
     };
     struct uac_ctx *uac = uac_open("xxx", &conf);
     if (!uac) {
         printf("uac_open failed!\n");
         return -1;
     }
+    printf("sample_rate: %d\n", uac->conf.sample_rate);
+    printf("    channel: %d\n", uac->conf.channels);
+    printf("     format: %s\n", sample_format_name(uac->conf.format));
+    printf("     device: %s\n", uac->conf.device);
+    fp = file_open(OUTPUT_FILE, F_CREATE);
     uac_start_stream(uac, on_frame);
-    while (1) {
-        sleep(10);
-    }
+    sleep(5);
+    uac_stop_stream(uac);
+    file_close(fp);
+    uac_close(uac);
+    printf("write %s fininshed!\n", OUTPUT_FILE);
 
     return 0;
 }

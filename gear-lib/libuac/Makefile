@@ -55,13 +55,19 @@ else
 CFLAGS  := -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
+ifeq ($(OUTPUT),/usr/local)
+OUTLIBPATH :=/usr/local
+else
+OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
+endif
+
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lpulse
+LDFLAGS	+= -pthread -lpulse -lmedia-io
 
 ###############################################################################
 # target
@@ -88,7 +94,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib/gear-lib -lfile -llog
 
 clean:
 	$(RM_V) -f $(OBJS)

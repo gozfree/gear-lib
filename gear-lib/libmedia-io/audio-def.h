@@ -66,6 +66,8 @@ struct audio_frame {
     uint64_t           total_size;
 };
 
+const char *sample_format_name(enum sample_format format);
+
 /******************************************************************************
  * compressed audio define
  ******************************************************************************/
