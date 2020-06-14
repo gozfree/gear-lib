@@ -28,23 +28,44 @@
 const char *sample_format_name(enum sample_format format)
 {
     switch (format) {
-    case SAMPLE_FORMAT_U8BIT:
-        return "u8";
-    case SAMPLE_FORMAT_16BIT:
-        return "s16le";
-    case SAMPLE_FORMAT_32BIT:
-        return "s32le";
-    case SAMPLE_FORMAT_FLOAT:
-        return "f32le";
-    case SAMPLE_FORMAT_U8BIT_PLANAR:
-    case SAMPLE_FORMAT_16BIT_PLANAR:
-    case SAMPLE_FORMAT_32BIT_PLANAR:
-    case SAMPLE_FORMAT_FLOAT_PLANAR:
-    case SAMPLE_FORMAT_UNKNOWN:
-    case SAMPLE_FORMAT_CNT:;
+    case SAMPLE_FORMAT_PCM_U8:
+        return "PCM_U8";
+    case SAMPLE_FORMAT_PCM_ALAW:
+        return "PCM_ALAW";
+    case SAMPLE_FORMAT_PCM_ULAW:
+        return "PCM_ULAW";
+    case SAMPLE_FORMAT_PCM_S16LE:
+        return "PCM_S16LE";
+    case SAMPLE_FORMAT_PCM_S16BE:
+        return "PCM_S16BE";
+    case SAMPLE_FORMAT_PCM_S24LE:
+        return "PCM_S24LE";
+    case SAMPLE_FORMAT_PCM_S24BE:
+        return "PCM_S24BE";
+    case SAMPLE_FORMAT_PCM_S32LE:
+        return "PCM_S32LE";
+    case SAMPLE_FORMAT_PCM_S32BE:
+        return "PCM_S32BE";
+    case SAMPLE_FORMAT_PCM_S24_32LE:
+        return "PCM_S24_32LE";
+    case SAMPLE_FORMAT_PCM_S24_32BE:
+        return "PCM_S24_32BE";
+    case SAMPLE_FORMAT_PCM_F32LE:
+        return "PCM_F32LE";
+    case SAMPLE_FORMAT_PCM_F32BE:
+        return "PCM_F32BE";
+    case SAMPLE_FORMAT_PCM_S16LE_PLANAR:
+        return "PCM_S16LE_PLANAR";
+    case SAMPLE_FORMAT_PCM_S16BE_PLANAR:
+        return "PCM_S16BE_PLANAR";
+    case SAMPLE_FORMAT_PCM_S24LE_PLANAR:
+        return "PCM_S24LE_PLANAR";
+    case SAMPLE_FORMAT_PCM_S32LE_PLANAR:
+        return "PCM_S32LE_PLANAR";
+    default:
+        return "SAMPLE_FORMAT_UNKNOWN";
     }
-
-    return "None";
+    return "SAMPLE_FORMAT_UNKNOWN";
 }
 
 struct audio_packet *audio_packet_create(void *data, size_t len)

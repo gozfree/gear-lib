@@ -42,7 +42,7 @@ static int on_frame(struct uac_ctx *c, struct audio_frame *frm)
 static int foo()
 {
     struct uac_config conf = {
-        .format = SAMPLE_FORMAT_16BIT,
+        .format = SAMPLE_FORMAT_PCM_S16LE,
         .sample_rate = 44100,
         .channels = 2,
     };

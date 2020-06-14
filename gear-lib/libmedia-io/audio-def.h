@@ -37,19 +37,28 @@ extern "C" {
  ******************************************************************************/
 
 enum sample_format {
-    SAMPLE_FORMAT_UNKNOWN,
+    /* refer to pulseaudio and ffmpeg */
+    SAMPLE_FORMAT_NONE,
+    SAMPLE_FORMAT_PCM_U8,        /**< Unsigned 8 Bit PCM */
+    SAMPLE_FORMAT_PCM_ALAW,      /**< 8 Bit a-Law */
+    SAMPLE_FORMAT_PCM_ULAW,      /**< 8 Bit mu-Law */
+    SAMPLE_FORMAT_PCM_S16LE,     /**< Signed 16 Bit PCM, little endian */
+    SAMPLE_FORMAT_PCM_S16BE,     /**< Signed 16 Bit PCM, big endian */
+    SAMPLE_FORMAT_PCM_S24LE,     /**< Signed 24 Bit PCM packed, little endian */
+    SAMPLE_FORMAT_PCM_S24BE,     /**< Signed 24 Bit PCM packed, big endian */
+    SAMPLE_FORMAT_PCM_S32LE,     /**< Signed 32 Bit PCM, little endian */
+    SAMPLE_FORMAT_PCM_S32BE,     /**< Signed 32 Bit PCM, big endian */
+    SAMPLE_FORMAT_PCM_S24_32LE,  /**< Signed 24 Bit PCM in LSB of 32 Bit words, little endian */
+    SAMPLE_FORMAT_PCM_S24_32BE,  /**< Signed 24 Bit PCM in LSB of 32 Bit words, big endian */
+    SAMPLE_FORMAT_PCM_F32LE,     /**< 32 Bit IEEE floating point, little endian, range -1.0 to 1.0 */
+    SAMPLE_FORMAT_PCM_F32BE,     /**< 32 Bit IEEE floating point, big endian, range -1.0 to 1.0 */
 
-    SAMPLE_FORMAT_U8BIT,
-    SAMPLE_FORMAT_16BIT,
-    SAMPLE_FORMAT_32BIT,
-    SAMPLE_FORMAT_FLOAT,
+    SAMPLE_FORMAT_PCM_S16LE_PLANAR,
+    SAMPLE_FORMAT_PCM_S16BE_PLANAR,
+    SAMPLE_FORMAT_PCM_S24LE_PLANAR,
+    SAMPLE_FORMAT_PCM_S32LE_PLANAR,
 
-    SAMPLE_FORMAT_U8BIT_PLANAR,
-    SAMPLE_FORMAT_16BIT_PLANAR,
-    SAMPLE_FORMAT_32BIT_PLANAR,
-    SAMPLE_FORMAT_FLOAT_PLANAR,
-
-    SAMPLE_FORMAT_CNT,
+    SAMPLE_FORMAT_PCM_MAX,       /**< Upper limit of valid sample types */
 };
 
 #ifndef AUDIO_MAX_CHANNELS

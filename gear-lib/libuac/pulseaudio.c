@@ -206,17 +206,35 @@ static enum sample_format pulse_to_sample_format(pa_sample_format_t format)
 {
     switch (format) {
     case PA_SAMPLE_U8:
-        return SAMPLE_FORMAT_U8BIT;
+        return SAMPLE_FORMAT_PCM_U8;
+    case PA_SAMPLE_ALAW:
+        return SAMPLE_FORMAT_PCM_ALAW;
+    case PA_SAMPLE_ULAW:
+        return SAMPLE_FORMAT_PCM_ULAW;
     case PA_SAMPLE_S16LE:
-        return SAMPLE_FORMAT_16BIT;
-    case PA_SAMPLE_S32LE:
-        return SAMPLE_FORMAT_32BIT;
+        return SAMPLE_FORMAT_PCM_S16LE;
+    case PA_SAMPLE_S16BE:
+        return SAMPLE_FORMAT_PCM_S16BE;
     case PA_SAMPLE_FLOAT32LE:
-        return SAMPLE_FORMAT_FLOAT;
+        return SAMPLE_FORMAT_PCM_F32LE;
+    case PA_SAMPLE_FLOAT32BE:
+        return SAMPLE_FORMAT_PCM_F32BE;
+    case PA_SAMPLE_S32LE:
+        return SAMPLE_FORMAT_PCM_S32LE;
+    case PA_SAMPLE_S32BE:
+        return SAMPLE_FORMAT_PCM_S32BE;
+    case PA_SAMPLE_S24LE:
+        return SAMPLE_FORMAT_PCM_S24LE;
+    case PA_SAMPLE_S24BE:
+        return SAMPLE_FORMAT_PCM_S24BE;
+    case PA_SAMPLE_S24_32LE:
+        return SAMPLE_FORMAT_PCM_S24_32LE;
+    case PA_SAMPLE_S24_32BE:
+        return SAMPLE_FORMAT_PCM_S24_32BE;
     default:
-        return SAMPLE_FORMAT_UNKNOWN;
+        return SAMPLE_FORMAT_NONE;
     }
-    return SAMPLE_FORMAT_UNKNOWN;
+    return SAMPLE_FORMAT_NONE;
 }
 
 static enum speaker_layout pulse_channels_to_speakers(uint32_t channels)
@@ -252,7 +270,7 @@ static void source_info_cb(pa_context *pc, const pa_source_info *info,
         goto exit;
     }
     pa_sample_format_t format = info->sample_spec.format;
-    if (pulse_to_sample_format(format) == SAMPLE_FORMAT_UNKNOWN) {
+    if (pulse_to_sample_format(format) == SAMPLE_FORMAT_NONE) {
         format = PA_SAMPLE_FLOAT32LE;
         printf("Sample format %s not supported, using %s instead\n",
             pa_sample_format_to_string(info->sample_spec.format),
@@ -440,11 +458,11 @@ static void read_cb(pa_stream *ps, size_t bytes, void *arg)
     }
     pa_stream_peek(ps, &frames, &nbytes);
     if (!nbytes) {
-            goto exit;
+        goto exit;
     } else if (!frames) {
-            printf("Got audio hole of %zu bytes", nbytes);
-            pa_stream_drop(ps);
-            goto exit;
+        printf("Got audio hole of %zu bytes", nbytes);
+        pa_stream_drop(ps);
+        goto exit;
     }
 
     frame.sample_rate = c->sample_rate;
@@ -461,7 +479,9 @@ static void read_cb(pa_stream *ps, size_t bytes, void *arg)
     frame.frame_id = c->frame_id;
     c->frame_id++;
 
-    uac->on_audio_frame(uac, &frame);
+    if (uac->on_audio_frame) {
+        uac->on_audio_frame(uac, &frame);
+    }
 
     pa_stream_drop(ps);
 exit:

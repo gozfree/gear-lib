@@ -71,10 +71,10 @@ const char *pixel_format_name(enum pixel_format format)
         return "JPEG";
     case PIXEL_FORMAT_MJPG:
         return "MJPG";
-    case PIXEL_FORMAT_NONE:;
+    default:
+        return "PIXEL_FORMAT_UNKNOWN";
     }
-
-    return "None";
+    return "PIXEL_FORMAT_UNKNOWN";
 }
 
 #define MAKE_FOURCC(a, b, c, d) \

@@ -37,8 +37,8 @@ extern "C" {
  ******************************************************************************/
 
 enum pixel_format {
+    /* refer to v4l2 and ffmpeg */
     PIXEL_FORMAT_NONE,
-
     /* planar 420 format */
     PIXEL_FORMAT_I420, /* three-plane */
     PIXEL_FORMAT_NV12, /* two-plane, luma and packed chroma */
@@ -77,6 +77,7 @@ enum pixel_format {
 
     PIXEL_FORMAT_JPEG,
     PIXEL_FORMAT_MJPG,
+    PIXEL_FORMAT_MAX,
 };
 
 #ifndef VIDEO_MAX_PLANES
