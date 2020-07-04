@@ -35,6 +35,7 @@ int main(int argc, char **argv)
     struct network_ports ports;
     struct network_info ni;
     struct cpu_info ci;
+    int i;
     foo2();
     network_get_info("lo", &ni);
     cpu_get_info(&ci);
@@ -43,10 +44,10 @@ int main(int argc, char **argv)
     printf("features = %s\n", ci.features);
     printf("name = %s\n", ci.name);
     network_get_port_occupied(&ports);
-    for (int i = 0; i < ports.tcp_cnt; i++) {
+    for (i = 0; i < ports.tcp_cnt; i++) {
         printf("tcp_ports = %d\n", ports.tcp[i]);
     }
-    for (int i = 0; i < ports.udp_cnt; i++) {
+    for (i = 0; i < ports.udp_cnt; i++) {
         printf("udp_ports = %d\n", ports.udp[i]);
     }
     return 0;

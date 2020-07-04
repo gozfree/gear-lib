@@ -32,6 +32,19 @@
 #define aligned_free    free
 #endif
 
+#ifndef _ISOC11_SOURCE
+static void *aligned_alloc(size_t alignment, size_t size)
+{
+    long diff;
+    void *ptr = malloc(size + alignment);
+    if (ptr) {
+        diff = ((~(long)ptr) & (alignment - 1)) + 1;
+        ptr = (char *)ptr + diff;
+        ((char *)ptr)[-1] = (char)diff;
+    }
+    return ptr;
+}
+#endif
 const char *pixel_format_name(enum pixel_format format)
 {
     switch (format) {
@@ -156,7 +169,7 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
         if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
+        frame->data[0] = (uint8_t *)aligned_alloc(ALIGNMENT, size);
         frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
         frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
         }

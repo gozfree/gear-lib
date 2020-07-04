@@ -30,7 +30,8 @@ int foo()
     const char *tmp = "hello world";
     ssize_t ret = 0;
     size_t len = 0;
-    for (int i = 0; i < 100; i++) {
+    int i;
+    for (i = 0; i < 100; i++) {
         printf("free=%zu, used=%zu\n", rb_get_space_free(rb), rb_get_space_used(rb));
         ret = rb_write(rb, tmp, strlen(tmp));
         if (ret < 0) {
