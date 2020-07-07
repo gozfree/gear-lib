@@ -141,7 +141,7 @@ static int h264_file_read_frame(struct media_source *ms, void **data, size_t *le
     struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
     struct item *it = queue_pop(c->q);
     *data = (struct media_packet *)it->opaque.iov_base;
-    *len = it->data.iov_len;
+    *len = it->opaque.iov_len;
     logd("queue_pop ptr=%p, data=%p, len=%d\n", it->opaque.iov_base, *data, it->opaque.iov_len);
     //item_free(c->q, it);
     return 0;
