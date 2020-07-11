@@ -32,7 +32,8 @@
 #define aligned_free    free
 #endif
 
-#ifndef _ISOC11_SOURCE
+#if defined _ISOC11_SOURCE || __USE_ISOC11 || defined __USE_ISOCXX11
+#else
 static void *aligned_alloc(size_t alignment, size_t size)
 {
     long diff;
