@@ -92,7 +92,7 @@ cat > ${MAKEFILE} <<!
 ARCH		?= linux
 CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
-BUILD_DIR	:= ${S}(shell pwd)/../build/
+BUILD_DIR	:= ${S}(shell pwd)/../../build/
 ARCH_INC	:= ${S}(BUILD_DIR)/${S}(ARCH).inc
 COLOR_INC	:= ${S}(BUILD_DIR)/color.inc
 

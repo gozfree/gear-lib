@@ -59,7 +59,8 @@ static void item_free_hook(void *data)
 
 static inline const uint8_t* h264_find_start_code(const uint8_t* ptr, const uint8_t* end)
 {
-    for (const uint8_t *p = ptr; p + 3 < end; p++) {
+    const uint8_t *p;
+    for (p = ptr; p + 3 < end; p++) {
         if (0x00 == p[0] && 0x00 == p[1] && (0x01 == p[2] || (0x00==p[2] && 0x01==p[3]))) {
             return p;
         }

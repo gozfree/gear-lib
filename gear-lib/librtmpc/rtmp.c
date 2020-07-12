@@ -3236,9 +3236,9 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
             }
             if (r->Link.protocol & RTMP_FEATURE_WRITE)
             {
-                for (int i = 0; i < r->Link.nStreams; i++)
+                for (i = 0; i < r->Link.nStreams; i++)
                     SendReleaseStream(r, i);
-                for (int i = 0; i < r->Link.nStreams; i++)
+                for (i = 0; i < r->Link.nStreams; i++)
                     SendFCPublish(r, i);
             }
             else
@@ -3247,7 +3247,7 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
                 RTMP_SendCtrl(r, 3, 0, 300);
             }
 
-            for (int i = 0; i < r->Link.nStreams; i++)
+            for (i = 0; i < r->Link.nStreams; i++)
             	RTMP_SendCreateStream(r);
 
             if (!(r->Link.protocol & RTMP_FEATURE_WRITE))
@@ -3260,7 +3260,7 @@ HandleInvoke(RTMP *r, const char *body, unsigned int nBodySize)
                     SendFCSubscribe(r, &r->Link.subscribepath);
                 else if (r->Link.lFlags & RTMP_LF_LIVE)
                 {
-                    for (int i = 0; i < r->Link.nStreams; i++)
+                    for (i = 0; i < r->Link.nStreams; i++)
                         SendFCSubscribe(r, &r->Link.streams[i].playpath);
                 }
             }
@@ -4435,11 +4435,11 @@ RTMP_Serve(RTMP *r)
 void
 RTMP_Close(RTMP *r)
 {
-    int i;
+    int i, idx;
 
     if (RTMP_IsConnected(r))
     {
-        for (int idx = 0; idx < r->Link.nStreams; idx++)
+        for (idx = 0; idx < r->Link.nStreams; idx++)
         {
             if (r->Link.streams[idx].id > 0)
             {
@@ -4460,7 +4460,7 @@ RTMP_Close(RTMP *r)
         RTMPSockBuf_Close(&r->m_sb);
     }
 
-    for (int idx = 0; idx < r->Link.nStreams; idx++)
+    for (idx = 0; idx < r->Link.nStreams; idx++)
         r->Link.streams[idx].id = -1;
 
     r->m_stream_id = -1;
@@ -4537,7 +4537,7 @@ RTMP_Close(RTMP *r)
 #if defined(CRYPTO) || defined(USE_ONLY_MD5)
     if (!(r->Link.protocol & RTMP_FEATURE_WRITE) || (r->Link.pFlags & RTMP_PUB_CLEAN))
     {
-        for (int idx = 0; idx < r->Link.nStreams; idx++)
+        for (idx = 0; idx < r->Link.nStreams; idx++)
         {
             free(r->Link.streams[idx].playpath.av_val);
             r->Link.streams[idx].playpath.av_val = NULL;

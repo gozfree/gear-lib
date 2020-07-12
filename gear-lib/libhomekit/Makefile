@@ -48,6 +48,7 @@ OBJS_LIB	= \
 		  src/crypto.o \
 		  src/debug.o \
 		  src/json.o \
+		  src/mdnsresponder.o \
 		  src/pairing.o \
 		  src/port.o \
 		  src/query_params.o \

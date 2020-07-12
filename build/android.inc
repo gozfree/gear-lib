@@ -1,4 +1,4 @@
-#### android.conf
+#### android
 CROSS_PREFIX		:= arm-linux-androideabi-
 OUTPUT			:= `pwd`/../output/android/
 
@@ -30,3 +30,9 @@ ANDROID_LDFLAGS		:= -L$(PLATFORM_LIB) \
 MAKEDIR_OUTPUT		:= @mkdir -p $(OUTPUT)/include -p $(OUTPUT)/lib
 android_CFLAGS		:= $(ANDROID_CFLAGS)
 android_LDFLAGS		:= $(ANDROID_LDFLAGS)
+
+CC			:= $(CROSS_PREFIX)gcc
+CXX			:= $(CROSS_PREFIX)g++
+LD			:= $(CROSS_PREFIX)ld
+AR			:= $(CROSS_PREFIX)ar
+STRIP			:= $(CROSS_PREFIX)strip

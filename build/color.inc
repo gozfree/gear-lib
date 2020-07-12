@@ -1,4 +1,7 @@
-#color define
+#### color define
+
+#COLOR	0: disable color; 1: enable color
+COLOR		= 1
 
 NC		= "\033[0m"
 BRED		= "\033[1;31m"
@@ -18,15 +21,6 @@ CYAN		= "\033[36m"
 WHITE		= "\033[37m"
 
 
-#COLOR	0: disable color; 1: enable color
-COLOR	= 1
-
-CC_V	= $(CC_$(COLOR))
-CXX_V	= $(CXX_$(COLOR))
-LD_V	= $(LD_$(COLOR))
-AR_V	= $(AR_$(COLOR))
-CP_V	= $(CP_$(COLOR))
-RM_V	= $(RM_$(COLOR))
 CC_0	= $(CC)
 CC_1	= @printf '%b\t%b\t%b\n' $(CYAN)$(ARCH) CC $@$(NC); $(CC)
 CXX_0	= $(CXX)
@@ -40,4 +34,9 @@ CP_1	= @printf '%b\t%b\n' $(BGREEN)$(ARCH) install$(NC); cp
 RM_0	= rm
 RM_1	= @printf '%b\t%b\n' $(BGREEN)$(ARCH) clean$(NC); rm
 
-
+CC_V	= $(CC_$(COLOR))
+CXX_V	= $(CXX_$(COLOR))
+LD_V	= $(LD_$(COLOR))
+AR_V	= $(AR_$(COLOR))
+CP_V	= $(CP_$(COLOR))
+RM_V	= $(RM_$(COLOR))

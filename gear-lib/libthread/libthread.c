@@ -151,6 +151,8 @@ int thread_set_name(struct thread *t, const char *name)
     }
     strncpy(t->name, name, strlen(name));
     return 0;
+#else
+    return 0;
 #endif
 }
 

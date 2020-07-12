@@ -1,38 +1,28 @@
 
-#ARCH: linux/pi/android/ios/
+#ARCH: linux/arm/android/ios/win
 ARCH		?= linux
-CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
 BUILD_DIR	:= $(shell pwd)/../../build/
 ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
 COLOR_INC	:= $(BUILD_DIR)/color.inc
 
-ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
-endif
-
-CC	= $(CROSS_PREFIX)gcc
-CXX	= $(CROSS_PREFIX)g++
-LD	= $(CROSS_PREFIX)ld
-AR	= $(CROSS_PREFIX)ar
-STRIP   = $(CROSS_PREFIX)strip
-
-ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
-else
-CC_V	= $(CC)
-CXX_V	= $(CXX)
-LD_V	= $(LD)
-AR_V	= $(AR)
-CP_V	= $(CP)
-RM_V	= $(RM)
-endif
 
-########
+CC_V		?= $(CC)
+CXX_V		?= $(CXX)
+LD_V		?= $(LD)
+AR_V		?= $(AR)
+CP_V		?= $(CP)
+RM_V		?= $(RM)
+
+
 LIBNAME		= libsort
+VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
+TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
@@ -91,11 +81,12 @@ clean:
 install:
 	$(MAKEDIR_OUTPUT)
 	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include/gear-lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib/gear-lib
 
 uninstall:
-	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
+	cd $(OUTPUT)/include/gear-lib/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO_VER)

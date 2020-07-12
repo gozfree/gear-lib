@@ -3247,7 +3247,7 @@ void homekit_server_close_clients(homekit_server_t *server) {
 
 static void homekit_run_server(homekit_server_t *server)
 {
-    DEBUG("Staring HTTP server");
+    INFO("Staring HTTP server");
 
     struct sockaddr_in serv_addr;
     server->listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -3515,7 +3515,10 @@ void homekit_server_init(homekit_server_config_t *config) {
     }
 #else
     pthread_t tid;
-    pthread_create(&tid, NULL, homekit_server_task, server);
+    int ret = pthread_create(&tid, NULL, homekit_server_task, server);
+    if (ret) {
+        ERROR("pthread_create homekit_server_task failed!\n");
+    }
 
 #endif
     ERROR("homekit_server_init done");

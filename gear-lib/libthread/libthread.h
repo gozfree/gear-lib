@@ -22,6 +22,7 @@
 #ifndef LIBTHREAD_H
 #define LIBTHREAD_H
 
+#include <gear-lib/libposix.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -29,10 +30,6 @@
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <semaphore.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#elif defined (FREERTOS)
-#include "libposix4rtos/libposix4rtos.h"
 #endif
 
 #ifdef __cplusplus

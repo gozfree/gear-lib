@@ -13,12 +13,6 @@ ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
 endif
 
-CC	= $(CROSS_PREFIX)gcc
-CXX	= $(CROSS_PREFIX)g++
-LD	= $(CROSS_PREFIX)ld
-AR	= $(CROSS_PREFIX)ar
-STRIP   = $(CROSS_PREFIX)strip
-
 ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
 else
