@@ -99,7 +99,6 @@ struct video_frame {
 };
 
 const char *pixel_format_name(enum pixel_format format);
-enum pixel_format pixel_format_from_fourcc(uint32_t fourcc);
 
 #define VFC_NONE    0   /* nothing to do */
 #define VFC_ALLOC   1   /* alloc frame->data */

@@ -120,6 +120,52 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
 #define timeval2ns(tv) \
     (((uint64_t)tv.tv_sec * 1000000000) + ((uint64_t)tv.tv_usec * 1000))
 
+static enum pixel_format pixel_format_from_fourcc(uint32_t fourcc)
+{
+    switch (fourcc) {
+    case v4l2_fourcc('Y', '4', '4', '4'):
+        return PIXEL_FORMAT_I444;
+    case v4l2_fourcc('U', 'Y', 'V', 'Y'):
+    case v4l2_fourcc('H', 'D', 'Y', 'C'):
+    case v4l2_fourcc('U', 'Y', 'N', 'V'):
+    case v4l2_fourcc('U', 'Y', 'N', 'Y'):
+    case v4l2_fourcc('u', 'y', 'v', '1'):
+    case v4l2_fourcc('2', 'v', 'u', 'y'):
+    case v4l2_fourcc('2', 'V', 'u', 'y'):
+        return PIXEL_FORMAT_UYVY;
+    case v4l2_fourcc('Y', 'U', 'Y', 'V'):
+    case v4l2_fourcc('Y', 'U', 'Y', '2'):
+    case v4l2_fourcc('Y', '4', '2', '2'):
+    case v4l2_fourcc('V', '4', '2', '2'):
+    case v4l2_fourcc('V', 'Y', 'U', 'Y'):
+    case v4l2_fourcc('Y', 'U', 'N', 'V'):
+    case v4l2_fourcc('y', 'u', 'v', '2'):
+    case v4l2_fourcc('y', 'u', 'v', 's'):
+        return PIXEL_FORMAT_YUY2;
+    case v4l2_fourcc('Y', 'V', 'Y', 'U'):
+        return PIXEL_FORMAT_YVYU;
+    case v4l2_fourcc('Y', 'V', '1', '2'):
+        return PIXEL_FORMAT_I420;
+    case v4l2_fourcc('Y', 'U', '1', '2'):
+        return PIXEL_FORMAT_I420;
+    case v4l2_fourcc('N', 'V', '1', '2'):
+        return PIXEL_FORMAT_NV12;
+    case v4l2_fourcc('X', 'R', '2', '4'):
+        return PIXEL_FORMAT_BGRX;
+    case v4l2_fourcc('B', 'G', 'R', '3'):
+        return PIXEL_FORMAT_BGR3;
+    case v4l2_fourcc('A', 'R', '2', '4'):
+        return PIXEL_FORMAT_BGRA;
+    case v4l2_fourcc('Y', '8', '0', '0'):
+        return PIXEL_FORMAT_Y800;
+    case v4l2_fourcc('J', 'P', 'E', 'G'):
+        return PIXEL_FORMAT_JPEG;
+    case v4l2_fourcc('M', 'J', 'P', 'G'):
+        return PIXEL_FORMAT_MJPG;
+    }
+    printf("pixel_format_from_fourcc failed!\n");
+    return PIXEL_FORMAT_NONE;
+}
 
 static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf)
 {

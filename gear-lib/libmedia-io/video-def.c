@@ -91,57 +91,6 @@ const char *pixel_format_name(enum pixel_format format)
     return "PIXEL_FORMAT_UNKNOWN";
 }
 
-#define MAKE_FOURCC(a, b, c, d) \
-    ((uint32_t)(((d) << 24) | ((c) << 16) | ((b) << 8) | (a)))
-
-
-enum pixel_format pixel_format_from_fourcc(uint32_t fourcc)
-{
-    switch (fourcc) {
-    case MAKE_FOURCC('Y', '4', '4', '4'):
-        return PIXEL_FORMAT_I444;
-    case MAKE_FOURCC('U', 'Y', 'V', 'Y'):
-    case MAKE_FOURCC('H', 'D', 'Y', 'C'):
-    case MAKE_FOURCC('U', 'Y', 'N', 'V'):
-    case MAKE_FOURCC('U', 'Y', 'N', 'Y'):
-    case MAKE_FOURCC('u', 'y', 'v', '1'):
-    case MAKE_FOURCC('2', 'v', 'u', 'y'):
-    case MAKE_FOURCC('2', 'V', 'u', 'y'):
-        return PIXEL_FORMAT_UYVY;
-    case MAKE_FOURCC('Y', 'U', 'Y', 'V'):
-    case MAKE_FOURCC('Y', 'U', 'Y', '2'):
-    case MAKE_FOURCC('Y', '4', '2', '2'):
-    case MAKE_FOURCC('V', '4', '2', '2'):
-    case MAKE_FOURCC('V', 'Y', 'U', 'Y'):
-    case MAKE_FOURCC('Y', 'U', 'N', 'V'):
-    case MAKE_FOURCC('y', 'u', 'v', '2'):
-    case MAKE_FOURCC('y', 'u', 'v', 's'):
-        return PIXEL_FORMAT_YUY2;
-    case MAKE_FOURCC('Y', 'V', 'Y', 'U'):
-        return PIXEL_FORMAT_YVYU;
-    case MAKE_FOURCC('Y', 'V', '1', '2'):
-        return PIXEL_FORMAT_I420;
-    case MAKE_FOURCC('Y', 'U', '1', '2'):
-        return PIXEL_FORMAT_I420;
-    case MAKE_FOURCC('N', 'V', '1', '2'):
-        return PIXEL_FORMAT_NV12;
-    case MAKE_FOURCC('X', 'R', '2', '4'):
-        return PIXEL_FORMAT_BGRX;
-    case MAKE_FOURCC('B', 'G', 'R', '3'):
-        return PIXEL_FORMAT_BGR3;
-    case MAKE_FOURCC('A', 'R', '2', '4'):
-        return PIXEL_FORMAT_BGRA;
-    case MAKE_FOURCC('Y', '8', '0', '0'):
-        return PIXEL_FORMAT_Y800;
-    case MAKE_FOURCC('J', 'P', 'E', 'G'):
-        return PIXEL_FORMAT_JPEG;
-    case MAKE_FOURCC('M', 'J', 'P', 'G'):
-        return PIXEL_FORMAT_MJPG;
-    }
-    printf("pixel_format_from_fourcc failed!\n");
-    return PIXEL_FORMAT_NONE;
-}
-
 int video_frame_init(struct video_frame *frame, enum pixel_format format,
                 uint32_t width, uint32_t height, int flag)
 {
