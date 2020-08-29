@@ -43,7 +43,7 @@ This is a collection of basic libraries.
 ## Multi-Media
 |  |  |
 |--|--|
-| libuvc: USB video class V4L2/dshow | libmp4parser: MP4 format parser |
+| libuvc: USB video class V4L2/dshow | libmp4: MP4 muxer and parser |
 | libjpeg-ex: | libmedia-io: audio/video frame/packet define |
 
 ## OS Abstraction Layer

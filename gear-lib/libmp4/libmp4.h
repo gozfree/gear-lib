@@ -40,7 +40,7 @@ struct mp4_muxer_media {
     enum AVCodecID codec_id;
     AVStream *av_stream;
     AVCodec *av_codec;
-    AVBitStreamFilterContext *av_bsf;
+    const AVBitStreamFilter *av_bsf;
     uint64_t first_pts;
     uint64_t last_pts;
 };
@@ -65,11 +65,17 @@ int mp4_muxer_write(struct mp4_muxer *c, struct media_frame *frame);
 void mp4_muxer_close(struct mp4_muxer *c);
 
 
-struct mp4_parser *mp4_parser_open(const char *file);
+struct mp4_parser {
+    void *opaque_stream;
+    void *opaque_root;
+};
+
+
+struct mp4_parser *mp4_parser_create(const char *file);
 int mp4_get_duration(struct mp4_parser *mp, uint64_t *duration);
 int mp4_get_creation(struct mp4_parser *mp, uint64_t *time);
 int mp4_get_resolution(struct mp4_parser *mp, uint32_t *width, uint32_t *height);
-void mp4_parser_close(struct mp4_parser *mp);
+void mp4_parser_destroy(struct mp4_parser *mp);
 
 
 

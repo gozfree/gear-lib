@@ -21,7 +21,7 @@
  ******************************************************************************/
 #include "mp4parser_inner.h"
 #include "patch.h"
-#include "libmp4parser.h"
+#include "libmp4.h"
 
 /* seconds from 1904-01-01 00:00:00 UTC to 1969-12-31 24:00:00 UTC */
 #define TIME_OFFSET    2082844800ULL

@@ -19,27 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBMP4PARSER_H
-#define LIBMP4PARSER_H
+#include "libmp4.h"
+#include <stdio.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
-#include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct mp4_parser {
-    void *opaque_stream;
-    void *opaque_root;
-};
-
-struct mp4_parser *mp4_parser_create(const char *file);
-int mp4_get_duration(struct mp4_parser *mp, uint64_t *duration);
-int mp4_get_creation(struct mp4_parser *mp, uint64_t *time);
-int mp4_get_resolution(struct mp4_parser *mp, uint32_t *width, uint32_t *height);
-void mp4_parser_destroy(struct mp4_parser *mp);
-
-#ifdef __cplusplus
+int main(int argc, char* argv[])
+{
+    if (argc < 2) {
+        printf("Invalid argument, useage: \n mp4parser /path/to/mp4file \n");
+        return -1;
+    }
+    struct mp4_parser *mp = mp4_parser_create(argv[1]);
+    uint64_t duration = 0;
+    uint32_t w, h;
+    mp4_get_duration(mp, &duration);
+    printf("duration = %" PRIu64 "\n", duration);
+    mp4_get_resolution(mp, &w, &h);
+    printf("resolution = %dx%d\n", (int)w, (int)h);
+    mp4_parser_destroy(mp);
+    return 0;
 }
-#endif
-#endif
+
+

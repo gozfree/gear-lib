@@ -43,7 +43,7 @@
 ## 多媒体
 |  |  |
 |--|--|
-| libuvc: USB摄像头库 | libmp4parser: MP4解析库 |
+| libuvc: USB摄像头库 | libmp4: MP4录制解析库 |
 | libjpeg-ex: | libmedia-io: 音频视频格式定义 |
 
 ## 系统抽象层

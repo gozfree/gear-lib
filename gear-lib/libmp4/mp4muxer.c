@@ -39,18 +39,19 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         return -1;
     }
     media->av_stream->id = muxer->av_format->nb_streams-1;
-    AVCodecContext *c = media->av_stream->codec;
+    //AVCodecContext *c = media->av_stream->codec;
+    AVCodecParameters *cp = media->av_stream->codecpar;
 
     switch (codec->type) {
     case AVMEDIA_TYPE_AUDIO:
-        c->sample_fmt  = AV_SAMPLE_FMT_FLTP;
-        c->bit_rate    = 32000;
-        c->sample_rate = 8000;
-        c->channel_layout = AV_CH_LAYOUT_STEREO;
-        c->channels       = av_get_channel_layout_nb_channels(c->channel_layout);
-        c->frame_size  = 1000;
-        media->av_stream->time_base = (AVRational){ 1, c->sample_rate };
-        muxer->audio.av_bsf = av_bitstream_filter_init("aac_adtstoasc");
+        cp->format  = AV_SAMPLE_FMT_FLTP;
+        cp->bit_rate    = 32000;
+        cp->sample_rate = 8000;
+        cp->channel_layout = AV_CH_LAYOUT_STEREO;
+        cp->channels       = av_get_channel_layout_nb_channels(cp->channel_layout);
+        cp->frame_size  = 1000;
+        media->av_stream->time_base = (AVRational){ 1, cp->sample_rate };
+        muxer->audio.av_bsf = av_bsf_get_by_name("aac_adtstoasc");
         break;
     case AVMEDIA_TYPE_VIDEO:
         codec_id = AV_CODEC_ID_H264;
@@ -59,22 +60,18 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
             printf("video codec_id %s not support\n", avcodec_get_name(codec_id));
             return -1;
         }
-        c->codec_id       = codec_id;
-        c->bit_rate       = 2000000;
-        c->width          = muxer->conf.width;
-        c->height         = muxer->conf.height;
+        cp->codec_id       = codec_id;
+        cp->bit_rate       = 2000000;
+        cp->width          = muxer->conf.width;
+        cp->height         = muxer->conf.height;
         media->av_stream->time_base = (AVRational){ 1, muxer->conf.fps.num/muxer->conf.fps.den};
-        c->time_base      = (AVRational){ 1, muxer->conf.fps.num/muxer->conf.fps.den };
-        c->gop_size       = 12;
-        c->pix_fmt        = AV_PIX_FMT_NV12;
+        cp->format        = AV_PIX_FMT_NV12;
         break;
     default:
         printf("codec type not support\n");
         break;
     }
 
-    if (muxer->av_format->oformat->flags & AVFMT_GLOBALHEADER)
-        c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     return 0;
 }
 
@@ -125,4 +122,19 @@ failed:
         free(c);
     }
     return NULL;
+}
+
+void mp4_muxer_close(struct mp4_muxer *c)
+{
+    if (!c)
+        return;
+
+    if (0 > av_write_trailer(c->av_format)) {
+        printf("av_write_trailer failed!\n");
+    }
+    if (!(c->av_format->oformat->flags & AVFMT_NOFILE)) {
+        avio_closep(&c->av_format->pb);
+    }
+    avformat_free_context(c->av_format);
+    free(c);
 }
