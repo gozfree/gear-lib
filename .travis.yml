@@ -4,6 +4,8 @@ before_install:
   - sudo apt-get install -y libjansson-dev
   - sudo apt-get install -y liblua5.2-dev
   - sudo apt-get install -y libx264-dev
+  - sudo apt-get install -y libavcodec-dev
   - sudo apt-get install -y libavformat-dev
+  - sudo apt-get install -y libavutil-dev
   - sudo apt-get install -y protobuf-compiler
 script: ./build.sh
