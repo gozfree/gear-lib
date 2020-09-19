@@ -46,49 +46,54 @@ static void *aligned_alloc(size_t alignment, size_t size)
     return ptr;
 }
 #endif
-const char *pixel_format_name(enum pixel_format format)
+
+struct pixel_format_name {
+    enum pixel_format format;
+    char name[32];
+};
+
+struct pixel_format_name pxlfmt_tbl[] = {
+    {PIXEL_FORMAT_NONE, "PIXEL_FORMAT_NONE"},
+    {PIXEL_FORMAT_I420, "I420"},
+    {PIXEL_FORMAT_NV12, "NV12"},
+    {PIXEL_FORMAT_YVYU, "YVYU"},
+    {PIXEL_FORMAT_YUY2, "YUY2"},
+    {PIXEL_FORMAT_UYVY, "UYVY"},
+    {PIXEL_FORMAT_RGBA, "RGBA"},
+    {PIXEL_FORMAT_BGRA, "BGRA"},
+    {PIXEL_FORMAT_BGRX, "BGRX"},
+    {PIXEL_FORMAT_Y800, "Y800"},
+    {PIXEL_FORMAT_I444, "I444"},
+    {PIXEL_FORMAT_BGR3, "BGR3"},
+    {PIXEL_FORMAT_I422, "I422"},
+    {PIXEL_FORMAT_I40A, "I40A"},
+    {PIXEL_FORMAT_I42A, "I42A"},
+    {PIXEL_FORMAT_YUVA, "YUVA"},
+    {PIXEL_FORMAT_AYUV, "AYUV"},
+    {PIXEL_FORMAT_JPEG, "JPEG"},
+    {PIXEL_FORMAT_MJPG, "MJPG"},
+    {PIXEL_FORMAT_MAX,  "PIXEL_FORMAT_MAX"},
+};
+
+enum pixel_format pixel_string_to_format(const char *name)
 {
-    switch (format) {
-    case PIXEL_FORMAT_I420:
-        return "I420";
-    case PIXEL_FORMAT_NV12:
-        return "NV12";
-    case PIXEL_FORMAT_I422:
-        return "I422";
-    case PIXEL_FORMAT_YVYU:
-        return "YVYU";
-    case PIXEL_FORMAT_YUY2:
-        return "YUY2";
-    case PIXEL_FORMAT_UYVY:
-        return "UYVY";
-    case PIXEL_FORMAT_RGBA:
-        return "RGBA";
-    case PIXEL_FORMAT_BGRA:
-        return "BGRA";
-    case PIXEL_FORMAT_BGRX:
-        return "BGRX";
-    case PIXEL_FORMAT_I444:
-        return "I444";
-    case PIXEL_FORMAT_Y800:
-        return "Y800";
-    case PIXEL_FORMAT_BGR3:
-        return "BGR3";
-    case PIXEL_FORMAT_I40A:
-        return "I40A";
-    case PIXEL_FORMAT_I42A:
-        return "I42A";
-    case PIXEL_FORMAT_YUVA:
-        return "YUVA";
-    case PIXEL_FORMAT_AYUV:
-        return "AYUV";
-    case PIXEL_FORMAT_JPEG:
-        return "JPEG";
-    case PIXEL_FORMAT_MJPG:
-        return "MJPG";
-    default:
-        return "PIXEL_FORMAT_UNKNOWN";
+    if (!name) {
+        return PIXEL_FORMAT_NONE;
     }
-    return "PIXEL_FORMAT_UNKNOWN";
+    for (int i = 0; i < PIXEL_FORMAT_MAX; i++) {
+        if (!strncasecmp(name, pxlfmt_tbl[i].name, sizeof(pxlfmt_tbl[i].name))) {
+            return pxlfmt_tbl[i].format;
+        }
+    }
+    return PIXEL_FORMAT_NONE;
+}
+
+const char *pixel_format_to_string(enum pixel_format fmt)
+{
+    if (fmt > PIXEL_FORMAT_MAX) {
+        return pxlfmt_tbl[PIXEL_FORMAT_MAX].name;
+    }
+    return pxlfmt_tbl[fmt].name;
 }
 
 int video_frame_init(struct video_frame *frame, enum pixel_format format,

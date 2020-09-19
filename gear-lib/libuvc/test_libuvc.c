@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         return -1;
     }
     printf("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->conf.width, uvc->conf.height,
-        uvc->conf.fps.num, uvc->conf.fps.den, pixel_format_name(uvc->conf.format));
+        uvc->conf.fps.num, uvc->conf.fps.den, pixel_format_to_string(uvc->conf.format));
     //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open(OUTPUT_FILE, F_CREATE);
     uvc_start_stream(uvc, on_frame);

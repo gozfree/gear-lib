@@ -1,34 +1,22 @@
 ###############################################################################
 # common
 ###############################################################################
-#ARCH: linux/pi/android/ios/
+#ARCH: linux/arm/android/ios/win
 ARCH		?= linux
-CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
 BUILD_DIR	:= $(shell pwd)/../../build/
 ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
 COLOR_INC	:= $(BUILD_DIR)/color.inc
 
-ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
-endif
-
-CC	= $(CROSS_PREFIX)gcc
-CXX	= $(CROSS_PREFIX)g++
-LD	= $(CROSS_PREFIX)ld
-AR	= $(CROSS_PREFIX)ar
-STRIP   = $(CROSS_PREFIX)strip
-
-ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
-else
-CC_V	= $(CC)
-CXX_V	= $(CXX)
-LD_V	= $(LD)
-AR_V	= $(AR)
-CP_V	= $(CP)
-RM_V	= $(RM)
-endif
+
+CC_V		?= $(CC)
+CXX_V		?= $(CXX)
+LD_V		?= $(LD)
+AR_V		?= $(AR)
+CP_V		?= $(CP)
+RM_V		?= $(RM)
 
 ###############################################################################
 # target and object
@@ -54,6 +42,11 @@ LTYPE   := release
 else
 CFLAGS  := -g -Wall -fPIC
 LTYPE   := debug
+endif
+ifeq ($(OUTPUT),/usr/local)
+OUTLIBPATH :=/usr/local
+else
+OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include
@@ -84,7 +77,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(CC_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED) $(LDFLAGS)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
@@ -100,14 +93,14 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
-	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTPUT)/$(LTYPE)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTPUT)/$(LTYPE)/lib
+	@if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include/gear-lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib/gear-lib
 
 uninstall:
-	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTPUT)/$(LTYPE)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/gear-lib/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO_VER)

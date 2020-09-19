@@ -98,7 +98,8 @@ struct video_frame {
     int               flag;
 };
 
-const char *pixel_format_name(enum pixel_format format);
+const char *pixel_format_to_string(enum pixel_format format);
+enum pixel_format pixel_string_to_format(const char *name);
 
 #define VFC_NONE    0   /* nothing to do */
 #define VFC_ALLOC   1   /* alloc frame->data */
