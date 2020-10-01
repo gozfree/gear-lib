@@ -52,7 +52,12 @@ struct pixel_format_name {
     char name[32];
 };
 
-struct pixel_format_name pxlfmt_tbl[] = {
+struct video_codec_format_name {
+    enum video_codec_format format;
+    char name[32];
+};
+
+static struct pixel_format_name pxlfmt_tbl[] = {
     {PIXEL_FORMAT_NONE, "PIXEL_FORMAT_NONE"},
     {PIXEL_FORMAT_I420, "I420"},
     {PIXEL_FORMAT_NV12, "NV12"},
@@ -75,6 +80,13 @@ struct pixel_format_name pxlfmt_tbl[] = {
     {PIXEL_FORMAT_MAX,  "PIXEL_FORMAT_MAX"},
 };
 
+static struct video_codec_format_name video_codec_tbl[] = {
+    {VIDEO_CODEC_NONE, "VIDEO_CODEC_NONE"},
+    {VIDEO_CODEC_H264, "H264"},
+    {VIDEO_CODEC_H265, "H265"},
+    {VIDEO_CODEC_MAX, "VIDEO_CODEC_MAX"},
+};
+
 enum pixel_format pixel_string_to_format(const char *name)
 {
     if (!name) {
@@ -90,10 +102,27 @@ enum pixel_format pixel_string_to_format(const char *name)
 
 const char *pixel_format_to_string(enum pixel_format fmt)
 {
-    if (fmt > PIXEL_FORMAT_MAX) {
-        return pxlfmt_tbl[PIXEL_FORMAT_MAX].name;
-    }
+    fmt = (fmt > PIXEL_FORMAT_MAX) ? PIXEL_FORMAT_MAX : fmt;
     return pxlfmt_tbl[fmt].name;
+}
+
+enum video_codec_format video_codec_string_to_format(const char *name)
+{
+    if (!name) {
+        return VIDEO_CODEC_NONE;
+    }
+    for (int i = 0; i < VIDEO_CODEC_MAX; i++) {
+        if (!strncasecmp(name, video_codec_tbl[i].name, sizeof(video_codec_tbl[i].name))) {
+            return video_codec_tbl[i].format;
+        }
+    }
+    return VIDEO_CODEC_NONE;
+}
+
+const char *video_codec_format_to_string(enum video_codec_format fmt)
+{
+    fmt = (fmt > VIDEO_CODEC_MAX) ? VIDEO_CODEC_MAX : fmt;
+    return video_codec_tbl[fmt].name;
 }
 
 int video_frame_init(struct video_frame *frame, enum pixel_format format,
@@ -399,6 +428,18 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
     return dst;
 }
 
+void video_source_dump(struct video_source *vs)
+{
+    if (!vs) {
+        printf("video source is empty!\n");
+        return;
+    }
+    printf("==== video source info ====\n");
+    printf("format: %s\n", pixel_format_to_string(vs->format));
+    printf("resolution: %d*%d @ %d/%dfps\n", vs->width, vs->height, vs->framerate.den, vs->framerate.num);
+    printf("============================\n");
+}
+
 struct video_packet *video_packet_create(void *data, size_t len)
 {
     struct video_packet *vp = calloc(1, sizeof(struct video_packet));
@@ -418,4 +459,16 @@ void video_packet_destroy(struct video_packet *vp)
         }
         free(vp);
     }
+}
+
+void video_encoder_dump(struct video_encoder *ve)
+{
+    if (!ve) {
+        printf("video encoder is empty!\n");
+        return;
+    }
+    printf("==== video encoder info ====\n");
+    printf("format: %d\n", ve->format);
+    printf("resolution: %d*%d @ %d/%dfps\n", ve->width, ve->height, ve->framerate.den, ve->framerate.num);
+    printf("============================\n");
 }

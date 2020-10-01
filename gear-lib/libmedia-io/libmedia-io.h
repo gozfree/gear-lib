@@ -55,6 +55,7 @@ struct media_frame {
         struct audio_frame audio;
         struct video_frame video;
     };
+    enum media_type type;
 };
 
 /**
@@ -82,7 +83,7 @@ struct media_encoder {
     enum media_type type;
 };
 
-
+void media_encoder_dump_info(struct media_encoder *me);
 
 #ifdef __cplusplus
 }

@@ -65,6 +65,16 @@ enum sample_format {
 #define AUDIO_MAX_CHANNELS 8
 #endif
 
+/**
+ * This structure describe attribute of audio source, which is creator
+ */
+struct audio_source {
+    enum sample_format format;
+    uint32_t           sample_rate;
+};
+
+void audio_source_dump(struct audio_source *as);
+
 struct audio_frame {
     uint8_t           *data[AUDIO_MAX_CHANNELS];
     uint32_t           frames;
@@ -75,7 +85,8 @@ struct audio_frame {
     uint64_t           total_size;
 };
 
-const char *sample_format_name(enum sample_format format);
+const char *sample_format_to_string(enum sample_format format);
+enum sample_format sample_string_to_format(const char *name);
 
 /******************************************************************************
  * compressed audio define
@@ -118,6 +129,8 @@ struct audio_packet {
 
 struct audio_packet *audio_packet_create(void *data, size_t len);
 void audio_packet_destroy(struct audio_packet *packet);
+
+void audio_encoder_dump(struct audio_encoder *ve);
 
 #ifdef __cplusplus
 }

@@ -84,6 +84,16 @@ enum pixel_format {
 #define VIDEO_MAX_PLANES 8
 #endif
 
+/**
+ * This structure describe attribute of video source, which is creator
+ */
+struct video_source {
+    enum pixel_format format;
+    uint32_t          width;
+    uint32_t          height;
+    rational_t        framerate;
+};
+
 struct video_frame {
     uint8_t          *data[VIDEO_MAX_PLANES];
     uint32_t          linesize[VIDEO_MAX_PLANES];
@@ -98,7 +108,7 @@ struct video_frame {
     int               flag;
 };
 
-const char *pixel_format_to_string(enum pixel_format format);
+const char *pixel_format_to_string(enum pixel_format fmt);
 enum pixel_format pixel_string_to_format(const char *name);
 
 #define VFC_NONE    0   /* nothing to do */
@@ -112,16 +122,22 @@ void video_frame_destroy(struct video_frame *frame);
 struct video_frame *video_frame_copy(struct video_frame *dst,
                 const struct video_frame *src);
 
+void video_source_dump(struct video_source *vs);
 
 /******************************************************************************
  * compressed video define
  ******************************************************************************/
 enum video_codec_format {
+    VIDEO_CODEC_NONE,
     VIDEO_CODEC_H264,
     VIDEO_CODEC_AVC = VIDEO_CODEC_H264,
     VIDEO_CODEC_H265,
     VIDEO_CODEC_HEVC = VIDEO_CODEC_H265,
+    VIDEO_CODEC_MAX,
 };
+
+const char *video_codec_format_to_string(enum video_codec_format fmt);
+enum video_codec_format video_codec_string_to_format(const char *name);
 
 enum h264_frame_type {
     H264_FRAME_UNKNOWN = 0,
@@ -180,6 +196,8 @@ struct video_packet {
 
 struct video_packet *video_packet_create(void *data, size_t len);
 void video_packet_destroy(struct video_packet *vp);
+
+void video_encoder_dump(struct video_encoder *ve);
 
 #ifdef __cplusplus
 }

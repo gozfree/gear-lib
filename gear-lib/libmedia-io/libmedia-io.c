@@ -102,3 +102,23 @@ size_t media_packet_get_size(struct media_packet *mp)
     }
     return 0;
 }
+
+void media_encoder_dump_info(struct media_encoder *me)
+{
+    if (!me) {
+        printf("media encoder is empty!\n");
+        return;
+    }
+    switch (me->type) {
+    case MEDIA_TYPE_AUDIO:
+        audio_encoder_dump(&me->audio);
+        printf("audio unsupport type!\n");
+        break;
+    case MEDIA_TYPE_VIDEO:
+        video_encoder_dump(&me->video);
+        break;
+    default:
+        printf("dump unsupported media encoder type!\n");
+        break;
+    }
+}

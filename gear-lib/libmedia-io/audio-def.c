@@ -25,47 +25,55 @@
 #include <string.h>
 #include <malloc.h>
 
-const char *sample_format_name(enum sample_format format)
+struct sample_format_name {
+    enum sample_format format;
+    char name[32];
+};
+
+static struct sample_format_name sample_fmt_tbl[] = {
+    {SAMPLE_FORMAT_NONE,             "SAMPLE_FORMAT_NONE"},
+    {SAMPLE_FORMAT_PCM_U8,           "PCM_U8"},
+    {SAMPLE_FORMAT_PCM_ALAW,         "PCM_ALAW"},
+    {SAMPLE_FORMAT_PCM_ULAW,         "PCM_ULAW"},
+    {SAMPLE_FORMAT_PCM_S16LE,        "PCM_S16LE"},
+    {SAMPLE_FORMAT_PCM_S16BE,        "PCM_S16BE"},
+    {SAMPLE_FORMAT_PCM_S24LE,        "PCM_S24LE"},
+    {SAMPLE_FORMAT_PCM_S24BE,        "PCM_S24BE"},
+    {SAMPLE_FORMAT_PCM_S32LE,        "PCM_S32LE"},
+    {SAMPLE_FORMAT_PCM_S32BE,        "PCM_S32BE"},
+    {SAMPLE_FORMAT_PCM_S24_32LE,     "PCM_S24_32LE"},
+    {SAMPLE_FORMAT_PCM_S24_32BE,     "PCM_S24_32BE"},
+    {SAMPLE_FORMAT_PCM_F32LE,        "PCM_F32LE"},
+    {SAMPLE_FORMAT_PCM_F32BE,        "PCM_F32BE"},
+    {SAMPLE_FORMAT_PCM_S16LE_PLANAR, "PCM_S16LE_PLANAR"},
+    {SAMPLE_FORMAT_PCM_S16BE_PLANAR, "PCM_S16BE_PLANAR"},
+    {SAMPLE_FORMAT_PCM_S24LE_PLANAR, "PCM_S24LE_PLANAR"},
+    {SAMPLE_FORMAT_PCM_S32LE_PLANAR, "PCM_S32LE_PLANAR"},
+    {SAMPLE_FORMAT_PCM_MAX,          "SAMPLE_FORMAT_PCM_MAX"},
+};
+
+const char *sample_format_to_string(enum sample_format fmt)
 {
-    switch (format) {
-    case SAMPLE_FORMAT_PCM_U8:
-        return "PCM_U8";
-    case SAMPLE_FORMAT_PCM_ALAW:
-        return "PCM_ALAW";
-    case SAMPLE_FORMAT_PCM_ULAW:
-        return "PCM_ULAW";
-    case SAMPLE_FORMAT_PCM_S16LE:
-        return "PCM_S16LE";
-    case SAMPLE_FORMAT_PCM_S16BE:
-        return "PCM_S16BE";
-    case SAMPLE_FORMAT_PCM_S24LE:
-        return "PCM_S24LE";
-    case SAMPLE_FORMAT_PCM_S24BE:
-        return "PCM_S24BE";
-    case SAMPLE_FORMAT_PCM_S32LE:
-        return "PCM_S32LE";
-    case SAMPLE_FORMAT_PCM_S32BE:
-        return "PCM_S32BE";
-    case SAMPLE_FORMAT_PCM_S24_32LE:
-        return "PCM_S24_32LE";
-    case SAMPLE_FORMAT_PCM_S24_32BE:
-        return "PCM_S24_32BE";
-    case SAMPLE_FORMAT_PCM_F32LE:
-        return "PCM_F32LE";
-    case SAMPLE_FORMAT_PCM_F32BE:
-        return "PCM_F32BE";
-    case SAMPLE_FORMAT_PCM_S16LE_PLANAR:
-        return "PCM_S16LE_PLANAR";
-    case SAMPLE_FORMAT_PCM_S16BE_PLANAR:
-        return "PCM_S16BE_PLANAR";
-    case SAMPLE_FORMAT_PCM_S24LE_PLANAR:
-        return "PCM_S24LE_PLANAR";
-    case SAMPLE_FORMAT_PCM_S32LE_PLANAR:
-        return "PCM_S32LE_PLANAR";
-    default:
-        return "SAMPLE_FORMAT_UNKNOWN";
+    fmt = (fmt > SAMPLE_FORMAT_PCM_MAX) ? SAMPLE_FORMAT_PCM_MAX : fmt;
+    return sample_fmt_tbl[fmt].name;
+}
+
+enum sample_format sample_string_to_format(const char *name)
+{
+    if (!name) {
+        return SAMPLE_FORMAT_NONE;
     }
-    return "SAMPLE_FORMAT_UNKNOWN";
+    for (int i = 0; i < SAMPLE_FORMAT_PCM_MAX; i++) {
+        if (!strncasecmp(name, sample_fmt_tbl[i].name, sizeof(sample_fmt_tbl[i].name))) {
+            return sample_fmt_tbl[i].format;
+        }
+    }
+    return SAMPLE_FORMAT_NONE;
+}
+
+void audio_source_dump(struct audio_source *as)
+{
+
 }
 
 struct audio_packet *audio_packet_create(void *data, size_t len)
@@ -88,4 +96,9 @@ void audio_packet_destroy(struct audio_packet *ap)
         }
         free(ap);
     }
+}
+
+void audio_encoder_dump(struct audio_encoder *ae)
+{
+
 }
