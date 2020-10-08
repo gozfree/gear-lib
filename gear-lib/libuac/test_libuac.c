@@ -53,7 +53,7 @@ static int foo()
     }
     printf("sample_rate: %d\n", uac->conf.sample_rate);
     printf("    channel: %d\n", uac->conf.channels);
-    printf("     format: %s\n", sample_format_name(uac->conf.format));
+    printf("     format: %s\n", sample_format_to_string(uac->conf.format));
     printf("     device: %s\n", uac->conf.device);
     fp = file_open(OUTPUT_FILE, F_CREATE);
     uac_start_stream(uac, on_frame);

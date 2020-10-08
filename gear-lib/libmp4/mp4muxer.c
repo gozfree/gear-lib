@@ -64,7 +64,11 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         cp->bit_rate       = 2000000;
         cp->width          = muxer->conf.width;
         cp->height         = muxer->conf.height;
-        media->av_stream->time_base = (AVRational){ 1, muxer->conf.fps.num/muxer->conf.fps.den};
+        if (muxer->conf.fps.den == 0) {
+            printf("warnning: muxer->conf.fps.den must not be 0\n");
+            muxer->conf.fps.den = 1;
+        }
+        media->av_stream->time_base = (AVRational){1, muxer->conf.fps.num/muxer->conf.fps.den};
         cp->format        = AV_PIX_FMT_NV12;
         break;
     default:
@@ -122,6 +126,78 @@ failed:
         free(c);
     }
     return NULL;
+}
+
+#if 0
+static int64_t update_video_timestamp(struct mp4_muxer_ctx *c, uint64_t pts)
+{
+    if (c->video.first_pts == 0) {
+        c->video.first_pts = pts;
+    }
+    if (pts < c->video.last_pts) {
+        c->video.last_pts = c->video.last_pts + 1;
+    } else {
+        c->video.last_pts = pts - c->video.first_pts;
+    }
+    return av_rescale_q(c->video.last_pts, (AVRational){1, 1000}, (AVRational){1, 12500});//fps=25/2
+}
+
+int64_t update_audio_timestamp(struct mp4_muxer_ctx *c, uint64_t pts)
+{
+    if (c->audio.first_pts == 0) {
+        c->audio.first_pts = pts;
+    }
+    if (pts < c->audio.last_pts) {
+        c->audio.last_pts = c->audio.last_pts + 1;
+    } else {
+        c->audio.last_pts = pts - c->audio.first_pts;
+    }
+    return av_rescale_q(c->audio.last_pts, (AVRational){1, 1000}, c->audio.av_stream->time_base);
+}
+#endif
+
+int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *mp)
+{
+    AVPacket pkt;
+    av_init_packet(&pkt);
+
+    switch (mp->type) {
+    case MEDIA_TYPE_AUDIO:
+        if (c->got_video == false) {
+            goto exit;
+        }
+        //pkt.stream_index = c->audio.av_stream->index;
+        pkt.data = mp->audio->data;
+        pkt.size = mp->audio->size;
+        //pkt.pos = -1;
+        //pkt.pts = update_audio_timestamp(c, mp->pts);
+        //av_bitstream_filter_filter(c->audio.av_bsf, c->audio.av_stream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
+        break;
+    case MEDIA_TYPE_VIDEO:
+        if (mp->video->type == H26X_FRAME_I) {
+            c->got_video = true;
+            pkt.flags |= AV_PKT_FLAG_KEY;
+        }
+        if (c->got_video == false) {
+            goto exit;
+        }
+        //pkt.stream_index = c->video.av_stream->index;
+        pkt.data = mp->video->data;
+        pkt.size = mp->video->size;
+        //pkt.pos = -1;
+        //pkt.pts = update_video_timestamp(c, mp->pts);
+        break;
+    default:
+        printf("unknown mp type\n");
+        break;
+    }
+
+    if (c->got_video) {
+        av_interleaved_write_frame(c->av_format, &pkt);
+    }
+exit:
+    av_packet_unref(&pkt);
+    return 0;
 }
 
 void mp4_muxer_close(struct mp4_muxer *c)

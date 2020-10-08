@@ -66,14 +66,15 @@ enum sample_format {
 #endif
 
 /**
- * This structure describe attribute of audio source, which is creator
+ * This structure describe attribute of audio producer, which is creator
  */
-struct audio_source {
+struct audio_producer {
     enum sample_format format;
     uint32_t           sample_rate;
+    int                channels;
 };
 
-void audio_source_dump(struct audio_source *as);
+void audio_producer_dump(struct audio_producer *as);
 
 struct audio_frame {
     uint8_t           *data[AUDIO_MAX_CHANNELS];

@@ -71,7 +71,7 @@ enum sample_format sample_string_to_format(const char *name)
     return SAMPLE_FORMAT_NONE;
 }
 
-void audio_source_dump(struct audio_source *as)
+void audio_producer_dump(struct audio_producer *as)
 {
 
 }

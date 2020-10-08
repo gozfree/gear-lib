@@ -37,6 +37,17 @@ typedef struct rational {
 #include "audio-def.h"
 #include "video-def.h"
 
+/*
+ *
+ * +--------------+
+ * |media_producer|--(produce)-|
+ * +--------------+            -> +-----------+ --(encode)-> +------------+ -- (mux) -> +------------+
+ *                                |media_frame|              |media_packet|             |media_stream|
+ * +--------------+            -- +-----------+ <-(decode)-- +------------+ <-(demux)-- +------------+
+ * |media_consumer|<-(consume)-|
+ * +--------------+
+ */
+
 enum media_type {
     MEDIA_TYPE_AUDIO,
     MEDIA_TYPE_VIDEO,
@@ -46,6 +57,15 @@ enum media_type {
     MEDIA_TYPE_MAX
 };
 
+struct media_producer {
+    union {
+        struct audio_producer audio;
+        struct video_producer video;
+    };
+    enum media_type type;
+};
+
+void media_producer_dump_info(struct media_producer *mp);
 
 /**
  * This structure describes decoded (raw) data.
@@ -57,6 +77,7 @@ struct media_frame {
     };
     enum media_type type;
 };
+
 
 /**
  * This structure stores compressed data.

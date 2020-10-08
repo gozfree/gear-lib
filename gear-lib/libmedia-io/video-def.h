@@ -85,9 +85,9 @@ enum pixel_format {
 #endif
 
 /**
- * This structure describe attribute of video source, which is creator
+ * This structure describe attribute of video producer, which is creator
  */
-struct video_source {
+struct video_producer {
     enum pixel_format format;
     uint32_t          width;
     uint32_t          height;
@@ -122,12 +122,12 @@ void video_frame_destroy(struct video_frame *frame);
 struct video_frame *video_frame_copy(struct video_frame *dst,
                 const struct video_frame *src);
 
-void video_source_dump(struct video_source *vs);
+void video_producer_dump(struct video_producer *vp);
 
 /******************************************************************************
  * compressed video define
  ******************************************************************************/
-enum video_codec_format {
+enum video_codec_type {
     VIDEO_CODEC_NONE,
     VIDEO_CODEC_H264,
     VIDEO_CODEC_AVC = VIDEO_CODEC_H264,
@@ -136,15 +136,16 @@ enum video_codec_format {
     VIDEO_CODEC_MAX,
 };
 
-const char *video_codec_format_to_string(enum video_codec_format fmt);
-enum video_codec_format video_codec_string_to_format(const char *name);
+const char *video_codec_type_to_string(enum video_codec_type type);
+enum video_codec_type video_codec_string_to_type(const char *name);
 
-enum h264_frame_type {
-    H264_FRAME_UNKNOWN = 0,
-    H264_FRAME_IDR,
-    H264_FRAME_I,
-    H264_FRAME_P,
-    H264_FRAME_B,
+enum video_packet_type {
+    H26X_FRAME_UNKNOWN = 0,
+    H26X_FRAME_IDR,
+    H26X_FRAME_I,
+    H26X_FRAME_P,
+    H26X_FRAME_B,
+    H26X_FRAME_TYPE_MAX,
 };
 
 enum h264_nal_type {
@@ -169,7 +170,8 @@ enum h264_nal_type {
  * This structure describe encoder attribute
  */
 struct video_encoder {
-    enum video_codec_format format;
+    enum video_codec_type   type;
+    enum pixel_format       format;
     uint32_t                width;
     uint32_t                height;
     double                  bitrate;
@@ -185,13 +187,13 @@ struct video_encoder {
  * This structure stores compressed data.
  */
 struct video_packet {
-    uint8_t             *data;
-    size_t               size;
-    uint64_t             pts;
-    uint64_t             dts;
-    bool                 key_frame;
-    int                  packet_type;
-    struct video_encoder encoder;
+    uint8_t               *data;
+    size_t                 size;
+    enum video_packet_type type;
+    uint64_t               pts;
+    uint64_t               dts;
+    bool                   key_frame;
+    struct video_encoder   encoder;
 };
 
 struct video_packet *video_packet_create(void *data, size_t len);

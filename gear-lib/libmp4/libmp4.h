@@ -61,7 +61,7 @@ struct mp4_muxer {
 };
 
 struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf);
-int mp4_muxer_write(struct mp4_muxer *c, struct media_frame *frame);
+int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *frame);
 void mp4_muxer_close(struct mp4_muxer *c);
 
 
