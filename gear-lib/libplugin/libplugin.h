@@ -22,7 +22,7 @@
 #ifndef LIBPLUGIN_H
 #define LIBPLUGIN_H
 
-#include <gear-lib/libmacro.h>
+#include <libposix.h>
 #include <stdio.h>
 
 #ifdef __cplusplus

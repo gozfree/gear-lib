@@ -23,15 +23,50 @@
 #define LIBPOSIX4RTOS_H
 
 #include <stdio.h>
+#ifdef ESP32
+#include <pthread.h>
+#else
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "freertos/event_groups.h"
+#endif
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/******************************************************************************
+ * basic types
+ ******************************************************************************/
+//typedef int                       bool;
+
+struct iovec {
+    void *iov_base;
+    size_t iov_len;
+};
+
+/*
+ * below defined iovec to solve redefinition of 'struct iovec' of lwip
+ */
+#define iovec iovec
+//ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+
+/******************************************************************************
+ * I/O string APIs
+ ******************************************************************************/
+#define PRId8                     "hhd"
+#define PRId16                    "hd"
+#define PRId32                    "ld"
+#define PRId64                    "lld"
+#define PRIu8                     "hhu"
+#define PRIu16                    "hu"
+#define PRIu32                    "lu"
+#define PRIu64                    "llu"
+
+
+#if 0
 
 /******************************************************************************
  * time APIs
@@ -95,6 +130,7 @@ int pthread_cond_signal(pthread_cond_t *cond);
 /******************************************************************************
  * memory APIs
  ******************************************************************************/
+#endif
 void *rtos_aligned_alloc(size_t alignment, size_t size);
 void rtos_aligned_free(void *ptr);
 

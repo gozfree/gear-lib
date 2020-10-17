@@ -22,8 +22,8 @@
 #ifndef FLV_MUX_H
 #define FLV_MUX_H
 
-#include <gear-lib/libmedia-io.h>
-#include <gear-lib/libserializer.h>
+#include <libmedia-io.h>
+#include <libserializer.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,11 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <gear-lib/liblog.h>
-#include <gear-lib/libfile.h>
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libqueue.h>
-#include <gear-lib/libmedia-io.h>
+#include <liblog.h>
+#include <libfile.h>
+#include <libqueue.h>
+#include <libmedia-io.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>
@@ -113,7 +112,7 @@ exit:
 
 static int h264_file_open(struct media_source *ms, const char *name)
 {
-    struct h264_source_ctx *c = CALLOC(1, struct h264_source_ctx);
+    struct h264_source_ctx *c = calloc(1, sizeof(struct h264_source_ctx));
     if (!c) {
         loge("calloc h264_source_ctx failed!\n");
         return -1;

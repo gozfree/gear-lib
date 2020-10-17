@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/sysinfo.h>
-#include <gear-lib/libmacro.h>
 
 void test(void *arg)
 {

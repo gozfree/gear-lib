@@ -22,9 +22,8 @@
 
 #include "media_source.h"
 #include "sdp.h"
-#include <gear-lib/libdict.h>
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libatomic.h>
+#include <libdict.h>
+#include <libatomic.h>
 #include <strings.h>
 
 #define REGISTER_MEDIA_SOURCE(x)                                               \

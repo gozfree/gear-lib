@@ -20,7 +20,6 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "librpc.h"
-#include <gear-lib/libmacro.h>
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
@@ -204,7 +203,7 @@ static void on_connect(union sigval sv)
 static void *_mq_init(struct rpc *rpc, const char *host, uint16_t port, enum rpc_role role)
 {
     struct mq_attr attr;
-    struct mq_posix_ctx *ctx = CALLOC(1, struct mq_posix_ctx);
+    struct mq_posix_ctx *ctx = calloc(1, sizeof(struct mq_posix_ctx));
     if (!ctx) {
         printf("malloc failed!\n");
         return NULL;

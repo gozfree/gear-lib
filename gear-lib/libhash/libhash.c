@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libhash.h"
-#include <gear-lib/libmacro.h>
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

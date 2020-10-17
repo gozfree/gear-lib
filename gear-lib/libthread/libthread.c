@@ -31,9 +31,6 @@
 #include <errno.h>
 #include <stdarg.h>
 
-#define CALLOC(size, type) \
-    (type *)calloc(size, sizeof(type))
-
 
 static void *__thread_func(void *arg)
 {

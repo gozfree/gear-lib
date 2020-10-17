@@ -26,10 +26,9 @@
 #include "rtp.h"
 #include "sdp.h"
 #include "uri_parse.h"
-#include <gear-lib/liblog.h>
-#include <gear-lib/libdict.h>
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libfile.h>
+#include <liblog.h>
+#include <libdict.h>
+#include <libfile.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>

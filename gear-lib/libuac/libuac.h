@@ -22,8 +22,8 @@
 #ifndef LIBUAC_H
 #define LIBUAC_H
 
-#include <gear-lib/libposix.h>
-#include <gear-lib/libmedia-io.h>
+#include <libposix.h>
+#include <libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>
 

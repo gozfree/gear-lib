@@ -51,13 +51,13 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 CFLAGS	+= -DNO_CRYPTO
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lqueue -lmacro -lthread
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lqueue -lthread
 LDFLAGS	+= -pthread -ldl
 
 ###############################################################################

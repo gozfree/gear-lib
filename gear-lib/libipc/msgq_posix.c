@@ -20,7 +20,6 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libipc.h"
-#include <libmacro.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -201,7 +200,7 @@ static void on_connect(union sigval sv)
 static void *_mq_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     struct mq_attr attr;
-    struct mq_posix_ctx *ctx = CALLOC(1, struct mq_posix_ctx);
+    struct mq_posix_ctx *ctx = calloc(1, sizeof(struct mq_posix_ctx));
     if (!ctx) {
         printf("malloc failed!\n");
         return NULL;

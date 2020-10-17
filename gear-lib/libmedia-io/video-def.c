@@ -28,11 +28,11 @@
 #define ALIGNMENT 32
 #define ALIGN_SIZE(size, align) (((size) + (align - 1)) & (~(align - 1)))
 
-#ifndef FREERTOS
-#define aligned_free    free
-#endif
-
 #if defined _ISOC11_SOURCE || __USE_ISOC11 || defined __USE_ISOCXX11
+/*
+ * void *aligned_alloc(size_t, size_t) defined in stdlib.h
+ */
+#define aligned_free    free
 #else
 static void *aligned_alloc(size_t alignment, size_t size)
 {
@@ -44,6 +44,12 @@ static void *aligned_alloc(size_t alignment, size_t size)
         ((char *)ptr)[-1] = (char)diff;
     }
     return ptr;
+}
+
+static void aligned_free(void *ptr)
+{
+	if (ptr)
+		free((char *)ptr - ((char *)ptr)[-1]);
 }
 #endif
 

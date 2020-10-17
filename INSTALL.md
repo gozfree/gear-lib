@@ -1,3 +1,9 @@
+### esp32
+   * toolchain: xtensa-esp32-elf  
+    copy or softlink gear-lib to esp32 components dir  
+    gear-lib/component.mk is makefile of esp32  
+    `$ make`
+
 ### Windows
   * Windows7 install "Microsoft Visual Studio 10.0"  
     open cmd.exe  

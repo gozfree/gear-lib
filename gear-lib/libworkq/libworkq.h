@@ -22,8 +22,8 @@
 #ifndef LIBWORKQ_H
 #define LIBWORKQ_H
 
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libgevent.h>
+#include <libposix.h>
+#include <libgevent.h>
 #include <pthread.h>
 
 #ifdef __cplusplus

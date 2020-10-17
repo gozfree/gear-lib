@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuac.h"
-#include <gear-lib/libfile.h>
+#include <libfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

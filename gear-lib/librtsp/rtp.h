@@ -24,7 +24,7 @@
 
 #include <stdint.h>
 #include <netinet/in.h>
-#include <gear-lib/libmedia-io.h>
+#include <libmedia-io.h>
 
 #ifdef __cplusplus
 extern "C" {

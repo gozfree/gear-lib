@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "sdp.h"
-#include <gear-lib/liblog.h>
+#include <liblog.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

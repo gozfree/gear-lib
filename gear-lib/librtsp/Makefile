@@ -54,7 +54,7 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
 ifeq ($(ENABLE_LIVEVIEW), 1)
 CFLAGS	+= -DENABLE_LIVEVIEW
@@ -65,7 +65,7 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread -lx264
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lskt -lgevent -llog -ldict \
-	   -lthread -ltime -lmedia-io  -lmacro -lqueue -ldarray
+	   -lthread -ltime -lmedia-io -lqueue -ldarray -lposix
 ifeq ($(ENABLE_LIVEVIEW), 1)
 LDFLAGS	+= -lx264 -luvc
 endif

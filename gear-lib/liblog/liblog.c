@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <libposix.h>
 #include "liblog.h"
 #include "color.h"
 
@@ -31,7 +32,7 @@
 #include <time.h>
 #include <fcntl.h>
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <pthread.h>
@@ -48,9 +49,9 @@
 
 #define USE_SYSLOG
 
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
 #include "libposix4win.h"
-#elif defined (__ANDROID__)
+#elif defined (OS_ANDROID)
 #include <jni.h>
 #include <android/log.h>
 #endif
@@ -205,7 +206,11 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
     return size;
 }
 
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#if defined (OS_WINDOWS) || defined (OS_RTOS)
+static int get_proc_name(char *name, size_t len)
+{
+    return 0;
+}
 
 #else
 static int get_proc_name(char *name, size_t len)
@@ -238,8 +243,13 @@ static int get_proc_name(char *name, size_t len)
 }
 #endif
 
-#if defined (__APPLE__)
-#elif defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_APPLE) || defined (OS_RTOS)
+static pid_t gettid(void)
+{
+    return 0;
+}
+
+#elif defined (OS_LINUX)
 static pid_t gettid(void)
 {
 #ifndef __CYGWIN__
@@ -253,7 +263,7 @@ static pid_t gettid(void)
 static void log_get_time(char *str, int len, int flag_name)
 {
     char date_fmt[20];
-    char date_ms[4];
+    char date_ms[32];
     struct timeval tv;
     struct tm now_tm;
     int now_ms;

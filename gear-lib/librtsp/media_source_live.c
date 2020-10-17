@@ -19,9 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <gear-lib/libuvc.h>
-#include <gear-lib/liblog.h>
-#include <gear-lib/libmacro.h>
+#include <libuvc.h>
+#include <liblog.h>
+#include <libmacro.h>
+#include <libdarray.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>
@@ -42,119 +43,165 @@ extern "C" {
 #endif
 
 struct x264_ctx {
-    int width;
-    int height;
-    int encode_format;
-    int input_format;
+    enum pixel_format input_format;
     struct iovec sei;
-    struct iovec pkt;
-    x264_param_t *param;
+    DARRAY(uint8_t) packet_data;
+    x264_param_t param;
     x264_t *handle;
-    x264_picture_t *picture;
-    x264_nal_t *nal;
+    bool first_frame;
+    bool append_extra;
+    uint64_t cur_pts;
+    uint32_t timebase_num;
+    uint32_t timebase_den;
+    struct video_encoder encoder;
     void *parent;
 };
 
 struct live_source_ctx {
     const char name[32];
+    struct uvc_config conf;
     struct iovec data;
     struct uvc_ctx *uvc;
     bool uvc_opened;
-    int width;
-    int height;
     struct x264_ctx *x264;
     struct iovec extradata;
+    void *priv;
 };
 
 static struct live_source_ctx g_live = {.uvc_opened = false};
 
 #define AV_INPUT_BUFFER_PADDING_SIZE 32
 
-static struct x264_ctx *x264_open(struct live_source_ctx *cc)
+static int pixel_format_to_x264_csp(enum pixel_format fmt)
 {
-    int m_frameRate = 25;
-    //int m_bitRate = 1000;
+    switch (fmt) {
+    case PIXEL_FORMAT_UYVY:
+        return X264_CSP_UYVY;
+    case PIXEL_FORMAT_YUY2:
+        return X264_CSP_YUYV;
+    case PIXEL_FORMAT_NV12:
+        return X264_CSP_NV12;
+    case PIXEL_FORMAT_I420:
+        return X264_CSP_I420;
+    case PIXEL_FORMAT_I444:
+        return X264_CSP_I444;
+    default:
+        return X264_CSP_NONE;
+    }
+}
+
+static int init_header(struct x264_ctx *c)
+{
+    x264_nal_t *nals;
+    int nal_cnt, nal_bytes, i;
+
+    DARRAY(uint8_t) extra;
+    DARRAY(uint8_t) sei;
+
+    da_init(extra);
+    da_init(sei);
+
+    nal_bytes = x264_encoder_headers(c->handle, &nals, &nal_cnt);
+    if (nal_bytes < 0) {
+        loge("x264_encoder_headers failed!\n");
+        return -1;
+    }
+
+    for (i = 0; i < nal_cnt; i++) {
+        x264_nal_t *nal = nals + i;
+        if (nal->i_type == NAL_SEI) {
+            da_push_back_array(sei, nal->p_payload, nal->i_payload);
+        } else {
+            da_push_back_array(extra, nal->p_payload, nal->i_payload);
+        }
+    }
+
+    c->encoder.extra_data = extra.array;
+    c->encoder.extra_size = extra.num;
+    c->sei.iov_base = sei.array;
+    c->sei.iov_len = sei.num;
+    //DUMP_BUFFER(c->encoder.extra_data, c->encoder.extra_size);
+    logd("encoder.extra_data=%p, encoder.extra_size=%d\n",
+          c->encoder.extra_data, c->encoder.extra_size);
+
+    return 0;
+}
+
+static struct x264_ctx *x264_open(struct codec_ctx *cc, struct media_encoder *ma)
+{
+    struct media_encoder *ma = CALLOC(1, struct media_encoder);
+    if (!ma) {
+        loge("malloc media_encoder failed!\n");
+        return NULL;
+    }
     struct x264_ctx *c = CALLOC(1, struct x264_ctx);
     if (!c) {
         loge("malloc x264_ctx failed!\n");
         return NULL;
     }
-    c->param = CALLOC(1, x264_param_t);
-    if (!c->param) {
-        loge("malloc param failed!\n");
-        goto failed;
-    }
-    c->picture = CALLOC(1, x264_picture_t);
-    if (!c->picture) {
-        loge("malloc picture failed!\n");
-        goto failed;
-    }
-    x264_param_default_preset(c->param, "ultrafast" , "zerolatency");
+    ma->video.format = PIXEL_FORMAT_NV12;
+    ma->video.width = 640;
+    ma->video.height = 480;
 
-    c->param->i_width = cc->width;
-    c->param->i_height = cc->height;
-    //XXX b_repeat_headers 0: rtmp is ok; 1: playback is ok
-    c->param->b_repeat_headers = 0;  // repeat SPS/PPS before i frame
-    c->param->b_vfr_input = 0;
-    c->param->b_annexb = 1;
-    c->param->b_cabac = 1;
-    c->param->i_threads = 1;
-    c->param->i_fps_num = (int)m_frameRate;
-    c->param->i_fps_den = 1;
-    c->param->i_keyint_max = 25;
-    c->param->i_log_level = X264_LOG_ERROR;
-    x264_param_apply_profile(c->param, "high422");
-    c->handle = x264_encoder_open(c->param);
+    x264_param_default_preset(&c->param, "ultrafast" , "zerolatency");
+    c->input_format = ma->video.format;
+
+    c->param.rc.i_vbv_max_bitrate = 2500;
+    c->param.rc.i_vbv_buffer_size = 2500;
+    c->param.rc.i_bitrate = 2500;
+    c->param.rc.i_rc_method = X264_RC_ABR;
+    c->param.rc.b_filler = true;
+    c->param.i_keyint_max = 1;
+    c->param.b_repeat_headers = 1;
+    c->param.b_vfr_input = 0;
+    c->param.i_log_level = X264_LOG_INFO;
+    c->param.i_csp = pixel_format_to_x264_csp(c->input_format);
+
+    c->param.i_width = ma->video.width;
+    c->param.i_height = ma->video.height;
+    c->param.i_fps_num = ma->video.framerate.num;
+    c->param.i_fps_den = ma->video.framerate.den;
+
+    x264_param_apply_profile(&c->param, NULL);
+
+    c->handle = x264_encoder_open(&c->param);
     if (c->handle == 0) {
         loge("x264_encoder_open failed!\n");
         goto failed;
     }
 
-    if (-1 == x264_picture_alloc(c->picture, X264_CSP_I420, c->param->i_width,
-            c->param->i_height)) {
-        loge("x264_picture_alloc failed!\n");
+    c->first_frame = true;
+    c->append_extra = false;
+
+    c->timebase_num = c->param.i_fps_den;
+    c->timebase_den = c->param.i_fps_num;
+
+    if (init_header(c)) {
+        loge("init_header failed!\n");
         goto failed;
     }
-    c->picture->img.i_csp = X264_CSP_I420;
-    c->picture->img.i_plane = 3;
-    c->width = cc->width;
-    c->height = cc->height;
-    //c->input_format = YUV422P;
-    c->pkt.iov_len = 0;
-    c->pkt.iov_base = NULL;
 
-    if (1) {//flags & AV_CODEC_FLAG_GLOBAL_HEADER) {
-        x264_nal_t *nal;
-        uint8_t *p;
-        int nnal, s, i;
+    c->encoder.format = VIDEO_CODEC_H264;
+    c->encoder.width = ma->video.width;
+    c->encoder.height = ma->video.height;
+    c->encoder.bitrate = 2500;
+    c->encoder.framerate.num = ma->video.framerate.num;
+    c->encoder.framerate.den = ma->video.framerate.den;
+    c->encoder.timebase.num = c->param.i_fps_den;
+    c->encoder.timebase.den = c->param.i_fps_num;
+    logi("width=%d, height=%d\n", c->encoder.width, c->encoder.height);
 
-        s = x264_encoder_headers(c->handle, &nal, &nnal);
-        cc->extradata.iov_base = p = (uint8_t *)calloc(1, s + AV_INPUT_BUFFER_PADDING_SIZE);
-        if (!p)
-            return NULL;
+    ma->video.extra_data = c->encoder.extra_data;
+    ma->video.extra_size = c->encoder.extra_size;
 
-        for (i = 0; i < nnal; i++) {
-            /* Don't put the SEI in extradata. */
-            if (nal[i].i_type == NAL_SEI) {
-                logd("%s\n", nal[i].p_payload+25);
-                c->sei.iov_len = nal[i].i_payload;
-                c->sei.iov_base = calloc(1, c->sei.iov_len);
-                if (!c->sei.iov_base)
-                    return NULL;
-                memcpy(c->sei.iov_base, nal[i].p_payload, nal[i].i_payload);
-                continue;
-            }
-            memcpy(p, nal[i].p_payload, nal[i].i_payload);
-            p += nal[i].i_payload;
-        }
-        cc->extradata.iov_len = p - (uint8_t *)cc->extradata.iov_base;
-    }
     c->parent = cc;
+    cc->priv = c;
     return c;
 
 failed:
     if (c->handle) {
         x264_encoder_close(c->handle);
+        c->handle = 0;
     }
     if (c) {
         free(c);
@@ -162,99 +209,107 @@ failed:
     return NULL;
 }
 
-static int encode_nals(struct x264_ctx *c, struct iovec *pkt,
-                       const x264_nal_t *nals, int nnal)
+static int init_pic_data(struct x264_ctx *c, x264_picture_t *pic,
+                struct video_frame *frame)
 {
-    uint8_t *p;
-    int i;
-    size_t size = c->sei.iov_len;
-    struct live_source_ctx *cc = (struct live_source_ctx *)c->parent;
+    x264_picture_init(pic);
+    pic->i_pts = frame->timestamp;
+    pic->img.i_csp = c->param.i_csp;
 
-    if (!nnal)
-        return 0;
-
-    for (i = 0; i < nnal; i++)
-        size += nals[i].i_payload;
-
-    if (c->pkt.iov_len < size) {
-        c->pkt.iov_len = size;
-        c->pkt.iov_base = realloc(c->pkt.iov_base, size);
+    switch (c->param.i_csp) {
+    case X264_CSP_YUYV:
+        pic->img.i_plane = 1;
+        break;
+    case X264_CSP_NV12:
+        pic->img.i_plane = 2;
+        break;
+    case X264_CSP_I420:
+    case X264_CSP_I444:
+        pic->img.i_plane = 3;
+        break;
+    default:
+        loge("unsupport colorspace type\n");
+        break;
     }
-    p = c->pkt.iov_base;
-    if (!p) {
+    if (pic->img.i_plane != frame->planes) {
+        loge("video frame planes mismatch\n");
         return -1;
     }
 
-    pkt->iov_base = p;
-    pkt->iov_len = 0;
-
-    static bool append_extradata = false;
-    if (!append_extradata) {
-        /* Write the extradata as part of the first frame. */
-        if (cc->extradata.iov_len > 0 && nnal > 0) {
-            if (cc->extradata.iov_len > size) {
-                loge("Error: nal buffer is too small\n");
-                return -1;
-            }
-            memcpy(p, cc->extradata.iov_base, cc->extradata.iov_len);
-            p += cc->extradata.iov_len;
-            pkt->iov_len += cc->extradata.iov_len;
-        }
-        append_extradata = true;
+    for (int i = 0; i < pic->img.i_plane; i++) {
+        pic->img.i_stride[i] = (int)frame->linesize[i];
+        pic->img.plane[i] = frame->data[i];
     }
-
-    for (i = 0; i < nnal; i++){
-        memcpy(p, nals[i].p_payload, nals[i].i_payload);
-        p += nals[i].i_payload;
-        pkt->iov_len += nals[i].i_payload;
-    }
-    return pkt->iov_len;
+    return 0;
 }
 
+static int fill_packet(struct x264_ctx *c, struct video_packet *pkt,
+                       x264_nal_t *nals, int nal_cnt, x264_picture_t *pic_out)
+{
+    if (!nal_cnt)
+        return -1;
+
+    da_resize(c->packet_data, 0);
+
+    if (!c->append_extra) {
+        pkt->encoder.extra_data = c->encoder.extra_data;
+        pkt->encoder.extra_size = c->encoder.extra_size;
+        c->append_extra = true;
+    }
+    for (int i = 0; i < nal_cnt; i++) {
+        x264_nal_t *nal = nals + i;
+        da_push_back_array(c->packet_data, nal->p_payload, nal->i_payload);
+    }
+
+    pkt->data = c->packet_data.array;
+    pkt->size = c->packet_data.num;
+    pkt->pts = pic_out->i_pts;
+    pkt->dts = pic_out->i_dts;
+    pkt->encoder.timebase.num = c->param.i_fps_den;
+    pkt->encoder.timebase.den = c->param.i_fps_num;
+    logd("pkt->dts=%d, pkt->encoder.timebase = %d/%d\n",
+          pkt->dts, pkt->encoder.timebase.num, pkt->encoder.timebase.den);
+
+    pkt->key_frame = pic_out->b_keyframe != 0;
+
+    memcpy(&pkt->encoder, &c->encoder, sizeof(struct video_encoder));
+    logd("pkt->encoder.extra_size = %d\n", pkt->encoder.extra_size);
+    return pkt->size;
+}
 static int x264_encode(struct x264_ctx *c, struct iovec *in, struct iovec *out)
 {
-    x264_picture_t pic_out;
-    int nNal = 0;
+    x264_picture_t pic_in, pic_out;
+    x264_nal_t *nal;
+    int nal_cnt = 0;
     int ret = 0;
-    int i = 0, j = 0;
-    c->nal = NULL;
-    uint8_t *p422;
-
-    uint8_t *y = c->picture->img.plane[0];
-    uint8_t *u = c->picture->img.plane[1];
-    uint8_t *v = c->picture->img.plane[2];
-
-    int widthStep422 = c->param->i_width * 2;
-
-    for(i = 0; i < c->param->i_height; i += 2) {
-        p422 = (uint8_t *)in->iov_base + i * widthStep422;
-        for(j = 0; j < widthStep422; j+=4) {
-            *(y++) = p422[j];
-            *(u++) = p422[j+1];
-            *(y++) = p422[j+2];
-        }
-
-        p422 += widthStep422;
-
-        for(j = 0; j < widthStep422; j+=4) {
-            *(y++) = p422[j];
-            *(v++) = p422[j+3];
-            *(y++) = p422[j+2];
-        }
+    int nal_bytes = 0;
+    struct video_frame *frm = in->iov_base;
+    struct video_packet *pkt = out->iov_base;
+    if (c->first_frame) {
+        c->cur_pts = 0;
+        c->first_frame = false;
     }
-    c->picture->i_type = X264_TYPE_I;
+    frm->timestamp = c->cur_pts;
 
-    do {
-        if (x264_encoder_encode(c->handle, &(c->nal), &nNal, c->picture,
-                    &pic_out) < 0) {
-            return -1;
-        }
-        ret = encode_nals(c, out, c->nal, nNal);
-        if (ret < 0) {
-            return -1;
-        }
-    } while (0);
-    c->picture->i_pts++;
+    init_pic_data(c, &pic_in, frm);
+
+    nal_bytes = x264_encoder_encode(c->handle, &nal, &nal_cnt, &pic_in,
+                    &pic_out);
+    if (nal_bytes < 0) {
+        loge("x264_encoder_encode failed!\n");
+        return -1;
+    }
+    ret = fill_packet(c, pkt, nal, nal_cnt, &pic_out);
+    if (ret < 0) {
+        loge("fill_packet failed!\n");
+        return -1;
+    }
+
+    logd("frame info: <id=%d, pts=%zu>; packet info: <pts=%zu, dts=%zu, keyframe=%d, size=%zu>\n",
+        frm->frame_id, frm->timestamp, pkt->pts, pkt->dts, pkt->key_frame, pkt->size);
+    c->cur_pts += c->timebase_num;
+    out->iov_len = ret;
+    logd("encode size=%d\n", out->iov_len);
     return ret;
 }
 
@@ -286,13 +341,13 @@ static uint32_t get_random_number()
 static int live_open(struct media_source *ms, const char *name)
 {
     struct live_source_ctx *c = &g_live;
-    c->width = 640;
-    c->height = 480;
     if (c->uvc_opened) {
         logi("uvc already opened!\n");
         return 0;
     }
-    c->uvc = uvc_open("/dev/video0", c->width, c->height);
+    c->conf.width = 640;
+    c->conf.height = 480;
+    c->uvc = uvc_open("/dev/video0", &c->conf);
     if (!c->uvc) {
         loge("uvc open failed!\n");
         return -1;
@@ -308,8 +363,8 @@ static int live_open(struct media_source *ms, const char *name)
         loge("x264_open failed!\n");
         return -1;
     }
-    c->data.iov_base = calloc(1, 2*c->width*c->height);
-    c->data.iov_len = 2*c->width*c->height;
+    c->data.iov_len = 2*c->conf.width*c->conf.height;
+    c->data.iov_base = calloc(1, c->data.iov_len);
     return 0;
 }
 

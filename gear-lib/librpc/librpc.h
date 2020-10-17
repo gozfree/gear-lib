@@ -22,7 +22,7 @@
 #ifndef LIBRPC_H
 #define LIBRPC_H
 
-#include <gear-lib/libhash.h>
+#include <libhash.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

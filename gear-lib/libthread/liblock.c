@@ -308,6 +308,7 @@ void mutex_cond_signal_all(mutex_cond_t *ptr)
 /******************************************************************************
  * read-write lock APIs
  *****************************************************************************/
+#if defined(_POSIX_READER_WRITER_LOCKS)
 int rwlock_init(rw_lock_t *lock)
 {
     int ret;
@@ -481,6 +482,7 @@ int rwlock_unlock(rw_lock_t *ptr)
     }
     return ret;
 }
+#endif
 
 /******************************************************************************
  * sem lock APIs

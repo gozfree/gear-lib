@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuvc.h"
-#include <gear-lib/libthread.h>
+#include <libthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

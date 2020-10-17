@@ -37,31 +37,24 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 # cflags and ldflags
 ###############################################################################
 ifeq ($(MODE), release)
-CFLAGS	:= -O2 -Wall -Werror -Wno-format-truncation
+CFLAGS	:= -O2 -Wall -Werror -fPIC -Wno-format-truncation
 LTYPE   := release
 else
-CFLAGS	:= -g -Wall -Wno-format-truncation
+CFLAGS	:= -g -Wall -Werror -fPIC -Wno-format-truncation
 LTYPE   := debug
 endif
 ifeq ($(OUTPUT),/usr/local)
-OUTLIBPATH := /usr/local
+OUTLIBPATH :=/usr/local
 else
-OUTLIBPATH := $(OUTPUT)/$(LTYPE)
-endif
-ifeq ($(ARCH), win)
-else
-CFLAGS	+= -fPIC
+OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(INC_DIR)
-CFLAGS	+= -I$(OUTPUT)/include
-SHARED	:= -shared -fPIC
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
+
+SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-ifeq ($(ARCH), win)
-LDFLAGS	+= -L$(LIB_DIR)
-endif
-LDFLAGS	+= -lpthread
+LDFLAGS	+= -pthread
 
 ###############################################################################
 # target

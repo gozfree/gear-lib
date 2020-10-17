@@ -21,9 +21,8 @@
  ******************************************************************************/
 #include "librpc.h"
 #include "netlink_driver.h"
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libgevent.h>
-#include <gear-lib/libthread.h>
+#include <libgevent.h>
+#include <libthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,7 +112,7 @@ static void *nl_init(struct rpc *rpc, const char *host, uint16_t port, enum rpc_
         }
         return NULL;
     }
-    struct nl_ctx *ctx = CALLOC(1, struct nl_ctx);
+    struct nl_ctx *ctx = calloc(1, sizeof(struct nl_ctx));
     if (!ctx) {
         printf("malloc failed!\n");
         return NULL;

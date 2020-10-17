@@ -56,7 +56,7 @@ ifneq ($(driver), y)
 EXTRA_CFLAGS	+= -fPIC
 endif
 EXTRA_CFLAGS	+= $($(ARCH)_CFLAGS)
-EXTRA_CFLAGS	+= -I$(OUTPUT)/include
+EXTRA_CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 EXTRA_CFLAGS	+= -I../libmacro/
 
 SHARED	:= -shared

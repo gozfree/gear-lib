@@ -20,8 +20,8 @@
  * SOFTWARE.
  ******************************************************************************/
 #include <stdlib.h>
-#include <gear-lib/libserializer.h>
-#include <gear-lib/libmacro.h>
+#include <libserializer.h>
+#include <libposix.h>
 #include "flv_mux.h"
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>

@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "uri_parse.h"
-#include <gear-lib/liblog.h>
+#include <liblog.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>

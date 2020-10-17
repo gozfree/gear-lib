@@ -20,13 +20,13 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "librpc.h"
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libgevent.h>
-#include <gear-lib/libhash.h>
-#include <gear-lib/libskt.h>
-#include <gear-lib/libthread.h>
-#include <gear-lib/libworkq.h>
-#include <gear-lib/libtime.h>
+#include <libposix.h>
+#include <libgevent.h>
+#include <libhash.h>
+#include <libskt.h>
+#include <libthread.h>
+#include <libworkq.h>
+#include <libtime.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

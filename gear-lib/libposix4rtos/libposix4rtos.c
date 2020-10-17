@@ -42,6 +42,19 @@ unsigned int sleep(unsigned int seconds)
     return 0;
 }
 
+#if 0
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
+{
+    int i;
+    ssize_t len = 0;
+    for (i = 0; i < iovcnt; ++i) {
+        len += write(fd, iov[i].iov_base, iov[i].iov_len);
+    }
+    return len;
+}
+#endif
+
+
 static void __thread_func(void *arg)
 {
     struct pthread_t *t = (struct pthread_t *)arg;

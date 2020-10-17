@@ -22,8 +22,8 @@
 #ifndef LIBIPC_H
 #define LIBIPC_H
 
-#include <gear-lib/libdict.h>
-#include <gear-lib/libgevent.h>
+#include <libdict.h>
+#include <libgevent.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

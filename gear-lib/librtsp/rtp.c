@@ -20,9 +20,8 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "rtp.h"
-#include <gear-lib/liblog.h>
-#include <gear-lib/libskt.h>
-#include <gear-lib/libmacro.h>
+#include <liblog.h>
+#include <libskt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -225,7 +224,7 @@ int rtp_packet_deserialize(struct rtp_packet *pkt, const void* data, int bytes)
 
 struct rtp_packet *rtp_packet_create(uint8_t pt, int size, uint16_t seq, uint32_t ssrc)
 {
-    struct rtp_packet *pkt = CALLOC(1, struct rtp_packet);
+    struct rtp_packet *pkt = calloc(1, sizeof(struct rtp_packet));
     if (!pkt) return NULL;
 
     pkt->header.v = RTP_VERSION;
@@ -299,7 +298,7 @@ int rtp_ssrc(void)
 
 struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char* src_ip, const char *dst_ip)
 {
-    struct rtp_socket *s = CALLOC(1, struct rtp_socket);
+    struct rtp_socket *s = calloc(1, sizeof(struct rtp_socket));
     if (!s) {
         return NULL;
     }
@@ -380,7 +379,7 @@ ssize_t rtcp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *
 
 struct rtp_context *rtp_create(int frequence, int boundwidth)
 {
-    struct rtp_context *ctx	= CALLOC(1, struct rtp_context);
+    struct rtp_context *ctx	= calloc(1, sizeof(struct rtp_context));
     if (!ctx) return NULL;
 
     ctx->ssrc = rtp_ssrc();

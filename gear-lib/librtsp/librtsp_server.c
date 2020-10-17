@@ -26,9 +26,8 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/time.h>
-#include <gear-lib/libmacro.h>
-#include <gear-lib/liblog.h>
-#include <gear-lib/libdict.h>
+#include <liblog.h>
+#include <libdict.h>
 #include "librtsp.h"
 #include "media_source.h"
 #include "transport_session.h"
@@ -76,7 +75,7 @@ static void on_error(int fd, void *arg)
 static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, uint16_t port)
 {
     char key[9];
-    struct rtsp_request *req = CALLOC(1, struct rtsp_request);
+    struct rtsp_request *req = calloc(1, sizeof(struct rtsp_request));
     req->fd = fd;
     req->client.ip = ip;
     req->client.port = port;
@@ -194,7 +193,7 @@ static void destroy_master_thread(struct rtsp_server *c)
 
 struct rtsp_server *rtsp_server_init(const char *ip, uint16_t port)
 {
-    struct rtsp_server *c = CALLOC(1, struct rtsp_server);
+    struct rtsp_server *c = calloc(1, sizeof(struct rtsp_server));
     if (!c) {
         loge("malloc rtsp_server failed!\n");
         return NULL;

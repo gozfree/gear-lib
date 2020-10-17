@@ -20,7 +20,6 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libipc.h"
-#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -180,7 +179,7 @@ static void *client_thread(void *arg)
 
 static void *_mq_init_client(struct ipc *ipc)
 {
-    struct mq_sysv_ctx *ctx = CALLOC(1, struct mq_sysv_ctx);
+    struct mq_sysv_ctx *ctx = calloc(1, sizeof(struct mq_sysv_ctx));
     if (!ctx) {
         printf("malloc failed!\n");
         return NULL;
@@ -235,7 +234,7 @@ static void _mq_deinit_client(struct mq_sysv_ctx *ctx)
 
 static void *_mq_init_server(struct ipc *ipc)
 {
-    struct mq_sysv_ctx *ctx = CALLOC(1, struct mq_sysv_ctx);
+    struct mq_sysv_ctx *ctx = calloc(1, sizeof(struct mq_sysv_ctx));
     if (!ctx) {
         printf("malloc failed!\n");
         return NULL;

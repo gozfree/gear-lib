@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libipc.h"
-#include <libmacro.h>
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -301,7 +301,7 @@ static int on_return(struct ipc *ipc, void *buf, size_t len)
 
 struct ipc *ipc_create(enum ipc_role role, uint16_t port)
 {
-    struct ipc *ipc = CALLOC(1, struct ipc);
+    struct ipc *ipc = calloc(1, sizeof(struct ipc));
     if (!ipc) {
         printf("malloc failed!\n");
         return NULL;

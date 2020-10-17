@@ -20,10 +20,9 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "librpc.h"
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libgevent.h>
-#include <gear-lib/libthread.h>
-#include <gear-lib/libskt.h>
+#include <libgevent.h>
+#include <libthread.h>
+#include <libskt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,7 +100,7 @@ static void *sk_init(struct rpc *rpc, const char *host, uint16_t port, enum rpc_
 {
     char unix_host[256];
     struct gevent *e = NULL;
-    struct sk_ctx *c = CALLOC(1, struct sk_ctx);
+    struct sk_ctx *c = calloc(1, sizeof(struct sk_ctx));
     if (!c) {
         printf("malloc failed!\n");
         goto failed;

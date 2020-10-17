@@ -20,18 +20,13 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libuac.h"
-#include <gear-lib/libthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <stdarg.h>
-#include <sys/uio.h>
-#include <sys/mman.h>
-#include <sys/epoll.h>
+#include <time.h>
 #include <pulse/pulseaudio.h>
 
 enum speaker_layout {

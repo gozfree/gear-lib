@@ -29,13 +29,11 @@
 #include <signal.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <gear-lib/libgevent.h>
-#include <gear-lib/libthread.h>
-#include <gear-lib/libmacro.h>
+#include <libgevent.h>
+#include <libthread.h>
 #else
 #include <libgevent.h>
 #include <libthread.h>
-#include <libmacro.h>
 #endif
 
 struct skt_connection *g_sc = NULL;

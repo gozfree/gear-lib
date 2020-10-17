@@ -64,12 +64,6 @@ struct file_desc {
     char *name;
 };
 
-typedef struct file {
-    struct file_desc *fd;
-    const struct file_ops *ops;
-    uint64_t size;
-} file;
-
 typedef struct file_info {
     uint64_t modify_sec;
     uint64_t access_sec;
@@ -77,6 +71,12 @@ typedef struct file_info {
     char path[PATH_MAX];
     uint64_t size;
 } file_info;
+
+typedef struct file {
+    struct file_desc *fd;
+    const struct file_ops *ops;
+    struct file_info info;
+} file;
 
 typedef struct file_systat {
     uint64_t size_total;

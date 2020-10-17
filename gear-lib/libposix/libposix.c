@@ -23,3 +23,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void *memdup(const void *src, size_t len)
+{
+    void *dst = calloc(1, len);
+    if (LIKELY(dst != NULL)) {
+        memcpy(dst, src, len);
+    }
+    return dst;
+}
+
+struct iovec *iovec_create(size_t len)
+{
+    struct iovec *vec = calloc(1, sizeof(struct iovec));
+    if (LIKELY(vec != NULL)) {
+        vec->iov_len = len;
+        vec->iov_base = calloc(1, len);
+        if (UNLIKELY(vec->iov_base == NULL)) {
+            free(vec);
+            vec = NULL;
+        }
+    }
+    return vec;
+}
+
+void iovec_destroy(struct iovec *vec)
+{
+    if (LIKELY(vec != NULL)) {
+        /* free(NULL) do nop */
+        free(vec->iov_base);
+        free(vec);
+    }
+}
+
+
+/**
+ * Fast little endian check
+ * NOTE: not applicable for PDP endian
+ */
+bool is_little_endian(void)
+{
+    static uint16_t x = 0x01;
+    return *((uint8_t *) &x);
+}

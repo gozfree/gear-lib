@@ -22,12 +22,11 @@
 #include "transport_session.h"
 #include "media_source.h"
 #include "rtp.h"
-#include <gear-lib/liblog.h>
-#include <gear-lib/libtime.h>
-#include <gear-lib/libdict.h>
-#include <gear-lib/libmacro.h>
-#include <gear-lib/libgevent.h>
-#include <gear-lib/libmedia-io.h>
+#include <liblog.h>
+#include <libtime.h>
+#include <libdict.h>
+#include <libgevent.h>
+#include <libmedia-io.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -65,7 +64,7 @@ static uint32_t get_random_number()
 struct transport_session *transport_session_create(void *pool, struct transport_header *t)
 {
     char key[9];
-    struct transport_session *s = CALLOC(1, struct transport_session);
+    struct transport_session *s = calloc(1, sizeof(struct transport_session));
     s->session_id = get_random_number();
     snprintf(key, sizeof(key), "%08X", s->session_id);
     s->rtp = rtp_create(90000, 0);

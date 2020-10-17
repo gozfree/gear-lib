@@ -32,7 +32,6 @@
 #include "libhash.h"
 #include "libipc.h"
 #include "liblog.h"
-#include "libmacro.h"
 #include "libmp4parser.h"
 #include "libp2p.h"
 #include "libplugin.h"

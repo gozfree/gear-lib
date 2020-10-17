@@ -20,7 +20,6 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libipc.h"
-#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -107,7 +106,7 @@ static void *event_thread(void *arg)
 static void *sk_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
 {
     char stub_name[64];
-    struct sk_ctx *c = CALLOC(1, struct sk_ctx);
+    struct sk_ctx *c = calloc(1, sizeof(struct sk_ctx));
     if (!c) {
         printf("malloc failed!\n");
         goto failed;
