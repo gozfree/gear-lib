@@ -49,8 +49,6 @@
 
 #define USE_SYSLOG
 
-#elif defined (OS_WINDOWS)
-#include "libposix4win.h"
 #elif defined (OS_ANDROID)
 #include <jni.h>
 #include <android/log.h>

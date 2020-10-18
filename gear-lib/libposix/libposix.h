@@ -30,47 +30,44 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-
-
-#if defined (__linux__) || defined (__CYGWIN__)
 /******************************************************************************
- *
+ * OS_LINUX
  ******************************************************************************/
+#if defined (__linux__) || defined (__CYGWIN__)
 #define OS_LINUX
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/uio.h>
 #include "kernel_list.h"
 
-
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 /******************************************************************************
- *
+ * OS_WINDOWS
  ******************************************************************************/
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #define OS_WINDOWS
 #include <stdbool.h>
 #include "libposix4win/libposix4win.h"
 #include "libposix4win/kernel_list_win32.h"
 
-#elif defined (__APPLE__)
 /******************************************************************************
- *
+ * OS_APPLE
  ******************************************************************************/
+#elif defined (__APPLE__)
 #define OS_APPLE
 #include <stdbool.h>
 #include <sys/uio.h>
 
-#elif defined (__ANDROID__)
 /******************************************************************************
- *
+ * OS_ANDROID
  ******************************************************************************/
+#elif defined (__ANDROID__)
 #define OS_ANDROID
 #include <stdbool.h>
 
-#elif defined (FREERTOS) || defined (THREADX)
 /******************************************************************************
- *
+ * OS_RTOS
  ******************************************************************************/
+#elif defined (FREERTOS) || defined (THREADX)
 #define OS_RTOS
 #include <stdbool.h>
 #include <sys/uio.h>
@@ -82,12 +79,12 @@ extern "C" {
 #endif
 
 /******************************************************************************
- *
- ******************************************************************************/
-
-/*
  * MACRO DEFINES ARE UPPERCASE
- */
+ ******************************************************************************/
+typedef struct rational {
+    int num;
+    int den;
+} rational_t;
 
 /**
  * Variable-argument unused annotation

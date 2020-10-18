@@ -22,7 +22,6 @@
 #ifndef LIBUAC_H
 #define LIBUAC_H
 
-#include <libposix.h>
 #include <libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>

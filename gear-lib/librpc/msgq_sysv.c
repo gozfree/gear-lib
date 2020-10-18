@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "librpc.h"
-#include <libposix.h>
+//#include <libposix.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -41,7 +41,7 @@ struct mq_sysv_ctx {
     int msgid_s;
     pthread_t tid;
     pid_t pid;
-    bool run;
+    int run;
     void *parent;
 };
 
@@ -206,7 +206,7 @@ static void *_mq_init_client(struct rpc *rpc)
     if (-1 == msg_recv(ctx->msgid_c, &code, (void *)&pid, sizeof(pid_t))) {
         printf("msg_recv failed!\n");
     }
-    ctx->run = true;
+    ctx->run = 1;
     if (0 != pthread_create(&ctx->tid, NULL, client_thread, ctx)) {
         printf("pthread_create failed!\n");
         goto failed;
@@ -224,7 +224,7 @@ failed:
 
 static void _mq_deinit_client(struct mq_sysv_ctx *ctx)
 {
-    ctx->run = false;
+    ctx->run = 0;
     msg_send(ctx->msgid_c, MQ_CMD_QUIT, "a", 1);
     pthread_join(ctx->tid, NULL);
     msg_send(ctx->msgid_s, MQ_CMD_UNBIND, (const void *)&ctx->pid, sizeof(pid_t));
@@ -246,7 +246,7 @@ static void *_mq_init_server(struct rpc *rpc)
         printf("msgget failed: %d\n", errno);
         goto failed;
     }
-    ctx->run = true;
+    ctx->run = 1;
     if (0 != pthread_create(&ctx->tid, NULL, server_thread, ctx)) {
         printf("pthread_create failed!\n");
         goto failed;
@@ -264,7 +264,7 @@ failed:
 
 static void _mq_deinit_server(struct mq_sysv_ctx *ctx)
 {
-    ctx->run = false;
+    ctx->run = 0;
     msg_send(ctx->msgid_s, MQ_CMD_QUIT, "a", 1);
     pthread_join(ctx->tid, NULL);
     msgctl(ctx->msgid_s, IPC_RMID, NULL);

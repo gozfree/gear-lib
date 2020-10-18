@@ -22,7 +22,7 @@
 #ifndef LIBMP4_H
 #define LIBMP4_H
 
-#include <gear-lib/libmedia-io.h>
+#include <libmedia-io.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus

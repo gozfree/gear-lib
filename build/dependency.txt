@@ -1,0 +1,86 @@
+@startuml
+
+package gear-lib {
+
+'describe all libraries
+class libbase64
+class libconfig
+class libdarray
+class libdebug
+class libdict
+class libfile {
+    libfilewatcher
+}
+class libfsm
+class libgevent
+class libhal
+class libhash
+class libhomekit
+class libipc
+class "libmedia-io"
+class libmp4
+class libp2p
+class libplugin
+class libposix {
+    libposix4rtos
+    libposix4win
+}
+class libqueue
+class librbtree
+class libringbuffer
+class librpc
+class librtmpc
+class librtsp
+class libskt
+class libsort
+class libstrex
+class libsubmask
+class libthread
+class libtime
+class libuac
+class libuvc
+class libvector
+class libworkq
+
+'describe dependency of all libraires
+libconfig     --* libposix
+libgevent     --* libdarray
+libhash       --* libposix
+libipc        --* libdict
+libipc        --* libgevent
+liblog        --* libposix
+libmp4        --* "libmedia-io"
+libmp4        --* ffmpeg
+"libmedia-io" --* libposix
+libplugin     --* libposix
+'libp2p        --* librpc
+'libp2p        --* libposix
+'libp2p        --* libhash
+'libp2p        --* libgevent
+'libp2p        --* libskt
+'libp2p        --* libthread
+libqueue      --* libposix
+librpc        --* libdarray
+librpc        --* libgevent
+librpc        --* libworkq
+librpc        --* libhash
+librpc        --* libskt
+librpc        --* libthread
+librpc        --* libtime
+librpc        --* libposix
+librtmpc      --* libgevent
+librtmpc      --* libqueue
+librtmpc      --* libposix
+librtsp       --* libskt
+librtsp       --* libbase64
+librtsp       --* libgevent
+libthread     --* libposix
+libtime       --* libposix
+libuac        --* "libmedia-io"
+libuvc        --* "libmedia-io"
+libvector     --* libposix
+libworkq      --* libgevent
+libworkq      --* libdarray
+libworkq      --* libposix
+}
+@enduml

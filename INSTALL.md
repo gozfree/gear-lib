@@ -62,3 +62,6 @@
   * with "build folder", you can build x86, pi, android, ios and color is also set
   * "sudo make install" is needed when build libxxx alone.
 
+## dependency
+  * plantuml -tsvg dependency.txt
+  [dependency](build/gear-lib.svg)  

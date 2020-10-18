@@ -22,23 +22,18 @@
 #ifndef LIBMEDIA_IO_H
 #define LIBMEDIA_IO_H
 
+#include <libposix.h>
 #include <stdlib.h>
 #include <stdbool.h>
+
+#include "audio-def.h"
+#include "video-def.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct rational {
-    int num;
-    int den;
-} rational_t;
-
-#include "audio-def.h"
-#include "video-def.h"
-
 /*
- *
  * +--------------+
  * |media_producer|--(produce)-|
  * +--------------+            -> +-----------+ --(encode)-> +------------+ -- (mux) -> +------------+

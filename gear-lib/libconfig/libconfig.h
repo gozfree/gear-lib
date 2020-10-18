@@ -22,19 +22,14 @@
 #ifndef LIBCONFIG_H
 #define LIBCONFIG_H
 
+#include <libposix.h>
 #include <stdio.h>
 #include <limits.h>
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#define PATH_MAX   4096
-#endif
 typedef struct config {
     struct config_ops *ops;
     char path[PATH_MAX];

@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libgevent.h"
-#include <gear-lib/libdarray.h>
+#include <libdarray.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -9,9 +9,7 @@ BUILD_DIR	:= $(shell pwd)/../../build/
 ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
 COLOR_INC	:= $(BUILD_DIR)/color.inc
 
-ifeq ($(ARCH_INC), $(wildcard $(ARCH_INC)))
 include $(ARCH_INC)
-endif
 
 ENABLE_LUA	= 1
 
@@ -20,22 +18,15 @@ CC	= $(CROSS_PREFIX)g++
 else
 CC	= $(CROSS_PREFIX)gcc
 endif
-CXX	= $(CROSS_PREFIX)g++
-LD	= $(CROSS_PREFIX)ld
-AR	= $(CROSS_PREFIX)ar
-STRIP   = $(CROSS_PREFIX)strip
 
-ifeq ($(COLOR_INC), $(wildcard $(COLOR_INC)))
 include $(COLOR_INC)
-else
-CC_V	= $(CC)
-CXX_V	= $(CXX)
-LD_V	= $(LD)
-AR_V	= $(AR)
-CP_V	= $(CP)
-RM_V	= $(RM)
-endif
 
+CC_V		?= $(CC)
+CXX_V		?= $(CXX)
+LD_V		?= $(LD)
+AR_V		?= $(AR)
+CP_V		?= $(CP)
+RM_V		?= $(RM)
 
 ###############################################################################
 # target and object
@@ -84,7 +75,7 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include -I./
+CFLAGS	+= -I./ -I$(OUTPUT)/include/gear-lib
 ifeq ($(ENABLE_LUA), 1)
 CFLAGS	+= `pkg-config --cflags lua5.2`
 CFLAGS	+= -DENABLE_LUA
@@ -121,7 +112,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(CC_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED) $(LDFLAGS)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
