@@ -81,6 +81,10 @@ extern "C" {
 #error "OS_UNDEFINED"
 #endif
 
+/******************************************************************************
+ *
+ ******************************************************************************/
+
 /*
  * MACRO DEFINES ARE UPPERCASE
  */
@@ -150,7 +154,7 @@ extern "C" {
  * Will fail build if condition yield true
  */
 #ifndef BUILD_BUG_ON
-#if defined (__WIN32__) || defined (_WIN32) || defined (_MSC_VER)
+#if defined (OS_WINDOWS)
 /*
  * MSVC compiler allows negative array size(treat as unsigned value)
  *  yet them don't allow zero-size array

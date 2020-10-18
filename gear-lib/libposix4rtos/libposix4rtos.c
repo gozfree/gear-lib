@@ -22,6 +22,16 @@
 #include "libposix4rtos.h"
 #include <stdio.h>
 
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
+{
+    int i;
+    ssize_t len = 0;
+    for (i = 0; i < iovcnt; ++i) {
+        len += write(fd, iov[i].iov_base, iov[i].iov_len);
+    }
+    return len;
+}
+#ifndef ESP32
 int usleep(useconds_t us)
 {
     const int us_per_tick = portTICK_PERIOD_MS * 1000;
@@ -42,16 +52,8 @@ unsigned int sleep(unsigned int seconds)
     return 0;
 }
 
-#if 0
-ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
-{
-    int i;
-    ssize_t len = 0;
-    for (i = 0; i < iovcnt; ++i) {
-        len += write(fd, iov[i].iov_base, iov[i].iov_len);
-    }
-    return len;
-}
+#if 1
+
 #endif
 
 
@@ -199,3 +201,4 @@ void rtos_aligned_free(void *ptr)
 	if (ptr)
 		free((char *)ptr - ((char *)ptr)[-1]);
 }
+#endif
