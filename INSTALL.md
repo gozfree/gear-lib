@@ -64,4 +64,4 @@
 
 ## dependency
   * plantuml -tsvg dependency.txt
-  [dependency](build/gear-lib.svg)  
+  ![dependency](build/dependency.svg)  
