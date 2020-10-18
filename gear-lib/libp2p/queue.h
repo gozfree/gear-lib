@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-#include <libmacro.h>
+#include <libposix.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>

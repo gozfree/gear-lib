@@ -21,7 +21,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <libmacro.h>
 #include <liblog.h>
 
 #include "luatables.h"

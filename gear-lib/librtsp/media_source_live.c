@@ -21,7 +21,6 @@
  ******************************************************************************/
 #include <libuvc.h>
 #include <liblog.h>
-#include <libmacro.h>
 #include <libdarray.h>
 #include "sdp.h"
 #include "media_source.h"
@@ -129,12 +128,12 @@ static int init_header(struct x264_ctx *c)
 
 static struct x264_ctx *x264_open(struct codec_ctx *cc, struct media_encoder *ma)
 {
-    struct media_encoder *ma = CALLOC(1, struct media_encoder);
+    struct media_encoder *ma = calloc(1, sizeof(struct media_encoder));
     if (!ma) {
         loge("malloc media_encoder failed!\n");
         return NULL;
     }
-    struct x264_ctx *c = CALLOC(1, struct x264_ctx);
+    struct x264_ctx *c = calloc(1, sizeof(struct x264_ctx));
     if (!c) {
         loge("malloc x264_ctx failed!\n");
         return NULL;

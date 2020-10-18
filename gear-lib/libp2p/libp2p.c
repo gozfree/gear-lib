@@ -22,7 +22,6 @@
 #include "libp2p.h"
 #include "libstun.h"
 #include "libptcp.h"
-#include <libmacro.h>
 #include <libskt.h>
 #include <librpc.h>
 #include <librpc_stub.h>

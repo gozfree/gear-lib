@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libmacro.h>
+#include <libposix.h>
 #include "libfilewatcher.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,7 +38,7 @@ int add_path_list(struct fw *fw, int wd, const char *path)
     char key[KEY_LEN];
     memset(key, 0, sizeof(key));
     snprintf(key, KEY_LEN, "%d", wd);
-    char *val = CALLOC(PATH_MAX, char);
+    char *val = calloc(PATH_MAX, sizeof(char));
     strncpy(val, path, PATH_MAX);
     dict_add(fw->dict_path, key, val);
     return 0;
@@ -228,7 +228,7 @@ int fw_update_watch(struct fw *fw, struct inotify_event *iev)
 
 struct fw *fw_init(void (notify_cb)(struct fw *fw, enum fw_type type, char *path))
 {
-    struct fw *fw = CALLOC(1, struct fw);
+    struct fw *fw = calloc(1, sizeof(struct fw));
     if (!fw) {
         printf("malloc fw failed\n");
         goto err;

@@ -1,1 +1,0 @@
-../gear-lib/librtmpc/rtmp_g711.h

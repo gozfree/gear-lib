@@ -16,8 +16,7 @@
 | libdict: 哈希字典 | libhash: linux内核原生哈希库 |
 | libringbuffer: 循环缓冲 | libqueue: 数据队列 |
 | librbtree: 内核rbtree | libsort: |
-| libvector: 容器库 | libmacro: 通用宏定义 |
-| libdarray: 动态数组 | |
+| libvector: 容器库 | libdarray: 动态数组 |
 
 ## 网络库
 |  |  |

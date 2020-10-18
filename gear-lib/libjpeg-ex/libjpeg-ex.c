@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <jpeglib.h>
-#include <libmacro.h>
 #include <liblog.h>
 #include "libjpeg-ex.h"
 

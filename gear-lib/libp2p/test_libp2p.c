@@ -20,7 +20,6 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libp2p.h"
-#include <libmacro.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

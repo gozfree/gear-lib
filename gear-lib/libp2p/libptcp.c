@@ -21,7 +21,6 @@
  ******************************************************************************/
 #include "queue.h"
 #include "libptcp.h"
-#include <libmacro.h>
 
 #include <stdlib.h>
 #include <errno.h>

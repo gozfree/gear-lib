@@ -16,8 +16,7 @@ This is a collection of basic libraries.
 | libdict: Hash key-value dictonary library | libhash: Hash key-value library based on hlist from kernel |
 | libringbuffer: | libqueue: queue library, support memory hook |
 | librbtree: comes from linux kernel rbtree. | libsort: |
-| libvector: | libmacro: Basic Macro define library, include kernel list and so on |
-| libdarray: Dynamic array | |
+| libvector: | libdarray: Dynamic array |
 
 ## Network
 |  |  |

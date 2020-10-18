@@ -1,1 +1,0 @@
-../gear-lib/libmp4parser/mp4parser_inner.c
