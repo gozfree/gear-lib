@@ -10,7 +10,7 @@ endif
 
 LIBRARIES_DIR	:= $(LOCAL_PATH)/../
 
-LIBSKT_INC := $(LIBRARIES_DIR)/libskt/
+LIBSKT_INC := $(LIBRARIES_DIR)/libsock/
 LIBRPC_INC := $(LIBRARIES_DIR)/librpc/
 LIBGEVENT_INC := $(LIBRARIES_DIR)/libgevent/
 
@@ -23,7 +23,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH) \
 LOCAL_SRC_FILES := libp2p.c
 
 LOCAL_SHARED_LIBRARIES :=  \
-			   libskt \
+			   libsock \
 			   librpc
 
 

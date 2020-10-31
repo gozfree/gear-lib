@@ -86,19 +86,19 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
                     msg?msg:"\r\n");
     logi("rtsp response[%d]:\n==== c <<<< S ====\n%s\n==== c <<<< S ====\n",
           len, buf);
-    return skt_send(req->fd, buf, len);
+    return sock_send(req->fd, buf, len);
 }
 
 static int on_teardown(struct rtsp_request *req, char *url)
 {
     //transport_session_pool_destroy(NULL);
-    //int len = skt_send(req->fd, resp, strlen(resp));
+    //int len = sock_send(req->fd, resp, strlen(resp));
     return 0;
 }
 
 static int on_get_parameter(struct rtsp_request *req, char *url)
 {
-    //int len = skt_send(req->fd, resp, strlen(resp));
+    //int len = sock_send(req->fd, resp, strlen(resp));
     return 0;
 }
 
@@ -153,12 +153,12 @@ static int on_setup(struct rtsp_request *req, char *url)
     }
     if (0 == strlen(req->transport.source)) {
         //set local ipaddr to source
-        struct skt_addr addr;
-        skt_getaddr_by_fd(req->fd, &addr);
+        struct sock_addr addr;
+        sock_getaddr_by_fd(req->fd, &addr);
         strncpy(req->transport.source, addr.ip_str, sizeof(req->transport.source));
     }
     if (0 == strlen(req->transport.destination)) {
-        skt_addr_ntop(req->transport.destination, req->client.ip);
+        sock_addr_ntop(req->transport.destination, req->client.ip);
     }
 
     struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);

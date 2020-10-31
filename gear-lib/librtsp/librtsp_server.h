@@ -24,7 +24,7 @@
 
 #include <libthread.h>
 #include <libgevent.h>
-#include <libskt.h>
+#include <libsock.h>
 #include "media_source.h"
 
 #ifdef __cplusplus
@@ -33,7 +33,7 @@ extern "C" {
 
 struct rtsp_server {
     int listen_fd;
-    struct skt_addr host;
+    struct sock_addr host;
     struct gevent_base *evbase;
     void *connect_pool;
     void *transport_session_pool;

@@ -22,7 +22,7 @@
 #include "librpc.h"
 #include <libgevent.h>
 #include <libthread.h>
-#include <libskt.h>
+#include <libsock.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,7 +53,7 @@ static int sk_recv(struct rpc *rpc, void *buf, size_t len)
     } else if (rpc->role == RPC_CLIENT) {
         fd = c->fd;
     }
-    int ret = skt_recv(fd, buf, len);
+    int ret = sock_recv(fd, buf, len);
     if (ret == -1) {
         printf("recv failed: %d\n", errno);
     }
@@ -81,9 +81,9 @@ static void on_connect(int fd, void *arg)
     struct rpc *rpc = (struct rpc *)arg;
     uint32_t ip;
     uint16_t port;
-    rpc->afd = skt_accept(fd, &ip, &port);
+    rpc->afd = sock_accept(fd, &ip, &port);
     if (rpc->afd == -1) {
-        printf("skt_accept failed: %d\n", errno);
+        printf("sock_accept failed: %d\n", errno);
         return;
     }
     rpc->on_server_init(rpc, rpc->afd, ip, port);
@@ -110,31 +110,31 @@ static void *sk_init(struct rpc *rpc, const char *host, uint16_t port, enum rpc_
     switch (role) {
     case RPC_SERVER: {
 #if UNIX_DOMAIN_SOCKET
-        c->fd = skt_unix_bind_listen(unix_host, port);
+        c->fd = sock_unix_bind_listen(unix_host, port);
 #else
-        c->fd = skt_tcp_bind_listen(NULL, port);
+        c->fd = sock_tcp_bind_listen(NULL, port);
 #endif
         if (c->fd == -1) {
-            printf("skt_tcp_bind_listen port:%d failed!\n", port);
+            printf("sock_tcp_bind_listen port:%d failed!\n", port);
             goto failed;
         }
         rpc->fd = c->fd;
         e = gevent_create(rpc->fd, on_connect, NULL, on_error, rpc);
     } break;
     case RPC_CLIENT: {
-        struct skt_connection *connect;
+        struct sock_connection *connect;
 #if UNIX_DOMAIN_SOCKET
-        connect = skt_unix_connect(unix_host, port);
+        connect = sock_unix_connect(unix_host, port);
 #else
-        connect = skt_tcp_connect(host, port);
+        connect = sock_tcp_connect(host, port);
 #endif
         if (!connect) {
             printf("connect failed!\n");
             return NULL;
         }
         c->fd = connect->fd;
-        if (-1 == skt_set_block(c->fd)) {
-            printf("skt_set_block failed!\n");
+        if (-1 == sock_set_block(c->fd)) {
+            printf("sock_set_block failed!\n");
         }
         rpc->fd = c->fd;
         e = gevent_create(rpc->fd, rpc->on_client_init, NULL, on_error, rpc);
@@ -198,7 +198,7 @@ static int sk_send(struct rpc *rpc, const void *buf, size_t len)
     } else if (rpc->role == RPC_CLIENT) {
         fd = c->fd;
     }
-    int ret = skt_send(fd, buf, len);
+    int ret = sock_send(fd, buf, len);
     if (ret == -1) {
         printf("send failed: %d\n", errno);
     }

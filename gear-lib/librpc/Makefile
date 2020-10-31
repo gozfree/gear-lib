@@ -56,7 +56,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldarray -lgevent -lworkq -lhash -lskt -lthread -ltime
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldarray -lgevent -lworkq -lhash -lsock -lthread -ltime
 LDFLAGS	+= -pthread -lrt
 LDFLAGS	+= -L$(PLATFORM_LIB)
 LDFLAGS	+= $($(ARCH)_LDFLAGS)

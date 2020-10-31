@@ -22,7 +22,7 @@
 #ifndef LIBP2P_H
 #define LIBP2P_H
 
-#include <libskt.h>
+#include <libsock.h>
 #include <librpc.h>
 #include "libptcp.h"
 
@@ -33,8 +33,8 @@ extern "C" {
 typedef struct nat_info {
     int fd;
     int type;
-    struct skt_addr local;
-    struct skt_addr reflect;
+    struct sock_addr local;
+    struct sock_addr reflect;
     uint32_t uuid;
 } nat_info_t;
 

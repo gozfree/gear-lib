@@ -43,7 +43,7 @@
 #include "librpc_stub.h"
 #include "librtmpc.h"
 #include "librtsp.h"
-#include "libskt.h"
+#include "libsock.h"
 #include "libsort.h"
 #include "libstrex.h"
 #include "libsubmask.h"

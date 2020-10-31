@@ -31,7 +31,7 @@ class libringbuffer
 class librpc
 class librtmpc
 class librtsp
-class libskt
+class libsock
 class libsort
 class libstrex
 class libsubmask
@@ -57,21 +57,21 @@ libplugin     --* libposix
 'libp2p        --* libposix
 'libp2p        --* libhash
 'libp2p        --* libgevent
-'libp2p        --* libskt
+'libp2p        --* libsock
 'libp2p        --* libthread
 libqueue      --* libposix
 librpc        --* libdarray
 librpc        --* libgevent
 librpc        --* libworkq
 librpc        --* libhash
-librpc        --* libskt
+librpc        --* libsock
 librpc        --* libthread
 librpc        --* libtime
 librpc        --* libposix
 librtmpc      --* libgevent
 librtmpc      --* libqueue
 librtmpc      --* libposix
-librtsp       --* libskt
+librtsp       --* libsock
 librtsp       --* libbase64
 librtsp       --* libgevent
 libthread     --* libposix

@@ -50,12 +50,12 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib -lrpc -lhash -lgevent -lskt -lthread
+LDFLAGS	+= -L$(OUTLIBPATH)/lib -lrpc -lhash -lgevent -lsock -lthread
 LDFLAGS	+= -L$(PLATFORM_LIB) -pthread
 ifeq ($(ARCH), pi)
 LDFLAGS	+= -lgcc_s
@@ -103,14 +103,14 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
-	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib
+	@if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include/gear-lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib/gear-lib
 
 uninstall:
-	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/gear-lib/ && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO_VER)

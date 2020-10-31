@@ -1,8 +1,9 @@
 ###############################################################################
 # common
 ###############################################################################
-#ARCH: linux/arm/android/ios/win
+#ARCH: linux/pi/android/ios/
 ARCH		?= linux
+CROSS_PREFIX	?=
 OUTPUT		?= /usr/local
 BUILD_DIR	:= $(shell pwd)/../../build/
 ARCH_INC	:= $(BUILD_DIR)/$(ARCH).inc
@@ -21,7 +22,7 @@ RM_V		?= $(RM)
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libskt
+LIBNAME		= libsock
 VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
 VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
 TGT_LIB_H	= $(LIBNAME).h
@@ -37,10 +38,10 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).o
 # cflags and ldflags
 ###############################################################################
 ifeq ($(MODE), release)
-CFLAGS	:= -O0 -Wall -Werror -fPIC
+CFLAGS  := -O2 -Wall -Werror -fPIC
 LTYPE   := release
 else
-CFLAGS	:= -g -Wall -Werror -fPIC
+CFLAGS  := -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
 ifeq ($(OUTPUT),/usr/local)
@@ -76,7 +77,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
@@ -99,7 +100,7 @@ install:
 	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib/gear-lib
 
 uninstall:
-	cd $(OUTPUT)/include/gear-lib/ && rm -f $(TGT_LIB_H)
+	cd $(OUTPUT)/include/gear-lib && rm -f $(TGT_LIB_H)
 	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_A)
 	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO)
 	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO_VER)

@@ -23,7 +23,7 @@
 #define RTSP_PARSER_H
 
 #include <stdint.h>
-#include <libskt.h>
+#include <libsock.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,7 +85,7 @@ struct range_header
 
 typedef struct rtsp_request {
     int fd;
-    struct skt_addr client;
+    struct sock_addr client;
     struct iovec *raw;
     uint32_t content_len;
     char cmd[RTSP_PARAM_STRING_MAX];

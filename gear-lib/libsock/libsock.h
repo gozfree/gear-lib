@@ -19,21 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBSKT_H
-#define LIBSKT_H
+#ifndef LIBSOCK_H
+#define LIBSOCK_H
 
+#include <libposix.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #define INET_ADDRSTRLEN 16
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
 #endif
 
 #ifdef __cplusplus
@@ -44,74 +43,68 @@ extern "C" {
 
 //socket structs
 
-enum skt_connect_type {
-    SKT_TCP = 0,
-    SKT_UDP,
-    SKT_UNIX,
-};
-
-typedef struct skt_addr {
+typedef struct sock_addr {
     char ip_str[INET_ADDRSTRLEN];
     uint32_t ip;
     uint16_t port;
-} skt_addr_t;
+} sock_addr_t;
 
-typedef struct skt_addr_list {
-    skt_addr_t addr;
-    struct skt_addr_list *next;
-} skt_addr_list_t;
+typedef struct sock_addr_list {
+    sock_addr_t addr;
+    struct sock_addr_list *next;
+} sock_addr_list_t;
 
-typedef struct skt_connection {
+typedef struct sock_connection {
     int fd;
     int type;
-    struct skt_addr local;
-    struct skt_addr remote;
-} skt_connection_t;
+    struct sock_addr local;
+    struct sock_addr remote;
+} sock_connection_t;
 
 //socket tcp apis
-struct skt_connection *skt_tcp_connect(const char *host, uint16_t port);
-int skt_tcp_bind_listen(const char *host, uint16_t port);
-int skt_accept(int fd, uint32_t *ip, uint16_t *port);
+struct sock_connection *sock_tcp_connect(const char *host, uint16_t port);
+int sock_tcp_bind_listen(const char *host, uint16_t port);
+int sock_accept(int fd, uint32_t *ip, uint16_t *port);
 
 //socket udp apis
-struct skt_connection *skt_udp_connect(const char *host, uint16_t port);
-int skt_udp_bind(const char *host, uint16_t port);
+struct sock_connection *sock_udp_connect(const char *host, uint16_t port);
+int sock_udp_bind(const char *host, uint16_t port);
 
 //socket unix domain apis
-struct skt_connection *skt_unix_connect(const char *host, uint16_t port);
-int skt_unix_bind_listen(const char *host, uint16_t port);
+struct sock_connection *sock_unix_connect(const char *host, uint16_t port);
+int sock_unix_bind_listen(const char *host, uint16_t port);
 
 //socket common apis
-void skt_close(int fd);
-void skt_destory();
+void sock_close(int fd);
+void sock_destory();
 
-int skt_send(int fd, const void *buf, size_t len);
-int skt_sendto(int fd, const char *ip, uint16_t port,
+int sock_send(int fd, const void *buf, size_t len);
+int sock_sendto(int fd, const char *ip, uint16_t port,
                 const void *buf, size_t len);
-int skt_send_sync_recv(int fd, const void *sbuf, size_t slen,
+int sock_send_sync_recv(int fd, const void *sbuf, size_t slen,
                 void *rbuf, size_t rlen, int timeout);
-int skt_recv(int fd, void *buf, size_t len);
-int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port,
+int sock_recv(int fd, void *buf, size_t len);
+int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port,
                 void *buf, size_t len);
 
-uint32_t skt_addr_pton(const char *ip);
-int skt_addr_ntop(char *str, uint32_t ip);
+uint32_t sock_addr_pton(const char *ip);
+int sock_addr_ntop(char *str, uint32_t ip);
 
-int skt_set_noblk(int fd, int enable);
-int skt_set_block(int fd);
-int skt_set_nonblock(int fd);
-int skt_set_reuse(int fd, int enable);
-int skt_set_tcp_keepalive(int fd, int enable);
-int skt_set_buflen(int fd, int len);
+int sock_set_noblk(int fd, int enable);
+int sock_set_block(int fd);
+int sock_set_nonblock(int fd);
+int sock_set_reuse(int fd, int enable);
+int sock_set_tcp_keepalive(int fd, int enable);
+int sock_set_buflen(int fd, int len);
 
-int skt_get_tcp_info(int fd, struct tcp_info *ti);
-int skt_get_local_list(struct skt_addr_list **list, int loopback);
-int skt_gethostbyname(struct skt_addr_list **list, const char *name);
-int skt_getaddrinfo(skt_addr_list_t **list,
+int sock_get_tcp_info(int fd, struct tcp_info *ti);
+int sock_get_local_list(struct sock_addr_list **list, int loopback);
+int sock_gethostbyname(struct sock_addr_list **list, const char *name);
+int sock_getaddrinfo(sock_addr_list_t **list,
                 const char *domain, const char *port);
-int skt_getaddr_by_fd(int fd, struct skt_addr *addr);
-int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr);
-int skt_get_local_info(void);
+int sock_getaddr_by_fd(int fd, struct sock_addr *addr);
+int sock_get_remote_addr_by_fd(int fd, struct sock_addr *addr);
+int sock_get_local_info(void);
 
 #ifdef __cplusplus
 }

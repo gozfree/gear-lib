@@ -64,7 +64,7 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread -lx264
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lskt -lgevent -llog -ldict \
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lsock -lgevent -llog -ldict \
 	   -lthread -ltime -lmedia-io -lqueue -ldarray -lposix
 ifeq ($(ENABLE_LIVEVIEW), 1)
 LDFLAGS	+= -lx264 -luvc
@@ -90,7 +90,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 

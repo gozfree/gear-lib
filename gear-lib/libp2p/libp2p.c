@@ -22,7 +22,7 @@
 #include "libp2p.h"
 #include "libstun.h"
 #include "libptcp.h"
-#include <libskt.h>
+#include <libsock.h>
 #include <librpc.h>
 #include <librpc_stub.h>
 
@@ -80,8 +80,8 @@ static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
     struct nat_info *nat = (struct nat_info *)arg;
     printf("get nat info from peer\n");
     printf("nat.uuid = 0x%08x\n", nat->uuid);
-    skt_addr_ntop(localip, nat->local.ip);
-    skt_addr_ntop(reflectip, nat->reflect.ip);
+    sock_addr_ntop(localip, nat->local.ip);
+    sock_addr_ntop(reflectip, nat->reflect.ip);
     printf("nat.type = %d\n", nat->type);
     printf("nat.local_addr %s:%d\n", localip, nat->local.port);
     printf("nat.reflect_addr %s:%d\n", reflectip, nat->reflect.port);
@@ -225,8 +225,8 @@ void on_rpc_read(int fd, void *arg)
     struct nat_info *nat = (struct nat_info *)buf->addr;
     printf("peer info\n");
     printf("nat.uuid = %s\n", nat->uuid);
-    skt_addr_ntop(localip, nat->local.ip);
-    skt_addr_ntop(reflectip, nat->reflect.ip);
+    sock_addr_ntop(localip, nat->local.ip);
+    sock_addr_ntop(reflectip, nat->reflect.ip);
     printf("nat.type = %d, local.ip = %s, port = %d\n",
             nat->type, localip, nat->local.port);
     printf("reflect.ip = %s, port = %d\n",
@@ -292,7 +292,7 @@ static uint16_t random_port(void)
 struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
 {
     char ip[64];
-    struct skt_addr tmpaddr;
+    struct sock_addr tmpaddr;
     static stun_addr _mapped;
     struct p2p *p2p = CALLOC(1, struct p2p);
     if (!p2p) {
@@ -307,21 +307,21 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
     }
     RPC_REGISTER_MSG_MAP(BASIC_RPC_API_RESP);
     rpc_set_cb(p2p->rpc, on_rpc_read, on_rpc_write, on_rpc_error, p2p);
-    skt_getaddr_by_fd(p2p->rpc->fd, &tmpaddr);
-    skt_addr_ntop(_local_ip, tmpaddr.ip);
+    sock_getaddr_by_fd(p2p->rpc->fd, &tmpaddr);
+    sock_addr_ntop(_local_ip, tmpaddr.ip);
     //_local_port = tmpaddr.port;
     //printf("_local_port = %d\n", _local_port);
 
     stun_init(stun_srv);
     p2p->nat.type = stun_nat_type();
     p2p->nat.uuid = p2p->rpc->send_pkt.header.uuid_src;
-    p2p->nat.local.ip = skt_addr_pton(_local_ip);
+    p2p->nat.local.ip = sock_addr_pton(_local_ip);
 
     _local_port = random_port();
     p2p->nat.local.port = _local_port;
     p2p->nat.fd = stun_socket(_local_ip, _local_port, &_mapped);
     _mapped.addr = ntohl(_mapped.addr);
-    skt_addr_ntop(ip, _mapped.addr);
+    sock_addr_ntop(ip, _mapped.addr);
     p2p->nat.reflect.ip = _mapped.addr;
     p2p->nat.reflect.port = _mapped.port;
     printf("get nat info from local\n");

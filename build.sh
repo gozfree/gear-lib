@@ -29,7 +29,7 @@ BASIC_LIBS="libposix libtime liblog libdarray libgevent libworkq libdict libhash
 	    librbtree libringbuffer libthread libvector libbase64 libmedia-io libmp4 \
             libdebug libfile libconfig libuac libuvc libqueue libplugin libhal libsubmask"
 FRAMEWORK_LIBS="libipc"
-NETWORK_LIBS="libskt librpc librtsp librtmpc"
+NETWORK_LIBS="libsock librpc librtsp librtmpc"
 
 usage()
 {

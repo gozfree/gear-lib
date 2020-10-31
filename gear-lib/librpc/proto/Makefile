@@ -67,7 +67,7 @@ CFLAGS  += -I../
 
 LDFLAGS	:= -lpthread
 LDFLAGS	+= -lprotobuf
-LDFLAGS	+= -lgevent -lskt -lthread -lhash
+LDFLAGS	+= -lgevent -lsock -lthread -lhash
 
 ###############################################################################
 # target

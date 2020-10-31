@@ -29,6 +29,7 @@
 #include <liblog.h>
 #include <libdict.h>
 #include "librtsp.h"
+#include <libsock.h>
 #include "media_source.h"
 #include "transport_session.h"
 #include "rtsp_parser.h"
@@ -46,7 +47,7 @@ static void on_recv(int fd, void *arg)
     int rlen, res;
     struct rtsp_request *req = (struct rtsp_request *)arg;
     memset(req->raw->iov_base, 0, RTSP_REQUEST_LEN_MAX);
-    rlen = skt_recv(fd, req->raw->iov_base, RTSP_REQUEST_LEN_MAX);
+    rlen = sock_recv(fd, req->raw->iov_base, RTSP_REQUEST_LEN_MAX);
     if (rlen > 0) {
         req->raw->iov_len = rlen;
         res = parse_rtsp_request(req);
@@ -81,7 +82,7 @@ static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, u
     req->client.port = port;
     req->rtsp_server = rtsp;
     req->raw = iovec_create(RTSP_REQUEST_LEN_MAX);
-    skt_set_noblk(fd, 1);
+    sock_set_noblk(fd, 1);
     req->event = gevent_create(fd, on_recv, NULL, on_error, req);
     if (-1 == gevent_add(rtsp->evbase, req->event)) {
         loge("event_add failed!\n");
@@ -101,7 +102,7 @@ static void rtsp_connect_destroy(struct rtsp_server *rtsp, int fd)
     gevent_del(rtsp->evbase, req->event);
     gevent_destroy(req->event);
     iovec_destroy(req->raw);
-    skt_close(fd);
+    sock_close(fd);
     free(req);
 }
 
@@ -112,9 +113,9 @@ static void on_connect(int fd, void *arg)
     uint16_t port;
     struct rtsp_server *rtsp = (struct rtsp_server *)arg;
 
-    afd = skt_accept(fd, &ip, &port);
+    afd = sock_accept(fd, &ip, &port);
     if (afd == -1) {
-        loge("skt_accept failed: %d\n", errno);
+        loge("sock_accept failed: %d\n", errno);
         return;
     }
     logd("connect fd = %d, accept fd = %d\n", fd, afd);
@@ -152,7 +153,7 @@ void connect_pool_destroy(void *pool)
 static int master_thread_create(struct rtsp_server *c)
 {
     struct gevent *e = NULL;
-    int fd = skt_tcp_bind_listen(c->host.ip_str, c->host.port);
+    int fd = sock_tcp_bind_listen(c->host.ip_str, c->host.port);
     if (fd == -1) {
         goto failed;
     }
@@ -181,7 +182,7 @@ failed:
         gevent_destroy(e);
     }
     if (fd != -1) {
-        skt_close(fd);
+        sock_close(fd);
     }
     return -1;
 }

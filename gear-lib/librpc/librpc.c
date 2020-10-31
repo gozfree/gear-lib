@@ -22,7 +22,6 @@
 #include "librpc.h"
 #include <libgevent.h>
 #include <libhash.h>
-#include <libskt.h>
 #include <libthread.h>
 #include <libworkq.h>
 #include <libtime.h>

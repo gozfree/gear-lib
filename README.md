@@ -22,7 +22,7 @@ This is a collection of basic libraries.
 |  |  |
 |--|--|
 | librtsp: Real Time Streaming Protocol server for ipcamera or NVR | librtmpc: Real Time Messaging Protocol client for liveshow |
-| libskt: socket warpper api for easily use | librpc: Remote Procedure Call library |
+| libsock: socket warpper api for easily use | librpc: Remote Procedure Call library |
 | libipc: Inter-Process Communication, support mqueue/netlink/shm | libp2p: High level p2p punch hole library, easy API to use |
 | libhomekit: Apple homekit protocol |
 

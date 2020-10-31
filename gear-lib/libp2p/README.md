@@ -5,7 +5,7 @@ This is a simple libp2p library.
 * [liblog](../liblog/)
 * [libgevent](../libgevent/)
 * [libdict](../libdict/)
-* [libskt](../libskt/)
+* [libsock](../libsock/)
 * [libthread](../libthread/)
 * [librpc](../librpc/)
 

@@ -5,11 +5,10 @@
 LD	= link
 AR	= lib
 RM	= del
-
 ###############################################################################
 # target and object
 ###############################################################################
-LIBNAME		= libskt
+LIBNAME		= libsock
 TGT_LIB_A	= $(LIBNAME).lib
 TGT_LIB_SO	= $(LIBNAME).dll
 TGT_UNIT_TEST	= test_$(LIBNAME).exe

@@ -150,7 +150,7 @@ static void on_recv(int fd, void *arg)
 {
     char buf[2048];
     memset(buf, 0, sizeof(buf));
-    int ret = skt_recv(fd, buf, 2048);
+    int ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
         rtcp_parse(buf, ret);
     } else if (ret == 0) {
@@ -178,7 +178,7 @@ int transport_session_start(struct transport_session *ts, struct media_source *m
     if (!ts->evbase) {
         return -1;
     }
-    skt_set_noblk(ts->rtp->sock->rtcp_fd, true);
+    sock_set_noblk(ts->rtp->sock->rtcp_fd, true);
     struct gevent *e = gevent_create(ts->rtp->sock->rtcp_fd, on_recv, NULL, on_error, NULL);
     if (-1 == gevent_add(ts->evbase, e)) {
         loge("event_add failed!\n");

@@ -8,7 +8,7 @@ output=version.h
 
 LIBNAME=`echo ${libname} | tr 'a-z' 'A-Z'`
 export version=${major}.${minor}.${patch}
-export buildid=`git log -1 --pretty=format:"git-%cd-%h" --date=short  2>/dev/null`
+export buildid=`git log -1 --pretty=format:"git-%cd-%h" --date=short 2>/dev/null`
 autogen_version_h()
 {
 cat > version.h <<!

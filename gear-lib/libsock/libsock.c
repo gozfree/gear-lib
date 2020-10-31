@@ -19,7 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include "libskt.h"
+#include "libsock.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "libsock.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +49,7 @@ typedef int SOCKET;
 
 #define USE_IPV6    0
 
-static struct skt_connection *_skt_connect(int type,
+static struct sock_connection *_sock_connect(int type,
                 const char *host, uint16_t port)
 {
     int domain = -1;
@@ -57,7 +60,7 @@ static struct skt_connection *_skt_connect(int type,
 #endif
     struct sockaddr *sa;
     size_t sa_len = 0;
-    struct skt_connection *sc = NULL;
+    struct sock_connection *sc = NULL;
 #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
     WSADATA Ws;
 
@@ -97,7 +100,7 @@ static struct skt_connection *_skt_connect(int type,
         break;
     }
 
-    sc = (struct skt_connection* )calloc(1, sizeof(struct skt_connection));
+    sc = (struct sock_connection* )calloc(1, sizeof(struct sock_connection));
     if (sc == NULL) {
         printf("malloc failed!\n");
         return NULL;
@@ -116,8 +119,8 @@ static struct skt_connection *_skt_connect(int type,
     sc->remote.ip = inet_addr(host);
     sc->remote.port = port;
     sc->type = type;
-    if (-1 == skt_getaddr_by_fd(sc->fd, &sc->local)) {
-        printf("skt_getaddr_by_fd failed: %s\n", strerror(errno));
+    if (-1 == sock_getaddr_by_fd(sc->fd, &sc->local)) {
+        printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
         goto fail;
 
     }
@@ -133,22 +136,22 @@ fail:
     return NULL;
 }
 
-struct skt_connection *skt_tcp_connect(const char *host, uint16_t port)
+struct sock_connection *sock_tcp_connect(const char *host, uint16_t port)
 {
-    return _skt_connect(SOCK_STREAM, host, port);
+    return _sock_connect(SOCK_STREAM, host, port);
 }
 
-struct skt_connection *skt_udp_connect(const char *host, uint16_t port)
+struct sock_connection *sock_udp_connect(const char *host, uint16_t port)
 {
-    return _skt_connect(SOCK_DGRAM, host, port);
+    return _sock_connect(SOCK_DGRAM, host, port);
 }
 
-struct skt_connection *skt_unix_connect(const char *host, uint16_t port)
+struct sock_connection *sock_unix_connect(const char *host, uint16_t port)
 {
-    return _skt_connect(SOCK_SEQPACKET, host, port);
+    return _sock_connect(SOCK_SEQPACKET, host, port);
 }
 
-int skt_tcp_bind_listen(const char *host, uint16_t port)
+int sock_tcp_bind_listen(const char *host, uint16_t port)
 {
     SOCKET fd;
     struct sockaddr_in si;
@@ -167,8 +170,8 @@ int skt_tcp_bind_listen(const char *host, uint16_t port)
         printf("socket failed: %s\n", strerror(errno));
         goto fail;
     }
-    if (-1 == skt_set_reuse(fd, 1)) {
-        printf("skt_set_reuse failed: %s\n", strerror(errno));
+    if (-1 == sock_set_reuse(fd, 1)) {
+        printf("sock_set_reuse failed: %s\n", strerror(errno));
         goto fail;
     }
     si.sin_family = AF_INET;
@@ -189,12 +192,12 @@ int skt_tcp_bind_listen(const char *host, uint16_t port)
     return fd;
 fail:
     if (-1 != fd) {
-        skt_close(fd);
+        sock_close(fd);
     }
     return -1;
 }
 
-int skt_udp_bind(const char *host, uint16_t port)
+int sock_udp_bind(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_in si;
@@ -215,8 +218,8 @@ int skt_udp_bind(const char *host, uint16_t port)
         printf("socket: %s\n", strerror(errno));
         return -1;
     }
-    if (-1 == skt_set_reuse(fd, 1)) {
-        printf("skt_set_reuse failed!\n");
+    if (-1 == sock_set_reuse(fd, 1)) {
+        printf("sock_set_reuse failed!\n");
         close(fd);
         return -1;
     }
@@ -230,7 +233,7 @@ int skt_udp_bind(const char *host, uint16_t port)
 
 //#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #if defined (__linux__) || defined (__CYGWIN__) 
-int skt_unix_bind_listen(const char *host, uint16_t port)
+int sock_unix_bind_listen(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_un su;
@@ -263,7 +266,7 @@ failed:
 }
 #endif
 
-int skt_accept(int fd, uint32_t *ip, uint16_t *port)
+int sock_accept(int fd, uint32_t *ip, uint16_t *port)
 {
     struct sockaddr_in si;
     socklen_t len = sizeof(si);
@@ -278,7 +281,7 @@ int skt_accept(int fd, uint32_t *ip, uint16_t *port)
     return afd;
 }
 
-void skt_close(int fd)
+void sock_close(int fd)
 {
 	#if defined (__linux__) || defined (__CYGWIN__) 
     close(fd);
@@ -287,7 +290,7 @@ void skt_close(int fd)
   	closesocket(fd);
   #endif
 }
-void skt_destory()
+void sock_destory()
 {
 	#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 		WSACleanup();
@@ -295,7 +298,7 @@ void skt_destory()
 }
 
 #if defined (__linux__) || defined (__CYGWIN__)
-int skt_get_tcp_info(int fd, struct tcp_info *tcpi)
+int sock_get_tcp_info(int fd, struct tcp_info *tcpi)
 {
     socklen_t len = sizeof(*tcpi);
     return getsockopt(fd, SOL_TCP, TCP_INFO, tcpi, &len);
@@ -303,13 +306,13 @@ int skt_get_tcp_info(int fd, struct tcp_info *tcpi)
 #endif
 
 #if defined (__linux__) || defined (__CYGWIN__)
-int skt_get_local_list(skt_addr_list_t **al, int loopback)
+int sock_get_local_list(sock_addr_list_t **al, int loopback)
 {
 #ifdef __ANDROID__
 #else
     struct ifaddrs * ifs = NULL;
     struct ifaddrs * ifa = NULL;
-    skt_addr_list_t *ap, *an;
+    sock_addr_list_t *ap, *an;
 
     if (-1 == getifaddrs(&ifs)) {
         printf("getifaddrs: %s\n", strerror(errno));
@@ -349,7 +352,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
         if ((ifa->ifa_flags & IFF_LOOPBACK) && !loopback)
             continue;
 
-        an = (skt_addr_list_t *)calloc(sizeof(skt_addr_list_t), 1);
+        an = (sock_addr_list_t *)calloc(sizeof(sock_addr_list_t), 1);
         an->addr.ip = ((struct sockaddr_in *) ifa->ifa_addr)->sin_addr.s_addr;
         an->addr.port = 0;
         an->next = NULL;
@@ -367,7 +370,7 @@ int skt_get_local_list(skt_addr_list_t **al, int loopback)
 }
 #endif
 
-int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr)
+int sock_get_remote_addr_by_fd(int fd, struct sock_addr *addr)
 {
     struct sockaddr_in si;
     socklen_t len = sizeof(si);
@@ -378,11 +381,11 @@ int skt_get_remote_addr_by_fd(int fd, struct skt_addr *addr)
     }
     addr->ip = si.sin_addr.s_addr;
     addr->port = ntohs(si.sin_port);
-    skt_addr_ntop(addr->ip_str, addr->ip);
+    sock_addr_ntop(addr->ip_str, addr->ip);
     return 0;
 }
 
-int skt_getaddr_by_fd(int fd, struct skt_addr *addr)
+int sock_getaddr_by_fd(int fd, struct sock_addr *addr)
 {
     struct sockaddr_in si;
     socklen_t len = sizeof(si);
@@ -395,12 +398,12 @@ int skt_getaddr_by_fd(int fd, struct skt_addr *addr)
 
     addr->ip = si.sin_addr.s_addr;
     addr->port = ntohs(si.sin_port);
-    skt_addr_ntop(addr->ip_str, addr->ip);
+    sock_addr_ntop(addr->ip_str, addr->ip);
 
     return 0;
 }
 
-uint32_t skt_addr_pton(const char *ip)
+uint32_t sock_addr_pton(const char *ip)
 {
     struct in_addr ia;
     int ret;
@@ -416,7 +419,7 @@ uint32_t skt_addr_pton(const char *ip)
     return ia.s_addr;
 }
 
-int skt_addr_ntop(char *str, uint32_t ip)
+int sock_addr_ntop(char *str, uint32_t ip)
 {
     struct in_addr ia;
     char tmp[MAX_ADDR_STRING];
@@ -430,11 +433,11 @@ int skt_addr_ntop(char *str, uint32_t ip)
     return 0;
 }
 
-int skt_getaddrinfo(skt_addr_list_t **al, const char *domain, const char *port)
+int sock_getaddrinfo(sock_addr_list_t **al, const char *domain, const char *port)
 {
     int ret;
     struct addrinfo hints, *ai_list, *rp;
-    skt_addr_list_t *ap, *an;
+    sock_addr_list_t *ap, *an;
 
     memset(&hints, 0, sizeof(struct addrinfo));
 #if USE_IPV6
@@ -455,7 +458,7 @@ int skt_getaddrinfo(skt_addr_list_t **al, const char *domain, const char *port)
     ap = NULL;
     *al = NULL;
     for (rp = ai_list; rp != NULL; rp = rp->ai_next ) {
-        an = (skt_addr_list_t *)calloc(sizeof(skt_addr_list_t), 1);
+        an = (sock_addr_list_t *)calloc(sizeof(sock_addr_list_t), 1);
         an->addr.ip = ((struct sockaddr_in *)rp->ai_addr)->sin_addr.s_addr;
         an->addr.port = ntohs(((struct sockaddr_in *)rp->ai_addr)->sin_port);
         an->next = NULL;
@@ -475,9 +478,9 @@ int skt_getaddrinfo(skt_addr_list_t **al, const char *domain, const char *port)
     return 0;
 }
 
-int skt_gethostbyname(skt_addr_list_t **al, const char *name)
+int sock_gethostbyname(sock_addr_list_t **al, const char *name)
 {
-    skt_addr_list_t *ap, *an;
+    sock_addr_list_t *ap, *an;
     struct hostent *host;
     char **p;
 
@@ -494,7 +497,7 @@ int skt_gethostbyname(skt_addr_list_t **al, const char *name)
     ap = NULL;
     *al = NULL;
     for (p = host->h_addr_list; *p != NULL; p++) {
-        an = (skt_addr_list_t *)calloc(sizeof(skt_addr_list_t), 1);
+        an = (sock_addr_list_t *)calloc(sizeof(sock_addr_list_t), 1);
         an->addr.ip = ((struct in_addr*)(*p))->s_addr;
         an->addr.port = 0;
         an->next = NULL;
@@ -519,7 +522,7 @@ int skt_gethostbyname(skt_addr_list_t **al, const char *name)
 }
 
 #if defined (__linux__) || defined (__CYGWIN__)
-int skt_get_local_info(void)
+int sock_get_local_info(void)
 {
     int fd;
     int interfaceNum = 0;
@@ -613,7 +616,7 @@ int skt_get_local_info(void)
 }
 #endif
 
-int skt_set_noblk(int fd, int enable)
+int sock_set_noblk(int fd, int enable)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     int flag;
@@ -635,7 +638,7 @@ int skt_set_noblk(int fd, int enable)
     return 0;
 }
 
-int skt_set_block(int fd)
+int sock_set_block(int fd)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     int flag;
@@ -653,7 +656,7 @@ int skt_set_block(int fd)
     return 0;
 }
 
-int skt_set_nonblock(int fd)
+int sock_set_nonblock(int fd)
 {
     
 #if defined (__linux__) || defined (__CYGWIN__)
@@ -671,7 +674,7 @@ int skt_set_nonblock(int fd)
 #endif
     return 0;
 }
-int skt_set_reuse(int fd, int enable)
+int sock_set_reuse(int fd, int enable)
 {
     int on = !!enable;
 
@@ -690,7 +693,7 @@ int skt_set_reuse(int fd, int enable)
     return 0;
 }
 
-int skt_set_tcp_keepalive(int fd, int enable)
+int sock_set_tcp_keepalive(int fd, int enable)
 {
     int on = !!enable;
 
@@ -704,7 +707,7 @@ int skt_set_tcp_keepalive(int fd, int enable)
     return 0;
 }
 
-int skt_set_buflen(int fd, int size)
+int sock_set_buflen(int fd, int size)
 {
     int sz;
 
@@ -738,7 +741,7 @@ int skt_set_buflen(int fd, int size)
     return 0;
 }
 
-int skt_send(int fd, const void *buf, size_t len)
+int sock_send(int fd, const void *buf, size_t len)
 {
     ssize_t n;
     char *p = (char *)buf;
@@ -776,7 +779,7 @@ int skt_send(int fd, const void *buf, size_t len)
     return (len - left);
 }
 
-int skt_sendto(int fd, const char *ip, uint16_t port,
+int sock_sendto(int fd, const char *ip, uint16_t port,
                 const void *buf, size_t len)
 {
     ssize_t n;
@@ -817,7 +820,7 @@ int skt_sendto(int fd, const char *ip, uint16_t port,
     return (len - left);
 }
 
-int skt_recv(int fd, void *buf, size_t len)
+int sock_recv(int fd, void *buf, size_t len)
 {
     int n;
     char *p = (char *)buf;
@@ -852,17 +855,17 @@ int skt_recv(int fd, void *buf, size_t len)
     return (len - left);
 }
 
-int skt_send_sync_recv(int fd, const void *sbuf, size_t slen,
+int sock_send_sync_recv(int fd, const void *sbuf, size_t slen,
                 void *rbuf, size_t rlen, int timeout)
 {
-    skt_send(fd, sbuf, slen);
-    skt_set_noblk(fd, 0);
-    skt_recv(fd, rbuf, rlen);
+    sock_send(fd, sbuf, slen);
+    sock_set_noblk(fd, 0);
+    sock_recv(fd, rbuf, rlen);
 
     return 0;
 }
 
-int skt_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
+int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
 {
     int n;
     char *p = (char *)buf;

@@ -1,5 +1,5 @@
 /******************************************************************************
- *  (C) 2014-2020 Zhifeng Gong <gozfree@163.com>
+ * Copyright (C) 2014-2020 Zhifeng Gong <gozfree@163.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include "libskt.h"
+#include "libsock.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,7 +36,7 @@
 #include <libthread.h>
 #endif
 
-struct skt_connection *g_sc = NULL;
+struct sock_connection *g_sc = NULL;
 
 static struct gevent_base *g_evbase;
 
@@ -46,7 +46,7 @@ void on_read(int fd, void *arg)
     char buf[14];
     int ret=0;
     memset(buf, 0, sizeof(buf));
-    ret = skt_recv(fd, buf, sizeof(buf));
+    ret = sock_recv(fd, buf, sizeof(buf));
     if (ret > 0) {
         DUMP_BUFFER(buf, sizeof(buf));
         socket_id = buf[6];
@@ -62,7 +62,7 @@ void on_recv(int fd, void *arg)
     char buf[2048];
     int ret=0;
     memset(buf, 0, sizeof(buf));
-    ret = skt_recv(fd, buf, 2048);
+    ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
         printf("recv buf = %s\n", buf);
     } else if (ret == 0) {
@@ -78,13 +78,13 @@ void on_error(int fd, void *arg)
 static void *tcp_client_thread(struct thread *thread, void *arg)
 {
 		struct gevent *e =NULL;
-    struct skt_connection *sc = (struct skt_connection *)arg;
+    struct sock_connection *sc = (struct sock_connection *)arg;
     g_evbase = gevent_base_create();
     if (!g_evbase) {
         return NULL;
     }
-    if (0 > skt_set_nonblock(sc->fd)) {
-        printf("skt_set_nonblock failed!\n");
+    if (0 > sock_set_nonblock(sc->fd)) {
+        printf("sock_set_nonblock failed!\n");
         return NULL;
     }
     e = gevent_create(sc->fd, on_recv, NULL, on_error, (void *)&sc->fd);
@@ -104,21 +104,21 @@ int tcp_client(const char *host, uint16_t port)
     #if defined (__linux__) || defined (__CYGWIN__)
     struct tcp_info tcpi;
 		#endif
-    g_sc = skt_tcp_connect(host, port);
+    g_sc = sock_tcp_connect(host, port);
     if (g_sc == NULL) {
         printf("connect failed!\n");
         return -1;
     }
     on_read(g_sc->fd, NULL);
-    skt_addr_ntop(str_ip, g_sc->local.ip);
+    sock_addr_ntop(str_ip, g_sc->local.ip);
     printf("local ip = %s, port = %d\n", str_ip, g_sc->local.port);
-    skt_addr_ntop(str_ip, g_sc->remote.ip);
+    sock_addr_ntop(str_ip, g_sc->remote.ip);
     printf("remote ip = %s, port = %d\n", str_ip, g_sc->remote.port);
-    skt_set_tcp_keepalive(g_sc->fd, 1);
+    sock_set_tcp_keepalive(g_sc->fd, 1);
     
 #if defined (__linux__) || defined (__CYGWIN__)
 		memset(&tcpi, 0, sizeof(tcpi));
-    ret = skt_get_tcp_info(g_sc->fd, &tcpi);
+    ret = sock_get_tcp_info(g_sc->fd, &tcpi);
     if (ret == 0) {
         printf("unrecovered=%u "
              "rto=%u ato=%u snd_mss=%u rcv_mss=%u "
@@ -146,9 +146,9 @@ int tcp_client(const char *host, uint16_t port)
         memset(buf, 0, sizeof(buf));
         printf("input> ");
         scanf("%s", buf);
-        n = skt_send(g_sc->fd, buf, strlen(buf));
+        n = sock_send(g_sc->fd, buf, strlen(buf));
         if (n == -1) {
-            printf("skt_send failed!\n");
+            printf("sock_send failed!\n");
             return -1;
         }
 //        sleep(1);
@@ -157,8 +157,8 @@ int tcp_client(const char *host, uint16_t port)
 
 int udp_client(const char *host, uint16_t port)
 {
-    struct skt_connection *sc = skt_udp_connect(host, port);
-    int ret = skt_send(sc->fd, "aaa", 4);
+    struct sock_connection *sc = sock_udp_connect(host, port);
+    int ret = sock_send(sc->fd, "aaa", 4);
     printf("fd = %d, ret = %d\n", sc->fd, ret);
     return 0;
 }
@@ -171,15 +171,15 @@ void on_connect(int fd, void *arg)
     uint32_t ip;
     uint16_t port;
     struct gevent *e =NULL;
-    afd = skt_accept(fd, &ip, &port);
+    afd = sock_accept(fd, &ip, &port);
     if (afd == -1) {
         printf("errno=%d %s\n", errno, strerror(errno));
         return;
     };
-    skt_addr_ntop(str_ip, ip);
+    sock_addr_ntop(str_ip, ip);
     printf("new connect comming: ip = %s, port = %d\n", str_ip, port);
-    if (0 > skt_set_nonblock(afd)) {
-        printf("skt_set_nonblock failed!\n");
+    if (0 > sock_set_nonblock(afd)) {
+        printf("sock_set_nonblock failed!\n");
         return;
     }
     e = gevent_create(afd, on_recv, NULL, on_error, (void *)&afd);
@@ -192,7 +192,7 @@ int udp_server(uint16_t port)
 {
     int fd;
     struct gevent *e =NULL;
-    fd = skt_udp_bind(NULL, port);
+    fd = sock_udp_bind(NULL, port);
     if (fd == -1) {
         return -1;
     }
@@ -201,7 +201,7 @@ int udp_server(uint16_t port)
         return -1;
     }
 
-    skt_set_noblk(fd, true);
+    sock_set_noblk(fd, true);
     e = gevent_create(fd, on_recv, NULL, on_error, NULL);
     if (-1 == gevent_add(g_evbase, e)) {
         printf("event_add failed!\n");
@@ -215,13 +215,13 @@ int tcp_server(uint16_t port)
 {
     int fd;
     struct gevent *e =NULL;
-    struct skt_addr addr;
-    fd = skt_tcp_bind_listen(NULL, port);
+    struct sock_addr addr;
+    fd = sock_tcp_bind_listen(NULL, port);
     if (fd == -1) {
         return -1;
     }
     
-    skt_getaddr_by_fd(fd, &addr);
+    sock_getaddr_by_fd(fd, &addr);
     printf("addr = %s\n", addr.ip_str);
     g_evbase = gevent_base_create();
     if (!g_evbase) {
@@ -239,8 +239,8 @@ int tcp_server(uint16_t port)
 
 void usage()
 {
-    fprintf(stderr, "./test_libskt -s port\n"
-                    "./test_libskt -c ip port\n");
+    fprintf(stderr, "./test_libsock -s port\n"
+                    "./test_libsock -c ip port\n");
 
 }
 
@@ -248,9 +248,9 @@ void addr_test()
 {
     char str_ip[INET_ADDRSTRLEN];
     uint32_t net_ip;
-    net_ip = skt_addr_pton("192.168.1.123");
+    net_ip = sock_addr_pton("192.168.1.123");
     printf("ip = %x\n", net_ip);
-    skt_addr_ntop(str_ip, net_ip);
+    sock_addr_ntop(str_ip, net_ip);
     printf("ip = %s\n", str_ip);
 
 }
@@ -260,24 +260,24 @@ void domain_test()
     void *p;
     char str[MAX_ADDR_STRING];
 #if defined (__linux__) || defined (__CYGWIN__)
-    skt_addr_list_t *tmp;
-    if (0 == skt_get_local_list(&tmp, 0)) {
+    sock_addr_list_t *tmp;
+    if (0 == sock_get_local_list(&tmp, 0)) {
         for (; tmp; tmp = tmp->next) {
-            skt_addr_ntop(str, tmp->addr.ip);
+            sock_addr_ntop(str, tmp->addr.ip);
             printf("ip = %s port = %d\n", str, tmp->addr.port);
         }
     }
 
 
-    if (0 == skt_getaddrinfo(&tmp, "www.sina.com", "3478")) {
+    if (0 == sock_getaddrinfo(&tmp, "www.sina.com", "3478")) {
         for (; tmp; tmp = tmp->next) {
-            skt_addr_ntop(str, tmp->addr.ip);
+            sock_addr_ntop(str, tmp->addr.ip);
             printf("ip = %s port = %d\n", str, tmp->addr.port);
         }
     }
-    if (0 == skt_gethostbyname(&tmp, "www.baidu.com")) {
+    if (0 == sock_gethostbyname(&tmp, "www.baidu.com")) {
         for (; tmp; tmp = tmp->next) {
-            skt_addr_ntop(str, tmp->addr.ip);
+            sock_addr_ntop(str, tmp->addr.ip);
             printf("ip = %s port = %d\n", str, tmp->addr.port);
         }
     }
@@ -293,7 +293,7 @@ void domain_test()
 void ctrl_c_op(int signo)
 {
     if (g_sc) {
-        skt_close(g_sc->fd);
+        sock_close(g_sc->fd);
     }
     exit(0);
 }
@@ -307,7 +307,7 @@ int main(int argc, char **argv)
         exit(0);
     }
     #if defined (__linux__) || defined (__CYGWIN__)
-    skt_get_local_info();
+    sock_get_local_info();
     signal(SIGINT, ctrl_c_op);
     #endif
     if (!strcmp(argv[1], "-s")) {
