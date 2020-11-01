@@ -165,6 +165,7 @@ void iovec_destroy(struct iovec *);
 
 bool is_little_endian(void);
 
+int get_proc_name(char *name, size_t len);
 
 
 #ifdef __cplusplus

@@ -23,6 +23,7 @@
 #include "liblog.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 static void test_no_init(void)
 {

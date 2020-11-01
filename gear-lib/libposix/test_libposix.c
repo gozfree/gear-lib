@@ -22,6 +22,12 @@
 #include "libposix.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef OS_LINUX
+#include <unistd.h>
+#include <pthread.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
 
 static void *thread_func(void *arg)
 {
@@ -39,7 +45,7 @@ void foo()
     if (0 > stat(file, &st)) {
         printf("stat %s failed\n", file);
     }
-    printf("%s size=%d\n", file, st.st_size);
+    printf("%s size=%zu\n", file, st.st_size);
     get_proc_name(proc, sizeof(proc));
     printf("proc name = %s\n", proc);
 

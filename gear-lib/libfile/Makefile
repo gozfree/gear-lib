@@ -57,7 +57,7 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 ifeq ($(ENABLE_FILEWATCHER), 1)
 CFLAGS	+= -DENABLE_FILEWATCHER
 endif
@@ -67,7 +67,7 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 ifeq ($(ENABLE_FILEWATCHER), 1)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib -ldict -lgevent
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldict -lgevent
 endif
 
 ###############################################################################
