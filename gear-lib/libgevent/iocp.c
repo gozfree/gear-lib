@@ -19,8 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include "libposix.h"
 #include "libgevent.h"
-#include "libposix4win.h"
 
 
 struct iocp_ctx {

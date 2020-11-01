@@ -19,15 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <libposix.h>
+#include "libtime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #define __STDC_FORMAT_MACROS
 #if defined (__linux__) || defined (__CYGWIN__)
 #include <inttypes.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
 #endif
-#include "libtime.h"
 
 void foo()
 {

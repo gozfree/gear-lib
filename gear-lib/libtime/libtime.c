@@ -19,16 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #include <sys/time.h>
 #include <sys/timeb.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
 #endif
 
 #include "libtime.h"

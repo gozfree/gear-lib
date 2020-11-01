@@ -45,9 +45,8 @@ extern "C" {
  ******************************************************************************/
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #define OS_WINDOWS
-#include <stdbool.h>
-#include "libposix4win/libposix4win.h"
-#include "libposix4win/kernel_list_win32.h"
+#include "libposix4win.h"
+#include "kernel_list_win32.h"
 
 /******************************************************************************
  * OS_APPLE
@@ -69,9 +68,7 @@ extern "C" {
  ******************************************************************************/
 #elif defined (FREERTOS) || defined (THREADX)
 #define OS_RTOS
-#include <stdbool.h>
-#include <sys/uio.h>
-#include "libposix4rtos/libposix4rtos.h"
+#include "libposix4rtos.h"
 #include "kernel_list.h"
 
 #else

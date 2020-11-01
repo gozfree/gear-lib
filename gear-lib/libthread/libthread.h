@@ -25,8 +25,8 @@
 #include <libposix.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #ifdef OS_LINUX
+#include <stdbool.h>
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <semaphore.h>

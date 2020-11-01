@@ -48,7 +48,7 @@ This is a collection of basic libraries.
 ## OS Abstraction Layer
 |  |  |
 |--|--|
-| libposix4win: posix adapter for Windows | libposix4rtos: posix adapter for FreeRTOS |
+| libposix: posix adapter for Windows/rtos/ios |
 
 ## Misc
 |  |  |

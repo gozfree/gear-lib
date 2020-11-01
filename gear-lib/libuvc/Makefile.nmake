@@ -20,7 +20,7 @@ OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 ###############################################################################
 # cflags and ldflags
 ###############################################################################
-CFLAGS	= /I../libposix4win/ /I../libmedia-io/ /I../libfile/ /I.
+CFLAGS	= /I../libposix/ /I../libmedia-io/ /I../libfile/ /I.
 !IF "$(MODE)"=="release"
 CFLAGS  = $(CFLAGS) /O2 /GF
 !ELSE
@@ -28,7 +28,7 @@ CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
 
 LIBS	= ole32.lib strmiids.lib uuid.lib oleaut32.lib shlwapi.lib \
-	  ../libmedia-io/libmedia-io.lib ../libfile/libfile.lib ../libposix4win/libposix4win.lib
+	  ../libmedia-io/libmedia-io.lib ../libfile/libfile.lib ../libposix/libposix.lib 
 
 ###############################################################################
 # target

@@ -19,10 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include "libuvc.h"
 #include <stddef.h>
 #include "dshow.h"
 #include "libuvc.h"
-#include "libposix4win.h"
 #include <libfile.h>
 
 struct file *fp;
@@ -33,6 +33,8 @@ struct dshow_ctx {
     char                  *unique_name;
     int                    width;
     int                    height;
+    uint32_t               fps_num;
+    uint32_t               fps_den;
     IGraphBuilder         *graph;
     ICaptureGraphBuilder2 *capgraph;
     IMediaControl         *mctrl;
@@ -1041,7 +1043,7 @@ exit:
     return ret;
 }
 
-static void *dshow_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, uint32_t height)
+static void *dshow_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf)
 {
     struct dshow_ctx *c = calloc(1, sizeof(struct dshow_ctx));
     if (!c) {
@@ -1049,9 +1051,10 @@ static void *dshow_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, ui
         return NULL;
     }
     c->name = strdup(dev);
-    c->width = width;
-    c->height = height;
-    uvc->format = VIDEO_FORMAT_I420;
+    c->width = conf->width;
+    c->height = conf->height;
+    c->fps_num = conf->fps.num;//unlimit fps
+    c->fps_den = conf->fps.den;
 
     CoInitialize(0);
 
@@ -1072,6 +1075,13 @@ static void *dshow_open(struct uvc_ctx *uvc, const char *dev, uint32_t width, ui
         printf("open_device failed!\n");
         goto exit;
     }
+
+    uvc->conf.width = c->width;
+    uvc->conf.height = c->height;
+    uvc->conf.fps.num = c->fps_num;
+    uvc->conf.fps.den = c->fps_den;
+    uvc->conf.format = PIXEL_FORMAT_I420;
+    uvc->fd = -1;
 
     return c;
 exit:

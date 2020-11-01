@@ -22,6 +22,7 @@
 #include "libposix.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 void *memdup(const void *src, size_t len)
 {

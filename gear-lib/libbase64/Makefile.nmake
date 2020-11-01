@@ -27,7 +27,7 @@ CFLAGS  = $(CFLAGS) /O2 /GF
 CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
 
-LDFLAGS	= /NOLOGO
+LDFLAGS	=
 
 ###############################################################################
 # target
@@ -45,7 +45,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	$(LD) $(LDFLAGS) /Dll $(OBJS_LIB) $(LIBS)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
-	$(CC) $(TGT_LIB_A) /link $(LDFLAGS) $(OBJS_UNIT_TEST)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST)
 
 clean:
 	$(RM) $(OBJS)

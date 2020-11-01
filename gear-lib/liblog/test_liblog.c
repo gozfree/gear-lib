@@ -19,17 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <libposix.h>
 #include "liblog.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined (__linux__) || defined (__CYGWIN__)
-#include <pthread.h>
-#endif
-
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
-#endif
-
 
 static void test_no_init(void)
 {

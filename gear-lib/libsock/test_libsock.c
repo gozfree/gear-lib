@@ -24,17 +24,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #include <unistd.h>
 #include <signal.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <libgevent.h>
-#include <libthread.h>
-#else
-#include <libgevent.h>
-#include <libthread.h>
 #endif
+#include <libgevent.h>
+#include <libthread.h>
 
 struct sock_connection *g_sc = NULL;
 

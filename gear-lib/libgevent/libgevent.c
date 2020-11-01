@@ -22,22 +22,20 @@
 #include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #include <unistd.h>
 #include <fcntl.h>
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#include "libposix4win.h"
 #endif
 #include <errno.h>
 
 
-#if defined (__linux__)
+#if defined (OS_LINUX)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
 #ifndef __CYGWIN__
 extern const struct gevent_ops epollops;
 #endif
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
 extern const struct gevent_ops iocpops;
 #endif
 
@@ -48,7 +46,7 @@ static const struct gevent_ops *eventops[] = {
 #ifndef __CYGWIN__
     &epollops,
 #endif
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
     &iocpops,
 #endif
     NULL

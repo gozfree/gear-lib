@@ -8,7 +8,7 @@
   * Windows7 install "Microsoft Visual Studio 10.0"  
     open cmd.exe  
    `> "D:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\vcvars32.bat"`  
-   `> cd libraries\libposix4win\`  
+   `> cd gear-lib\libposix\`  
    `> nmake /f Makefile.nmake clean`  
    `> nmake /f Makefile.nmake`  
    default debug version, compiler release version  

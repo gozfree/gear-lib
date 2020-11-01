@@ -118,7 +118,7 @@ int pthread_join(pthread_t tid, void **retval)
 
 pthread_t pthread_self(void)
 {
-
+    return 0;
 }
 
 int pthread_attr_init(pthread_attr_t *attr)

@@ -24,7 +24,6 @@
 
 #include <libposix.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 #include "audio-def.h"
 #include "video-def.h"
