@@ -42,8 +42,8 @@ endif
 # target and object
 ###############################################################################
 LIBNAME		= libgconfig
-VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
-VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
+VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
+VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h \
 		  lua/lua_config.h lua/luatables.h lua/utils/serialize.lua.h \
 		  json/json_config.h

@@ -22,8 +22,8 @@ RM_V		?= $(RM)
 # target and object
 ###############################################################################
 LIBNAME		= libstrex
-VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
-VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
+VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
+VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
@@ -49,7 +49,7 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
 SHARED	:= -shared
 
@@ -76,7 +76,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(LD_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
@@ -92,14 +92,14 @@ clean:
 
 install:
 	$(MAKEDIR_OUTPUT)
-	if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
-	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include
-	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib
-	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib
+	@if [ "$(MODE)" = "release" ];then $(STRIP) $(TGT); fi
+	$(CP_V) -r $(TGT_LIB_H)  $(OUTPUT)/include/gear-lib
+	$(CP_V) -r $(TGT_LIB_A)  $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO) $(OUTLIBPATH)/lib/gear-lib
+	$(CP_V) -r $(TGT_LIB_SO_VER) $(OUTLIBPATH)/lib/gear-lib
 
 uninstall:
-	cd $(OUTPUT)/include/ && rm -f $(TGT_LIB_H)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_A)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO)
-	$(RM_V) -f $(OUTLIBPATH)/lib/$(TGT_LIB_SO_VER)
+	cd $(OUTPUT)/include/gear-lib && rm -f $(TGT_LIB_H)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_A)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO)
+	$(RM_V) -f $(OUTLIBPATH)/lib/gear-lib/$(TGT_LIB_SO_VER)

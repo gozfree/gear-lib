@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define LIBUAC_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

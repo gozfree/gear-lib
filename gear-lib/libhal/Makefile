@@ -22,8 +22,8 @@ RM_V		?= $(RM)
 # target and object
 ###############################################################################
 LIBNAME		= libhal
-VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
-VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
+VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
+VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so

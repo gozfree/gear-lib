@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#define LIBHASH_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

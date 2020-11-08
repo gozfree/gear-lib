@@ -22,6 +22,8 @@
 #ifndef LIBDEBUG_H
 #define LIBDEBUG_H
 
+#define LIBDEBUG_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

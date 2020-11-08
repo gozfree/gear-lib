@@ -29,6 +29,8 @@
 #include <sys/uio.h>
 #endif
 
+#define LIBVECTOR_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

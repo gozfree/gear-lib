@@ -26,6 +26,8 @@
 #include <librpc.h>
 #include "libptcp.h"
 
+#define LIBP2P_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

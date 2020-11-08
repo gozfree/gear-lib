@@ -25,6 +25,8 @@
 #include <libposix.h>
 #include <stdlib.h>
 
+#define LIBMEDIA_IO_VERSION "0.1.0"
+
 #include "audio-def.h"
 #include "video-def.h"
 

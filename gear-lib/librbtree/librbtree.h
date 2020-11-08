@@ -22,6 +22,8 @@
 #ifndef LIBRBTREE_H
 #define LIBRBTREE_H
 
+#define LIBRBTREE_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

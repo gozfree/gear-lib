@@ -33,8 +33,8 @@ endif
 # target and object
 ###############################################################################
 LIBNAME		= libplugin
-VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
-VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
+VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
+VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_SO	= plugin_log.so plugin_ipc.so plugin_skt.so
 
@@ -45,7 +45,7 @@ OBJS_LIB	= plugin_log.o plugin_skt.o plugin_ipc.o
 ###############################################################################
 CFLAGS	:= -g -Wall -Werror -fPIC
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
 SHARED	:= -shared
 

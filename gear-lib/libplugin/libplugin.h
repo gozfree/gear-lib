@@ -25,6 +25,8 @@
 #include <libposix.h>
 #include <stdio.h>
 
+#define LIBPLUGIN_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

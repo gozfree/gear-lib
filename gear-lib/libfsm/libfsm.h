@@ -26,6 +26,8 @@
 #include <stdbool.h>
 #include <pthread.h>
 
+#define LIBFSM_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

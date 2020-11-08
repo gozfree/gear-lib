@@ -35,6 +35,8 @@
 #define INET_ADDRSTRLEN 16
 #endif
 
+#define LIBSOCK_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

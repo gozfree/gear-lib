@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 
+#define LIBRINGBUFFER_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

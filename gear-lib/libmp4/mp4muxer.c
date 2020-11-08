@@ -25,32 +25,34 @@
 
 static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *media, enum AVCodecID codec_id)
 {
-    AVCodec *codec = avcodec_find_encoder(codec_id);
-    if (!codec) {
+    media->av_codec = avcodec_find_encoder(codec_id);
+    if (!media->av_codec) {
         printf("Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
         return -1;
     }
+    printf("find encoder for '%s'\n", avcodec_get_name(codec_id));
     media->first_pts = 0;
     media->last_pts = 0;
 
-    media->av_stream = avformat_new_stream(muxer->av_format, codec);
+    media->av_stream = avformat_new_stream(muxer->av_format, media->av_codec);
     if (!media->av_stream) {
         printf("Could not allocate stream\n");
         return -1;
     }
     media->av_stream->id = muxer->av_format->nb_streams-1;
-    //AVCodecContext *c = media->av_stream->codec;
+    media->av_codec_ctx = avcodec_alloc_context3(media->av_codec);
     AVCodecParameters *cp = media->av_stream->codecpar;
+    AVCodecContext *c = media->av_codec_ctx;
 
-    switch (codec->type) {
+    switch (media->av_codec->type) {
     case AVMEDIA_TYPE_AUDIO:
-        cp->format  = AV_SAMPLE_FMT_FLTP;
-        cp->bit_rate    = 32000;
-        cp->sample_rate = 8000;
-        cp->channel_layout = AV_CH_LAYOUT_STEREO;
-        cp->channels       = av_get_channel_layout_nb_channels(cp->channel_layout);
-        cp->frame_size  = 1000;
-        media->av_stream->time_base = (AVRational){ 1, cp->sample_rate };
+        c->sample_fmt  = AV_SAMPLE_FMT_FLTP;
+        c->bit_rate    = 32000;
+        c->sample_rate = 8000;
+        c->channel_layout = AV_CH_LAYOUT_STEREO;
+        c->channels       = av_get_channel_layout_nb_channels(c->channel_layout);
+        //cp->frame_size  = 1000;
+        media->av_stream->time_base = (AVRational){ 1, c->sample_rate };
         muxer->audio.av_bsf = av_bsf_get_by_name("aac_adtstoasc");
         break;
     case AVMEDIA_TYPE_VIDEO:
@@ -60,16 +62,18 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
             printf("video codec_id %s not support\n", avcodec_get_name(codec_id));
             return -1;
         }
-        cp->codec_id       = codec_id;
-        cp->bit_rate       = 2000000;
-        cp->width          = muxer->conf.width;
-        cp->height         = muxer->conf.height;
+        c->codec_id       = codec_id;
+        c->bit_rate       = 2000000;
+        c->width          = muxer->conf.width;
+        c->height         = muxer->conf.height;
         if (muxer->conf.fps.den == 0) {
             printf("warnning: muxer->conf.fps.den must not be 0\n");
             muxer->conf.fps.den = 1;
         }
         media->av_stream->time_base = (AVRational){1, muxer->conf.fps.num/muxer->conf.fps.den};
-        cp->format        = AV_PIX_FMT_NV12;
+        c->gop_size       = 12;
+        //cp->format        = AV_PIX_FMT_NV12;
+        c->pix_fmt        = AV_PIX_FMT_NV12;
         break;
     default:
         printf("codec type not support\n");
@@ -81,6 +85,7 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
 
 struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
 {
+    int ret;
     AVOutputFormat *ofmt = NULL;
     struct mp4_muxer *c = calloc(1, sizeof(struct mp4_muxer));
     if (!c) {
@@ -90,6 +95,7 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
 
     av_register_all();
     av_log_set_level(AV_LOG_ERROR);
+    memcpy(&c->conf, conf, sizeof(struct mp4_config));
     avformat_alloc_output_context2(&c->av_format, NULL, "mp4", NULL);
     if (c->av_format == NULL) {
         printf("avformat_alloc_output_context2 failed\n");
@@ -98,10 +104,18 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
 
     ofmt = c->av_format->oformat;
     if (ofmt->video_codec != AV_CODEC_ID_NONE) {
-        muxer_add_stream(c, &c->video, ofmt->video_codec);
+        ret = muxer_add_stream(c, &c->video, ofmt->video_codec);
+        if (ret != 0) {
+            printf("muxer_add_stream video failed!\n");
+        }
+        printf("muxer_add_stream video success!\n");
     }
     if (ofmt->audio_codec != AV_CODEC_ID_NONE) {
-        muxer_add_stream(c, &c->audio, ofmt->audio_codec);
+        ret = muxer_add_stream(c, &c->audio, ofmt->audio_codec);
+        if (ret != 0) {
+            printf("muxer_add_stream audio failed!\n");
+        }
+        printf("muxer_add_stream audio success!\n");
     }
 
     if (ofmt->flags & AVFMT_NOFILE) {
@@ -112,6 +126,7 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
         printf("Could not open '%s'\n", file);
         goto failed;
     }
+    printf("open '%s' success\n", file);
 
     if (0 > avformat_write_header(c->av_format, NULL)) {
         printf("write header error\n");
@@ -119,7 +134,6 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
         goto failed;
     }
     c->got_video = false;
-    memcpy(&c->conf, conf, sizeof(struct mp4_config));
     return c;
 failed:
     if (c) {

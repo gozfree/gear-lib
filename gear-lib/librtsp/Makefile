@@ -23,8 +23,8 @@ RM_V		?= $(RM)
 ###############################################################################
 ENABLE_LIVEVIEW	= 0
 LIBNAME		= librtsp
-VERSION_SH	= $(shell pwd)/version.sh $(LIBNAME)
-VER		= $(shell $(VERSION_SH); awk '/define\ $(LIBNAME)_version/{print $$3}' version.h)
+VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
+VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h librtsp_server.h media_source.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so

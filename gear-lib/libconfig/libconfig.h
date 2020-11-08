@@ -22,6 +22,8 @@
 #ifndef LIBCONFIG_H
 #define LIBCONFIG_H
 
+#define LIBCONFIG_VERSION "0.1.0"
+
 #include <libposix.h>
 #include <stdio.h>
 #include <limits.h>

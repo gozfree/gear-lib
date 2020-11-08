@@ -25,6 +25,8 @@
 #include <libmedia-io.h>
 #include <stdlib.h>
 
+#define LIBMP4_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,6 +42,7 @@ struct mp4_muxer_media {
     enum AVCodecID codec_id;
     AVStream *av_stream;
     AVCodec *av_codec;
+    AVCodecContext *av_codec_ctx;
     const AVBitStreamFilter *av_bsf;
     uint64_t first_pts;
     uint64_t last_pts;

@@ -1,6 +1,8 @@
 ## libmp4
 This is a simple libmp4 muxer and parser library.
 
+refere to doc/examples/muxing.c
+
 ##mp4muxer
 wrapper of libavcodec
 

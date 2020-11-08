@@ -28,6 +28,8 @@
 #endif
 #include <time.h>
 
+#define LIBTIME_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -22,6 +22,8 @@
 #ifndef LIBLOG_H
 #define LIBLOG_H
 
+#define LIBLOG_VERSION "1.0.3"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -22,6 +22,8 @@
 #ifndef LIBBASE64_H
 #define LIBBASE64_H
 
+#define LIBBASE64_VERSION "1.0.0"
+
 #include <stdlib.h>
 #ifdef __cplusplus
 extern "C" {

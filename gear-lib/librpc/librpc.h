@@ -28,6 +28,8 @@
 #include <stdint.h>
 #include <semaphore.h>
 
+#define LIBRPC_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

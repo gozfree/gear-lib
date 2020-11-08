@@ -29,6 +29,8 @@
 #include <linux/if.h>
 #include <linux/wireless.h>
 
+#define LIBHAL_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -32,6 +32,8 @@
 #include <semaphore.h>
 #include <pthread.h>
 
+#define LIBIPC_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

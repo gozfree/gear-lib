@@ -34,6 +34,7 @@
 
 #include "flv_mux.h"
 
+#define LIBRTMPC_VERSION "0.1.0"
 
 #ifdef __cplusplus
 extern "C" {

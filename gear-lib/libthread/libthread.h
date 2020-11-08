@@ -33,6 +33,8 @@
 #define _POSIX_RW_LOCKS
 #endif
 
+#define LIBTHREAD_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

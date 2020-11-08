@@ -48,7 +48,7 @@
 ## 系统抽象层
 |  |  |
 |--|--|
-| libposix: windows/rtos/ios平台poxix适配库 |
+| libposix: windows/rtos/ios平台posix适配库 |
 
 ## 其他
 |  |  |
