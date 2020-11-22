@@ -31,11 +31,18 @@
 #include <sys/ioctl.h>
 #endif
 
-#define LIBUVC_VERSION "0.1.0"
+#define LIBUVC_VERSION "0.2.0"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum uvc_type {
+    UVC_TYPE_DUMMY = 0,
+    UVC_TYPE_V4L2,
+    UVC_TYPE_DSHOW,
+    UVC_TYPE_MAX,
+};
 
 struct uvc_ctx;
 struct uvc_ops;
@@ -78,7 +85,7 @@ struct uvc_ops {
     int (*query_frame)(struct uvc_ctx *c, struct video_frame *frame);
 };
 
-struct uvc_ctx *uvc_open(const char *dev, struct uvc_config *conf);
+struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf);
 int uvc_ioctl(struct uvc_ctx *c, unsigned long int cmd, ...);
 void uvc_close(struct uvc_ctx *c);
 

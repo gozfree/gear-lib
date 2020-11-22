@@ -92,7 +92,6 @@ struct v4l2_ctx {
     int req_count;
     bool qbuf_done;
     uint64_t first_ts;
-    uint64_t prev_ts;
     uint64_t frame_id;
     struct v4l2_capability cap;
     uint32_t ctrl_flags;
@@ -463,7 +462,6 @@ retry:
     frame->frame_id = c->frame_id;
     c->frame_id++;
 
-    c->prev_ts = frame->timestamp;
     start = (uint8_t *)c->buf[qbuf.index].iov_base;
 
     if (frame->flag == VFC_NONE) {//frame data ptr
@@ -492,7 +490,6 @@ static int uvc_v4l2_poll_init(struct v4l2_ctx *c)
     }
 
     epev.events = EPOLLIN | EPOLLOUT | EPOLLPRI | EPOLLET | EPOLLERR;
-    epev.data.fd = c->fd;
     epev.data.ptr = (void *)c;
     if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_ADD, c->fd, &epev)) {
         printf("epoll_ctl EPOLL_CTL_ADD failed %d!\n", errno);

@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <stdarg.h>
 
+extern struct uvc_ops dummy_ops;
 #if defined (OS_LINUX)
 extern struct uvc_ops v4l2_ops;
 #elif defined (OS_WINDOWS)
@@ -35,15 +36,16 @@ extern struct uvc_ops dshow_ops;
 #endif
 
 static struct uvc_ops *uvc_ops[] = {
+    [UVC_TYPE_DUMMY] = &dummy_ops,
 #if defined (OS_LINUX)
-    &v4l2_ops,
+    [UVC_TYPE_V4L2]  = &v4l2_ops,
 #elif defined (OS_WINDOWS)
-    &dshow_ops,
+    [UVC_TYPE_DSHOW] = &dshow_ops,
 #endif
-    NULL
+    [UVC_TYPE_MAX] = NULL,
 };
 
-struct uvc_ctx *uvc_open(const char *dev, struct uvc_config *conf)
+struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf)
 {
     struct uvc_ctx *uvc;
     if (!dev || !conf) {
@@ -55,7 +57,11 @@ struct uvc_ctx *uvc_open(const char *dev, struct uvc_config *conf)
         printf("malloc failed!\n");
         return NULL;
     }
-    uvc->ops = uvc_ops[0];
+    uvc->ops = uvc_ops[type];
+    if (!uvc->ops) {
+        printf("uvc->ops %d is NULL!\n", type);
+        return NULL;
+    }
     uvc->opaque = uvc->ops->open(uvc, dev, conf);
     if (!uvc->opaque) {
         printf("open %s failed!\n", dev);
