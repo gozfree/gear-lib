@@ -1,0 +1,4 @@
+/output
+*.so*
+test_lib*
+!test_lib*.c

@@ -48,6 +48,11 @@ usage()
 		echo "$CMD $item $PLATFORM [debug|release]";
 	done
 	echo ""
+	echo "framework libraries (optional):"
+	for item in $FRAMEWORK_LIBS; do
+		echo "$CMD $item $PLATFORM [debug|release]";
+	done
+	echo ""
 	echo "network libraries (optional):"
 	for item in $NETWORK_LIBS; do
 		echo "$CMD $item $PLATFORM [debug|release]";
