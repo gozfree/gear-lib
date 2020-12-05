@@ -39,11 +39,13 @@ static void *__thread_func(void *arg)
         printf("thread function is null\n");
         return NULL;
     }
+    t->run = true;
     t->func(t, t->arg);
+    t->run = false;
     return NULL;
 }
 
-struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...)
+GEAR_API struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...)
 {
     enum lock_type type;
     va_list ap;
@@ -96,7 +98,6 @@ struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, 
 
     t->arg = arg;
     t->func = func;
-    t->run = true;
     if (0 != pthread_create(&t->tid, &t->attr, __thread_func, t)) {
         printf("pthread_create failed(%d): %s\n", errno, strerror(errno));
         goto err;
@@ -110,17 +111,19 @@ err:
     return NULL;
 }
 
-void thread_join(struct thread *t)
+GEAR_API int thread_join(struct thread *t)
 {
-    pthread_join(t->tid, NULL);
+    if (!t) {
+        return -1;
+    }
+    return pthread_join(t->tid, NULL);
 }
 
-void thread_destroy(struct thread *t)
+GEAR_API void thread_destroy(struct thread *t)
 {
     if (!t) {
         return;
     }
-    t->run = false;
     switch (t->type) {
     case THREAD_LOCK_SPIN:
         break;
@@ -138,12 +141,11 @@ void thread_destroy(struct thread *t)
     default:
         break;
     }
-    pthread_join(t->tid, NULL);
     pthread_attr_destroy(&t->attr);
     free(t);
 }
 
-int thread_set_name(struct thread *t, const char *name)
+GEAR_API int thread_set_name(struct thread *t, const char *name)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
 
@@ -158,7 +160,7 @@ int thread_set_name(struct thread *t, const char *name)
 #endif
 }
 
-void thread_get_info(struct thread *t)
+GEAR_API void thread_get_info(struct thread *t)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     int i;
@@ -211,7 +213,7 @@ void thread_get_info(struct thread *t)
 #endif
 }
 
-int thread_lock(struct thread *t)
+GEAR_API int thread_lock(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -229,7 +231,7 @@ int thread_lock(struct thread *t)
     return -1;
 }
 
-int thread_unlock(struct thread *t)
+GEAR_API int thread_unlock(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -247,7 +249,7 @@ int thread_unlock(struct thread *t)
     return -1;
 }
 
-int thread_wait(struct thread *t, int64_t ms)
+GEAR_API int thread_wait(struct thread *t, int64_t ms)
 {
     if (!t) {
         return -1;
@@ -266,7 +268,7 @@ int thread_wait(struct thread *t, int64_t ms)
     return -1;
 }
 
-int thread_signal(struct thread *t)
+GEAR_API int thread_signal(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -284,7 +286,7 @@ int thread_signal(struct thread *t)
     return 0;
 }
 
-int thread_signal_all(struct thread *t)
+GEAR_API int thread_signal_all(struct thread *t)
 {
     if (!t) {
         return -1;

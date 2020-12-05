@@ -33,7 +33,7 @@
 #define _POSIX_RW_LOCKS
 #endif
 
-#define LIBTHREAD_VERSION "0.1.1"
+#define LIBTHREAD_VERSION "0.1.2"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,7 +124,7 @@ typedef struct thread {
 } thread_t;
 
 struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...);
-void thread_join(struct thread *t);
+int thread_join(struct thread *t);
 void thread_destroy(struct thread *t);
 void thread_get_info(struct thread *t);
 int thread_set_name(struct thread *t, const char *name);
