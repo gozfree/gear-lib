@@ -30,7 +30,6 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         printf("Could not find encoder for '%s'\n", avcodec_get_name(codec_id));
         return -1;
     }
-    printf("find encoder for '%s'\n", avcodec_get_name(codec_id));
     media->first_pts = 0;
     media->last_pts = 0;
 
@@ -40,9 +39,7 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         return -1;
     }
     media->av_stream->id = muxer->av_format->nb_streams-1;
-    media->av_codec_ctx = avcodec_alloc_context3(media->av_codec);
-    AVCodecParameters *cp = media->av_stream->codecpar;
-    AVCodecContext *c = media->av_codec_ctx;
+    AVCodecContext *c = media->av_stream->codec;
 
     switch (media->av_codec->type) {
     case AVMEDIA_TYPE_AUDIO:
@@ -51,15 +48,15 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         c->sample_rate = 8000;
         c->channel_layout = AV_CH_LAYOUT_STEREO;
         c->channels       = av_get_channel_layout_nb_channels(c->channel_layout);
-        //cp->frame_size  = 1000;
-        media->av_stream->time_base = (AVRational){ 1, c->sample_rate };
-        muxer->audio.av_bsf = av_bsf_get_by_name("aac_adtstoasc");
+        c->frame_size  = 1000;
+        media->av_stream->time_base = (AVRational){1, c->sample_rate};
+        muxer->audio.av_bsf = av_bitstream_filter_init("aac_adtstoasc");
         break;
     case AVMEDIA_TYPE_VIDEO:
         codec_id = AV_CODEC_ID_H264;
         if (codec_id != AV_CODEC_ID_H264 && codec_id != AV_CODEC_ID_H265 &&
             codec_id != AV_CODEC_ID_HEVC && codec_id != AV_CODEC_ID_MJPEG) {
-            printf("video codec_id %s not support\n", avcodec_get_name(codec_id));
+            printf("codec_id %s not support\n", avcodec_get_name(codec_id));
             return -1;
         }
         c->codec_id       = codec_id;
@@ -72,7 +69,6 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         }
         media->av_stream->time_base = (AVRational){1, muxer->conf.fps.num/muxer->conf.fps.den};
         c->gop_size       = 12;
-        //cp->format        = AV_PIX_FMT_NV12;
         c->pix_fmt        = AV_PIX_FMT_NV12;
         break;
     default:
@@ -80,6 +76,8 @@ static int muxer_add_stream(struct mp4_muxer *muxer, struct mp4_muxer_media *med
         break;
     }
 
+    if (muxer->av_format->oformat->flags & AVFMT_GLOBALHEADER)
+        c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     return 0;
 }
 
@@ -94,7 +92,6 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
     }
 
     av_register_all();
-    av_log_set_level(AV_LOG_ERROR);
     memcpy(&c->conf, conf, sizeof(struct mp4_config));
     avformat_alloc_output_context2(&c->av_format, NULL, "mp4", NULL);
     if (c->av_format == NULL) {
@@ -108,14 +105,12 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
         if (ret != 0) {
             printf("muxer_add_stream video failed!\n");
         }
-        printf("muxer_add_stream video success!\n");
     }
     if (ofmt->audio_codec != AV_CODEC_ID_NONE) {
         ret = muxer_add_stream(c, &c->audio, ofmt->audio_codec);
         if (ret != 0) {
             printf("muxer_add_stream audio failed!\n");
         }
-        printf("muxer_add_stream audio success!\n");
     }
 
     if (ofmt->flags & AVFMT_NOFILE) {
@@ -126,7 +121,6 @@ struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf)
         printf("Could not open '%s'\n", file);
         goto failed;
     }
-    printf("open '%s' success\n", file);
 
     if (0 > avformat_write_header(c->av_format, NULL)) {
         printf("write header error\n");
@@ -142,8 +136,7 @@ failed:
     return NULL;
 }
 
-#if 0
-static int64_t update_video_timestamp(struct mp4_muxer_ctx *c, uint64_t pts)
+static int64_t update_video_timestamp(struct mp4_muxer *c, uint64_t pts)
 {
     if (c->video.first_pts == 0) {
         c->video.first_pts = pts;
@@ -156,6 +149,7 @@ static int64_t update_video_timestamp(struct mp4_muxer_ctx *c, uint64_t pts)
     return av_rescale_q(c->video.last_pts, (AVRational){1, 1000}, (AVRational){1, 12500});//fps=25/2
 }
 
+#if 0
 int64_t update_audio_timestamp(struct mp4_muxer_ctx *c, uint64_t pts)
 {
     if (c->audio.first_pts == 0) {
@@ -172,6 +166,7 @@ int64_t update_audio_timestamp(struct mp4_muxer_ctx *c, uint64_t pts)
 
 int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *mp)
 {
+    int ret;
     AVPacket pkt;
     av_init_packet(&pkt);
 
@@ -188,6 +183,16 @@ int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *mp)
         //av_bitstream_filter_filter(c->audio.av_bsf, c->audio.av_stream->codec, NULL, &pkt.data, &pkt.size, pkt.data, pkt.size, 0);
         break;
     case MEDIA_TYPE_VIDEO:
+        if (mp->type != MEDIA_TYPE_VIDEO) {
+            printf("media_packet is not video\n");
+            goto exit;
+        }
+        if (!(mp->video->type == H26X_FRAME_I ||
+              mp->video->type == H26X_FRAME_B ||
+              mp->video->type == H26X_FRAME_P)) {
+            printf("video packet in invalid type\n");
+            goto exit;
+        }
         if (mp->video->type == H26X_FRAME_I) {
             c->got_video = true;
             pkt.flags |= AV_PKT_FLAG_KEY;
@@ -195,11 +200,12 @@ int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *mp)
         if (c->got_video == false) {
             goto exit;
         }
-        //pkt.stream_index = c->video.av_stream->index;
+        pkt.stream_index = c->video.av_stream->index;
         pkt.data = mp->video->data;
         pkt.size = mp->video->size;
-        //pkt.pos = -1;
-        //pkt.pts = update_video_timestamp(c, mp->pts);
+        pkt.pos = -1;
+        pkt.pts = update_video_timestamp(c, mp->video->pts);
+        pkt.dts = pkt.pts;
         break;
     default:
         printf("unknown mp type\n");
@@ -207,7 +213,10 @@ int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *mp)
     }
 
     if (c->got_video) {
-        av_interleaved_write_frame(c->av_format, &pkt);
+        ret = av_interleaved_write_frame(c->av_format, &pkt);
+        if (ret < 0) {
+            printf("av_interleaved_write_frame %d\n", ret);
+        }
     }
 exit:
     av_packet_unref(&pkt);

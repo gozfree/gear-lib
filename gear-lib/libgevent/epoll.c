@@ -49,7 +49,7 @@ static void *epoll_init(void)
     struct epoll_ctx *ec;
     fd = epoll_create(1);
     if (-1 == fd) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        printf("epoll_create errno=%d %s\n", errno, strerror(errno));
         return NULL;
     }
     ec = (struct epoll_ctx *)calloc(1, sizeof(struct epoll_ctx));
@@ -97,7 +97,7 @@ static int epoll_add(struct gevent_base *eb, struct gevent *e)
     epev.data.ptr = (void *)e;
 
     if (-1 == epoll_ctl(ec->epfd, EPOLL_CTL_ADD, e->evfd, &epev)) {
-        printf("errno=%d %s\n", errno, strerror(errno));
+        printf("EPOLL_CTL_ADD failed: %d %s\n", errno, strerror(errno));
         return -1;
     }
     return 0;
@@ -107,7 +107,7 @@ static int epoll_del(struct gevent_base *eb, struct gevent *e)
 {
     struct epoll_ctx *ec = (struct epoll_ctx *)eb->ctx;
     if (-1 == epoll_ctl(ec->epfd, EPOLL_CTL_DEL, e->evfd, NULL)) {
-        perror("epoll_ctl");
+        printf("EPOLL_CTL_DEL failed: %d %s\n", errno, strerror(errno));
         return -1;
     }
     return 0;

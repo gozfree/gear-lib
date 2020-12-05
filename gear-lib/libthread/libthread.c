@@ -110,6 +110,11 @@ err:
     return NULL;
 }
 
+void thread_join(struct thread *t)
+{
+    pthread_join(t->tid, NULL);
+}
+
 void thread_destroy(struct thread *t)
 {
     if (!t) {

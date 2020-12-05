@@ -30,7 +30,7 @@
 #define PATH_SPLIT       '/'
 #endif
 
-void *memdup(const void *src, size_t len)
+GEAR_API void *memdup(const void *src, size_t len)
 {
     void *dst = calloc(1, len);
     if (LIKELY(dst != NULL)) {
@@ -39,7 +39,7 @@ void *memdup(const void *src, size_t len)
     return dst;
 }
 
-struct iovec *iovec_create(size_t len)
+GEAR_API struct iovec *iovec_create(size_t len)
 {
     struct iovec *vec = calloc(1, sizeof(struct iovec));
     if (LIKELY(vec != NULL)) {
@@ -53,7 +53,7 @@ struct iovec *iovec_create(size_t len)
     return vec;
 }
 
-void iovec_destroy(struct iovec *vec)
+GEAR_API void iovec_destroy(struct iovec *vec)
 {
     if (LIKELY(vec != NULL)) {
         /* free(NULL) do nop */
@@ -67,13 +67,13 @@ void iovec_destroy(struct iovec *vec)
  * Fast little endian check
  * NOTE: not applicable for PDP endian
  */
-bool is_little_endian(void)
+GEAR_API bool is_little_endian(void)
 {
-    static uint16_t x = 0x01;
+    uint16_t x = 0x01;
     return *((uint8_t *) &x);
 }
 
-int get_proc_name(char *name, size_t len)
+GEAR_API int get_proc_name(char *name, size_t len)
 {
     int i, ret;
     char proc_name[PATH_MAX];

@@ -25,7 +25,7 @@ LIBNAME		= libposix
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
-TGT_LIB_H	+= kernel_list.h
+TGT_LIB_H	+= kernel_list.h gear_misc.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
@@ -50,7 +50,7 @@ else
 OUTLIBPATH := $(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include -fvisibility=hidden
 
 SHARED	:= -shared
 

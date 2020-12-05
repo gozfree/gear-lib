@@ -30,7 +30,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#define LIBPOSIX_VERSION "0.1.0"
+#define LIBPOSIX_VERSION "0.1.1"
 
 /******************************************************************************
  * OS_LINUX
@@ -42,6 +42,8 @@ extern "C" {
 #include <sys/uio.h>
 #include "kernel_list.h"
 
+#define GEAR_API __attribute__((visibility("default")))
+
 /******************************************************************************
  * OS_WINDOWS
  ******************************************************************************/
@@ -49,6 +51,8 @@ extern "C" {
 #define OS_WINDOWS
 #include "libposix4win.h"
 #include "kernel_list_win32.h"
+
+#define GEAR_API __declspec(dllexport)
 
 /******************************************************************************
  * OS_APPLE
@@ -77,98 +81,7 @@ extern "C" {
 #error "OS_UNDEFINED"
 #endif
 
-/******************************************************************************
- * MACRO DEFINES ARE UPPERCASE
- ******************************************************************************/
-typedef struct rational {
-    int num;
-    int den;
-} rational_t;
-
-/**
- * Variable-argument unused annotation
- */
-#define UNUSED(e, ...)      (void) ((void) (e), ##__VA_ARGS__)
-
-#ifdef __GNUC__
-#define LIKELY(x)           (__builtin_expect(!!(x), 1))
-#define UNLIKELY(x)         (__builtin_expect(!!(x), 0))
-#else
-#define LIKELY(x)           (x)
-#define UNLIKELY(x)         (x)
-#endif
-
-#define SWAP(a, b)          \
-    do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
-
-#define MIN2(a, b)          ((a) > (b) ? (b) : (a))
-#define MAX2(a, b)          ((a) > (b) ? (a) : (b))
-#define ABS(x)              ((x) >= 0 ? (x) : -(x))
-
-#define CALLOC(size, type)  (type *) calloc(size, sizeof(type))
-#define ARRAY_SIZE(a)       (sizeof(a) / sizeof(a[0]))
-
-#define VERBOSE()                                                   \
-    do {                                                            \
-        printf("%s:%s:%d xxxxxx\n", __FILE__, __func__, __LINE__);  \
-    } while (0)
-
-#define DUMP_BUFFER(buf, len)                                            \
-    do {                                                                 \
-        int _i, _j=0;                                                    \
-        char _tmp[128] = {0};                                             \
-        if (buf == NULL || len <= 0) {                                   \
-            break;                                                       \
-        }                                                                \
-        for (_i = 0; _i < len; _i++) {                                   \
-            if (!(_i%16)) {                                              \
-                if (_i != 0) {                                           \
-                    printf("%s", _tmp);                                  \
-                }                                                        \
-                memset(_tmp, 0, sizeof(_tmp));                           \
-                _j = 0;                                                  \
-                _j += snprintf(_tmp+_j, 64, "\n%p: ", buf+_i);           \
-            }                                                            \
-            _j += snprintf(_tmp+_j, 4, "%02hhx ", *((char *)buf + _i));  \
-        }                                                                \
-        printf("%s\n", _tmp);                                            \
-    } while (0)
-
-#define ALIGN2(x, a)	(((x) + (a) - 1) & ~((a) - 1))
-
-#define is_alpha(c) (((c) >=  'a' && (c) <= 'z') || ((c) >=  'A' && (c) <= 'Z'))
-
-/**
- * Compile-time strlen(3)
- * XXX: Should only used for `char[]'  NOT `char *'
- * Assume string ends with null byte('\0')
- */
-#define STRLEN(s)          (sizeof(s) - 1)
-
-/**
- * Compile-time assurance  see: linux/arch/x86/boot/boot.h
- * Will fail build if condition yield true
- */
-#ifndef BUILD_BUG_ON
-#if defined (OS_WINDOWS)
-/*
- * MSVC compiler allows negative array size(treat as unsigned value)
- *  yet them don't allow zero-size array
- */
-#define BUILD_BUG_ON(cond)      ((void) sizeof(char[!(cond)]))
-#else
-#define BUILD_BUG_ON(cond)      ((void) sizeof(char[1 - 2 * !!(cond)]))
-#endif
-#endif
-
-void *memdup(const void *src, size_t len);
-struct iovec *iovec_create(size_t len);
-void iovec_destroy(struct iovec *);
-
-bool is_little_endian(void);
-
-int get_proc_name(char *name, size_t len);
-
+#include "gear_misc.h"
 
 #ifdef __cplusplus
 }
