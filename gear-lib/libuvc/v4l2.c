@@ -607,6 +607,7 @@ static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
 
     if (uvc->on_video_frame) {
         c->is_streaming = false;
+        thread_join(c->thread);
         thread_destroy(c->thread);
     }
 

@@ -6,4 +6,7 @@ if you want to enable HAVE_LIBV4L2, please install libv4l2-dev
 sudo modprobe bcm2835_v4l2
 
 ffplay -pix_fmts
+x86_usbcam:
 ffplay -f rawvideo -pixel_format yuyv422 -video_size 640x480 uvc.yuv
+raspberrypi:
+ffplay -f rawvideo -pixel_format yuv420p -video_size 640x480 uvc.yuv

@@ -78,6 +78,9 @@ static int foo(void)
     gevent_base_loop_stop(evbase);
     gevent_del(evbase, event_1500);
     gevent_del(evbase, event_2000);
+    gevent_timer_destroy(event_1500);
+    gevent_timer_destroy(event_2000);
+    gevent_timer_destroy(event_stdin);
     gevent_base_destroy(evbase);
 
     return 0;

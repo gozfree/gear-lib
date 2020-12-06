@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     da_erase(i, 0);
     da_erase(i, 4);
     for (j = 10; j < 20; j++) {
-        da_push_back_array(i, &j, sizeof(j));
+        da_push_back_array(i, &j, 1);
     }
     for (j = 0; j < 20; j++) {
         printf("tmp=%x\n", i.array[j]);

@@ -69,6 +69,8 @@ static void foo(void)
         if (iobuf) {
             //printf("len=%zu, buf=%s\n", iobuf->iov_len, (char *)iobuf->iov_base);
         }
+        iovec_destroy(iobuf);
+        file_close(f);
     }
 }
 
@@ -81,6 +83,7 @@ static void foo2(void)
     printf("avail = %" PRIu64 "MB\n", stat->size_avail/(1024*1024));
     printf("free = %" PRIu64 "MB\n", stat->size_free/(1024*1024));
     printf("fs type name = %s\n", stat->fs_type_name);
+    free(stat);
 }
 
 static void foo3(void)

@@ -30,7 +30,7 @@
 #include <sys/timerfd.h>
 #endif
 
-#define LIBGEVENT_VERSION "0.1.0"
+#define LIBGEVENT_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,6 +88,7 @@ struct gevent_base {
     int wfd;
     pthread_t tid;
     const struct gevent_ops *evop;
+    struct gevent *inner_event;
 };
 
 struct gevent_base *gevent_base_create();
@@ -112,6 +113,7 @@ struct gevent *gevent_timer_create(time_t msec,
         enum gevent_timer_type type,
         void (ev_timer)(int, void *),
         void *args);
+void gevent_timer_destroy(struct gevent *e);
 
 #ifdef __cplusplus
 }

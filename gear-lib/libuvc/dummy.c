@@ -203,12 +203,16 @@ static void *dummy_thread(struct thread *t, void *arg)
 {
     struct uvc_ctx *uvc = arg;
     struct dummy_ctx *c = (struct dummy_ctx *)uvc->opaque;
-    struct video_frame frame;
+    struct video_frame *frame;
 
     if (uvc_dummy_poll_init(c) == -1) {
         printf("uvc_dummy_poll_init failed!\n");
     }
-    video_frame_init(&frame, uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_ALLOC);
+    frame = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_ALLOC);
+    if (!frame) {
+        printf("video_frame_create failed!\n");
+        return NULL;
+    }
     c->is_streaming = true;
     while (c->is_streaming) {
         if (uvc_dummy_enqueue(uvc, NULL, 0) != 0) {
@@ -220,11 +224,12 @@ static void *dummy_thread(struct thread *t, void *arg)
             continue;
         }
 
-        if (uvc_dummy_dequeue(uvc, &frame) == -1) {
+        if (uvc_dummy_dequeue(uvc, frame) == -1) {
             printf("uvc_dummy_dequeue failed\n");
         }
-        uvc->on_video_frame(uvc, &frame);
+        uvc->on_video_frame(uvc, frame);
     }
+    video_frame_destroy(frame);
     uvc_dummy_poll_deinit(c);
     return NULL;
 }
@@ -268,6 +273,7 @@ static int uvc_dummy_stop_stream(struct uvc_ctx *uvc)
 
     if (uvc->on_video_frame) {
         c->is_streaming = false;
+        thread_join(c->thread);
         thread_destroy(c->thread);
     }
 

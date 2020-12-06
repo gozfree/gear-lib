@@ -31,7 +31,7 @@
 #include <sys/ioctl.h>
 #endif
 
-#define LIBUVC_VERSION "0.2.0"
+#define LIBUVC_VERSION "0.2.1"
 
 #ifdef __cplusplus
 extern "C" {

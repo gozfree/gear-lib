@@ -60,7 +60,6 @@ struct gevent_base *gevent_base_create(void)
 {
     int i;
     int fds[2];
-    struct gevent *e;
     struct gevent_base *eb = NULL;
 #if defined (__linux__) || defined (__CYGWIN__)
     if (pipe(fds)) {
@@ -86,8 +85,8 @@ struct gevent_base *gevent_base_create(void)
 #if defined (__linux__) || defined (__CYGWIN__)
     fcntl(fds[0], F_SETFL, fcntl(fds[0], F_GETFL) | O_NONBLOCK);
 #endif
-    e = gevent_create(eb->rfd, event_in, NULL, NULL, NULL);
-    gevent_add(eb, e);
+    eb->inner_event = gevent_create(eb->rfd, event_in, NULL, NULL, NULL);
+    gevent_add(eb, eb->inner_event);
     return eb;
 }
 
@@ -97,6 +96,8 @@ void gevent_base_destroy(struct gevent_base *eb)
         return;
     }
     gevent_base_loop_break(eb);
+    gevent_del(eb, eb->inner_event);
+    gevent_destroy(eb->inner_event);
     close(eb->rfd);
     close(eb->wfd);
     eb->evop->deinit(eb->ctx);
@@ -200,6 +201,19 @@ struct gevent *gevent_create(int fd,
     e->evcb = evcb;
 
     return e;
+}
+
+void gevent_timer_destroy(struct gevent *e)
+{
+    if (!e) {
+        return;
+    }
+    if (e->evfd)
+        close(e->evfd);
+    if (e->evcb)
+        free(e->evcb);
+    if (e)
+        free(e);
 }
 
 struct gevent *gevent_timer_create(time_t msec,
