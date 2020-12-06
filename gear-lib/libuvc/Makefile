@@ -83,7 +83,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib/gear-lib -lfile -llog
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib/gear-lib -lfile -lposix -llog
 
 clean:
 	$(RM_V) -f $(OBJS)

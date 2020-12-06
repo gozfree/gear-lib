@@ -127,7 +127,7 @@ static int uvc_dummy_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
         len = frame->linesize[i]*frame->height;
         ret = read(c->fd, frame->data[i], len);
         if (ret != len) {
-            printf("read failed: ret=%lu, len=%zu, errno=%d, ptr=%p\n", ret, len, errno, frame->data[i]);
+            printf("read failed: ret=%zd, len=%zu, errno=%d, ptr=%p\n", ret, len, errno, frame->data[i]);
             return -1;
         }
         c->seek_offset += len;

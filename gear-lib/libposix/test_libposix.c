@@ -45,7 +45,7 @@ void foo()
     if (0 > stat(file, &st)) {
         printf("stat %s failed\n", file);
     }
-    printf("%s size=%zu\n", file, st.st_size);
+    printf("%s size=%zu\n", file, (uint32_t)st.st_size);
     get_proc_name(proc, sizeof(proc));
     printf("proc name = %s\n", proc);
 

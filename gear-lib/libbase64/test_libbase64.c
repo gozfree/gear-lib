@@ -29,11 +29,11 @@ int main(int argc, char **argv)
     char target[100], target2[100];
     char source[]="hello world";
     int ret_bytes=0;
-    ret_bytes = base64_encode(target,  source, strlen(source));
+    ret_bytes = base64_encode(target, source, strlen(source));
     target[ret_bytes]='\0';
-    printf("src size: %ld , return byte: %d , target: %s \n",strlen(source), ret_bytes, target);
+    printf("src size: %zu , return byte: %d , target: %s \n", strlen(source), ret_bytes, target);
 
-    ret_bytes = base64_decode( target2, target, ret_bytes);
+    ret_bytes = base64_decode(target2, target, ret_bytes);
     target[ret_bytes]='\0';
     printf("return byte: %d , target2: %s \n", ret_bytes, target2);
 

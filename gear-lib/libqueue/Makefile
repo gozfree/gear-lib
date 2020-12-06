@@ -54,6 +54,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix
 LDFLAGS	+= -pthread
 
 ###############################################################################

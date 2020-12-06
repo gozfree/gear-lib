@@ -57,7 +57,7 @@ CFLAGS	+= -DNO_CRYPTO
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lqueue -lthread
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix -lqueue -lthread
 LDFLAGS	+= -pthread -ldl
 
 ###############################################################################
