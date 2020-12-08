@@ -179,10 +179,10 @@ int transport_session_start(struct transport_session *ts, struct media_source *m
         return -1;
     }
     sock_set_noblk(ts->rtp->sock->rtcp_fd, true);
-    struct gevent *e = gevent_create(ts->rtp->sock->rtcp_fd, on_recv, NULL, on_error, NULL);
-    if (-1 == gevent_add(ts->evbase, e)) {
+    ts->ev_recv = gevent_create(ts->rtp->sock->rtcp_fd, on_recv, NULL, on_error, NULL);
+    if (-1 == gevent_add(ts->evbase, ts->ev_recv)) {
         loge("event_add failed!\n");
-        gevent_destroy(e);
+        gevent_destroy(ts->ev_recv);
     }
     ts->media_source = ms;
     ts->ev_thread = thread_create(event_thread, ts);
@@ -191,4 +191,13 @@ int transport_session_start(struct transport_session *ts, struct media_source *m
     thread_set_name(ts->thread, "send_thread");
     logi("session_id = %d, name=%s\n", ts->session_id, ts->media_source->name);
     return 0;
+}
+
+void transport_session_stop(struct transport_session *ts)
+{
+    gevent_del(ts->evbase, ts->ev_recv);
+    gevent_base_loop_break(ts->evbase);
+    thread_join(ts->thread);
+    thread_destroy(ts->thread);
+    gevent_base_destroy(ts->evbase);
 }

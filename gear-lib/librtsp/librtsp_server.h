@@ -35,6 +35,7 @@ struct rtsp_server {
     int listen_fd;
     struct sock_addr host;
     struct gevent_base *evbase;
+    struct gevent *ev_connect;
     void *connect_pool;
     void *transport_session_pool;
     void *media_source_pool;

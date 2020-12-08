@@ -25,7 +25,7 @@
 #include "librtsp_server.h"
 #include "media_source.h"
 
-#define LIBRTSP_VERSION "0.1.0"
+#define LIBRTSP_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {

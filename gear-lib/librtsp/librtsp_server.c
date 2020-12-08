@@ -122,7 +122,6 @@ static void on_connect(int fd, void *arg)
     rtsp_connect_create(rtsp, afd, ip, port);
 }
 
-
 static void *rtsp_thread_event(struct thread *t, void *arg)
 {
     struct rtsp_server *rc = (struct rtsp_server *)arg;
@@ -149,10 +148,8 @@ void connect_pool_destroy(void *pool)
     dict_free((dict *)pool);
 }
 
-
 static int master_thread_create(struct rtsp_server *c)
 {
-    struct gevent *e = NULL;
     int fd = sock_tcp_bind_listen(c->host.ip_str, c->host.port);
     if (fd == -1) {
         goto failed;
@@ -165,10 +162,10 @@ static int master_thread_create(struct rtsp_server *c)
     if (!c->evbase) {
         goto failed;
     }
-    e = gevent_create(fd, on_connect, NULL, on_error, (void *)c);
-    if (-1 == gevent_add(c->evbase, e)) {
+    c->ev_connect = gevent_create(fd, on_connect, NULL, on_error, (void *)c);
+    if (-1 == gevent_add(c->evbase, c->ev_connect)) {
         loge("event_add failed!\n");
-        gevent_destroy(e);
+        gevent_destroy(c->ev_connect);
     }
     c->master_thread = thread_create(rtsp_thread_event, c);
     if (!c->master_thread) {
@@ -178,8 +175,8 @@ static int master_thread_create(struct rtsp_server *c)
     return 0;
 
 failed:
-    if (e) {
-        gevent_destroy(e);
+    if (c->ev_connect) {
+        gevent_destroy(c->ev_connect);
     }
     if (fd != -1) {
         sock_close(fd);
@@ -187,9 +184,15 @@ failed:
     return -1;
 }
 
-static void destroy_master_thread(struct rtsp_server *c)
+static void master_thread_destroy(struct rtsp_server *c)
 {
+    gevent_del(c->evbase, c->ev_connect);
+    gevent_base_loop_break(c->evbase);
+    thread_join(c->master_thread);
+    thread_destroy(c->master_thread);
+    gevent_base_destroy(c->evbase);
     connect_pool_destroy(c->connect_pool);
+    transport_session_pool_destroy(c->transport_session_pool);
 }
 
 struct rtsp_server *rtsp_server_init(const char *ip, uint16_t port)
@@ -213,6 +216,6 @@ int rtsp_server_dispatch(struct rtsp_server *c)
 
 void rtsp_server_deinit(struct rtsp_server *c)
 {
-    destroy_master_thread(c);
+    master_thread_destroy(c);
     free(c);
 }

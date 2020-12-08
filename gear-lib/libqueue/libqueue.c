@@ -149,8 +149,11 @@ GEAR_API int queue_flush(struct queue *q)
 #endif
         list_del(&item->entry);
         item_free(q, item);
+        q->depth--;
     }
-    q->depth = 0;
+    if (q->depth != 0) {
+        printf("queue_flush still dirty!\n");
+    }
     pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->lock);
     return 0;
@@ -278,10 +281,10 @@ GEAR_API int queue_branch_del(struct queue *q, const char *name)
 #endif
         if (!strcmp(qb->name, name)) {
             list_del(&qb->hook);
-            free(qb->name);
-            free(qb);
             close(qb->fds[0]);
             close(qb->fds[1]);
+            free(qb->name);
+            free(qb);
             q->branch_cnt--;
             return 0;
         }

@@ -27,7 +27,7 @@
 #include <pthread.h>
 #endif
 
-#define LIBQUEUE_VERSION "0.1.1"
+#define LIBQUEUE_VERSION "0.1.2"
 
 /*
  * queue is multi-reader single-writer

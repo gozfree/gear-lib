@@ -389,12 +389,10 @@ static int uvc_v4l2_set_framerate(int fd, uint32_t *fps_num, uint32_t *fps_den)
 
     if (par.parm.capture.timeperframe.numerator != *fps_den ||
         par.parm.capture.timeperframe.denominator != *fps_num) {
-        /*
         printf("v4l2 framerate force from %d/%d to %d/%d\n",
                 *fps_num, *fps_den,
                 par.parm.capture.timeperframe.denominator,
                 par.parm.capture.timeperframe.numerator);
-        */
     }
     *fps_den = par.parm.capture.timeperframe.numerator;
     *fps_num = par.parm.capture.timeperframe.denominator;

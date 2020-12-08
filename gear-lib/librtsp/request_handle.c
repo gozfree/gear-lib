@@ -93,6 +93,13 @@ static int on_teardown(struct rtsp_request *req, char *url)
 {
     //transport_session_pool_destroy(NULL);
     //int len = sock_send(req->fd, resp, strlen(resp));
+    if (-1 == parse_range(&req->range, (char *)req->raw->iov_base, req->raw->iov_len)) {
+        loge("parse_range failed!\n");
+        return -1;
+    }
+    struct rtsp_server *rc = req->rtsp_server;
+    struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    transport_session_stop(ts);
     return 0;
 }
 

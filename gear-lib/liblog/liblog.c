@@ -532,10 +532,10 @@ static int _log_print(int lvl, const char *tag,
         snprintf(s_pid, sizeof(s_pid), "pid:%d ", getpid());
         snprintf(s_tid, sizeof(s_tid), "tid:%d]", (int)gettid());
         snprintf(s_tag, sizeof(s_tag), "[%s]", tag);
-        snprintf(s_file, sizeof(s_file), "[%s:%d: %s] ", file, line, func);
+        snprintf(s_file, sizeof(s_file), "[%s:%3d: %s] ", file, line, func);
     }
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_FUNCLINE_BIT)) {
-        snprintf(s_file, sizeof(s_file), "[%s:%d: %s] ", file, line, func);
+        snprintf(s_file, sizeof(s_file), "[%s:%3d: %s] ", file, line, func);
     }
 
     i = -1;

@@ -37,6 +37,7 @@ typedef struct transport_session {
     uint32_t session_id;
     struct rtp_context *rtp;
     struct gevent_base *evbase;
+    struct gevent *ev_recv;
     //XXX
     int64_t dts_first; // first frame timestamp
     int64_t dts_last; // last frame timestamp
@@ -65,7 +66,7 @@ void transport_session_destroy(void *pool, char *name);
 struct transport_session *transport_session_lookup(void *pool, char *name);
 int transport_session_start(struct transport_session *ts, struct media_source *ms);
 int transport_session_pause(struct transport_session *s);
-int transport_session_stop(struct transport_session *s);
+void transport_session_stop(struct transport_session *s);
 
 #ifdef __cplusplus
 }
