@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef OS_LINUX
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -45,7 +47,7 @@ void foo()
     if (0 > stat(file, &st)) {
         printf("stat %s failed\n", file);
     }
-    printf("%s size=%zu\n", file, (uint32_t)st.st_size);
+    printf("%s size=%" PRIu32 "\n", file, (uint32_t)st.st_size);
     get_proc_name(proc, sizeof(proc));
     printf("proc name = %s\n", proc);
 
