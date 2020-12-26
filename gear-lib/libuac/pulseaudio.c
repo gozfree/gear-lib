@@ -719,6 +719,7 @@ static void uac_pa_close(struct uac_ctx *uac)
 
     pa_threaded_mainloop_stop(c->pa_mainloop);
     pa_threaded_mainloop_free(c->pa_mainloop);
+    free(uac->conf.device);
     free(c);
 }
 

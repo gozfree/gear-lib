@@ -87,6 +87,8 @@ struct media_packet *media_packet_copy(const struct media_packet *src)
         printf("unsupport copy %d media packet\n", src->type);
         break;
     }
+    if (dst)
+        dst->type = src->type;
     return dst;
 }
 
