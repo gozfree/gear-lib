@@ -30,11 +30,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#define UNIX_DOMAIN_SOCKET  0
-#define RPC_UNIX_DOMAIN_HOST "/RPC_UNIX_DOMAIN_HOST"
-
 struct sk_ctx {
     int fd;
+    struct sock_connection *connect;
 };
 
 static rpc_recv_cb *sk_recv_cb = NULL;
@@ -60,22 +58,6 @@ static int sk_recv(struct rpc *rpc, void *buf, size_t len)
     return ret;
 }
 
-#if 0
-static void on_recv(int fd, void *arg)
-{
-    struct rpc *rpc = (struct rpc *)arg;
-    char buf[1024];
-    int len = sk_recv(rpc, buf, sizeof(buf));
-    printf("%s:%d len=%d, buf=%s\n", __func__, __LINE__, len, buf);
-    if (sk_recv_cb) {
-        sk_recv_cb(rpc, buf, len);
-    } else {
-    printf("%s:%d xxxx\n", __func__, __LINE__);
-        printf("sk_recv_cb is NULL!\n");
-    }
-}
-#endif
-
 static void on_connect(int fd, void *arg)
 {
     struct rpc *rpc = (struct rpc *)arg;
@@ -96,53 +78,62 @@ static void *event_thread(struct thread *t, void *arg)
     return NULL;
 }
 
-static void *sk_init(struct rpc *rpc, const char *host, uint16_t port, enum rpc_role role)
+static void *sk_init_server(struct rpc *rpc, const char *host, uint16_t port)
 {
-    char unix_host[256];
     struct gevent *e = NULL;
     struct sk_ctx *c = calloc(1, sizeof(struct sk_ctx));
     if (!c) {
         printf("malloc failed!\n");
         goto failed;
     }
-    snprintf(unix_host, sizeof(unix_host), "%s.%d", RPC_UNIX_DOMAIN_HOST, port);
-    rpc->role = role;
-    switch (role) {
-    case RPC_SERVER: {
-#if UNIX_DOMAIN_SOCKET
-        c->fd = sock_unix_bind_listen(unix_host, port);
-#else
-        c->fd = sock_tcp_bind_listen(NULL, port);
-#endif
-        if (c->fd == -1) {
-            printf("sock_tcp_bind_listen port:%d failed!\n", port);
-            goto failed;
-        }
-        rpc->fd = c->fd;
-        e = gevent_create(rpc->fd, on_connect, NULL, on_error, rpc);
-    } break;
-    case RPC_CLIENT: {
-        struct sock_connection *connect;
-#if UNIX_DOMAIN_SOCKET
-        connect = sock_unix_connect(unix_host, port);
-#else
-        connect = sock_tcp_connect(host, port);
-#endif
-        if (!connect) {
-            printf("connect failed!\n");
-            return NULL;
-        }
-        c->fd = connect->fd;
-        if (-1 == sock_set_block(c->fd)) {
-            printf("sock_set_block failed!\n");
-        }
-        rpc->fd = c->fd;
-        e = gevent_create(rpc->fd, rpc->on_client_init, NULL, on_error, rpc);
-    } break;
-    default:
-        printf("unsupported rpc role\n");
-        break;
+    rpc->role = RPC_SERVER;
+    c->fd = sock_tcp_bind_listen(NULL, port);
+    if (c->fd == -1) {
+        printf("sock_tcp_bind_listen port:%d failed!\n", port);
+        goto failed;
     }
+    rpc->fd = c->fd;
+    rpc->ctx = c;
+    rpc->evbase = gevent_base_create();
+    if (!rpc->evbase) {
+        printf("gevent_base_create failed!\n");
+        goto failed;
+    }
+    e = gevent_create(rpc->fd, on_connect, NULL, on_error, rpc);
+    if (-1 == gevent_add(rpc->evbase, e)) {
+        printf("event_add failed!\n");
+    }
+    rpc->dispatch_thread = thread_create(event_thread, rpc);
+    return c;
+
+failed:
+    if (-1 != c->fd) {
+        close(c->fd);
+    }
+    free(c);
+    return NULL;
+}
+
+static void *sk_init_client(struct rpc *rpc, const char *host, uint16_t port)
+{
+    struct gevent *e = NULL;
+    struct sk_ctx *c = calloc(1, sizeof(struct sk_ctx));
+    if (!c) {
+        printf("malloc failed!\n");
+        goto failed;
+    }
+    rpc->role = RPC_CLIENT;
+
+    c->connect = sock_tcp_connect(host, port);
+    if (!c->connect) {
+        printf("connect failed!\n");
+        goto failed;
+    }
+    c->fd = c->connect->fd;
+    if (-1 == sock_set_block(c->fd)) {
+        printf("sock_set_block failed!\n");
+    }
+    rpc->fd = c->fd;
 
     rpc->ctx = c;
     rpc->evbase = gevent_base_create();
@@ -150,22 +141,26 @@ static void *sk_init(struct rpc *rpc, const char *host, uint16_t port, enum rpc_
         printf("gevent_base_create failed!\n");
         goto failed;
     }
+    e = gevent_create(rpc->fd, rpc->on_client_init, NULL, on_error, rpc);
     if (-1 == gevent_add(rpc->evbase, e)) {
         printf("event_add failed!\n");
+        goto failed;
     }
     rpc->dispatch_thread = thread_create(event_thread, rpc);
-
-    if (rpc->role == RPC_CLIENT) {
-        if (!rpc->dispatch_thread) {
-            printf("thread_create dispatch_thread failed!\n");
-            goto failed;
-        }
-        thread_lock(rpc->dispatch_thread);
-        if (thread_wait(rpc->dispatch_thread, 2000) == -1) {
-            printf("wait response failed %d:%s\n", errno, strerror(errno));
-        }
-        thread_unlock(rpc->dispatch_thread);
+    if (!rpc->dispatch_thread) {
+        printf("thread_create dispatch_thread failed!\n");
+        goto failed;
     }
+    if (!rpc->dispatch_thread) {
+        printf("thread_create dispatch_thread failed!\n");
+        goto failed;
+    }
+    thread_lock(rpc->dispatch_thread);
+    if (thread_wait(rpc->dispatch_thread, 2000) == -1) {
+        printf("wait response failed %d:%s\n", errno, strerror(errno));
+    }
+    thread_unlock(rpc->dispatch_thread);
+
     return c;
 
 failed:
@@ -206,10 +201,9 @@ static int sk_send(struct rpc *rpc, const void *buf, size_t len)
 }
 
 struct rpc_ops socket_ops = {
-    .init             = sk_init,
+    .init_client      = sk_init_client,
+    .init_server      = sk_init_server,
     .deinit           = sk_deinit,
-    .accept           = NULL,
-    .connect          = NULL,
     .register_recv_cb = sk_set_recv_cb,
     .send             = sk_send,
     .recv             = sk_recv,

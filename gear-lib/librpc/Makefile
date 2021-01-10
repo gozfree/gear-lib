@@ -32,7 +32,7 @@ TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
-OBJS_LIB	+= msgq_posix.o msgq_sysv.o netlink.o shm.o unix_socket.o
+OBJS_LIB	+= socket.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################

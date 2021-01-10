@@ -138,10 +138,9 @@ typedef enum rpc_role {
 typedef int (rpc_recv_cb)(struct rpc *rpc, void *buf, size_t len);
 
 struct rpc_ops {
-    void *(*init)(struct rpc *rpc, const char *host, uint16_t port, enum rpc_role role);
+    void *(*init_client)(struct rpc *rpc, const char *host, uint16_t port);
+    void *(*init_server)(struct rpc *rpc, const char *host, uint16_t port);
     void (*deinit)(struct rpc *rpc);
-    int (*accept)(struct rpc *rpc);
-    int (*connect)(struct rpc *rpc, const char *name);
     int (*register_recv_cb)(struct rpc *i, rpc_recv_cb cb);
     int (*send)(struct rpc *i, const void *buf, size_t len);
     int (*recv)(struct rpc *i, void *buf, size_t len);
@@ -152,10 +151,8 @@ struct rpc_ops {
 typedef struct rpc {
     int fd;
     int afd;
-    int listen_fd;
     void *ctx;
     enum rpc_role role;
-    pthread_t tid;
     struct rpc_packet send_pkt;
     struct rpc_packet recv_pkt;
     struct hash *dict_async_cmd;

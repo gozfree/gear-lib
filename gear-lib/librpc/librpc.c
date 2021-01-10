@@ -34,11 +34,7 @@
 #include <sys/time.h>
 #include <sys/uio.h>
 
-extern struct rpc_ops msgq_posix_ops;
-extern struct rpc_ops msgq_sysv_ops;
 extern struct rpc_ops socket_ops;
-extern struct rpc_ops netlink_ops;
-extern struct rpc_ops sharemem_ops;
 
 struct rpc_backend {
     int id;
@@ -46,19 +42,11 @@ struct rpc_backend {
 };
 
 typedef enum rpc_backend_type {
-    RPC_MQ_POSIX,
-    RPC_MQ_SYSV,
     RPC_SOCKET,
-    RPC_NETLINK,
-    RPC_SHAREMEM,
 } rpc_backend_type;
 
 struct rpc_backend rpc_backend_list[] = {
-    {RPC_MQ_POSIX, &msgq_posix_ops},
-    {RPC_MQ_SYSV,  &msgq_sysv_ops},
     {RPC_SOCKET,   &socket_ops},
-    {RPC_NETLINK,  &netlink_ops},
-    {RPC_SHAREMEM, &sharemem_ops},
 };
 
 #define RPC_BACKEND RPC_SOCKET
@@ -368,31 +356,6 @@ static void on_client_init(int fd, void *arg)
     }
 }
 
-#if 0
-static void on_write(int fd, void *arg)
-{
-//    printf("on_write fd= %d\n", fd);
-}
-
-static void on_error(int fd, void *arg)
-{
-//    printf("on_error fd= %d\n", fd);
-}
-
-int rpc_dispatch(struct rpc *r)
-{
-    gevent_base_loop(r->evbase);
-    return 0;
-}
-
-static void *rpc_dispatch_thread(struct thread *t, void *arg)
-{
-    struct rpc *r = (struct rpc *)arg;
-    rpc_dispatch(r);
-    return NULL;
-}
-#endif
-
 static int push_async_cmd(struct rpc *rpc, uint32_t func_id)
 {
     char cmd_str[11];//0xFFFFFFFF
@@ -421,7 +384,6 @@ static int pop_async_cmd(struct rpc *rpc, uint32_t func_id)
     }
     return ret;
 }
-
 
 static int on_return(struct rpc *rpc, void *buf, size_t len)
 {
@@ -578,7 +540,6 @@ struct rpc *rpc_client_create(const char *host, uint16_t port)
         return NULL;
     }
     memset(&r->recv_pkt, 0, sizeof(struct rpc_packet));
-    r->role = RPC_CLIENT;
     r->ops = rpc_backend_list[RPC_BACKEND].ops;
     r->on_client_init = on_client_init;
 
@@ -589,9 +550,9 @@ struct rpc *rpc_client_create(const char *host, uint16_t port)
     r->resp_buf = calloc(1, MAX_RPC_MESSAGE_SIZE);
     r->ops->register_recv_cb(r, on_return);
     sem_init(&r->sem, 0, 0);
-    r->ctx = r->ops->init(r, host, port, r->role);
+    r->ctx = r->ops->init_client(r, host, port);
     if (!r->ctx) {
-        printf("init failed!\n");
+        printf("init_client failed!\n");
     }
     r->state = rpc_inited;
     printf("rpc_client_create success\n");
@@ -710,9 +671,9 @@ struct rpc *rpc_server_create(const char *host, uint16_t port)
     rpc->wq = wq_create();
     rpc->ops->register_recv_cb(rpc, process_msg);
     rpc->on_server_init = on_server_init;
-    rpc->ctx = rpc->ops->init(rpc, host, port, RPC_SERVER);
+    rpc->ctx = rpc->ops->init_server(rpc, host, port);
     if (!rpc->ctx) {
-        printf("init failed!\n");
+        printf("init_server failed!\n");
         goto failed;
     }
     printf("rpc_server_create success\n");
