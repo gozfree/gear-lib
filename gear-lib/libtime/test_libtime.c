@@ -30,6 +30,8 @@
 
 void foo()
 {
+    struct time_info ti;
+    char ts[64];
     char time[32];
     printf("time_sec_str:     %s", time_sec_str());
     printf("time_msec_str:    %s\n", time_msec_str(time, sizeof(time)));
@@ -39,6 +41,12 @@ void foo()
     printf("time_usec:        %" PRIu64 "\n", time_usec(NULL));
     printf("time_nsec:        %" PRIu64 "\n", time_nsec());
     printf("time_nsec_bootup: %" PRIu64 "\n", time_nsec_bootup());
+    time_info(&ti);
+    printf("time_info:        %d-%d-%d %02d:%02d:%02d.%03d\n",
+               ti.year, ti.mon, ti.day, ti.hour, ti.min, ti.sec, ti.msec);
+    printf("time_info:        %s\n", ti.str);
+    memset(ts, 0, sizeof(ts));
+    printf("time_info:        %s\n", time_str_human_by_msec(ti.utc_msec, ts, sizeof(ts)));
 }
 
 int main(int argc, char **argv)

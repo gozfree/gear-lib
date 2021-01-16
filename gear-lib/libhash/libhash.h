@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define LIBHASH_VERSION "0.1.0"
+#define LIBHASH_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,9 +43,13 @@ void hash_set_destory(struct hash *h, void (*destory)(void *val));
 
 uint32_t hash_gen32(const char *key, size_t len);
 void *hash_get(struct hash *h, const char *key);
+void *hash_get32(struct hash *h, uint32_t key);
 int hash_set(struct hash *h, const char *key, void *val);
+int hash_set32(struct hash *h, uint32_t key, void *val);
 int hash_del(struct hash *h, const char *key);
+int hash_del32(struct hash *h, uint32_t key);
 void *hash_get_and_del(struct hash *h, const char *key);
+void *hash_get_and_del32(struct hash *h, uint32_t key);
 
 #ifdef __cplusplus
 }

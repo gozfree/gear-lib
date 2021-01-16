@@ -32,8 +32,9 @@
 #include <sys/socket.h>
 
 #define MAX_UUID_LEN                (21)
-static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
+static int on_get_connect_list_resp(struct rpc_session *r, void *arg, int len)
 {
+#if 0
     char *ptr;
     int num = 0;
     len = r->recv_pkt.header.payload_len;
@@ -46,25 +47,26 @@ static int on_get_connect_list_resp(struct rpc *r, void *arg, int len)
         len = MAX_UUID_LEN;
         ptr += len;
     }
+#endif
     return 0;
 }
 
-static int on_test_resp(struct rpc *r, void *arg, int len)
+static int on_test_resp(struct rpc_session *r, void *arg, int len)
 {
     printf("on_test_resp\n");
     return 0;
 }
 
-static int on_peer_post_msg_resp(struct rpc *r, void *arg, int len)
+static int on_peer_post_msg_resp(struct rpc_session *r, void *arg, int len)
 {
     //printf("on_peer_post_msg_resp len = %d\n", len);
-    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
+//    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
     return 0;
 }
 
-static int on_shell_help(struct rpc *r, void *arg, int len)
+static int on_shell_help(struct rpc_session *r, void *arg, int len)
 {
-    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
+ //   printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
     return 0;
 }
 
@@ -151,13 +153,13 @@ static void *raw_data_thread(void *arg)
             printf("input uuid_dst> ");
             scanf("%x", &uuid_dst);
             printf("uuid_dst = %x\n", uuid_dst);
-            r->send_pkt.header.uuid_dst = uuid_dst;
+            //r->send_pkt.header.uuid_dst = uuid_dst;
             sprintf(buf, "%s", "hello world");
             rpc_peer_post_msg(r, buf, 12);
             break;
         case 'q':
             loop = 0;
-            rpc_destroy(r);
+            rpc_client_destroy(r);
             break;
         case 's':
             printf("input shell cmd> ");

@@ -24,7 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 /*
  * [opaque_list]
  * [bucket0] -> item[1] -> item[2] -> ... -> item[m0]
@@ -34,6 +35,8 @@
  * [bucketn] -> item[1] -> item[2] -> ... -> item[mn]
  * 
  */
+
+#define HASH_MAX_KEY_STRLEN 32
 
 struct hash_item {
     struct hlist_node item;
@@ -232,6 +235,13 @@ void *hash_get(struct hash *h, const char *key)
     return NULL;
 }
 
+void *hash_get32(struct hash *h, uint32_t key)
+{
+    char key_str[HASH_MAX_KEY_STRLEN];
+    snprintf(key_str, sizeof(key_str), "%" PRIu32, key);
+    return hash_get(h, key_str);
+}
+
 int hash_set(struct hash *h, const char *key, void *val)
 {
     uint32_t hash = 0;
@@ -257,6 +267,13 @@ int hash_set(struct hash *h, const char *key, void *val)
     return 0;
 }
 
+int hash_set32(struct hash *h, uint32_t key, void *val)
+{
+    char key_str[HASH_MAX_KEY_STRLEN];
+    snprintf(key_str, sizeof(key_str), "%" PRIu32, key);
+    return hash_set(h, key_str, val);
+}
+
 int hash_del(struct hash *h, const char *key)
 {
     uint32_t hash = 0;
@@ -271,6 +288,13 @@ int hash_del(struct hash *h, const char *key)
     return -1;
 }
 
+int hash_del32(struct hash *h, uint32_t key)
+{
+    char key_str[HASH_MAX_KEY_STRLEN];
+    snprintf(key_str, sizeof(key_str), "%" PRIu32, key);
+    return hash_del(h, key_str);
+}
+
 void *hash_get_and_del(struct hash *h, const char *key)
 {
     uint32_t hash = 0;
@@ -283,3 +307,11 @@ void *hash_get_and_del(struct hash *h, const char *key)
     }
     return NULL;
 }
+
+void *hash_get_and_del32(struct hash *h, uint32_t key)
+{
+    char key_str[HASH_MAX_KEY_STRLEN];
+    snprintf(key_str, sizeof(key_str), "%" PRIu32, key);
+    return hash_get_and_del(h, key_str);
+}
+

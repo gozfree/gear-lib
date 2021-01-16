@@ -23,6 +23,7 @@
 #define LIBRPC_H
 
 #include <libhash.h>
+#include <libdarray.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -105,6 +106,8 @@ extern "C" {
  ******************************************************************************/
 
 struct rpc;
+struct rpc_base;
+struct rpc_session;
 
 #define MAX_RPC_RESP_BUF_LEN        (1024)
 #define MAX_RPC_MESSAGE_SIZE        (1024)
@@ -130,29 +133,28 @@ typedef enum rpc_state {
     rpc_disconnect,
 } rpc_state;
 
-typedef enum rpc_role {
-    RPC_SERVER = 0,
-    RPC_CLIENT = 1,
-} rpc_role;
-
-typedef int (rpc_recv_cb)(struct rpc *rpc, void *buf, size_t len);
-
 struct rpc_ops {
-    void *(*init_client)(struct rpc *rpc, const char *host, uint16_t port);
-    void *(*init_server)(struct rpc *rpc, const char *host, uint16_t port);
-    void (*deinit)(struct rpc *rpc);
-    int (*register_recv_cb)(struct rpc *i, rpc_recv_cb cb);
-    int (*send)(struct rpc *i, const void *buf, size_t len);
-    int (*recv)(struct rpc *i, void *buf, size_t len);
-    int (*unicast)();//TODO
-    int (*broadcast)();//TODO
+    int (*init_client)(struct rpc_base *r, const char *host, uint16_t port);
+    int (*init_server)(struct rpc_base *r, const char *host, uint16_t port);
+    void (*deinit)(struct rpc_base *r);
+    int (*send)(struct rpc_base *r, const void *buf, size_t len);
+    int (*recv)(struct rpc_base *r, void *buf, size_t len);
 };
 
+struct rpc_base {
+    int fd;
+    void *ctx;
+    struct rpc_ops *ops;
+    struct gevent_base *evbase;
+    DARRAY(struct gevent*) ev_list;
+    struct thread *dispatch_thread;
+};
+
+#if 0
 typedef struct rpc {
     int fd;
     int afd;
     void *ctx;
-    enum rpc_role role;
     struct rpc_packet send_pkt;
     struct rpc_packet recv_pkt;
     struct hash *dict_async_cmd;
@@ -160,7 +162,7 @@ typedef struct rpc {
     struct hash *dict_fd2rpc;
     struct rpc_ops *ops;
     void (*on_client_init)(int fd, void *arg);
-    void (*on_server_init)(struct rpc *rpc, int fd, uint32_t ip, uint16_t port);
+    void (*on_connect)(struct rpc *rpc, int fd, uint32_t ip, uint16_t port);
     void *resp_buf;//async response buffer;
     int resp_len;
     struct gevent_base *evbase;
@@ -171,8 +173,9 @@ typedef struct rpc {
     sem_t sem;
     void *opaque;
 } rpc_t;
+#endif
 
-typedef int (*rpc_callback)(struct rpc *r, void *arg, int len);
+typedef int (*rpc_callback)(struct rpc_session *session, void *arg, int len);
 
 typedef struct msg_handler {
     uint32_t msg_id;
@@ -184,6 +187,8 @@ typedef struct msg_handler {
  * rpc client APIs
  */
 struct rpc *rpc_client_create(const char *host, uint16_t port);
+void rpc_client_destroy(struct rpc *r);
+
 int rpc_call(struct rpc *r, uint32_t cmd_id,
             const void *in_arg, size_t in_len,
             void *out_arg, size_t out_len);
@@ -196,16 +201,42 @@ int rpc_peer_call(struct rpc *r, uint32_t uuid, uint32_t cmd_id,
 /*
  * rpc server APIs
  */
-struct rpc *rpc_server_create(const char *host, uint16_t port);
-int rpc_send(struct rpc *r, const void *buf, size_t len);
-struct iovec *rpc_recv_buf(struct rpc *r);
+
+struct rpc_session {
+    struct rpc_base base;
+    uint32_t uuid;
+    uint64_t timestamp;
+    uint64_t cseq;
+};
+
+struct rpcs {
+    struct rpc_base base;
+    struct rpc_session *session_pool;
+    struct workq *wq;
+    struct hash *dict_fd2rpc;
+    struct hash *hash_uuid2fd;
+    struct hash *hash_session;
+    struct hash *hash_fd2session;
+    uint32_t uuid_hash;
+    struct rpc_session *(*on_create_session)(struct rpcs *s, int fd, uint32_t uuid);
+    void (*on_message)(struct rpcs *s, struct rpc_session *session);
+};
+
+
+struct rpc {
+    struct rpc_base base;
+    struct hash *hash_async_cmd;
+    enum rpc_state state;
+    uint32_t uuid;
+
+    void (*on_connect_server)(struct rpc *rpc);
+};
+
+
+struct rpcs *rpc_server_create(const char *host, uint16_t port);
+void rpc_server_destroy(struct rpcs *s);
+
 int rpc_dispatch(struct rpc *r);
-int rpc_packet_parse(struct rpc *r);
-msg_handler_t *find_msg_handler(uint32_t msg_id);
-int process_msg(struct rpc *r, void *buf, size_t len);
-void dump_buffer(void *buf, int len);
-void dump_packet(struct rpc_packet *r);
-void print_packet(struct rpc_packet *r);
 
 /*
  * common APIs

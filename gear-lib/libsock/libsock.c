@@ -266,6 +266,33 @@ failed:
 }
 #endif
 
+struct sock_connection *sock_accept_connect(int fd)
+{
+    uint32_t ip;
+    uint16_t port;
+    struct sockaddr_in si;
+    struct sock_connection *sc = NULL;
+    socklen_t len = sizeof(si);
+    int afd = accept(fd, (struct sockaddr *)&si, &len);
+    if (afd == -1) {
+        printf("accept: %s\n", strerror(errno));
+        return NULL;
+    } else {
+        ip = si.sin_addr.s_addr;
+        port = ntohs(si.sin_port);
+    }
+    sc = (struct sock_connection* )calloc(1, sizeof(struct sock_connection));
+    sc->fd = afd;
+    sc->type = SOCK_STREAM;
+    if (-1 == sock_getaddr_by_fd(sc->fd, &sc->local)) {
+        printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
+    }
+    sc->remote.ip = ip;
+    sc->remote.port = port;
+    sock_addr_ntop(sc->remote.ip_str, ip);
+    return sc;
+}
+
 int sock_accept(int fd, uint32_t *ip, uint16_t *port)
 {
     struct sockaddr_in si;

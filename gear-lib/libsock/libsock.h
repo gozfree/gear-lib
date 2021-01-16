@@ -35,7 +35,7 @@
 #define INET_ADDRSTRLEN 16
 #endif
 
-#define LIBSOCK_VERSION "0.1.0"
+#define LIBSOCK_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,6 +67,7 @@ typedef struct sock_connection {
 struct sock_connection *sock_tcp_connect(const char *host, uint16_t port);
 int sock_tcp_bind_listen(const char *host, uint16_t port);
 int sock_accept(int fd, uint32_t *ip, uint16_t *port);
+struct sock_connection *sock_accept_connect(int fd);
 
 //socket udp apis
 struct sock_connection *sock_udp_connect(const char *host, uint16_t port);

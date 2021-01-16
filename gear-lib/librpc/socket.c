@@ -23,6 +23,7 @@
 #include <libgevent.h>
 #include <libthread.h>
 #include <libsock.h>
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,181 +31,216 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-struct sk_ctx {
+#define MAX_UUID_LEN                (21)
+
+struct socket_ctx {
+    /* fd:
+     * server: only for bind and listen, and triggerd when new connect coming
+     * client: only for connection, and trigger when server response
+     */
     int fd;
+    struct hash *hash_fd2conn;
     struct sock_connection *connect;
 };
 
-static rpc_recv_cb *sk_recv_cb = NULL;
+static struct sock_connection *find_connection(struct socket_ctx *c, int fd)
+{
+    return hash_get32(c->hash_fd2conn, fd);
+}
 
 static void on_error(int fd, void *arg)
 {
     printf("error: %d\n", errno);
 }
 
-static int sk_recv(struct rpc *rpc, void *buf, size_t len)
+static uint32_t create_uuid(int fd, uint32_t ip, uint16_t port)
 {
-    int fd = 0;
-    struct sk_ctx *c = (struct sk_ctx *)rpc->ctx;
-    if (rpc->role == RPC_SERVER) {
-        fd = rpc->afd;
-    } else if (rpc->role == RPC_CLIENT) {
-        fd = c->fd;
-    }
-    int ret = sock_recv(fd, buf, len);
-    if (ret == -1) {
-        printf("recv failed: %d\n", errno);
-    }
-    return ret;
+    char uuid[MAX_UUID_LEN];
+    snprintf(uuid, MAX_UUID_LEN, "%08x%08x%04x", fd, ip, port);
+    return hash_gen32(uuid, sizeof(uuid));
 }
 
-static void on_connect(int fd, void *arg)
+static void on_recv(int fd, void *arg)
 {
-    struct rpc *rpc = (struct rpc *)arg;
-    uint32_t ip;
-    uint16_t port;
-    rpc->afd = sock_accept(fd, &ip, &port);
-    if (rpc->afd == -1) {
+    struct rpcs *s = (struct rpcs *)arg;
+    struct rpc_session *session = hash_get32(s->hash_fd2session, fd);
+    printf("hash_get32 %d, %p\n", fd, session);
+    session->base.fd = fd;
+    s->on_message(s, session);
+}
+
+static void on_xxx(int fd, void *arg)
+{
+    //printf("on_xxx fd=%d\n", fd);
+}
+
+static void on_connect_of_server(int fd, void *arg)
+{
+    struct rpc_base *r = (struct rpc_base *)arg;
+    struct socket_ctx *c = (struct socket_ctx *)r->ctx;
+    struct rpcs *s = container_of(r, struct rpcs, base);
+    struct rpc_session *session;
+    struct sock_connection *conn;
+    struct gevent *e;
+    uint32_t uuid;
+    char ip_str[MAX_ADDR_STRING];
+    c->connect = sock_accept_connect(fd);
+    if (!c->connect) {
         printf("sock_accept failed: %d\n", errno);
         return;
     }
-    rpc->on_server_init(rpc, rpc->afd, ip, port);
+
+    conn = hash_get32(c->hash_fd2conn, c->connect->fd);
+    if (conn) {
+        printf("connection of fd=%d seems already exist!\n", c->connect->fd);
+        return;
+    }
+    hash_set32(c->hash_fd2conn, c->connect->fd, c->connect);
+
+    e = gevent_create(c->connect->fd, on_recv, on_xxx, on_error, s);
+    if (-1 == gevent_add(s->base.evbase, e)) {
+        printf("event_add failed!\n");
+    }
+    da_push_back(r->ev_list, &e);
+    sock_addr_ntop(ip_str, c->connect->remote.ip);
+    uuid = create_uuid(fd, c->connect->remote.ip, c->connect->remote.port);
+    session = s->on_create_session(s, c->connect->fd, uuid);
+    if (!session) {
+        printf("create rpc session failed!\n");
+    }
+
+    hash_set32(s->hash_fd2session, c->connect->fd, session);
+    printf("hash_set32 %d, %p\n", c->connect->fd, session);
+    printf("new connect: %s:%d fd=%d, uuid:0x%08x\n", ip_str, c->connect->remote.port, c->connect->fd, uuid);
 }
 
-static void *event_thread(struct thread *t, void *arg)
-{
-    struct rpc *rpc = (struct rpc *)arg;
-    gevent_base_loop(rpc->evbase);
-    return NULL;
-}
-
-static void *sk_init_server(struct rpc *rpc, const char *host, uint16_t port)
+static int socket_init_server(struct rpc_base *r, const char *host, uint16_t port)
 {
     struct gevent *e = NULL;
-    struct sk_ctx *c = calloc(1, sizeof(struct sk_ctx));
+    struct socket_ctx *c = calloc(1, sizeof(struct socket_ctx));
     if (!c) {
         printf("malloc failed!\n");
         goto failed;
     }
-    rpc->role = RPC_SERVER;
+    c->hash_fd2conn = hash_create(1024);
     c->fd = sock_tcp_bind_listen(NULL, port);
     if (c->fd == -1) {
         printf("sock_tcp_bind_listen port:%d failed!\n", port);
         goto failed;
     }
-    rpc->fd = c->fd;
-    rpc->ctx = c;
-    rpc->evbase = gevent_base_create();
-    if (!rpc->evbase) {
-        printf("gevent_base_create failed!\n");
+    printf("sock_tcp_bind_listen port:%d fd=%d\n", port, c->fd);
+    r->fd = c->fd;
+    r->ctx = c;
+    e = gevent_create(r->fd, on_connect_of_server, on_xxx, on_error, r);
+    if (-1 == gevent_add(r->evbase, e)) {
+        printf("event_add failed!\n");
         goto failed;
     }
-    e = gevent_create(rpc->fd, on_connect, NULL, on_error, rpc);
-    if (-1 == gevent_add(rpc->evbase, e)) {
-        printf("event_add failed!\n");
-    }
-    rpc->dispatch_thread = thread_create(event_thread, rpc);
-    return c;
+    da_push_back(r->ev_list, &e);
+    return 0;
 
 failed:
     if (-1 != c->fd) {
         close(c->fd);
     }
     free(c);
-    return NULL;
+    return -1;
 }
 
-static void *sk_init_client(struct rpc *rpc, const char *host, uint16_t port)
+static void on_connect_of_client(int fd, void *arg)
+{
+    struct rpc_base *r = (struct rpc_base *)arg;
+    struct rpc *rpc = container_of(r, struct rpc, base);
+    rpc->on_connect_server(rpc);
+}
+
+static int socket_init_client(struct rpc_base *r, const char *host, uint16_t port)
 {
     struct gevent *e = NULL;
-    struct sk_ctx *c = calloc(1, sizeof(struct sk_ctx));
+    struct socket_ctx *c = calloc(1, sizeof(struct socket_ctx));
     if (!c) {
         printf("malloc failed!\n");
         goto failed;
     }
-    rpc->role = RPC_CLIENT;
-
+    c->hash_fd2conn = hash_create(1024);
     c->connect = sock_tcp_connect(host, port);
     if (!c->connect) {
-        printf("connect failed!\n");
+        printf("connect %s:%d failed!\n", host, port);
         goto failed;
     }
     c->fd = c->connect->fd;
+    hash_set32(c->hash_fd2conn, c->connect->fd, c->connect);
+    printf("connect %s:%d fd=%d\n", host, port, c->fd);
     if (-1 == sock_set_block(c->fd)) {
         printf("sock_set_block failed!\n");
     }
-    rpc->fd = c->fd;
-
-    rpc->ctx = c;
-    rpc->evbase = gevent_base_create();
-    if (!rpc->evbase) {
-        printf("gevent_base_create failed!\n");
-        goto failed;
-    }
-    e = gevent_create(rpc->fd, rpc->on_client_init, NULL, on_error, rpc);
-    if (-1 == gevent_add(rpc->evbase, e)) {
+    r->fd = c->fd;
+    r->ctx = c;
+    e = gevent_create(r->fd, on_connect_of_client, on_xxx, on_error, r);
+    if (-1 == gevent_add(r->evbase, e)) {
         printf("event_add failed!\n");
         goto failed;
     }
-    rpc->dispatch_thread = thread_create(event_thread, rpc);
-    if (!rpc->dispatch_thread) {
-        printf("thread_create dispatch_thread failed!\n");
-        goto failed;
-    }
-    if (!rpc->dispatch_thread) {
-        printf("thread_create dispatch_thread failed!\n");
-        goto failed;
-    }
-    thread_lock(rpc->dispatch_thread);
-    if (thread_wait(rpc->dispatch_thread, 2000) == -1) {
+    thread_lock(r->dispatch_thread);
+    if (thread_wait(r->dispatch_thread, 2000) == -1) {
         printf("wait response failed %d:%s\n", errno, strerror(errno));
     }
-    thread_unlock(rpc->dispatch_thread);
+    thread_unlock(r->dispatch_thread);
 
-    return c;
+    return 0;
 
 failed:
     if (-1 != c->fd) {
         close(c->fd);
     }
     free(c);
-    return NULL;
+    return -1;
 }
 
-static void sk_deinit(struct rpc *rpc)
+static void socket_deinit(struct rpc_base *r)
 {
-    struct sk_ctx *c = (struct sk_ctx *)rpc->ctx;
+    struct socket_ctx *c = (struct socket_ctx *)r->ctx;
     close(c->fd);
     free(c);
 }
 
-static int sk_set_recv_cb(struct rpc *rpc, rpc_recv_cb *cb)
+static int socket_send(struct rpc_base *r, const void *buf, size_t len)
 {
-    sk_recv_cb = cb;
-    return 0;
-}
-
-static int sk_send(struct rpc *rpc, const void *buf, size_t len)
-{
-    int fd = 0;
-    struct sk_ctx *c = (struct sk_ctx *)rpc->ctx;
-    if (rpc->role == RPC_SERVER) {
-        fd = rpc->afd;
-    } else if (rpc->role == RPC_CLIENT) {
-        fd = c->fd;
+    int ret;
+    struct socket_ctx *c = (struct socket_ctx *)r->ctx;
+    struct sock_connection *conn = find_connection(c, r->fd);
+    if (!conn) {
+        printf("find connection fd=%d failed!\n", r->fd);
+        return -1;
     }
-    int ret = sock_send(fd, buf, len);
+    ret = sock_send(conn->fd, buf, len);
     if (ret == -1) {
         printf("send failed: %d\n", errno);
     }
     return ret;
 }
 
+static int socket_recv(struct rpc_base *r, void *buf, size_t len)
+{
+    int ret;
+    struct socket_ctx *c = (struct socket_ctx *)r->ctx;
+    struct sock_connection *conn = find_connection(c, r->fd);
+    if (!conn) {
+        printf("find connection fd=%d failed!\n", r->fd);
+        return -1;
+    }
+    ret = sock_recv(conn->fd, buf, len);
+    if (ret == -1) {
+        printf("recv failed fd=%d, rpc_base=%p: %d\n", c->fd, r, errno);
+    }
+    return ret;
+}
+
+
 struct rpc_ops socket_ops = {
-    .init_client      = sk_init_client,
-    .init_server      = sk_init_server,
-    .deinit           = sk_deinit,
-    .register_recv_cb = sk_set_recv_cb,
-    .send             = sk_send,
-    .recv             = sk_recv,
+    .init_client      = socket_init_client,
+    .init_server      = socket_init_server,
+    .deinit           = socket_deinit,
+    .send             = socket_send,
+    .recv             = socket_recv,
 };

@@ -28,7 +28,7 @@
 #endif
 #include <time.h>
 
-#define LIBTIME_VERSION "0.1.0"
+#define LIBTIME_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {

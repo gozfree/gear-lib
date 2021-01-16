@@ -226,10 +226,10 @@ int time_info_by_msec(uint64_t msec, struct time_info *ti)
     struct tm *now;
     char date_fmt[20] = {0};
     char date_ms[8] = {0};
-    uint32_t utc;
+    time_t utc;
     uint16_t dot_msec;
 
-    utc = (uint32_t)(msec/1000);
+    utc = (time_t)(msec/1000);
     dot_msec = (msec - utc*1000);
     now = localtime((time_t *)&utc);
     if (!now) {
@@ -279,8 +279,6 @@ int time_info(struct time_info *ti)
         return -1;
     }
 
-    ti->utc = (uint32_t)utc;
-    ti->utc_msec = ((uint64_t)utc)*1000 + ti->msec;
     ti->year = now->tm_year + 1900;
     ti->mon = now->tm_mon + 1;
     ti->day = now->tm_mday;
@@ -289,6 +287,8 @@ int time_info(struct time_info *ti)
     ti->sec = now->tm_sec;
     ti->msec = tv.tv_usec/1000;
     ti->timezone = (-tz.tz_minuteswest) / 60;
+    ti->utc = (uint32_t)utc;
+    ti->utc_msec = ((uint64_t)utc)*1000 + ti->msec;
 
     strftime(date_fmt, sizeof(ti->str), TIME_FORMAT, now);
     snprintf(date_ms, sizeof(date_ms), "%03d", ti->msec);

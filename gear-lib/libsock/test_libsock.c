@@ -203,6 +203,7 @@ int udp_server(uint16_t port)
     if (-1 == gevent_add(g_evbase, e)) {
         printf("event_add failed!\n");
     }
+    printf("udp_server ok\n");
     gevent_base_loop(g_evbase);
 
     return 0;
