@@ -44,7 +44,7 @@ struct pulse_ctx {
     int                   fd;
     struct uac_ctx       *parent;
     bool                  is_streaming;
-    const char           *device;
+    char                 *device;
     uint64_t              frame_id;
     pa_sample_format_t    format;
     uint32_t              sample_rate;
@@ -610,7 +610,7 @@ static void *uac_pa_open(struct uac_ctx *uac, const char *dev, struct uac_config
     uac->conf.sample_rate = c->pa_server_info.sample_spec.rate;
     uac->conf.channels = c->pa_server_info.sample_spec.channels;
     uac->conf.format = pulse_to_sample_format(c->pa_server_info.sample_spec.format);
-    uac->conf.device = strdup(c->device);
+    uac->conf.device = c->device;
 
     c->parent = uac;
     c->frame_id = 0;
@@ -719,7 +719,7 @@ static void uac_pa_close(struct uac_ctx *uac)
 
     pa_threaded_mainloop_stop(c->pa_mainloop);
     pa_threaded_mainloop_free(c->pa_mainloop);
-    free(uac->conf.device);
+    free(c->device);
     free(c);
 }
 
