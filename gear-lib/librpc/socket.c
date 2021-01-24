@@ -28,8 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
 
 #define MAX_UUID_LEN                (21)
 
@@ -64,7 +62,6 @@ static void on_recv(int fd, void *arg)
 {
     struct rpcs *s = (struct rpcs *)arg;
     struct rpc_session *session = hash_get32(s->hash_fd2session, fd);
-    printf("hash_get32 %d, %p\n", fd, session);
     session->base.fd = fd;
     s->on_message(s, session);
 }
@@ -110,7 +107,6 @@ static void on_connect_of_server(int fd, void *arg)
     }
 
     hash_set32(s->hash_fd2session, c->connect->fd, session);
-    printf("hash_set32 %d, %p\n", c->connect->fd, session);
     printf("new connect: %s:%d fd=%d, uuid:0x%08x\n", ip_str, c->connect->remote.port, c->connect->fd, uuid);
 }
 
@@ -128,7 +124,6 @@ static int socket_init_server(struct rpc_base *r, const char *host, uint16_t por
         printf("sock_tcp_bind_listen port:%d failed!\n", port);
         goto failed;
     }
-    printf("sock_tcp_bind_listen port:%d fd=%d\n", port, c->fd);
     r->fd = c->fd;
     r->ctx = c;
     e = gevent_create(r->fd, on_connect_of_server, on_xxx, on_error, r);
@@ -235,7 +230,6 @@ static int socket_recv(struct rpc_base *r, void *buf, size_t len)
     }
     return ret;
 }
-
 
 struct rpc_ops socket_ops = {
     .init_client      = socket_init_client,

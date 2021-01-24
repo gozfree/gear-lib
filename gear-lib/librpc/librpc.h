@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <semaphore.h>
 
-#define LIBRPC_VERSION "0.1.0"
+#define LIBRPC_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,13 +105,12 @@ extern "C" {
  *       4. define enum of foo value;
  ******************************************************************************/
 
-struct rpc;
+
+/******************************************************************************
+ * common API
+ ******************************************************************************/
 struct rpc_base;
 struct rpc_session;
-
-#define MAX_RPC_RESP_BUF_LEN        (1024)
-#define MAX_RPC_MESSAGE_SIZE        (1024)
-#define MAX_MESSAGES_IN_MAP         (256)
 
 typedef struct rpc_header {
     uint32_t uuid_dst;
@@ -126,12 +125,6 @@ typedef struct rpc_packet {
     struct rpc_header header;
     void *payload;
 } rpc_packet_t;
-
-typedef enum rpc_state {
-    rpc_inited,
-    rpc_connected,
-    rpc_disconnect,
-} rpc_state;
 
 struct rpc_ops {
     int (*init_client)(struct rpc_base *r, const char *host, uint16_t port);
@@ -150,42 +143,44 @@ struct rpc_base {
     struct thread *dispatch_thread;
 };
 
-#if 0
-typedef struct rpc {
-    int fd;
-    int afd;
-    void *ctx;
-    struct rpc_packet send_pkt;
-    struct rpc_packet recv_pkt;
-    struct hash *dict_async_cmd;
-    struct hash *dict_uuid2fd;
-    struct hash *dict_fd2rpc;
-    struct rpc_ops *ops;
-    void (*on_client_init)(int fd, void *arg);
-    void (*on_connect)(struct rpc *rpc, int fd, uint32_t ip, uint16_t port);
-    void *resp_buf;//async response buffer;
-    int resp_len;
-    struct gevent_base *evbase;
-    struct gevent *ev;
-    struct thread *dispatch_thread;
-    struct workq *wq;
-    enum rpc_state state;
-    sem_t sem;
-    void *opaque;
-} rpc_t;
-#endif
-
-typedef int (*rpc_callback)(struct rpc_session *session, void *arg, int len);
+typedef int (*rpc_callback)(struct rpc_session *session,
+                            void *ibuf, size_t ilen,
+                            void **obuf, size_t *olen);
 
 typedef struct msg_handler {
     uint32_t msg_id;
     rpc_callback cb;
 } msg_handler_t;
+int register_msg_map(msg_handler_t *map, int num_entry);
+
+#define RPC_REGISTER_MSG_MAP(map_name)             \
+    register_msg_map(__msg_action_map##map_name,  \
+                     (sizeof(__msg_action_map##map_name )/sizeof(msg_handler_t)));
 
 
-/*
- * rpc client APIs
- */
+#define BEGIN_RPC_MAP(map_name)  \
+    static msg_handler_t  __msg_action_map##map_name[] = {
+#define RPC_MAP(x, y) {x, y},
+#define END_RPC_MAP() };
+
+
+/******************************************************************************
+ * client API
+ ******************************************************************************/
+typedef enum rpc_state {
+    rpc_inited,
+    rpc_connected,
+    rpc_disconnect,
+} rpc_state;
+
+struct rpc {
+    struct rpc_base base;
+    struct hash *hash_async_cmd;
+    enum rpc_state state;
+    uint32_t uuid;
+    int (*on_connect_server)(struct rpc *rpc);
+};
+
 struct rpc *rpc_client_create(const char *host, uint16_t port);
 void rpc_client_destroy(struct rpc *r);
 
@@ -193,15 +188,9 @@ int rpc_call(struct rpc *r, uint32_t cmd_id,
             const void *in_arg, size_t in_len,
             void *out_arg, size_t out_len);
 
-int rpc_peer_call(struct rpc *r, uint32_t uuid, uint32_t cmd_id,
-            const void *in_arg, size_t in_len,
-            void *out_arg, size_t out_len);
-
-
-/*
- * rpc server APIs
- */
-
+/******************************************************************************
+ * server API
+ ******************************************************************************/
 struct rpc_session {
     struct rpc_base base;
     uint32_t uuid;
@@ -219,43 +208,13 @@ struct rpcs {
     struct hash *hash_fd2session;
     uint32_t uuid_hash;
     struct rpc_session *(*on_create_session)(struct rpcs *s, int fd, uint32_t uuid);
-    void (*on_message)(struct rpcs *s, struct rpc_session *session);
+    int (*on_message)(struct rpcs *s, struct rpc_session *session);
 };
-
-
-struct rpc {
-    struct rpc_base base;
-    struct hash *hash_async_cmd;
-    enum rpc_state state;
-    uint32_t uuid;
-
-    void (*on_connect_server)(struct rpc *rpc);
-};
-
 
 struct rpcs *rpc_server_create(const char *host, uint16_t port);
 void rpc_server_destroy(struct rpcs *s);
 
 int rpc_dispatch(struct rpc *r);
-
-/*
- * common APIs
- */
-void rpc_destroy(struct rpc *r);
-
-
-
-int register_msg_map(msg_handler_t *map, int num_entry);
-
-#define RPC_REGISTER_MSG_MAP(map_name)             \
-    register_msg_map(__msg_action_map##map_name,  \
-                     (sizeof(__msg_action_map##map_name )/sizeof(msg_handler_t)));
-
-
-#define BEGIN_RPC_MAP(map_name)  \
-    static msg_handler_t  __msg_action_map##map_name[] = {
-#define RPC_MAP(x, y) {x, y},
-#define END_RPC_MAP() };
 
 
 #define RPC_MSG_ID_MASK             0xFFFFFFFF

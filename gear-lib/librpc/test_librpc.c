@@ -23,14 +23,11 @@
 #include "librpc.h"
 #include "librpc_stub.h"
 #include <libthread.h>
+#include <libhal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 
 static struct thread *g_rpc_thread;
 static struct rpc *g_rpc;
@@ -38,7 +35,7 @@ static struct rpcs *g_rpcs;
 
 #define MAX_UUID_LEN                (21)
 
-static int on_get_connect_list(struct rpc_session *r, void *arg, int len)
+static int on_get_connect_list(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
 #if 0
     void *ptr;
@@ -62,10 +59,11 @@ static int on_get_connect_list(struct rpc_session *r, void *arg, int len)
     logi("rpc_send len = %d, buf = %s\n", buf->iov_len, buf->iov_base);
     rpc_send(r, buf->iov_base, buf->iov_len);
 #endif
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 }
 
-static int on_get_connect_list_resp(struct rpc_session *r, void *arg, int len)
+static int on_get_connect_list_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
 #if 0
     char *ptr;
@@ -81,22 +79,23 @@ static int on_get_connect_list_resp(struct rpc_session *r, void *arg, int len)
         ptr += len;
     }
 #endif
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 }
 
-static int on_test(struct rpc_session *r, void *arg, int len)
+static int on_test(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
-    printf("on_test\n");
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 }
 
-static int on_test_resp(struct rpc_session *r, void *arg, int len)
+static int on_test_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
-    printf("on_test_resp\n");
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 }
 
-static int on_peer_post_msg(struct rpc_session *r, void *arg, int len)
+static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
 #if 0
     char uuid_src[9];
@@ -116,34 +115,35 @@ static int on_peer_post_msg(struct rpc_session *r, void *arg, int len)
     r->send_pkt.header.msg_id = RPC_PEER_POST_MSG;
     return rpc_send(r, arg, len);
 #else
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 #endif
 }
 
-static int on_peer_post_msg_resp(struct rpc_session *r, void *arg, int len)
+static int on_peer_post_msg_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
     //printf("on_peer_post_msg_resp len = %d\n", len);
 //    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
+    printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
 }
 
-static int on_shell_help(struct rpc_session *r, void *arg, int len)
+static int on_shell_help(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
-#if 0
     int ret;
-    char buf[1024];
-    char *cmd = (char *)arg;
+    char *cmd = (char *)ibuf;
+    *obuf = calloc(1, 1024);
+    *olen = 1024;
     printf("on_shell_help cmd = %s\n", cmd);
-    memset(buf, 0, sizeof(buf));
-    ret = system_with_result(cmd, buf, sizeof(buf));
-    printf("send len = %d, buf: %s\n", strlen(buf), buf);
-    ret = rpc_send(r, buf, strlen(buf));
-    loge("ret = %d, errno = %d\n", ret, errno);
-#endif
+    memset(*obuf, 0, 1024);
+    ret = system_with_result(cmd, *obuf, 1024);
+    if (ret > 0) {
+        *olen = ret;
+    }
     return 0;
 }
 
-static int on_shell_help_resp(struct rpc_session *r, void *arg, int len)
+static int on_shell_help_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
  //   printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
     return 0;
@@ -203,7 +203,7 @@ static void usage(void)
 {
     fprintf(stderr, "./test_libskt -s <port>\n");
     fprintf(stderr, "./test_libskt -c <ip> <port>\n");
-    fprintf(stderr, "e.g. ./test_libskt 116.228.149.106 12345\n");
+    fprintf(stderr, "e.g. ./test_libskt -s 127.0.0.1 12345\n");
 }
 
 static void cmd_usage(void)
@@ -320,4 +320,3 @@ int main(int argc, char **argv)
     }
     return 0;
 }
-
