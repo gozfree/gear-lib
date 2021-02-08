@@ -45,6 +45,13 @@ extern "C" {
 
 //socket structs
 
+enum sock_type {
+    SOCK_TYPE_UDP = 0,
+    SOCK_TYPE_TCP,
+    SOCK_TYPE_UNIX,
+    SOCK_TYPE_MAX,
+};
+
 typedef struct sock_addr {
     char ip_str[INET_ADDRSTRLEN];
     uint32_t ip;

@@ -22,16 +22,23 @@ RM_V		?= $(RM)
 ###############################################################################
 # target and object
 ###############################################################################
+ENABLE_SOCK_EXT = 0
 LIBNAME		= libsock
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
+ifeq ($(ENABLE_SOCK_EXT), 1)
+TGT_LIB_H	+= libsock_ext.h
+endif
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
+ifeq ($(ENABLE_SOCK_EXT), 1)
+OBJS_LIB	+= libsock_ext.o
+endif
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -51,11 +58,17 @@ OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include/gear-lib
-
+ifeq ($(ENABLE_SOCK_EXT), 1)
+CFLAGS	+= -DENABLE_SOCK_EXT
+endif
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
+ifeq ($(ENABLE_SOCK_EXT), 1)
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lgevent -lthread
+endif
+
 
 ###############################################################################
 # target

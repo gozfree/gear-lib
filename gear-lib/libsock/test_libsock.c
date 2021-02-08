@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libsock.h"
+#include "libsock_ext.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -54,6 +55,13 @@ void on_read(int fd, void *arg)
         printf("recv failed!\n");
     }
 }
+
+void on_recv_buf(int fd, void *buf, size_t len)
+{
+    printf("xxx recv buf = %s\n", (char *)buf);
+
+}
+
 void on_recv(int fd, void *arg)
 {
     char buf[2048];
@@ -313,8 +321,15 @@ int main(int argc, char **argv)
             port = atoi(argv[2]);
         else
             port = 0;
-        //tcp_server(port);
+#ifdef ENABLE_SOCK_EXT
+        struct sock_server *ss;
+        ss = sock_server_create(NULL, port, SOCK_TYPE_UDP);
+        sock_server_set_callback(ss, on_recv_buf);
+        sock_server_dispatch(ss);
+#else
         udp_server(port);
+        //tcp_server(port);
+#endif
     } else if (!strcmp(argv[1], "-c")) {
         if (argc == 3) {
             ip = "127.0.0.1";
@@ -332,5 +347,6 @@ int main(int argc, char **argv)
     if (!strcmp(argv[1], "-d")) {
         domain_test();
     }
+    while (1) sleep(1);
     return 0;
 }
