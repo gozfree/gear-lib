@@ -1,0 +1,7 @@
+config RT_USING_GEARLIB
+    bool "Using Gear-Lib"
+    select RT_USING_LIBC
+    default n
+    help
+        The Gear-Lib is a collection of basic libraries based on POSIX C, aim to
+	use for IOT, embedded and network service development

@@ -23,11 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#include "libqueue.h"
+#if defined (OS_LINUX)
 #include <unistd.h>
 #include <sys/time.h>
 #endif
-#include "libqueue.h"
 
 #define QUEUE_MAX_DEPTH 200
 
@@ -142,9 +142,9 @@ GEAR_API int queue_flush(struct queue *q)
         return -1;
     }
     pthread_mutex_lock(&q->lock);
-#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
     list_for_each_entry_safe(item, next, &q->head, entry) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
     list_for_each_entry_safe(item, struct item, next, struct item, &q->head, entry) {
 #endif
         list_del(&item->entry);
@@ -213,14 +213,14 @@ GEAR_API struct item *queue_pop(struct queue *q)
 
     pthread_mutex_lock(&q->lock);
     while (list_empty(&q->head)) {
-#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
         struct timeval now;
         struct timespec outtime;
         gettimeofday(&now, NULL);
         outtime.tv_sec = now.tv_sec + 1;
         outtime.tv_nsec = now.tv_usec * 1000;
         int ret = pthread_cond_timedwait(&q->cond, &q->lock, &outtime);
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
         int ret = pthread_cond_timedwait(&q->cond, &q->lock, 1000);
 #endif
         if (ret == 0) {
@@ -274,9 +274,9 @@ GEAR_API int queue_branch_del(struct queue *q, const char *name)
     if (!q || !name) {
         return -1;
     }
-#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
-#else
+#elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
 #endif
         if (!strcmp(qb->name, name)) {
@@ -299,9 +299,9 @@ GEAR_API struct queue_branch *queue_branch_get(struct queue *q, const char *name
         return NULL;
     }
 
-#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
 #endif
         if (!strcmp(qb->name, name)) {
@@ -319,9 +319,9 @@ GEAR_API int queue_branch_notify(struct queue *q)
         return -1;
     }
 
-#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
 #endif
 
@@ -340,9 +340,9 @@ GEAR_API struct item *queue_branch_pop(struct queue *q, const char *name)
     if (!q || !name) {
         return NULL;
     }
-#if defined (__linux__) || defined (__CYGWIN__) || defined (FREERTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
 #endif
 

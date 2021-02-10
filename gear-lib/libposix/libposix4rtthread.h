@@ -19,79 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBPOSIX_H
-#define LIBPOSIX_H
+#ifndef LIBPOSIX4RTTHREAD_H
+#define LIBPOSIX4RTTHREAD_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/******************************************************************************
+ * basic types
+ ******************************************************************************/
+//typedef int                       bool;
 
-#define LIBPOSIX_VERSION "0.1.1"
+struct iovec {
+    void *iov_base;
+    size_t iov_len;
+};
+
+/*
+ * below defined iovec to solve redefinition of 'struct iovec' of lwip
+ */
+//#define iovec iovec
+//ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 /******************************************************************************
- * OS_LINUX
+ * I/O string APIs
  ******************************************************************************/
-#if defined (__linux__) || defined (__CYGWIN__)
-#define OS_LINUX
-#include <stdbool.h>
-#include <stdint.h>
-#include <sys/uio.h>
-#include "kernel_list.h"
-
-#define GEAR_API __attribute__((visibility("default")))
 
 /******************************************************************************
- * OS_WINDOWS
+ * time APIs
  ******************************************************************************/
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#define OS_WINDOWS
-#include "libposix4win.h"
-#include "kernel_list_win32.h"
-
-#define GEAR_API __declspec(dllexport)
 
 /******************************************************************************
- * OS_APPLE
+ * pthread APIs
  ******************************************************************************/
-#elif defined (__APPLE__)
-#define OS_APPLE
-#include <stdbool.h>
-#include <sys/uio.h>
-#define GEAR_API
 
 /******************************************************************************
- * OS_ANDROID
+ * memory APIs
  ******************************************************************************/
-#elif defined (__ANDROID__)
-#define OS_ANDROID
-#include <stdbool.h>
-#define GEAR_API
-
-/******************************************************************************
- * OS_RTOS
- ******************************************************************************/
-#elif defined (FREERTOS) || defined (THREADX)
-#define OS_RTOS
-#include "libposix4rtos.h"
-#include "kernel_list.h"
-#define GEAR_API
-
-#elif defined (RT_USING_SMP)
-#define OS_RTTHREAD
-#include <stdbool.h>
-#include "libposix4rtthread.h"
-#include "kernel_list.h"
-#define GEAR_API
-
-#else
-#error "OS_UNDEFINED"
-#endif
-
-#include "gear_misc.h"
 
 #ifdef __cplusplus
 }

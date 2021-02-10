@@ -23,7 +23,7 @@
 #define LIBQUEUE_H
 
 #include <libposix.h>
-#ifdef OS_LINUX
+#if defined (OS_LINUX) || defined (OS_RTTHREAD)
 #include <pthread.h>
 #endif
 
