@@ -95,35 +95,36 @@ typedef enum file_backend_type {
     FILE_BACKEND_FIO,
 } file_backend_type;
 
-void file_backend(file_backend_type type);
-int file_create(const char *path);
-int file_delete(const char *path);
-bool file_exist(const char *path);
+GEAR_API void file_backend(file_backend_type type);
+GEAR_API int file_create(const char *path);
+GEAR_API int file_delete(const char *path);
+GEAR_API bool file_exist(const char *path);
 
-struct file *file_open(const char *path, file_open_mode_t mode);
-void file_close(struct file *file);
-ssize_t file_read(struct file *file, void *data, size_t size);
-ssize_t file_read_path(const char *path, void *data, size_t size);
-ssize_t file_write(struct file *file, const void *data, size_t size);
-ssize_t file_write_path(const char *path, const void *data, size_t size);
-ssize_t file_size(struct file *file);
-ssize_t file_get_size(const char *path);
-int file_get_info(const char *path, struct file_info *info);
-struct iovec *file_dump(const char *path);
-int file_sync(struct file *file);
-off_t file_seek(struct file *file, off_t offset, int whence);
-int file_rename(const char* old_file, const char* new_file);
+GEAR_API struct file *file_open(const char *path, file_open_mode_t mode);
+GEAR_API void file_close(struct file *file);
+GEAR_API ssize_t file_read(struct file *file, void *data, size_t size);
+GEAR_API ssize_t file_read_path(const char *path, void *data, size_t size);
+GEAR_API ssize_t file_write(struct file *file, const void *data, size_t size);
+GEAR_API ssize_t file_write_path(const char *path, const void *data, size_t size);
+GEAR_API ssize_t file_size(struct file *file);
+GEAR_API ssize_t file_get_size(const char *path);
+GEAR_API int file_get_info(const char *path, struct file_info *info);
+GEAR_API struct iovec *file_dump(const char *path);
+GEAR_API int file_sync(struct file *file);
+GEAR_API off_t file_seek(struct file *file, off_t offset, int whence);
+GEAR_API int file_rename(const char* old_file, const char* new_file);
 
-struct file_systat *file_get_systat(const char *path);
-char *file_path_pwd();
-char *file_path_suffix(char *path);
-char *file_path_prefix(char *path);
+GEAR_API struct file_systat *file_get_systat(const char *path);
+GEAR_API char *file_path_pwd();
+GEAR_API char *file_path_suffix(char *path);
+GEAR_API char *file_path_prefix(char *path);
 
-int file_dir_create(const char *path);
-int file_dir_remove(const char *path);
-int file_dir_tree(const char *path);
-int file_dir_size(const char *path, uint64_t *size);
-int file_num_in_dir(const char *path);
+GEAR_API int file_dir_create(const char *path);
+GEAR_API int file_dir_remove(const char *path);
+GEAR_API int file_dir_tree(const char *path);
+GEAR_API int file_dir_size(const char *path, uint64_t *size);
+GEAR_API int file_num_in_dir(const char *path);
+
 #ifdef __cplusplus
 }
 #endif

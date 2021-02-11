@@ -56,14 +56,14 @@ typedef struct worker {
 
 typedef void (*worker_func_t)(void *);
 
-struct workq *wq_create();
-void wq_destroy(struct workq *wq);
-void wq_task_add(struct workq *wq, worker_func_t func, void *data, size_t len);
+GEAR_API struct workq *wq_create();
+GEAR_API void wq_destroy(struct workq *wq);
+GEAR_API void wq_task_add(struct workq *wq, worker_func_t func, void *data, size_t len);
 
 /* high level */
-int wq_pool_init();
-int wq_pool_task_add(worker_func_t func, void *data, size_t len);
-void wq_pool_deinit();
+GEAR_API int wq_pool_init();
+GEAR_API int wq_pool_task_add(worker_func_t func, void *data, size_t len);
+GEAR_API void wq_pool_deinit();
 
 
 #ifdef __cplusplus

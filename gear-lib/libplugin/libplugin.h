@@ -54,13 +54,13 @@ struct plugin_manager {
     struct list_head plugins;
 };
 
-struct plugin_manager *plugin_manager_create();
-void plugin_manager_destroy(struct plugin_manager *);
+GEAR_API struct plugin_manager *plugin_manager_create();
+GEAR_API void plugin_manager_destroy(struct plugin_manager *);
 
-struct plugin *plugin_lookup(struct plugin_manager *pm, const char *name);
-struct plugin *plugin_load(struct plugin_manager *pm, const char *path, const char *name);
-void plugin_unload(struct plugin_manager *pm, const char *name);
-struct plugin *plugin_reload(struct plugin_manager *pm, const char *path, const char *name);
+GEAR_API struct plugin *plugin_lookup(struct plugin_manager *pm, const char *name);
+GEAR_API struct plugin *plugin_load(struct plugin_manager *pm, const char *path, const char *name);
+GEAR_API void plugin_unload(struct plugin_manager *pm, const char *name);
+GEAR_API struct plugin *plugin_reload(struct plugin_manager *pm, const char *path, const char *name);
 
 /*
  * using HOOK_CALL(func, args...), prev/post functions can be hook into func

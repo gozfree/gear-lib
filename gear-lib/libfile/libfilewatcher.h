@@ -50,11 +50,11 @@ typedef struct fw {
 } fw_t;
 
 
-struct fw *fw_init(void (notify_cb)(struct fw *fw, enum fw_type type, char *path));
-void fw_deinit(struct fw *fw);
-int fw_add_watch_recursive(struct fw *fw, const char *path);
-int fw_del_watch_recursive(struct fw *fw, const char *path);
-int fw_dispatch(struct fw *fw);
+GEAR_API struct fw *fw_init(void (notify_cb)(struct fw *fw, enum fw_type type, char *path));
+GEAR_API void fw_deinit(struct fw *fw);
+GEAR_API int fw_add_watch_recursive(struct fw *fw, const char *path);
+GEAR_API int fw_del_watch_recursive(struct fw *fw, const char *path);
+GEAR_API int fw_dispatch(struct fw *fw);
 
 
 #ifdef __cplusplus

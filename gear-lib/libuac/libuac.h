@@ -22,6 +22,7 @@
 #ifndef LIBUAC_H
 #define LIBUAC_H
 
+#include <libposix.h>
 #include <libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -60,20 +61,20 @@ struct uac_ops {
     int (*query_frame)(struct uac_ctx *c, struct audio_frame *frame);
 };
 
-struct uac_ctx *uac_open(const char *dev, struct uac_config *conf);
-int uac_ioctl(struct uac_ctx *c, unsigned long int cmd, ...);
-void uac_close(struct uac_ctx *c);
+GEAR_API struct uac_ctx *uac_open(const char *dev, struct uac_config *conf);
+GEAR_API int uac_ioctl(struct uac_ctx *c, unsigned long int cmd, ...);
+GEAR_API void uac_close(struct uac_ctx *c);
 
 /*
  * active query frame one by one
  */
-int uac_query_frame(struct uac_ctx *c, struct audio_frame *frame);
+GEAR_API int uac_query_frame(struct uac_ctx *c, struct audio_frame *frame);
 
 /*
  * passive get frame when cb is set, otherwise need query frame one by one
  */
-int uac_start_stream(struct uac_ctx *uac, audio_frame_cb *cb);
-int uac_stop_stream(struct uac_ctx *uac);
+GEAR_API int uac_start_stream(struct uac_ctx *uac, audio_frame_cb *cb);
+GEAR_API int uac_stop_stream(struct uac_ctx *uac);
 
 
 

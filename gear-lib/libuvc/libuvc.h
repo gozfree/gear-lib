@@ -85,20 +85,20 @@ struct uvc_ops {
     int (*query_frame)(struct uvc_ctx *c, struct video_frame *frame);
 };
 
-struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf);
-int uvc_ioctl(struct uvc_ctx *c, unsigned long int cmd, ...);
-void uvc_close(struct uvc_ctx *c);
+GEAR_API struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf);
+GEAR_API int uvc_ioctl(struct uvc_ctx *c, unsigned long int cmd, ...);
+GEAR_API void uvc_close(struct uvc_ctx *c);
 
 /*
  * active query frame one by one
  */
-int uvc_query_frame(struct uvc_ctx *c, struct video_frame *frame);
+GEAR_API int uvc_query_frame(struct uvc_ctx *c, struct video_frame *frame);
 
 /*
  * passive get frame when cb is set, otherwise need query frame one by one
  */
-int uvc_start_stream(struct uvc_ctx *uvc, video_frame_cb *cb);
-int uvc_stop_stream(struct uvc_ctx *uvc);
+GEAR_API int uvc_start_stream(struct uvc_ctx *uvc, video_frame_cb *cb);
+GEAR_API int uvc_stop_stream(struct uvc_ctx *uvc);
 
 #ifdef __cplusplus
 }

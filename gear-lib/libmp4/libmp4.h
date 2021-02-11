@@ -22,6 +22,7 @@
 #ifndef LIBMP4_H
 #define LIBMP4_H
 
+#include <libposix.h>
 #include <libmedia-io.h>
 #include <stdlib.h>
 
@@ -62,9 +63,9 @@ struct mp4_muxer {
     bool got_video;
 };
 
-struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf);
-int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *frame);
-void mp4_muxer_close(struct mp4_muxer *c);
+GEAR_API struct mp4_muxer *mp4_muxer_open(const char *file, struct mp4_config *conf);
+GEAR_API int mp4_muxer_write(struct mp4_muxer *c, struct media_packet *frame);
+GEAR_API void mp4_muxer_close(struct mp4_muxer *c);
 
 
 struct mp4_parser {
@@ -73,13 +74,11 @@ struct mp4_parser {
 };
 
 
-struct mp4_parser *mp4_parser_create(const char *file);
-int mp4_get_duration(struct mp4_parser *mp, uint64_t *duration);
-int mp4_get_creation(struct mp4_parser *mp, uint64_t *time);
-int mp4_get_resolution(struct mp4_parser *mp, uint32_t *width, uint32_t *height);
-void mp4_parser_destroy(struct mp4_parser *mp);
-
-
+GEAR_API struct mp4_parser *mp4_parser_create(const char *file);
+GEAR_API int mp4_get_duration(struct mp4_parser *mp, uint64_t *duration);
+GEAR_API int mp4_get_creation(struct mp4_parser *mp, uint64_t *time);
+GEAR_API int mp4_get_resolution(struct mp4_parser *mp, uint32_t *width, uint32_t *height);
+GEAR_API void mp4_parser_destroy(struct mp4_parser *mp);
 
 
 #ifdef __cplusplus

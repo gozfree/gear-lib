@@ -52,10 +52,15 @@ typedef struct config_ops {
     void (*unload)(struct config *c);
 } config_ops_t;
 
-extern struct config *g_config;
 
-struct config *conf_load(const char *name);
-int conf_set(struct config *c, const char *key, const char *val);
+GEAR_API struct config *conf_load(const char *name);
+GEAR_API void conf_unload(struct config *c);
+GEAR_API int conf_set(struct config *c, const char *key, const char *val);
+GEAR_API void conf_del(struct config *c, const char *key);
+GEAR_API void conf_dump(struct config *c);
+GEAR_API int conf_save(struct config *c);
+GEAR_API void conf_dump_to_file(FILE *f, struct config *c);
+
 
 /*
  * xxx = {
@@ -68,18 +73,13 @@ int conf_set(struct config *c, const char *key, const char *val);
  * conf_get_type(c, "xxx", "yyy", 2) will get "bbb"
  * 0 or NULL will be recorgize end of args, must start array with 1
  */
+extern struct config *g_config;
 #define conf_get_int(c, ...) g_config->ops->get_int(c, __VA_ARGS__, NULL)
 #define conf_get_string(c, ...) g_config->ops->get_string(c, __VA_ARGS__, NULL)
 #define conf_set_string(c, ...) g_config->ops->set_string(c, __VA_ARGS__, NULL)
 #define conf_get_double(c, ...) g_config->ops->get_double(c, __VA_ARGS__, NULL)
 #define conf_get_boolean(c, ...) g_config->ops->get_boolean(c, __VA_ARGS__, NULL)
 #define conf_get_length(c, ...) g_config->ops->get_length(c, __VA_ARGS__, NULL)
-
-void conf_del(struct config *c, const char *key);
-void conf_dump(struct config *c);
-int conf_save(struct config *c);
-void conf_dump_to_file(FILE *f, struct config *c);
-void conf_unload(struct config *c);
 
 
 #ifdef __cplusplus

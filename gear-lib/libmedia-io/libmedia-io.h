@@ -61,7 +61,7 @@ struct media_producer {
     enum media_type type;
 };
 
-void media_producer_dump_info(struct media_producer *mp);
+GEAR_API void media_producer_dump_info(struct media_producer *mp);
 
 /**
  * This structure describes decoded (raw) data.
@@ -87,10 +87,10 @@ struct media_packet {
     enum media_type type;
 };
 
-struct media_packet *media_packet_create(enum media_type type, void *data, size_t len);
-void media_packet_destroy(struct media_packet *mp);
-struct media_packet *media_packet_copy(const struct media_packet *src);
-size_t media_packet_get_size(struct media_packet *mp);
+GEAR_API struct media_packet *media_packet_create(enum media_type type, void *data, size_t len);
+GEAR_API void media_packet_destroy(struct media_packet *mp);
+GEAR_API struct media_packet *media_packet_copy(const struct media_packet *src);
+GEAR_API size_t media_packet_get_size(struct media_packet *mp);
 
 struct media_encoder {
     union {
@@ -100,7 +100,7 @@ struct media_encoder {
     enum media_type type;
 };
 
-void media_encoder_dump_info(struct media_encoder *me);
+GEAR_API void media_encoder_dump_info(struct media_encoder *me);
 
 #ifdef __cplusplus
 }

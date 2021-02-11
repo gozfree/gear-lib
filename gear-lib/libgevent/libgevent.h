@@ -59,7 +59,7 @@ struct gevent_cbs {
     void (*ev_out)(int fd, void *arg);
     void (*ev_err)(int fd, void *arg);
     void (*ev_timer)(int fd, void *arg);
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     struct itimerspec itimer;
 #endif
     void *args;
@@ -91,14 +91,14 @@ struct gevent_base {
     struct gevent *inner_event;
 };
 
-struct gevent_base *gevent_base_create();
-void gevent_base_destroy(struct gevent_base *);
-int gevent_base_loop(struct gevent_base *);
-int gevent_base_loop_start(struct gevent_base *eb);
-int gevent_base_loop_stop(struct gevent_base *eb);
-void gevent_base_loop_break(struct gevent_base *);
-int gevent_base_wait(struct gevent_base *eb);
-void gevent_base_signal(struct gevent_base *eb);
+GEAR_API struct gevent_base *gevent_base_create();
+GEAR_API void gevent_base_destroy(struct gevent_base *);
+GEAR_API int gevent_base_loop(struct gevent_base *);
+GEAR_API int gevent_base_loop_start(struct gevent_base *eb);
+GEAR_API int gevent_base_loop_stop(struct gevent_base *eb);
+GEAR_API void gevent_base_loop_break(struct gevent_base *);
+GEAR_API int gevent_base_wait(struct gevent_base *eb);
+GEAR_API void gevent_base_signal(struct gevent_base *eb);
 
 struct gevent *gevent_create(int fd,
         void (ev_in)(int, void *),
@@ -106,14 +106,14 @@ struct gevent *gevent_create(int fd,
         void (ev_err)(int, void *),
         void *args);
 
-void gevent_destroy(struct gevent *e);
-int gevent_add(struct gevent_base *eb, struct gevent *e);
-int gevent_del(struct gevent_base *eb, struct gevent *e);
-struct gevent *gevent_timer_create(time_t msec,
+GEAR_API void gevent_destroy(struct gevent *e);
+GEAR_API int gevent_add(struct gevent_base *eb, struct gevent *e);
+GEAR_API int gevent_del(struct gevent_base *eb, struct gevent *e);
+GEAR_API struct gevent *gevent_timer_create(time_t msec,
         enum gevent_timer_type type,
         void (ev_timer)(int, void *),
         void *args);
-void gevent_timer_destroy(struct gevent *e);
+GEAR_API void gevent_timer_destroy(struct gevent *e);
 
 #ifdef __cplusplus
 }

@@ -181,10 +181,10 @@ struct rpc {
     int (*on_connect_server)(struct rpc *rpc);
 };
 
-struct rpc *rpc_client_create(const char *host, uint16_t port);
-void rpc_client_destroy(struct rpc *r);
+GEAR_API struct rpc *rpc_client_create(const char *host, uint16_t port);
+GEAR_API void rpc_client_destroy(struct rpc *r);
 
-int rpc_call(struct rpc *r, uint32_t cmd_id,
+GEAR_API int rpc_call(struct rpc *r, uint32_t cmd_id,
             const void *in_arg, size_t in_len,
             void *out_arg, size_t out_len);
 
@@ -211,10 +211,10 @@ struct rpcs {
     int (*on_message)(struct rpcs *s, struct rpc_session *session);
 };
 
-struct rpcs *rpc_server_create(const char *host, uint16_t port);
-void rpc_server_destroy(struct rpcs *s);
+GEAR_API struct rpcs *rpc_server_create(const char *host, uint16_t port);
+GEAR_API void rpc_server_destroy(struct rpcs *s);
 
-int rpc_dispatch(struct rpc *r);
+GEAR_API int rpc_dispatch(struct rpc *r);
 
 
 #define RPC_MSG_ID_MASK             0xFFFFFFFF

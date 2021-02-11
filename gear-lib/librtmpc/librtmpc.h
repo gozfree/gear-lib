@@ -22,6 +22,7 @@
 #ifndef LIBRTMPC_H
 #define LIBRTMPC_H
 
+#include <libposix.h>
 #include <libqueue.h>
 #include <libthread.h>
 #include <libmedia-io.h>
@@ -50,12 +51,12 @@ struct rtmpc {
     bool sent_headers;
 };
 
-struct rtmpc *rtmpc_create(const char *push_url);
-int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt);
-int rtmpc_stream_start(struct rtmpc *rtmpc);
-void rtmpc_stream_stop(struct rtmpc *rtmpc);
-int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt);
-void rtmpc_destroy(struct rtmpc *rtmpc);
+GEAR_API struct rtmpc *rtmpc_create(const char *push_url);
+GEAR_API int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt);
+GEAR_API int rtmpc_stream_start(struct rtmpc *rtmpc);
+GEAR_API void rtmpc_stream_stop(struct rtmpc *rtmpc);
+GEAR_API int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt);
+GEAR_API void rtmpc_destroy(struct rtmpc *rtmpc);
 
 
 #ifdef __cplusplus
