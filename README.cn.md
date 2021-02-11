@@ -10,6 +10,8 @@
 * 全部用POSIX C实现，目标是为了跨平台兼容linux, windows, android, ios.
 * 适用于物联网，嵌入式，以及网络服务开发等场景
 
+![struct](https://github.com/gozfree/gear-lib/blob/master/gear-lib.png)
+
 ## 数据结构
 |  |  |
 |--|--|
