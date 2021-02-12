@@ -50,7 +50,7 @@ else
 OUTLIBPATH := $(OUTPUT)/$(LTYPE)
 endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
-CFLAGS	+= -I$(OUTPUT)/include
+CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
 SHARED	:= -shared
 

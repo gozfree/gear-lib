@@ -107,14 +107,14 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
     }
     for (i = 0; i < c->ev_list.num; i++) {
         struct gevent *e = &c->ev_list.array[i];
-        if (FD_ISSET(e->evfd, &c->rfds) && e->evcb->ev_in) {
-            e->evcb->ev_in(e->evfd, e->evcb->args);
+        if (FD_ISSET(e->evfd, &c->rfds) && e->evcb.ev_in) {
+            e->evcb.ev_in(e->evfd, e->evcb.args);
         }
-        if (FD_ISSET(e->evfd, &c->wfds) && e->evcb->ev_out) {
-            e->evcb->ev_out(e->evfd, e->evcb->args);
+        if (FD_ISSET(e->evfd, &c->wfds) && e->evcb.ev_out) {
+            e->evcb.ev_out(e->evfd, e->evcb.args);
         }
-        if (FD_ISSET(e->evfd, &c->efds) && e->evcb->ev_err) {
-            e->evcb->ev_err(e->evfd, e->evcb->args);
+        if (FD_ISSET(e->evfd, &c->efds) && e->evcb.ev_err) {
+            e->evcb.ev_err(e->evfd, e->evcb.args);
         }
     }
     return 0;

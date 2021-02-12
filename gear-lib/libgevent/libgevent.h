@@ -23,23 +23,19 @@
 #define LIBGEVENT_H
 
 #include <libposix.h>
-#include <stdint.h>
+#include <libdarray.h>
+#include <libthread.h>
 #include <stdlib.h>
+
 #if defined (OS_LINUX)
-#include <pthread.h>
 #include <sys/timerfd.h>
 #endif
-
-#define LIBGEVENT_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum gevent_timer_type {
-    TIMER_ONESHOT = 0,
-    TIMER_PERSIST,
-};
+#define LIBGEVENT_VERSION "0.1.2"
 
 enum gevent_flags {
     EVENT_TIMEOUT  = 1<<0,
@@ -67,8 +63,8 @@ struct gevent_cbs {
 
 struct gevent {
     int evfd;
-    int flags;
-    struct gevent_cbs *evcb;
+    enum gevent_flags flags;
+    struct gevent_cbs evcb;
 };
 
 struct gevent_base;
@@ -81,14 +77,14 @@ struct gevent_ops {
 };
 
 struct gevent_base {
-    /** Pointer to backend-specific data. */
     void *ctx;
     int loop;
     int rfd;
     int wfd;
-    pthread_t tid;
-    const struct gevent_ops *evop;
-    struct gevent *inner_event;
+    DARRAY(struct gevent *) ev_array; /* just for save and free event */
+    struct thread *thread;
+    const struct gevent_ops *ops;
+    struct gevent *inner_event;     /* in case of no event added to run */
 };
 
 GEAR_API struct gevent_base *gevent_base_create();
@@ -100,19 +96,34 @@ GEAR_API void gevent_base_loop_break(struct gevent_base *);
 GEAR_API int gevent_base_wait(struct gevent_base *eb);
 GEAR_API void gevent_base_signal(struct gevent_base *eb);
 
-struct gevent *gevent_create(int fd,
-        void (ev_in)(int, void *),
-        void (ev_out)(int, void *),
-        void (ev_err)(int, void *),
-        void *args);
+GEAR_API struct gevent *gevent_create(int fd,
+                void (ev_in)(int, void *),
+                void (ev_out)(int, void *),
+                void (ev_err)(int, void *),
+                void *args);
 
 GEAR_API void gevent_destroy(struct gevent *e);
 GEAR_API int gevent_add(struct gevent_base *eb, struct gevent *e);
 GEAR_API int gevent_del(struct gevent_base *eb, struct gevent *e);
+
+/*
+ * gevent_add2 is to save alloced gevent memory to ev_array
+ * if gevent_del2 is called, gevent memory should be free by user
+ * otherwise gevent memory will be freed in gevent_base_destroy automatically
+ * add2/del2 will replace add/del API later
+ */
+GEAR_API int gevent_add2(struct gevent_base *eb, struct gevent **e);
+GEAR_API int gevent_del2(struct gevent_base *eb, struct gevent **e);
+
+enum gevent_timer_type {
+    TIMER_ONESHOT = 0,
+    TIMER_PERSIST,
+};
+
 GEAR_API struct gevent *gevent_timer_create(time_t msec,
-        enum gevent_timer_type type,
-        void (ev_timer)(int, void *),
-        void *args);
+                enum gevent_timer_type type,
+                void (ev_timer)(int, void *),
+                void *args);
 GEAR_API void gevent_timer_destroy(struct gevent *e);
 
 #ifdef __cplusplus

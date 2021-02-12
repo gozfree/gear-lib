@@ -22,6 +22,7 @@
 #ifndef LIBRPC_H
 #define LIBRPC_H
 
+#include <libposix.h>
 #include <libhash.h>
 #include <libdarray.h>
 #include <stdio.h>

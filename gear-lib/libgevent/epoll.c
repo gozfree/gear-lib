@@ -147,10 +147,10 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
         if (what & (EPOLLHUP|EPOLLERR)) {
         } else {
             if (what & EPOLLIN) {
-                if (e->evcb->ev_in)
-                    e->evcb->ev_in(e->evfd, e->evcb->args);
-                if (e->evcb->ev_timer) {
-                    e->evcb->ev_timer(e->evfd, e->evcb->args);
+                if (e->evcb.ev_in)
+                    e->evcb.ev_in(e->evfd, e->evcb.args);
+                if (e->evcb.ev_timer) {
+                    e->evcb.ev_timer(e->evfd, e->evcb.args);
                     if (0 == (what & EPOLLONESHOT)) {
                         uint64_t expirations = 0;
                         int ret = 0;
@@ -163,11 +163,11 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
 
             }
             if (what & EPOLLOUT)
-                if (e->evcb->ev_out)
-                    e->evcb->ev_out(e->evfd, e->evcb->args);
+                if (e->evcb.ev_out)
+                    e->evcb.ev_out(e->evfd, e->evcb.args);
             if (what & EPOLLRDHUP)
-                if (e->evcb->ev_err)
-                    e->evcb->ev_err(e->evfd, e->evcb->args);
+                if (e->evcb.ev_err)
+                    e->evcb.ev_err(e->evfd, e->evcb.args);
         }
     }
     return 0;

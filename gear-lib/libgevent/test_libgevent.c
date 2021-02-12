@@ -33,11 +33,19 @@ static void on_input(int fd, void *arg)
 {
     char ch[2];
     read(fd, &ch, 2);
-    printf("on_input fd = %d\n", fd);
+    printf("on_input fd = %d, ch=%c\n", fd, ch[0]);
+}
+
+static void on_time(int fd, void *arg)
+{
+    char ch[2];
+    read(fd, &ch, 2);
+    printf("on_time fd = %d, ch=%c\n", fd, ch[0]);
 }
 
 static int foo(void)
 {
+    int fd = STDIN_FILENO;
     struct gevent *event_2000;
     struct gevent *event_1500;
     struct gevent *event_stdin;
@@ -46,54 +54,53 @@ static int foo(void)
         printf("gevent_base_create failed!\n");
         return -1;
     }
-    event_stdin = gevent_create(0, on_input, NULL, NULL, NULL);
+    event_stdin = gevent_create(fd, on_input, NULL, NULL, NULL);
     if (!event_stdin) {
         printf("gevent_create failed!\n");
         return -1;
     }
-    event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_input, NULL);
+    event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_time, NULL);
     if (!event_2000) {
         printf("gevent_create failed!\n");
         return -1;
     }
-    event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_input, NULL);
+    event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_time, NULL);
     if (!event_1500) {
         printf("gevent_create failed!\n");
         return -1;
     }
-    if (-1 == gevent_add(evbase, event_stdin)) {
+    if (-1 == gevent_add2(evbase, &event_stdin)) {
         printf("gevent_add failed!\n");
         return -1;
     }
-    if (-1 == gevent_add(evbase, event_2000)) {
+    if (-1 == gevent_add2(evbase, &event_2000)) {
         printf("gevent_add failed!\n");
         return -1;
     }
-    if (-1 == gevent_add(evbase, event_1500)) {
+    if (-1 == gevent_add2(evbase, &event_1500)) {
         printf("gevent_add failed!\n");
         return -1;
     }
     gevent_base_loop_start(evbase);
-    sleep(30);
+    sleep(10);
     gevent_base_loop_stop(evbase);
-    gevent_del(evbase, event_1500);
-    gevent_del(evbase, event_2000);
+    gevent_del2(evbase, &event_1500);
+    gevent_del2(evbase, &event_2000);
     gevent_timer_destroy(event_1500);
     gevent_timer_destroy(event_2000);
-    gevent_timer_destroy(event_stdin);
     gevent_base_destroy(evbase);
 
+    printf("foo end\n");
     return 0;
 }
 
 static void sigint_handler(int sig)
 {
-    gevent_base_loop_break(evbase);
+    printf("catch sigint\n");
 }
 
 void signal_init()
 {
-    //signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, sigint_handler);
 }
 
@@ -101,6 +108,5 @@ int main(int argc, char **argv)
 {
     signal_init();
     foo();
-    printf("xxx\n");
     return 0;
 }

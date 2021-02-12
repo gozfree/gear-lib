@@ -126,14 +126,14 @@ static int poll_dispatch(struct gevent_base *eb, struct timeval *tv)
     }
     for (i = 0; i < c->ev_list.num; i++) {
         struct gevent *e = &c->ev_list.array[i];
-        if ((c->fds[i].revents & POLLIN) && e->evcb->ev_in) {
-            e->evcb->ev_in(e->evfd, e->evcb->args);
+        if ((c->fds[i].revents & POLLIN) && e->evcb.ev_in) {
+            e->evcb.ev_in(e->evfd, e->evcb.args);
         }
-        if ((c->fds[i].revents & POLLOUT) && e->evcb->ev_out) {
-            e->evcb->ev_out(e->evfd, e->evcb->args);
+        if ((c->fds[i].revents & POLLOUT) && e->evcb.ev_out) {
+            e->evcb.ev_out(e->evfd, e->evcb.args);
         }
-        if ((c->fds[i].revents & (POLLERR|POLLHUP|POLLNVAL)) && e->evcb->ev_err) {
-            e->evcb->ev_err(e->evfd, e->evcb->args);
+        if ((c->fds[i].revents & (POLLERR|POLLHUP|POLLNVAL)) && e->evcb.ev_err) {
+            e->evcb.ev_err(e->evfd, e->evcb.args);
         }
         c->fds[i].revents = 0;
     }
