@@ -51,6 +51,8 @@ else
 CFLAGS	:= -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
+
+#CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan 
 ifeq ($(OUTPUT),/usr/local)
 OUTLIBPATH :=/usr/local
 else
@@ -67,8 +69,9 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 ifeq ($(ENABLE_FILEWATCHER), 1)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldict -lgevent
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldict -lgevent -lthread -ldarray
 endif
+#LDFLAGS += -fsanitize=address -static-libasan
 
 ###############################################################################
 # target

@@ -93,7 +93,7 @@ static void *tcp_client_thread(struct thread *thread, void *arg)
         return NULL;
     }
     e = gevent_create(sc->fd, on_recv, NULL, on_error, (void *)&sc->fd);
-    if (-1 == gevent_add(g_evbase, e)) {
+    if (-1 == gevent_add2(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
     gevent_base_loop(g_evbase);
@@ -165,6 +165,7 @@ int udp_client(const char *host, uint16_t port)
     struct sock_connection *sc = sock_udp_connect(host, port);
     int ret = sock_send(sc->fd, "aaa", 4);
     printf("fd = %d, ret = %d\n", sc->fd, ret);
+    free(sc);
     return 0;
 }
 
@@ -188,7 +189,7 @@ void on_connect(int fd, void *arg)
         return;
     }
     e = gevent_create(afd, on_recv, NULL, on_error, (void *)&afd);
-    if (-1 == gevent_add(g_evbase, e)) {
+    if (-1 == gevent_add2(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
 }
@@ -208,7 +209,7 @@ int udp_server(uint16_t port)
 
     sock_set_noblk(fd, true);
     e = gevent_create(fd, on_recv, NULL, on_error, NULL);
-    if (-1 == gevent_add(g_evbase, e)) {
+    if (-1 == gevent_add2(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
     printf("udp_server ok\n");
@@ -235,7 +236,7 @@ int tcp_server(uint16_t port)
     }
 
     e = gevent_create(fd, on_connect, NULL, on_error, NULL);
-    if (-1 == gevent_add(g_evbase, e)) {
+    if (-1 == gevent_add2(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
     gevent_base_loop(g_evbase);
@@ -312,10 +313,10 @@ int main(int argc, char **argv)
         usage();
         exit(0);
     }
-    #if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     sock_get_local_info();
     signal(SIGINT, ctrl_c_op);
-    #endif
+#endif
     if (!strcmp(argv[1], "-s")) {
         if (argc == 3)
             port = atoi(argv[2]);

@@ -65,7 +65,7 @@ static void tcp_on_connect(int fd, void *arg)
         return;
     }
     e = gevent_create(afd, on_recv, NULL, on_error, s);
-    if (-1 == gevent_add(s->evbase, e)) {
+    if (-1 == gevent_add2(s->evbase, &e)) {
         printf("event_add failed!\n");
     }
 }
@@ -122,7 +122,7 @@ int sock_server_set_callback(struct sock_server *s,
     default:
         break;
     }
-    if (-1 == gevent_add(s->evbase, e)) {
+    if (-1 == gevent_add2(s->evbase, &e)) {
         printf("event_add failed!\n");
     }
     return 0;

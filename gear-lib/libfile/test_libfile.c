@@ -28,10 +28,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #endif
+#include <signal.h>
 
 
 static void foo(void)
@@ -171,9 +172,22 @@ int file_watcher_foo()
 }
 #endif
 
+static void sigint_handler(int sig)
+{
+#ifdef ENABLE_FILEWATCHER
+    fw_deinit(_fw);
+#endif
+}
+
+void signal_init()
+{
+    signal(SIGINT, sigint_handler);
+}
+
 int main(int argc, char **argv)
 {
     uint64_t size = 1000;
+    signal_init();
     file_dir_size("./", &size);
     printf("folder_size=%" PRIu64 "\n", size);
     file_dir_tree("./");

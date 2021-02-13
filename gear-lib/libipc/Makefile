@@ -61,7 +61,7 @@ EXTRA_CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
-EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldict -lgevent -ldarray
+EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldict -lgevent -ldarray -lthread
 EXTRA_LDFLAGS	+= -pthread -lrt
 
 

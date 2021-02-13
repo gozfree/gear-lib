@@ -273,6 +273,7 @@ void fw_deinit(struct fw *fw)
     dict_free(fw->dict_path);
     gevent_base_loop_break(fw->evbase);
     close(fw->fd);
+    gevent_base_destroy(fw->evbase);
     free(fw);
 }
 
@@ -314,7 +315,7 @@ int fw_dispatch(struct fw *fw)
     struct gevent *ev;
     struct gevent_base *evbase = fw->evbase;
     ev = gevent_create(fd, on_read_ops, NULL, NULL, fw);
-    gevent_add(evbase, ev);
+    gevent_add2(evbase, &ev);
     gevent_base_loop(evbase);
     return 0;
 }

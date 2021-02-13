@@ -56,6 +56,8 @@ OUTLIBPATH :=/usr/local
 else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
+
+#CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 ifeq ($(ENABLE_SOCK_EXT), 1)
@@ -69,6 +71,7 @@ ifeq ($(ENABLE_SOCK_EXT), 1)
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lgevent -lthread
 endif
 
+#LDFLAGS += -fsanitize=address -static-libasan
 
 ###############################################################################
 # target
