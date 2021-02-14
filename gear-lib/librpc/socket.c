@@ -95,7 +95,7 @@ static void on_connect_of_server(int fd, void *arg)
     hash_set32(c->hash_fd2conn, c->connect->fd, c->connect);
 
     e = gevent_create(c->connect->fd, on_recv, on_xxx, on_error, s);
-    if (-1 == gevent_add(s->base.evbase, e)) {
+    if (-1 == gevent_add(s->base.evbase, &e)) {
         printf("event_add failed!\n");
     }
     da_push_back(r->ev_list, &e);
@@ -127,7 +127,7 @@ static int socket_init_server(struct rpc_base *r, const char *host, uint16_t por
     r->fd = c->fd;
     r->ctx = c;
     e = gevent_create(r->fd, on_connect_of_server, on_xxx, on_error, r);
-    if (-1 == gevent_add(r->evbase, e)) {
+    if (-1 == gevent_add(r->evbase, &e)) {
         printf("event_add failed!\n");
         goto failed;
     }
@@ -172,7 +172,7 @@ static int socket_init_client(struct rpc_base *r, const char *host, uint16_t por
     r->fd = c->fd;
     r->ctx = c;
     e = gevent_create(r->fd, on_connect_of_client, on_xxx, on_error, r);
-    if (-1 == gevent_add(r->evbase, e)) {
+    if (-1 == gevent_add(r->evbase, &e)) {
         printf("event_add failed!\n");
         goto failed;
     }

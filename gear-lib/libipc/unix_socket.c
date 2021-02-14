@@ -91,7 +91,7 @@ static void on_connect(int fd, void *arg)
         return;
     }
     struct gevent *e = gevent_create(ipc->afd, on_recv, NULL, on_error, (void *)ipc);
-    if (-1 == gevent_add(ipc->evbase, e)) {
+    if (-1 == gevent_add(ipc->evbase, &e)) {
         printf("event_add failed!\n");
     }
 }
@@ -142,7 +142,7 @@ static void *sk_init(struct ipc *ipc, uint16_t port, enum ipc_role role)
         printf("gevent_base_create failed!\n");
         goto failed;
     }
-    if (-1 == gevent_add(ipc->evbase, e)) {
+    if (-1 == gevent_add(ipc->evbase, &e)) {
         printf("event_add failed!\n");
     }
     pthread_create(&ipc->tid, NULL, event_thread, ipc);

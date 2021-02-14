@@ -180,7 +180,7 @@ int transport_session_start(struct transport_session *ts, struct media_source *m
     }
     sock_set_noblk(ts->rtp->sock->rtcp_fd, true);
     ts->ev_recv = gevent_create(ts->rtp->sock->rtcp_fd, on_recv, NULL, on_error, NULL);
-    if (-1 == gevent_add(ts->evbase, ts->ev_recv)) {
+    if (-1 == gevent_add(ts->evbase, &ts->ev_recv)) {
         loge("event_add failed!\n");
         gevent_destroy(ts->ev_recv);
     }
@@ -195,7 +195,7 @@ int transport_session_start(struct transport_session *ts, struct media_source *m
 
 void transport_session_stop(struct transport_session *ts)
 {
-    gevent_del(ts->evbase, ts->ev_recv);
+    gevent_del(ts->evbase, &ts->ev_recv);
     gevent_base_loop_break(ts->evbase);
     thread_join(ts->thread);
     thread_destroy(ts->thread);

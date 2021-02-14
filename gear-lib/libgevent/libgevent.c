@@ -105,7 +105,7 @@ struct gevent_base *gevent_base_create(void)
         printf("gevent_create inner_event failed!\n");
         goto failed;
     }
-    gevent_add2(eb, &eb->inner_event);
+    gevent_add(eb, &eb->inner_event);
     return eb;
 
 failed:
@@ -123,7 +123,7 @@ void gevent_base_destroy(struct gevent_base *eb)
     if (eb->loop) {
         gevent_base_loop_break(eb);
     }
-    gevent_del2(eb, &eb->inner_event);
+    gevent_del(eb, &eb->inner_event);
     gevent_destroy(eb->inner_event);
     close(eb->rfd);
     close(eb->wfd);
@@ -302,16 +302,7 @@ void gevent_destroy(struct gevent *e)
     free(e);
 }
 
-int gevent_add(struct gevent_base *eb, struct gevent *e)
-{
-    if (!e || !eb) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
-        return -1;
-    }
-    return eb->ops->add(eb, e);
-}
-
-int gevent_add2(struct gevent_base *eb, struct gevent **e)
+int gevent_add(struct gevent_base *eb, struct gevent **e)
 {
     if (!e || !eb) {
         printf("%s:%d paraments is NULL\n", __func__, __LINE__);
@@ -321,16 +312,7 @@ int gevent_add2(struct gevent_base *eb, struct gevent **e)
     return eb->ops->add(eb, *e);
 }
 
-int gevent_del(struct gevent_base *eb, struct gevent *e)
-{
-    if (!e || !eb) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
-        return -1;
-    }
-    return eb->ops->del(eb, e);
-}
-
-int gevent_del2(struct gevent_base *eb, struct gevent **e)
+int gevent_del(struct gevent_base *eb, struct gevent **e)
 {
     int ret;
     if (!e || !eb) {

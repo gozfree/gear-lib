@@ -294,9 +294,9 @@ static void on_conn_resp(int fd, void *arg)
     if (strncmp(_nl_recv_buf, ctx->rd_name, len)) {
         printf("connect response check failed!\n");
     }
-    gevent_del(ctx->evbase, ev_on_conn_resp);
+    gevent_del(ctx->evbase, &ev_on_conn_resp);
     ev_on_recv = gevent_create(ctx->fd, on_recv, NULL, on_error, ipc);
-    if (-1 == gevent_add(ctx->evbase, ev_on_recv)) {
+    if (-1 == gevent_add(ctx->evbase, &ev_on_recv)) {
         printf("gevent_add failed!\n");
         return;
     }
@@ -309,7 +309,7 @@ static void *connecting_thread(void *arg)
     struct ipc *ipc = (struct ipc *)arg;
     struct nl_ctx *ctx = (struct nl_ctx *)ipc->ctx;
     ev_on_conn_resp = gevent_create(ctx->fd, on_conn_resp, NULL, on_error, ipc);
-    if (-1 == gevent_add(ctx->evbase, ev_on_conn_resp)) {
+    if (-1 == gevent_add(ctx->evbase, &ev_on_conn_resp)) {
         printf("gevent_add failed!\n");
         return NULL;
     }

@@ -93,7 +93,7 @@ static void *tcp_client_thread(struct thread *thread, void *arg)
         return NULL;
     }
     e = gevent_create(sc->fd, on_recv, NULL, on_error, (void *)&sc->fd);
-    if (-1 == gevent_add2(g_evbase, &e)) {
+    if (-1 == gevent_add(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
     gevent_base_loop(g_evbase);
@@ -189,7 +189,7 @@ void on_connect(int fd, void *arg)
         return;
     }
     e = gevent_create(afd, on_recv, NULL, on_error, (void *)&afd);
-    if (-1 == gevent_add2(g_evbase, &e)) {
+    if (-1 == gevent_add(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
 }
@@ -209,7 +209,7 @@ int udp_server(uint16_t port)
 
     sock_set_noblk(fd, true);
     e = gevent_create(fd, on_recv, NULL, on_error, NULL);
-    if (-1 == gevent_add2(g_evbase, &e)) {
+    if (-1 == gevent_add(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
     printf("udp_server ok\n");
@@ -227,7 +227,7 @@ int tcp_server(uint16_t port)
     if (fd == -1) {
         return -1;
     }
-    
+
     sock_getaddr_by_fd(fd, &addr);
     printf("addr = %s\n", addr.ip_str);
     g_evbase = gevent_base_create();
@@ -236,7 +236,7 @@ int tcp_server(uint16_t port)
     }
 
     e = gevent_create(fd, on_connect, NULL, on_error, NULL);
-    if (-1 == gevent_add2(g_evbase, &e)) {
+    if (-1 == gevent_add(g_evbase, &e)) {
         printf("event_add failed!\n");
     }
     gevent_base_loop(g_evbase);

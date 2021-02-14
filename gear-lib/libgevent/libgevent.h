@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-#define LIBGEVENT_VERSION "0.1.2"
+#define LIBGEVENT_VERSION "0.1.3"
 
 enum gevent_flags {
     EVENT_TIMEOUT  = 1<<0,
@@ -103,17 +103,15 @@ GEAR_API struct gevent *gevent_create(int fd,
                 void *args);
 
 GEAR_API void gevent_destroy(struct gevent *e);
-GEAR_API int gevent_add(struct gevent_base *eb, struct gevent *e);
-GEAR_API int gevent_del(struct gevent_base *eb, struct gevent *e);
 
 /*
- * gevent_add2 is to save alloced gevent memory to ev_array
- * if gevent_del2 is called, gevent memory should be free by user
+ * gevent_add is to save alloced gevent memory to ev_array
+ * if gevent_del is called, gevent memory should be free by user
  * otherwise gevent memory will be freed in gevent_base_destroy automatically
  * add2/del2 will replace add/del API later
  */
-GEAR_API int gevent_add2(struct gevent_base *eb, struct gevent **e);
-GEAR_API int gevent_del2(struct gevent_base *eb, struct gevent **e);
+GEAR_API int gevent_add(struct gevent_base *eb, struct gevent **e);
+GEAR_API int gevent_del(struct gevent_base *eb, struct gevent **e);
 
 enum gevent_timer_type {
     TIMER_ONESHOT = 0,

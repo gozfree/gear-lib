@@ -84,7 +84,7 @@ static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, u
     req->raw = iovec_create(RTSP_REQUEST_LEN_MAX);
     sock_set_noblk(fd, 1);
     req->event = gevent_create(fd, on_recv, NULL, on_error, req);
-    if (-1 == gevent_add(rtsp->evbase, req->event)) {
+    if (-1 == gevent_add(rtsp->evbase, &req->event)) {
         loge("event_add failed!\n");
     }
     snprintf(key, sizeof(key), "%d", fd);
@@ -99,7 +99,7 @@ static void rtsp_connect_destroy(struct rtsp_server *rtsp, int fd)
     struct rtsp_request *req = (struct rtsp_request *)dict_get(rtsp->connect_pool, key, NULL);
     logi("fd = %d, req=%p\n", fd, req);
     dict_del(rtsp->connect_pool, key);
-    gevent_del(rtsp->evbase, req->event);
+    gevent_del(rtsp->evbase, &req->event);
     gevent_destroy(req->event);
     iovec_destroy(req->raw);
     sock_close(fd);
@@ -163,7 +163,7 @@ static int master_thread_create(struct rtsp_server *c)
         goto failed;
     }
     c->ev_connect = gevent_create(fd, on_connect, NULL, on_error, (void *)c);
-    if (-1 == gevent_add(c->evbase, c->ev_connect)) {
+    if (-1 == gevent_add(c->evbase, &c->ev_connect)) {
         loge("event_add failed!\n");
         gevent_destroy(c->ev_connect);
     }
@@ -186,7 +186,7 @@ failed:
 
 static void master_thread_destroy(struct rtsp_server *c)
 {
-    gevent_del(c->evbase, c->ev_connect);
+    gevent_del(c->evbase, &c->ev_connect);
     gevent_base_loop_break(c->evbase);
     thread_join(c->master_thread);
     thread_destroy(c->master_thread);

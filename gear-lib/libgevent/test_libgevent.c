@@ -69,23 +69,23 @@ static int foo(void)
         printf("gevent_create failed!\n");
         return -1;
     }
-    if (-1 == gevent_add2(evbase, &event_stdin)) {
+    if (-1 == gevent_add(evbase, &event_stdin)) {
         printf("gevent_add failed!\n");
         return -1;
     }
-    if (-1 == gevent_add2(evbase, &event_2000)) {
+    if (-1 == gevent_add(evbase, &event_2000)) {
         printf("gevent_add failed!\n");
         return -1;
     }
-    if (-1 == gevent_add2(evbase, &event_1500)) {
+    if (-1 == gevent_add(evbase, &event_1500)) {
         printf("gevent_add failed!\n");
         return -1;
     }
     gevent_base_loop_start(evbase);
     sleep(10);
     gevent_base_loop_stop(evbase);
-    gevent_del2(evbase, &event_1500);
-    gevent_del2(evbase, &event_2000);
+    gevent_del(evbase, &event_1500);
+    gevent_del(evbase, &event_2000);
     gevent_timer_destroy(event_1500);
     gevent_timer_destroy(event_2000);
     gevent_base_destroy(evbase);

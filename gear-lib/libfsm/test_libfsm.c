@@ -150,7 +150,7 @@ int init()
     fsm_state_init(fsm, TCP_CLOSE);
     evbase = gevent_base_create();
     struct gevent *ev = gevent_create(0, ev_in, NULL, NULL, fsm);
-    gevent_add2(evbase, &ev);
+    gevent_add(evbase, &ev);
 
     return 0;
 }

@@ -315,7 +315,7 @@ int fw_dispatch(struct fw *fw)
     struct gevent *ev;
     struct gevent_base *evbase = fw->evbase;
     ev = gevent_create(fd, on_read_ops, NULL, NULL, fw);
-    gevent_add2(evbase, &ev);
+    gevent_add(evbase, &ev);
     gevent_base_loop(evbase);
     return 0;
 }
