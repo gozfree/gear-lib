@@ -28,8 +28,6 @@
 #if defined (OS_LINUX)
 #include <unistd.h>
 #include <signal.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #endif
 #include <libgevent.h>
 #include <libthread.h>
@@ -56,10 +54,17 @@ void on_read(int fd, void *arg)
     }
 }
 
-void on_recv_buf(int fd, void *buf, size_t len)
+static void on_connect_server(int fd, struct sock_connection *conn)
 {
-    printf("xxx recv buf = %s\n", (char *)buf);
+    printf("on_connect_server: fd=%d local=%s:%d, remote=%s:%d\n", conn->fd,
+            conn->local.ip_str, conn->local.port,
+            conn->remote.ip_str, conn->remote.port);
+}
 
+static void on_recv_buf(int fd, void *buf, size_t len)
+{
+
+    printf("xxx fd = %d, recv buf = %s\n", fd, (char *)buf);
 }
 
 void on_recv(int fd, void *arg)
@@ -82,7 +87,7 @@ void on_error(int fd, void *arg)
 }
 static void *tcp_client_thread(struct thread *thread, void *arg)
 {
-		struct gevent *e =NULL;
+    struct gevent *e =NULL;
     struct sock_connection *sc = (struct sock_connection *)arg;
     g_evbase = gevent_base_create();
     if (!g_evbase) {
@@ -102,27 +107,31 @@ static void *tcp_client_thread(struct thread *thread, void *arg)
 
 int tcp_client(const char *host, uint16_t port)
 {
-    char str_ip[INET_ADDRSTRLEN];
+    char str_ip[SOCK_ADDR_LEN];
     int n, ret;
     char buf[64];
     struct thread *thread =NULL;
-    #if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     struct tcp_info tcpi;
-		#endif
+#endif
+    VERBOSE();
     g_sc = sock_tcp_connect(host, port);
     if (g_sc == NULL) {
         printf("connect failed!\n");
         return -1;
     }
-    on_read(g_sc->fd, NULL);
+    VERBOSE();
+    //on_read(g_sc->fd, NULL);
+    VERBOSE();
     sock_addr_ntop(str_ip, g_sc->local.ip);
     printf("local ip = %s, port = %d\n", str_ip, g_sc->local.port);
     sock_addr_ntop(str_ip, g_sc->remote.ip);
     printf("remote ip = %s, port = %d\n", str_ip, g_sc->remote.port);
     sock_set_tcp_keepalive(g_sc->fd, 1);
+    VERBOSE();
     
-#if defined (__linux__) || defined (__CYGWIN__)
-		memset(&tcpi, 0, sizeof(tcpi));
+#if defined (OS_LINUX)
+    memset(&tcpi, 0, sizeof(tcpi));
     ret = sock_get_tcp_info(g_sc->fd, &tcpi);
     if (ret == 0) {
         printf("unrecovered=%u "
@@ -143,10 +152,12 @@ int tcp_client(const char *host, uint16_t port)
              tcpi.tcpi_total_retrans);  // Total retransmits for entire connection
     }
 #endif
+    VERBOSE();
     thread = thread_create(tcp_client_thread, g_sc);
     if (!thread) {
         printf("thread_create failed!\n");
     }
+    VERBOSE();
     while (1) {
         memset(buf, 0, sizeof(buf));
         printf("input> ");
@@ -162,85 +173,23 @@ int tcp_client(const char *host, uint16_t port)
 
 int udp_client(const char *host, uint16_t port)
 {
+    char buf[64];
+    int n, ret;
     struct sock_connection *sc = sock_udp_connect(host, port);
-    int ret = sock_send(sc->fd, "aaa", 4);
+    ret = sock_send(sc->fd, "aaa", 4);
     printf("fd = %d, ret = %d\n", sc->fd, ret);
+    while (1) {
+        memset(buf, 0, sizeof(buf));
+        printf("input> ");
+        scanf("%s", buf);
+        n = sock_send(sc->fd, buf, strlen(buf));
+        if (n == -1) {
+            printf("sock_send failed!\n");
+            return -1;
+        }
+//        sleep(1);
+    }
     free(sc);
-    return 0;
-}
-
-
-void on_connect(int fd, void *arg)
-{
-    char str_ip[INET_ADDRSTRLEN];
-    int afd;
-    uint32_t ip;
-    uint16_t port;
-    struct gevent *e =NULL;
-    afd = sock_accept(fd, &ip, &port);
-    if (afd == -1) {
-        printf("errno=%d %s\n", errno, strerror(errno));
-        return;
-    };
-    sock_addr_ntop(str_ip, ip);
-    printf("new connect comming: ip = %s, port = %d\n", str_ip, port);
-    if (0 > sock_set_nonblock(afd)) {
-        printf("sock_set_nonblock failed!\n");
-        return;
-    }
-    e = gevent_create(afd, on_recv, NULL, on_error, (void *)&afd);
-    if (-1 == gevent_add(g_evbase, &e)) {
-        printf("event_add failed!\n");
-    }
-}
-
-int udp_server(uint16_t port)
-{
-    int fd;
-    struct gevent *e =NULL;
-    fd = sock_udp_bind(NULL, port);
-    if (fd == -1) {
-        return -1;
-    }
-    g_evbase = gevent_base_create();
-    if (!g_evbase) {
-        return -1;
-    }
-
-    sock_set_noblk(fd, true);
-    e = gevent_create(fd, on_recv, NULL, on_error, NULL);
-    if (-1 == gevent_add(g_evbase, &e)) {
-        printf("event_add failed!\n");
-    }
-    printf("udp_server ok\n");
-    gevent_base_loop(g_evbase);
-
-    return 0;
-}
-
-int tcp_server(uint16_t port)
-{
-    int fd;
-    struct gevent *e =NULL;
-    struct sock_addr addr;
-    fd = sock_tcp_bind_listen(NULL, port);
-    if (fd == -1) {
-        return -1;
-    }
-
-    sock_getaddr_by_fd(fd, &addr);
-    printf("addr = %s\n", addr.ip_str);
-    g_evbase = gevent_base_create();
-    if (!g_evbase) {
-        return -1;
-    }
-
-    e = gevent_create(fd, on_connect, NULL, on_error, NULL);
-    if (-1 == gevent_add(g_evbase, &e)) {
-        printf("event_add failed!\n");
-    }
-    gevent_base_loop(g_evbase);
-
     return 0;
 }
 
@@ -248,25 +197,23 @@ void usage()
 {
     fprintf(stderr, "./test_libsock -s port\n"
                     "./test_libsock -c ip port\n");
-
 }
 
 void addr_test()
 {
-    char str_ip[INET_ADDRSTRLEN];
+    char str_ip[SOCK_ADDR_LEN];
     uint32_t net_ip;
     net_ip = sock_addr_pton("192.168.1.123");
     printf("ip = %x\n", net_ip);
     sock_addr_ntop(str_ip, net_ip);
     printf("ip = %s\n", str_ip);
-
 }
 
 void domain_test()
 {
     void *p;
-    char str[MAX_ADDR_STRING];
-#if defined (__linux__) || defined (__CYGWIN__)
+    char str[SOCK_ADDR_LEN];
+#if defined (OS_LINUX)
     sock_addr_list_t *tmp;
     if (0 == sock_get_local_list(&tmp, 0)) {
         for (; tmp; tmp = tmp->next) {
@@ -274,7 +221,6 @@ void domain_test()
             printf("ip = %s port = %d\n", str, tmp->addr.port);
         }
     }
-
 
     if (0 == sock_getaddrinfo(&tmp, "www.sina.com", "3478")) {
         for (; tmp; tmp = tmp->next) {
@@ -309,6 +255,7 @@ int main(int argc, char **argv)
 {
     uint16_t port;
     const char *ip;
+    struct sock_server *ss;
     if (argc < 2) {
         usage();
         exit(0);
@@ -322,15 +269,9 @@ int main(int argc, char **argv)
             port = atoi(argv[2]);
         else
             port = 0;
-#ifdef ENABLE_SOCK_EXT
-        struct sock_server *ss;
-        ss = sock_server_create(NULL, port, SOCK_TYPE_UDP);
-        sock_server_set_callback(ss, on_recv_buf);
+        ss = sock_server_create(NULL, port, SOCK_TYPE_TCP);
+        sock_server_set_callback(ss, on_connect_server, on_recv_buf, NULL);
         sock_server_dispatch(ss);
-#else
-        udp_server(port);
-        //tcp_server(port);
-#endif
     } else if (!strcmp(argv[1], "-c")) {
         if (argc == 3) {
             ip = "127.0.0.1";
@@ -339,8 +280,8 @@ int main(int argc, char **argv)
             ip = argv[2];
             port = atoi(argv[3]);
         }
-        //tcp_client(ip, port);
-        udp_client(ip, port);
+        tcp_client(ip, port);
+        //udp_client(ip, port);
     }
     if (!strcmp(argv[1], "-t")) {
         addr_test();

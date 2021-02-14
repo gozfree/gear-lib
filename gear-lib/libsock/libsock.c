@@ -22,25 +22,21 @@
 #include "libsock.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "libsock.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
+#include <unistd.h>
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <fcntl.h>
 #include <net/if.h>
 #include <sys/un.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
 typedef int SOCKET;
-
 #endif
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+
+#if defined (OS_WINDOWS)
 #pragma warning(disable:4996)
 #endif
 #define LISTEN_MAX_BACKLOG  (128)
@@ -49,8 +45,24 @@ typedef int SOCKET;
 
 #define USE_IPV6    0
 
-static struct sock_connection *_sock_connect(int type,
-                const char *host, uint16_t port)
+#if defined (OS_WINDOWS)
+static int sock_pre_init_win()
+{
+    WSADATA ws;
+    if (WSAStartup(MAKEWORD(2, 2), &ws) != 0) {
+        printf("Init Windows Socket Failed\n");
+        return -1;
+    }
+    return 0;
+}
+
+static void sock_post_deinit_win()
+{
+    WSACleanup();
+}
+#endif
+
+static struct sock_connection *_sock_connect(int type, const char *host, uint16_t port)
 {
     int domain = -1;
     int protocol = 0;
@@ -61,14 +73,8 @@ static struct sock_connection *_sock_connect(int type,
     struct sockaddr *sa;
     size_t sa_len = 0;
     struct sock_connection *sc = NULL;
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-    WSADATA Ws;
-
-	    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-	        printf("Init Windows Socket Failed\n");
-	        return NULL;
-	    }
-
+#if defined (OS_WINDOWS)
+    sock_pre_init_win();
 #endif
     if (type < 0 || strlen(host) == 0 || port >= 0xFFFF) {
         printf("invalid paraments\n");
@@ -155,14 +161,8 @@ int sock_tcp_bind_listen(const char *host, uint16_t port)
 {
     SOCKET fd;
     struct sockaddr_in si;
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-    WSADATA Ws;
-
-	    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-	        printf("Init Windows Socket Failed\n");
-	        return -1;
-	    }
-
+#if defined (OS_WINDOWS)
+    sock_pre_init_win();
 #endif
     fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     //int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -201,14 +201,8 @@ int sock_udp_bind(const char *host, uint16_t port)
 {
     int fd;
     struct sockaddr_in si;
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-    WSADATA Ws;
- 
-	    if (WSAStartup(MAKEWORD(2,2), &Ws) != 0) {
-	        printf("Init Windows Socket Failed\n");
-	        return -1;
-	    }
-
+#if defined (OS_WINDOWS)
+    sock_pre_init_win();
 #endif
     si.sin_family = AF_INET;
     si.sin_addr.s_addr = host ? inet_addr(host) : INADDR_ANY;
@@ -232,7 +226,7 @@ int sock_udp_bind(const char *host, uint16_t port)
 }
 
 //#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#if defined (__linux__) || defined (__CYGWIN__) 
+#if defined (OS_LINUX)
 int sock_unix_bind_listen(const char *host, uint16_t port)
 {
     int fd;
@@ -310,21 +304,15 @@ int sock_accept(int fd, uint32_t *ip, uint16_t *port)
 
 void sock_close(int fd)
 {
-	#if defined (__linux__) || defined (__CYGWIN__) 
+#if defined (OS_LINUX)
     close(fd);
-  #endif 
-  #if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
   	closesocket(fd);
-  #endif
-}
-void sock_destory()
-{
-	#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-		WSACleanup();
-  #endif
+    sock_post_deinit_win();
+#endif
 }
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 int sock_get_tcp_info(int fd, struct tcp_info *tcpi)
 {
     socklen_t len = sizeof(*tcpi);
@@ -332,7 +320,7 @@ int sock_get_tcp_info(int fd, struct tcp_info *tcpi)
 }
 #endif
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 int sock_get_local_list(sock_addr_list_t **al, int loopback)
 {
 #ifdef __ANDROID__
@@ -350,7 +338,7 @@ int sock_get_local_list(sock_addr_list_t **al, int loopback)
     *al = NULL;
     for (ifa = ifs; ifa != NULL; ifa = ifa->ifa_next) {
 
-        char saddr[MAX_ADDR_STRING] = "";
+        char saddr[SOCK_ADDR_LEN] = "";
         if (!(ifa->ifa_flags & IFF_UP))
             continue;
         if (!(ifa->ifa_addr))
@@ -358,7 +346,7 @@ int sock_get_local_list(sock_addr_list_t **al, int loopback)
         if (ifa ->ifa_addr->sa_family == AF_INET) {
             if (!inet_ntop(AF_INET,
                            &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr,
-                           saddr, INET_ADDRSTRLEN))
+                           saddr, SOCK_ADDR_LEN))
                 continue;
             if (strstr(saddr,"169.254.") == saddr)
                 continue;
@@ -449,14 +437,14 @@ uint32_t sock_addr_pton(const char *ip)
 int sock_addr_ntop(char *str, uint32_t ip)
 {
     struct in_addr ia;
-    char tmp[MAX_ADDR_STRING];
+    char tmp[SOCK_ADDR_LEN];
 
     ia.s_addr = ip;
-    if (NULL == inet_ntop(AF_INET, &ia, tmp, INET_ADDRSTRLEN)) {
+    if (NULL == inet_ntop(AF_INET, &ia, tmp, SOCK_ADDR_LEN)) {
         printf("inet_ntop: %s\n", strerror(errno));
         return -1;
     }
-    strncpy(str, tmp, INET_ADDRSTRLEN);
+    strncpy(str, tmp, SOCK_ADDR_LEN);
     return 0;
 }
 
@@ -548,7 +536,7 @@ int sock_gethostbyname(sock_addr_list_t **al, const char *name)
     return 0;
 }
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 int sock_get_local_info(void)
 {
     int fd;
@@ -645,7 +633,7 @@ int sock_get_local_info(void)
 
 int sock_set_noblk(int fd, int enable)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
@@ -667,7 +655,7 @@ int sock_set_noblk(int fd, int enable)
 
 int sock_set_block(int fd)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
@@ -685,9 +673,8 @@ int sock_set_block(int fd)
 
 int sock_set_nonblock(int fd)
 {
-    
-#if defined (__linux__) || defined (__CYGWIN__)
-		int flag;
+#if defined (OS_LINUX)
+    int flag;
     flag = fcntl(fd, F_GETFL);
     if (flag == -1) {
         printf("fcntl: %s\n", strerror(errno));
@@ -773,7 +760,7 @@ int sock_send(int fd, const void *buf, size_t len)
     ssize_t n;
     char *p = (char *)buf;
     size_t left = len;
-    size_t step = MTU;
+    size_t step = len;
     int cnt = 0;
 
     if (buf == NULL || len == 0) {//0 length packet no need send

@@ -40,6 +40,9 @@ static void on_recv(int fd, void *arg)
         s->on_buffer(fd, buf, ret);
     } else if (ret == 0) {
         printf("delete connection fd:%d\n", fd);
+        if (s->on_disconnect) {
+            s->on_disconnect(fd, NULL);
+        }
     } else if (ret < 0) {
         printf("recv failed!\n");
     }
@@ -47,22 +50,28 @@ static void on_recv(int fd, void *arg)
 
 static void tcp_on_connect(int fd, void *arg)
 {
-    char str_ip[INET_ADDRSTRLEN];
     int afd;
     uint32_t ip;
     uint16_t port;
-    struct gevent *e =NULL;
+    struct gevent *e = NULL;
     struct sock_server *s = (struct sock_server *)arg;
+    struct sock_connection sc;
+
     afd = sock_accept(fd, &ip, &port);
     if (afd == -1) {
         printf("errno=%d %s\n", errno, strerror(errno));
         return;
     }
-    sock_addr_ntop(str_ip, ip);
-    printf("new connect comming: ip = %s, port = %d\n", str_ip, port);
-    if (0 > sock_set_nonblock(afd)) {
-        printf("sock_set_nonblock failed!\n");
-        return;
+    if (s->on_connect) {
+        sc.fd = afd;
+        sc.type = SOCK_STREAM;
+        if (-1 == sock_getaddr_by_fd(sc.fd, &sc.local)) {
+            printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
+        }
+        sc.remote.ip = ip;
+        sc.remote.port = port;
+        sock_addr_ntop(sc.remote.ip_str, ip);
+        s->on_connect(fd, &sc);
     }
     e = gevent_create(afd, on_recv, NULL, on_error, s);
     if (-1 == gevent_add(s->evbase, &e)) {
@@ -89,7 +98,7 @@ struct sock_server *sock_server_create(const char *host, uint16_t port, enum soc
         break;
     case SOCK_TYPE_UDP:
         s->fd = sock_udp_bind(host, port);
-        sock_set_noblk(s->fd, true);
+        //sock_set_noblk(s->fd, true);
         break;
     default:
         printf("invalid sock_type!\n");
@@ -105,13 +114,17 @@ struct sock_server *sock_server_create(const char *host, uint16_t port, enum soc
 }
 
 int sock_server_set_callback(struct sock_server *s,
-        void (on_buffer)(int, void *arg, size_t len))
+        void (*on_connect)(int fd, struct sock_connection *conn),
+        void (*on_buffer)(int, void *buf, size_t len),
+        void (*on_disconnect)(int fd, struct sock_connection *conn))
 {
     struct gevent *e;
     if (!s) {
         return -1;
     }
+    s->on_connect = on_connect;
     s->on_buffer = on_buffer;
+    s->on_disconnect = on_disconnect;
     switch (s->type) {
     case SOCK_TYPE_UDP:
         e = gevent_create(s->fd, on_recv, NULL, on_error, s);
@@ -139,5 +152,9 @@ int sock_server_dispatch(struct sock_server *s)
 
 void sock_server_destroy(struct sock_server *s)
 {
-
+    if (!s) {
+        return;
+    }
+    gevent_base_loop_break(s->evbase);
+    gevent_base_destroy(s->evbase);
 }

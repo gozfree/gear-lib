@@ -32,19 +32,38 @@ struct sock_server {
     int fd;
     struct sock_connection *conn;
     enum sock_type type;
-    struct sock_addr host;
     struct gevent_base *evbase;
     void (*on_buffer)(int fd, void *buf, size_t len);
-    void (*on_disconnect)(int fd);
+    void (*on_connect)(int fd, struct sock_connection *conn);
+    void (*on_disconnect)(int fd, struct sock_connection *conn);
 };
 
-struct sock_server *sock_server_create(const char *host, uint16_t port, enum sock_type type);
-int sock_server_set_callback(struct sock_server *s,
-        void (on_buffer)(int, void *arg, size_t len));
-int sock_server_dispatch(struct sock_server *s);
-void sock_server_destroy(struct sock_server *s);
+/*
+ * socket server high-level API
+ */
+GEAR_API struct sock_server *sock_server_create(const char *host, uint16_t port, enum sock_type type);
+GEAR_API int sock_server_set_callback(struct sock_server *s,
+        void (*on_connect)(int fd, struct sock_connection *conn),
+        void (*on_buffer)(int, void *buf, size_t len),
+        void (*on_disconnect)(int fd, struct sock_connection *conn));
+GEAR_API int sock_server_dispatch(struct sock_server *s);
+GEAR_API void sock_server_destroy(struct sock_server *s);
+
+/*
+ * socket client high-level API
+ */
+struct sock_client {
+    int fd;
+    struct sock_connection *conn;
+    enum sock_type type;
+    struct gevent_base *evbase;
+    void (*on_buffer)(int fd, void *buf, size_t len);
+    void (*on_connect)(int fd, struct sock_connection *conn);
+    void (*on_disconnect)(int fd, struct sock_connection *conn);
+};
 
 
+GEAR_API struct sock_client *sock_client_create(const char *host, uint16_t port, enum sock_type type);
 
 #ifdef __cplusplus
 }

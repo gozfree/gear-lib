@@ -22,7 +22,7 @@ RM_V		?= $(RM)
 ###############################################################################
 # target and object
 ###############################################################################
-ENABLE_SOCK_EXT = 0
+ENABLE_SOCK_EXT = 1
 LIBNAME		= libsock
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)

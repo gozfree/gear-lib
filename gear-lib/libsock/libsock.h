@@ -27,11 +27,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #if defined (OS_LINUX)
-#include <unistd.h>
-#include <ifaddrs.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <netdb.h>
+#else
 #define INET_ADDRSTRLEN 16
 #endif
 
@@ -41,7 +39,7 @@
 extern "C" {
 #endif
 
-#define MAX_ADDR_STRING (65)
+#define SOCK_ADDR_LEN   (INET_ADDRSTRLEN)
 
 //socket structs
 
@@ -53,7 +51,7 @@ enum sock_type {
 };
 
 typedef struct sock_addr {
-    char ip_str[INET_ADDRSTRLEN];
+    char ip_str[SOCK_ADDR_LEN];
     uint32_t ip;
     uint16_t port;
 } sock_addr_t;
@@ -71,10 +69,10 @@ typedef struct sock_connection {
 } sock_connection_t;
 
 //socket tcp apis
-struct sock_connection *sock_tcp_connect(const char *host, uint16_t port);
-int sock_tcp_bind_listen(const char *host, uint16_t port);
-int sock_accept(int fd, uint32_t *ip, uint16_t *port);
-struct sock_connection *sock_accept_connect(int fd);
+GEAR_API struct sock_connection *sock_tcp_connect(const char *host, uint16_t port);
+GEAR_API int sock_tcp_bind_listen(const char *host, uint16_t port);
+GEAR_API int sock_accept(int fd, uint32_t *ip, uint16_t *port);
+GEAR_API struct sock_connection *sock_accept_connect(int fd);
 
 //socket udp apis
 struct sock_connection *sock_udp_connect(const char *host, uint16_t port);
@@ -86,7 +84,6 @@ int sock_unix_bind_listen(const char *host, uint16_t port);
 
 //socket common apis
 void sock_close(int fd);
-void sock_destory();
 
 int sock_send(int fd, const void *buf, size_t len);
 int sock_sendto(int fd, const char *ip, uint16_t port,
