@@ -54,16 +54,26 @@ GEAR_API void sock_server_destroy(struct sock_server *s);
  */
 struct sock_client {
     int fd;
+    const char *host;
+    uint16_t port;
     struct sock_connection *conn;
     enum sock_type type;
     struct gevent_base *evbase;
+    struct thread *thread;
     void (*on_buffer)(int fd, void *buf, size_t len);
     void (*on_connect)(int fd, struct sock_connection *conn);
     void (*on_disconnect)(int fd, struct sock_connection *conn);
 };
 
-
 GEAR_API struct sock_client *sock_client_create(const char *host, uint16_t port, enum sock_type type);
+GEAR_API int sock_client_set_callback(struct sock_client *c,
+        void (*on_connect)(int fd, struct sock_connection *conn),
+        void (*on_buffer)(int, void *buf, size_t len),
+        void (*on_disconnect)(int fd, struct sock_connection *conn));
+GEAR_API int sock_client_connect(struct sock_client *c);
+GEAR_API int sock_client_disconnect(struct sock_client *c);
+GEAR_API void sock_client_destroy(struct sock_client *c);
+
 
 #ifdef __cplusplus
 }

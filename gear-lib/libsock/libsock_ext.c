@@ -48,6 +48,25 @@ static void on_recv(int fd, void *arg)
     }
 }
 
+static void on_client_recv(int fd, void *arg)
+{
+    char buf[2048];
+    int ret=0;
+    memset(buf, 0, sizeof(buf));
+    struct sock_client *c = (struct sock_client *)arg;
+    ret = sock_recv(fd, buf, 2048);
+    if (ret > 0) {
+        c->on_buffer(fd, buf, ret);
+    } else if (ret == 0) {
+        printf("delete connection fd:%d\n", fd);
+        if (c->on_disconnect) {
+            c->on_disconnect(fd, NULL);
+        }
+    } else if (ret < 0) {
+        printf("recv failed!\n");
+    }
+}
+
 static void tcp_on_connect(int fd, void *arg)
 {
     int afd;
@@ -157,4 +176,80 @@ void sock_server_destroy(struct sock_server *s)
     }
     gevent_base_loop_break(s->evbase);
     gevent_base_destroy(s->evbase);
+}
+
+
+struct sock_client *sock_client_create(const char *host, uint16_t port, enum sock_type type)
+{
+    struct sock_client *c;
+    if (type > SOCK_TYPE_MAX) {
+        printf("invalid paraments\n");
+        return NULL;
+    }
+    c = calloc(1, sizeof(struct sock_client));
+    if (!c) {
+        printf("malloc sock_client failed!\n");
+        return NULL;
+    }
+    c->host = strdup(host);
+    c->port = port;
+    c->type = type;
+    c->evbase = gevent_base_create();
+    if (!c->evbase) {
+        printf("gevent_base_create failed!\n");
+        return NULL;
+    }
+    return c;
+}
+
+int sock_client_set_callback(struct sock_client *c,
+        void (*on_connect)(int fd, struct sock_connection *conn),
+        void (*on_buffer)(int, void *buf, size_t len),
+        void (*on_disconnect)(int fd, struct sock_connection *conn))
+{
+    if (!c) {
+        return -1;
+    }
+    c->on_connect = on_connect;
+    c->on_buffer = on_buffer;
+    c->on_disconnect = on_disconnect;
+
+    return 0;
+}
+
+static void *sock_client_thread(struct thread *thread, void *arg)
+{
+    struct sock_client *c = (struct sock_client *)arg;
+
+    gevent_base_loop(c->evbase);
+    return NULL;
+}
+
+GEAR_API int sock_client_connect(struct sock_client *c)
+{
+    struct gevent *e;
+    switch (c->type) {
+    case SOCK_TYPE_TCP:
+        c->conn = sock_tcp_connect(c->host, c->port);
+        break;
+    case SOCK_TYPE_UDP:
+        c->conn = sock_udp_connect(c->host, c->port);
+        break;
+    default:
+        printf("invalid sock_type!\n");
+        break;
+    }
+    c->fd = c->conn->fd;
+    e = gevent_create(c->conn->fd, on_client_recv, NULL, on_error, c);
+    if (-1 == gevent_add(c->evbase, &e)) {
+        printf("event_add failed!\n");
+    }
+    if (c->conn) {
+        if (c->on_connect) {
+            c->on_connect(c->conn->fd, c->conn);
+        }
+    }
+    c->thread = thread_create(sock_client_thread, c);
+
+    return 0;
 }
