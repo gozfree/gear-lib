@@ -25,8 +25,8 @@ esac
 PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
-BASIC_LIBS="libposix libtime liblog libdarray libgevent libworkq libdict libhash libsort \
-	    librbtree libringbuffer libthread libvector libbase64 libmedia-io \
+BASIC_LIBS="libposix libtime liblog libdarray libthread libgevent libworkq libdict libhash libsort \
+	    librbtree libringbuffer libvector libbase64 libmedia-io \
             libdebug libfile libconfig libuac libuvc libqueue libplugin libhal libsubmask"
 FRAMEWORK_LIBS="libipc"
 NETWORK_LIBS="libsock librpc librtsp librtmpc"
