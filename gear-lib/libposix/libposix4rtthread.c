@@ -19,46 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBPOSIX4RTTHREAD_H
-#define LIBPOSIX4RTTHREAD_H
+#include "libposix4rtthread.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/******************************************************************************
- * basic types
- ******************************************************************************/
-//typedef int                       bool;
-
-struct iovec {
-    void *iov_base;
-    size_t iov_len;
-};
-
-/*
- * below defined iovec to solve redefinition of 'struct iovec' of lwip
- */
-//#define iovec iovec
-ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
-
-/******************************************************************************
- * I/O string APIs
- ******************************************************************************/
-
-/******************************************************************************
- * time APIs
- ******************************************************************************/
-
-/******************************************************************************
- * pthread APIs
- ******************************************************************************/
-
-/******************************************************************************
- * memory APIs
- ******************************************************************************/
-
-#ifdef __cplusplus
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
+{
+    int i;
+    ssize_t len = 0;
+    for (i = 0; i < iovcnt; ++i) {
+        len += write(fd, iov[i].iov_base, iov[i].iov_len);
+    }
+    return len;
 }
-#endif
-#endif
+
+int get_proc_name(char *name, size_t len)
+{
+    snprintf(name, len, "%s", "unsupport");
+    return 0;
+}

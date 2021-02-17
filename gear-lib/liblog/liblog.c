@@ -31,11 +31,11 @@
 #include <errno.h>
 #include <time.h>
 #include <fcntl.h>
-
-#if defined (OS_LINUX)
+#include <pthread.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#include <pthread.h>
+
+#if defined (OS_LINUX)
 #include <unistd.h>
 #include <syslog.h>
 #include <sys/uio.h>
@@ -204,7 +204,7 @@ static unsigned long long get_file_size_by_fp(FILE *fp)
     return size;
 }
 
-#if defined (OS_APPLE) || defined (OS_RTOS)
+#if defined (OS_APPLE) || defined (OS_RTOS) || defined (OS_RTTHREAD)
 static pid_t gettid(void)
 {
     return 0;

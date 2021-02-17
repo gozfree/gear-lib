@@ -104,14 +104,16 @@ int sock_set_reuse(int fd, int enable);
 int sock_set_tcp_keepalive(int fd, int enable);
 int sock_set_buflen(int fd, int len);
 
+#if defined (OS_LINUX)
 int sock_get_tcp_info(int fd, struct tcp_info *ti);
+int sock_get_local_info(void);
+#endif
 int sock_get_local_list(struct sock_addr_list **list, int loopback);
 int sock_gethostbyname(struct sock_addr_list **list, const char *name);
 int sock_getaddrinfo(sock_addr_list_t **list,
                 const char *domain, const char *port);
 int sock_getaddr_by_fd(int fd, struct sock_addr *addr);
 int sock_get_remote_addr_by_fd(int fd, struct sock_addr *addr);
-int sock_get_local_info(void);
 
 #ifdef __cplusplus
 }

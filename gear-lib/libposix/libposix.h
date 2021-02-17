@@ -80,7 +80,7 @@ extern "C" {
 #include "kernel_list.h"
 #define GEAR_API
 
-#elif defined (RT_USING_SMP)
+#elif defined (RT_USING_POSIX)
 #define OS_RTTHREAD
 #include <stdbool.h>
 #include "libposix4rtthread.h"

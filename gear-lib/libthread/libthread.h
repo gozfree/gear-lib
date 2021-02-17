@@ -31,6 +31,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 #define _POSIX_RW_LOCKS
+#elif defined (OS_RTTHREAD)
+#include <pthread.h>
+#include <semaphore.h>
 #endif
 
 #define LIBTHREAD_VERSION "0.1.2"
