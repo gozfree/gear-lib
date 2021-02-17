@@ -27,7 +27,11 @@
 #include <limits.h>
 #include <unistd.h>
 #include <errno.h>
+#if defined (OS_RTTHREAD)
+#include <dfs_poll.h>
+#else
 #include <poll.h>
+#endif
 
 #define POLL_MAX_FD                 (1024)
 #define MAX_SECONDS_IN_MSEC_LONG    (((LONG_MAX) - 999) / 1000)

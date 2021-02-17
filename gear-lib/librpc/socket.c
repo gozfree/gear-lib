@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <errno.h>
 
 #define MAX_UUID_LEN                (21)
@@ -80,7 +81,7 @@ static void on_connect_of_server(int fd, void *arg)
     struct sock_connection *conn;
     struct gevent *e;
     uint32_t uuid;
-    char ip_str[MAX_ADDR_STRING];
+    char ip_str[SOCK_ADDR_LEN];
     c->connect = sock_accept_connect(fd);
     if (!c->connect) {
         printf("sock_accept failed: %d\n", errno);

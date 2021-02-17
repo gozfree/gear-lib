@@ -55,7 +55,8 @@ GEAR_API struct thread *thread_create(void *(*func)(struct thread *, void *), vo
         goto err;
     }
     va_start(ap, arg);
-    type = va_arg(ap, enum lock_type);
+    //type = va_arg(ap, enum lock_type);
+    type = va_arg(ap, int);
     va_end(ap);
 
     if (type != THREAD_LOCK_SPIN && type != THREAD_LOCK_MUTEX &&

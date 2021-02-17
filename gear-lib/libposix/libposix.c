@@ -73,6 +73,7 @@ GEAR_API bool is_little_endian(void)
     return *((uint8_t *) &x);
 }
 
+#if !defined(OS_RTTHREAD)
 GEAR_API int get_proc_name(char *name, size_t len)
 {
     int i, ret;
@@ -101,3 +102,4 @@ GEAR_API int get_proc_name(char *name, size_t len)
     strncpy(name, ptr, ret - i);
     return 0;
 }
+#endif

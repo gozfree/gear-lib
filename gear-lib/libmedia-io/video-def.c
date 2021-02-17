@@ -24,11 +24,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #define ALIGNMENT 32
 #define ALIGN_SIZE(size, align) (((size) + (align - 1)) & (~(align - 1)))
 
-#if defined _ISOC11_SOURCE || __USE_ISOC11 || defined __USE_ISOCXX11
+#if defined _ISOC11_SOURCE || __USE_ISOC11 || defined __USE_ISOCXX11 || __ISO_C_VISIBLE >= 2011
 /*
  * void *aligned_alloc(size_t, size_t) defined in stdlib.h
  */
@@ -442,7 +444,7 @@ void video_producer_dump(struct video_producer *vs)
     }
     printf("==== video producer info ====\n");
     printf("format: %s\n", pixel_format_to_string(vs->format));
-    printf("resolution: %d*%d @ %d/%dfps\n", vs->width, vs->height, vs->framerate.den, vs->framerate.num);
+    printf("resolution: %" PRIu32 "*%" PRIu32 " @ %d/%dfps\n", vs->width, vs->height, vs->framerate.den, vs->framerate.num);
     printf("=============================\n");
 }
 
@@ -476,6 +478,6 @@ void video_encoder_dump(struct video_encoder *ve)
     printf("==== video encoder info ====\n");
     printf("type: %s\n", video_codec_type_to_string(ve->type));
     printf("format: %s\n", pixel_format_to_string(ve->format));
-    printf("resolution: %d*%d @ %d/%dfps\n", ve->width, ve->height, ve->framerate.den, ve->framerate.num);
+    printf("resolution: %" PRIu32 "*%" PRIu32 " @ %d/%dfps\n", ve->width, ve->height, ve->framerate.den, ve->framerate.num);
     printf("============================\n");
 }

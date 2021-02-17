@@ -33,8 +33,12 @@
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
-typedef int SOCKET;
+#elif defined (OS_RTTHREAD)
+#include <sys/socket.h>
+#include <netdb.h>
+#define SOMAXCONN	128
 #endif
+typedef int SOCKET;
 
 #if defined (OS_WINDOWS)
 #pragma warning(disable:4996)
@@ -67,7 +71,7 @@ static struct sock_connection *_sock_connect(int type, const char *host, uint16_
     int domain = -1;
     int protocol = 0;
     struct sockaddr_in si;
-#if 0
+#if defined (OS_LINUX)
     struct sockaddr_un su;
 #endif
     struct sockaddr *sa;
@@ -91,7 +95,7 @@ static struct sock_connection *_sock_connect(int type, const char *host, uint16_
         sa = (struct sockaddr*)&si;
         sa_len = sizeof(si);
         break;
-#if 0
+#if defined (OS_LINUX)
     case SOCK_SEQPACKET:
         snprintf(su.sun_path, sizeof(su.sun_path), "%s", host);
         su.sun_family = PF_UNIX;
@@ -154,7 +158,11 @@ struct sock_connection *sock_udp_connect(const char *host, uint16_t port)
 
 struct sock_connection *sock_unix_connect(const char *host, uint16_t port)
 {
+#if defined (OS_LINUX)
     return _sock_connect(SOCK_SEQPACKET, host, port);
+#else
+    return NULL;
+#endif
 }
 
 int sock_tcp_bind_listen(const char *host, uint16_t port)
@@ -466,7 +474,7 @@ int sock_getaddrinfo(sock_addr_list_t **al, const char *domain, const char *port
 
     ret = getaddrinfo(domain, port, &hints, &ai_list);
     if (ret != 0) {
-        printf("getaddrinfo: %s\n", gai_strerror(ret));
+        //printf("getaddrinfo: %s\n", gai_strerror(ret));
         return -1;
     }
 

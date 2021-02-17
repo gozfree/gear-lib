@@ -28,13 +28,16 @@
 #endif
 #include <errno.h>
 
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
+#endif
+#if defined (OS_LINUX)
 #ifndef __CYGWIN__
 extern const struct gevent_ops epollops;
 #endif
-#elif defined (OS_WINDOWS)
+#endif
+#if defined (OS_WINDOWS)
 extern const struct gevent_ops iocpops;
 #endif
 
@@ -51,13 +54,16 @@ struct gevent_backend {
 };
 
 static struct gevent_backend gevent_backend_list[] = {
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD)
     {GEVENT_SELECT, &selectops},
     {GEVENT_POLL,   &pollops},
+#endif
+#if defined (OS_LINUX)
 #ifndef __CYGWIN__
     {GEVENT_EPOLL,  &epollops},
 #endif
-#elif defined (OS_WINDOWS)
+#endif
+#if defined (OS_WINDOWS)
     {GEVENT_IOCP,   &iocpops},
 #endif
 };
@@ -71,7 +77,7 @@ static void event_in(int fd, void *arg)
 struct gevent_base *gevent_base_create(void)
 {
     struct gevent_base *eb = NULL;
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD)
     int fds[2];
     if (pipe(fds)) {
         perror("pipe failed");
@@ -246,7 +252,7 @@ struct gevent *gevent_timer_create(time_t msec,
         void (ev_timer)(int, void *),
         void *args)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (__CYGWIN__)
     enum gevent_flags flags = 0;
     int fd;
     time_t sec = msec/1000;
