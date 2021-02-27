@@ -41,6 +41,14 @@
 extern "C" {
 #endif
 
+struct rtmp_url {
+    char *addr;
+    char *key;
+    char *username;
+    char *password;
+
+};
+
 struct rtmpc {
     void *base;
     struct flv_muxer *flv;
@@ -52,6 +60,7 @@ struct rtmpc {
 };
 
 GEAR_API struct rtmpc *rtmpc_create(const char *push_url);
+GEAR_API struct rtmpc *rtmpc_create2(struct rtmp_url *url);
 GEAR_API int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt);
 GEAR_API int rtmpc_stream_start(struct rtmpc *rtmpc);
 GEAR_API void rtmpc_stream_stop(struct rtmpc *rtmpc);

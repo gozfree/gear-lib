@@ -120,6 +120,77 @@ failed:
     return NULL;
 }
 
+static inline void set_rtmp_val(AVal *val, char *str, int len)
+{
+    val->av_val = str;
+    val->av_len = len;
+}
+
+struct rtmpc *rtmpc_create2(struct rtmp_url *url)
+{
+    struct rtmpc *rtmpc = (struct rtmpc *)calloc(1, sizeof(struct rtmpc));
+    if (!rtmpc) {
+        printf("malloc rtmpc failed!\n");
+        goto failed;
+    }
+    RTMP *base = RTMP_Alloc();
+    if (!base) {
+        printf("RTMP_Alloc failed!\n");
+        goto failed;
+    }
+    RTMP_Init(base);
+    RTMP_LogSetLevel(RTMP_LOGINFO);
+
+    if (!RTMP_SetupURL(base, url->addr)) {
+        printf("RTMP_SetupURL failed!\n");
+        goto failed;
+    }
+
+    RTMP_EnableWrite(base);
+
+    if (url->username) {
+        set_rtmp_val(&base->Link.pubUser, url->username, strlen(url->username));
+    }
+    if (url->password) {
+        set_rtmp_val(&base->Link.pubPasswd, url->password, strlen(url->password));
+    }
+	base->Link.swfUrl = base->Link.tcUrl;
+    if (url->key) {
+        RTMP_AddStream(base, url->key);
+    }
+
+    if (!RTMP_Connect(base, NULL)) {
+        printf("RTMP_Connect failed!\n");
+        goto failed;
+    }
+    if (!RTMP_ConnectStream(base, 0)){
+        printf("RTMP_ConnectStream failed!\n");
+        goto failed;
+    }
+
+    rtmpc->flv = flv_mux_create(flv_mux_output, base);
+
+    rtmpc->q = queue_create();
+    if (!rtmpc->q) {
+        printf("queue_create failed!\n");
+        goto failed;
+    }
+    queue_set_hook(rtmpc->q, item_alloc_hook, item_free_hook);
+    rtmpc->base = base;
+    rtmpc->is_run = false;
+    rtmpc->is_start = false;
+    return rtmpc;
+
+failed:
+    if (rtmpc) {
+        if (rtmpc->q) {
+            queue_destroy(rtmpc->q);
+        }
+        free(rtmpc);
+    }
+    return NULL;
+}
+
 int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
     return flv_mux_add_media(rtmpc->flv, pkt);
