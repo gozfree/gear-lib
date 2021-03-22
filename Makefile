@@ -111,32 +111,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named dict
-
-# Build rule for target.
-dict: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 dict
-.PHONY : dict
-
-# fast build rule for target.
-dict/fast:
-	$(MAKE) -f CMakeFiles/dict.dir/build.make CMakeFiles/dict.dir/build
-.PHONY : dict/fast
-
-#=============================================================================
-# Target rules for targets named ipc
-
-# Build rule for target.
-ipc: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 ipc
-.PHONY : ipc
-
-# fast build rule for target.
-ipc/fast:
-	$(MAKE) -f CMakeFiles/ipc.dir/build.make CMakeFiles/ipc.dir/build
-.PHONY : ipc/fast
-
-#=============================================================================
 # Target rules for targets named file
 
 # Build rule for target.
@@ -150,30 +124,17 @@ file/fast:
 .PHONY : file/fast
 
 #=============================================================================
-# Target rules for targets named gevent
+# Target rules for targets named ipc
 
 # Build rule for target.
-gevent: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 gevent
-.PHONY : gevent
+ipc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 ipc
+.PHONY : ipc
 
 # fast build rule for target.
-gevent/fast:
-	$(MAKE) -f CMakeFiles/gevent.dir/build.make CMakeFiles/gevent.dir/build
-.PHONY : gevent/fast
-
-#=============================================================================
-# Target rules for targets named log
-
-# Build rule for target.
-log: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 log
-.PHONY : log
-
-# fast build rule for target.
-log/fast:
-	$(MAKE) -f CMakeFiles/log.dir/build.make CMakeFiles/log.dir/build
-.PHONY : log/fast
+ipc/fast:
+	$(MAKE) -f CMakeFiles/ipc.dir/build.make CMakeFiles/ipc.dir/build
+.PHONY : ipc/fast
 
 #=============================================================================
 # Target rules for targets named vector
@@ -200,6 +161,124 @@ queue: cmake_check_build_system
 queue/fast:
 	$(MAKE) -f CMakeFiles/queue.dir/build.make CMakeFiles/queue.dir/build
 .PHONY : queue/fast
+
+#=============================================================================
+# Target rules for targets named hash
+
+# Build rule for target.
+hash: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 hash
+.PHONY : hash
+
+# fast build rule for target.
+hash/fast:
+	$(MAKE) -f CMakeFiles/hash.dir/build.make CMakeFiles/hash.dir/build
+.PHONY : hash/fast
+
+#=============================================================================
+# Target rules for targets named media-io
+
+# Build rule for target.
+media-io: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 media-io
+.PHONY : media-io
+
+# fast build rule for target.
+media-io/fast:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/build
+.PHONY : media-io/fast
+
+#=============================================================================
+# Target rules for targets named dict
+
+# Build rule for target.
+dict: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 dict
+.PHONY : dict
+
+# fast build rule for target.
+dict/fast:
+	$(MAKE) -f CMakeFiles/dict.dir/build.make CMakeFiles/dict.dir/build
+.PHONY : dict/fast
+
+#=============================================================================
+# Target rules for targets named posix
+
+# Build rule for target.
+posix: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 posix
+.PHONY : posix
+
+# fast build rule for target.
+posix/fast:
+	$(MAKE) -f CMakeFiles/posix.dir/build.make CMakeFiles/posix.dir/build
+.PHONY : posix/fast
+
+#=============================================================================
+# Target rules for targets named darray
+
+# Build rule for target.
+darray: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 darray
+.PHONY : darray
+
+# fast build rule for target.
+darray/fast:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/build
+.PHONY : darray/fast
+
+#=============================================================================
+# Target rules for targets named log
+
+# Build rule for target.
+log: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 log
+.PHONY : log
+
+# fast build rule for target.
+log/fast:
+	$(MAKE) -f CMakeFiles/log.dir/build.make CMakeFiles/log.dir/build
+.PHONY : log/fast
+
+#=============================================================================
+# Target rules for targets named gevent
+
+# Build rule for target.
+gevent: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 gevent
+.PHONY : gevent
+
+# fast build rule for target.
+gevent/fast:
+	$(MAKE) -f CMakeFiles/gevent.dir/build.make CMakeFiles/gevent.dir/build
+.PHONY : gevent/fast
+
+src/audio-def.o: src/audio-def.c.o
+
+.PHONY : src/audio-def.o
+
+# target to build an object file
+src/audio-def.c.o:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/audio-def.c.o
+.PHONY : src/audio-def.c.o
+
+src/audio-def.i: src/audio-def.c.i
+
+.PHONY : src/audio-def.i
+
+# target to preprocess a source file
+src/audio-def.c.i:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/audio-def.c.i
+.PHONY : src/audio-def.c.i
+
+src/audio-def.s: src/audio-def.c.s
+
+.PHONY : src/audio-def.s
+
+# target to generate assembly for a file
+src/audio-def.c.s:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/audio-def.c.s
+.PHONY : src/audio-def.c.s
 
 src/epoll.o: src/epoll.c.o
 
@@ -309,6 +388,33 @@ src/io.c.s:
 	$(MAKE) -f CMakeFiles/file.dir/build.make CMakeFiles/file.dir/src/io.c.s
 .PHONY : src/io.c.s
 
+src/libdarray.o: src/libdarray.c.o
+
+.PHONY : src/libdarray.o
+
+# target to build an object file
+src/libdarray.c.o:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/src/libdarray.c.o
+.PHONY : src/libdarray.c.o
+
+src/libdarray.i: src/libdarray.c.i
+
+.PHONY : src/libdarray.i
+
+# target to preprocess a source file
+src/libdarray.c.i:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/src/libdarray.c.i
+.PHONY : src/libdarray.c.i
+
+src/libdarray.s: src/libdarray.c.s
+
+.PHONY : src/libdarray.s
+
+# target to generate assembly for a file
+src/libdarray.c.s:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/src/libdarray.c.s
+.PHONY : src/libdarray.c.s
+
 src/libdict.o: src/libdict.c.o
 
 .PHONY : src/libdict.o
@@ -390,6 +496,33 @@ src/libgevent.c.s:
 	$(MAKE) -f CMakeFiles/gevent.dir/build.make CMakeFiles/gevent.dir/src/libgevent.c.s
 .PHONY : src/libgevent.c.s
 
+src/libhash.o: src/libhash.c.o
+
+.PHONY : src/libhash.o
+
+# target to build an object file
+src/libhash.c.o:
+	$(MAKE) -f CMakeFiles/hash.dir/build.make CMakeFiles/hash.dir/src/libhash.c.o
+.PHONY : src/libhash.c.o
+
+src/libhash.i: src/libhash.c.i
+
+.PHONY : src/libhash.i
+
+# target to preprocess a source file
+src/libhash.c.i:
+	$(MAKE) -f CMakeFiles/hash.dir/build.make CMakeFiles/hash.dir/src/libhash.c.i
+.PHONY : src/libhash.c.i
+
+src/libhash.s: src/libhash.c.s
+
+.PHONY : src/libhash.s
+
+# target to generate assembly for a file
+src/libhash.c.s:
+	$(MAKE) -f CMakeFiles/hash.dir/build.make CMakeFiles/hash.dir/src/libhash.c.s
+.PHONY : src/libhash.c.s
+
 src/libipc.o: src/libipc.c.o
 
 .PHONY : src/libipc.o
@@ -444,6 +577,60 @@ src/liblog.c.s:
 	$(MAKE) -f CMakeFiles/log.dir/build.make CMakeFiles/log.dir/src/liblog.c.s
 .PHONY : src/liblog.c.s
 
+src/libmedia-io.o: src/libmedia-io.c.o
+
+.PHONY : src/libmedia-io.o
+
+# target to build an object file
+src/libmedia-io.c.o:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/libmedia-io.c.o
+.PHONY : src/libmedia-io.c.o
+
+src/libmedia-io.i: src/libmedia-io.c.i
+
+.PHONY : src/libmedia-io.i
+
+# target to preprocess a source file
+src/libmedia-io.c.i:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/libmedia-io.c.i
+.PHONY : src/libmedia-io.c.i
+
+src/libmedia-io.s: src/libmedia-io.c.s
+
+.PHONY : src/libmedia-io.s
+
+# target to generate assembly for a file
+src/libmedia-io.c.s:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/libmedia-io.c.s
+.PHONY : src/libmedia-io.c.s
+
+src/libposix.o: src/libposix.c.o
+
+.PHONY : src/libposix.o
+
+# target to build an object file
+src/libposix.c.o:
+	$(MAKE) -f CMakeFiles/posix.dir/build.make CMakeFiles/posix.dir/src/libposix.c.o
+.PHONY : src/libposix.c.o
+
+src/libposix.i: src/libposix.c.i
+
+.PHONY : src/libposix.i
+
+# target to preprocess a source file
+src/libposix.c.i:
+	$(MAKE) -f CMakeFiles/posix.dir/build.make CMakeFiles/posix.dir/src/libposix.c.i
+.PHONY : src/libposix.c.i
+
+src/libposix.s: src/libposix.c.s
+
+.PHONY : src/libposix.s
+
+# target to generate assembly for a file
+src/libposix.c.s:
+	$(MAKE) -f CMakeFiles/posix.dir/build.make CMakeFiles/posix.dir/src/libposix.c.s
+.PHONY : src/libposix.c.s
+
 src/libqueue.o: src/libqueue.c.o
 
 .PHONY : src/libqueue.o
@@ -470,6 +657,33 @@ src/libqueue.s: src/libqueue.c.s
 src/libqueue.c.s:
 	$(MAKE) -f CMakeFiles/queue.dir/build.make CMakeFiles/queue.dir/src/libqueue.c.s
 .PHONY : src/libqueue.c.s
+
+src/libserializer.o: src/libserializer.c.o
+
+.PHONY : src/libserializer.o
+
+# target to build an object file
+src/libserializer.c.o:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/src/libserializer.c.o
+.PHONY : src/libserializer.c.o
+
+src/libserializer.i: src/libserializer.c.i
+
+.PHONY : src/libserializer.i
+
+# target to preprocess a source file
+src/libserializer.c.i:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/src/libserializer.c.i
+.PHONY : src/libserializer.c.i
+
+src/libserializer.s: src/libserializer.c.s
+
+.PHONY : src/libserializer.s
+
+# target to generate assembly for a file
+src/libserializer.c.s:
+	$(MAKE) -f CMakeFiles/darray.dir/build.make CMakeFiles/darray.dir/src/libserializer.c.s
+.PHONY : src/libserializer.c.s
 
 src/libvector.o: src/libvector.c.o
 
@@ -687,6 +901,33 @@ src/unix_socket.c.s:
 	$(MAKE) -f CMakeFiles/ipc.dir/build.make CMakeFiles/ipc.dir/src/unix_socket.c.s
 .PHONY : src/unix_socket.c.s
 
+src/video-def.o: src/video-def.c.o
+
+.PHONY : src/video-def.o
+
+# target to build an object file
+src/video-def.c.o:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/video-def.c.o
+.PHONY : src/video-def.c.o
+
+src/video-def.i: src/video-def.c.i
+
+.PHONY : src/video-def.i
+
+# target to preprocess a source file
+src/video-def.c.i:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/video-def.c.i
+.PHONY : src/video-def.c.i
+
+src/video-def.s: src/video-def.c.s
+
+.PHONY : src/video-def.s
+
+# target to generate assembly for a file
+src/video-def.c.s:
+	$(MAKE) -f CMakeFiles/media-io.dir/build.make CMakeFiles/media-io.dir/src/video-def.c.s
+.PHONY : src/video-def.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -694,14 +935,21 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... edit_cache"
-	@echo "... dict"
-	@echo "... ipc"
 	@echo "... file"
-	@echo "... gevent"
-	@echo "... log"
+	@echo "... ipc"
 	@echo "... vector"
 	@echo "... queue"
+	@echo "... hash"
+	@echo "... media-io"
+	@echo "... dict"
+	@echo "... posix"
+	@echo "... edit_cache"
+	@echo "... darray"
+	@echo "... log"
+	@echo "... gevent"
+	@echo "... src/audio-def.o"
+	@echo "... src/audio-def.i"
+	@echo "... src/audio-def.s"
 	@echo "... src/epoll.o"
 	@echo "... src/epoll.i"
 	@echo "... src/epoll.s"
@@ -714,6 +962,9 @@ help:
 	@echo "... src/io.o"
 	@echo "... src/io.i"
 	@echo "... src/io.s"
+	@echo "... src/libdarray.o"
+	@echo "... src/libdarray.i"
+	@echo "... src/libdarray.s"
 	@echo "... src/libdict.o"
 	@echo "... src/libdict.i"
 	@echo "... src/libdict.s"
@@ -723,15 +974,27 @@ help:
 	@echo "... src/libgevent.o"
 	@echo "... src/libgevent.i"
 	@echo "... src/libgevent.s"
+	@echo "... src/libhash.o"
+	@echo "... src/libhash.i"
+	@echo "... src/libhash.s"
 	@echo "... src/libipc.o"
 	@echo "... src/libipc.i"
 	@echo "... src/libipc.s"
 	@echo "... src/liblog.o"
 	@echo "... src/liblog.i"
 	@echo "... src/liblog.s"
+	@echo "... src/libmedia-io.o"
+	@echo "... src/libmedia-io.i"
+	@echo "... src/libmedia-io.s"
+	@echo "... src/libposix.o"
+	@echo "... src/libposix.i"
+	@echo "... src/libposix.s"
 	@echo "... src/libqueue.o"
 	@echo "... src/libqueue.i"
 	@echo "... src/libqueue.s"
+	@echo "... src/libserializer.o"
+	@echo "... src/libserializer.i"
+	@echo "... src/libserializer.s"
 	@echo "... src/libvector.o"
 	@echo "... src/libvector.i"
 	@echo "... src/libvector.s"
@@ -756,6 +1019,9 @@ help:
 	@echo "... src/unix_socket.o"
 	@echo "... src/unix_socket.i"
 	@echo "... src/unix_socket.s"
+	@echo "... src/video-def.o"
+	@echo "... src/video-def.i"
+	@echo "... src/video-def.s"
 .PHONY : help
 
 
