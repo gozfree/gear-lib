@@ -22,8 +22,6 @@
 #include "libworkq.h"
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <sys/sysinfo.h>
 
 void test(void *arg)
 {
@@ -49,11 +47,10 @@ int foo2()
 {
     int i = 0;
     wq_pool_init();
-    for (i = 0; i < 10; i++) {
-        printf("%s:%d i = %d\n", __func__, __LINE__, i);
+    for (i = 0; i < 20; i++) {
         wq_pool_task_add(test, (void *)&i, sizeof(int));
     }
-    sleep(1);
+    sleep(4);
     wq_pool_deinit();
     return 0;
 }

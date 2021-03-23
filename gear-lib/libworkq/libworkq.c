@@ -23,86 +23,102 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdarg.h>
-#include <string.h>
-#include <signal.h>
+#if defined (OS_LINUX)
 #include <sys/sysinfo.h>
+#endif
 
-static void wq_worker_destroy(struct worker *w);
+static void worker_destroy(struct worker *w);
 static struct workq_pool _wpool;
 
-static void *wq_thread(void *arg)
+static void *_worker_thread(struct thread *t, void *arg)
 {
     struct workq *wq = (struct workq *)arg;
-    struct worker *w, *n;
+    struct worker *w;
     while (wq->loop) {
-        pthread_mutex_lock(&wq->mutex);
-        list_for_each_entry_safe(w, n, &wq->wq_list, entry) {
-            pthread_mutex_unlock(&wq->mutex);
-            if (w->func) {
-                w->func(w->data);
-            }
-            wq_worker_destroy(w);
-            pthread_mutex_lock(&wq->mutex);
+        thread_lock(t);
+        while (list_empty(&wq->wq_list) && wq->loop) {
+            thread_wait(t, 0);
         }
-        pthread_mutex_unlock(&wq->mutex);
-        gevent_base_wait(wq->evbase);
+        w = list_first_entry_or_null(&wq->wq_list, struct worker, entry);
+        thread_unlock(t);
+        if (w && w->func) {
+            w->func(w->data);
+            worker_destroy(w);
+        }
     }
-
     return NULL;
 }
 
-static struct worker *first_worker(struct workq *wq)
+struct worker *first_worker(struct workq *wq)
 {
     if (list_empty(&wq->wq_list))
         return NULL;
 
-    return list_first_entry(&wq->wq_list, struct worker, entry);
+    return list_first_entry_or_null(&wq->wq_list, struct worker, entry);
 }
-
 
 static int _wq_init(struct workq *wq)
 {
-    if (!wq) {
-        return -1;
-    }
     INIT_LIST_HEAD(&wq->wq_list);
     wq->loop = 1;
-    wq->evbase = gevent_base_create();
-    pthread_mutex_init(&wq->mutex, NULL);
-    pthread_cond_init(&wq->cond, NULL);
-    pthread_create(&wq->tid, NULL, wq_thread, wq);
+    wq->thread = thread_create(_worker_thread, wq);
     return 0;
-}
-
-struct workq *wq_create()
-{
-    struct workq *wq = CALLOC(1, struct workq);
-    if (0 != _wq_init(wq)) {
-        return NULL;
-    }
-    return wq;
 }
 
 static void _wq_deinit(struct workq *wq)
 {
     struct worker *w;
-    if (!wq) {
+    thread_lock(wq->thread);
+    while ((w = first_worker(wq))) {
+        thread_unlock(wq->thread);
+        worker_destroy(w);
+        thread_lock(wq->thread);
+    }
+    wq->loop = 0;
+    thread_signal(wq->thread);
+    thread_unlock(wq->thread);
+    thread_join(wq->thread);
+    thread_destroy(wq->thread);
+}
+
+static void worker_create(struct workq *wq, worker_func_t func, void *data, size_t len)
+{
+    struct worker *w = CALLOC(1, struct worker);
+    if (!w) {
         return;
     }
-    pthread_mutex_lock(&wq->mutex);
-    while ((w = first_worker(wq))) {
-        pthread_mutex_unlock(&wq->mutex);
-        wq_worker_destroy(w);
-        pthread_mutex_lock(&wq->mutex);
+    w->wq = wq;
+    w->func = func;
+    w->data = memdup(data, len);
+    thread_lock(wq->thread);
+    list_add_tail(&w->entry, &wq->wq_list);
+    thread_signal(wq->thread);
+    thread_unlock(wq->thread);
+}
+
+static void worker_destroy(struct worker *w)
+{
+    struct workq *wq;
+    wq = w->wq;
+    thread_lock(wq->thread);
+    list_del_init(&w->entry);
+    thread_unlock(wq->thread);
+    free(w->data);
+    free(w);
+}
+
+/* wq_xxx API */
+struct workq *wq_create()
+{
+    struct workq *wq = CALLOC(1, struct workq);
+    if (!wq) {
+        return NULL;
     }
-    pthread_mutex_unlock(&wq->mutex);
-    wq->loop = 0;
-    gevent_base_signal(wq->evbase);
-    pthread_join(wq->tid, NULL);
-    gevent_base_destroy(wq->evbase);
-    pthread_cond_destroy(&wq->cond);
-    pthread_mutex_destroy(&wq->mutex);
+    if (0 != _wq_init(wq)) {
+        free(wq);
+        return NULL;
+    }
+    return wq;
 }
 
 void wq_destroy(struct workq *wq)
@@ -111,47 +127,18 @@ void wq_destroy(struct workq *wq)
     free(wq);
 }
 
-static void wq_worker_create(struct workq *wq, worker_func_t func, void *data, size_t len)
-{
-    struct worker *w = CALLOC(1, struct worker);
-    if (!w) {
-        return;
-    }
-    w->wq = wq;
-    w->func = func;
-    w->data = calloc(1, len);
-    memcpy(w->data, data, len);
-    pthread_mutex_lock(&wq->mutex);
-    list_add_tail(&w->entry, &wq->wq_list);
-    pthread_mutex_unlock(&wq->mutex);
-    gevent_base_signal(wq->evbase);
-}
-
 void wq_task_add(struct workq *wq, worker_func_t func, void *data, size_t len)
 {
-    wq_worker_create(wq, func, data, len);
+    worker_create(wq, func, data, len);
 }
 
-static void wq_worker_destroy(struct worker *w)
-{
-    struct workq *wq;
-    if (!w) {
-        return;
-    }
-    wq = w->wq;
-    pthread_mutex_lock(&wq->mutex);
-    list_del_init(&w->entry);
-    pthread_mutex_unlock(&wq->mutex);
-    free(w->data);
-    free(w);
-}
-
+/* wq_pool_xxx API */
 int wq_pool_init()
 {
     int i;
-#ifdef __ANDROID__
+#ifdef OS_ANDROID
     int cpus = 1;
-#else
+#elif defined (OS_LINUX)
     int cpus = get_nprocs_conf();
 #endif
     if (cpus <= 0) {
@@ -172,6 +159,7 @@ int wq_pool_init()
     }
     _wpool.cpus = cpus;
     _wpool.ring = 0;
+    printf("create %d cpus thread\n", cpus);
     return 0;
 }
 
@@ -196,6 +184,6 @@ int wq_pool_task_add(worker_func_t func, void *data, size_t len)
     }
     int i = ++_wpool.ring % _wpool.cpus;
     struct workq *wq = _wpool.wq+i;
-    wq_worker_create(wq, func, data, len);
+    worker_create(wq, func, data, len);
     return 0;
 }

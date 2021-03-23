@@ -23,10 +23,9 @@
 #define LIBWORKQ_H
 
 #include <libposix.h>
-#include <libgevent.h>
-#include <pthread.h>
+#include <libthread.h>
 
-#define LIBWORKQ_VERSION "0.1.0"
+#define LIBWORKQ_VERSION "0.1.1"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,11 +33,8 @@ extern "C" {
 
 typedef struct workq {
     int loop;
-    pthread_t tid;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    struct thread *thread;
     struct list_head wq_list;
-    struct gevent_base *evbase;
 } workqueue_t;
 
 typedef struct workq_pool {
