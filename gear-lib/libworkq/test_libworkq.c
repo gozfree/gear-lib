@@ -30,35 +30,25 @@ void test(void *arg)
     printf("%s:%d i=%03d\n", __func__, __LINE__, *i);
 }
 
-static struct workq *g_wq = NULL;
+
 int foo()
 {
     int i = 0;
-    g_wq = wq_create();
-    for (i = 0; i < 4; i++) {
-        wq_task_add(g_wq, test, (void *)&i, sizeof(int));
-    }
-    sleep(1);
-    wq_destroy(g_wq);
-    return 0;
-}
-
-int foo2()
-{
-    int i = 0;
-    wq_pool_init();
+    int array[20] = {0};
+    struct workq_pool *pool = workq_pool_create();
     for (i = 0; i < 20; i++) {
-        wq_pool_task_add(test, (void *)&i, sizeof(int));
+        array[i] = i;
+        workq_pool_task_push(pool, test, &array[i]);
     }
     sleep(4);
-    wq_pool_deinit();
+    workq_pool_destroy(pool);
     return 0;
 }
 
 int main()
 {
     int i = 0;
-    foo2();
+    foo();
     while (1) {
         printf("main loop\n");
         i++;

@@ -23,44 +23,40 @@
 #define LIBWORKQ_H
 
 #include <libposix.h>
+#include <libdarray.h>
 #include <libthread.h>
 
-#define LIBWORKQ_VERSION "0.1.1"
+#define LIBWORKQ_VERSION "0.1.2"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct workq {
-    int loop;
+struct workq {
+    int run;
+    int load;
     struct thread *thread;
     struct list_head wq_list;
-} workqueue_t;
+};
 
 typedef struct workq_pool {
     int cpus;
-    int ring;
-    struct workq *wq;//multi workq
+    int threshold;
+    DARRAY(struct workq *) wq_array;
 } workq_pool_t;
 
-typedef struct worker {
+typedef void (*task_func_t)(void *);
+
+struct task {
     struct list_head entry;
-    void (*func)(void *);
+    task_func_t func;
     void *data;
-    struct workq *wq;//root
-} worker_t;
+    struct workq *wq;
+};
 
-typedef void (*worker_func_t)(void *);
-
-GEAR_API struct workq *wq_create();
-GEAR_API void wq_destroy(struct workq *wq);
-GEAR_API void wq_task_add(struct workq *wq, worker_func_t func, void *data, size_t len);
-
-/* high level */
-GEAR_API int wq_pool_init();
-GEAR_API int wq_pool_task_add(worker_func_t func, void *data, size_t len);
-GEAR_API void wq_pool_deinit();
-
+GEAR_API struct workq_pool *workq_pool_create();
+GEAR_API int workq_pool_task_push(struct workq_pool *p, task_func_t f, void *d);
+GEAR_API void workq_pool_destroy(struct workq_pool *pool);
 
 #ifdef __cplusplus
 }
