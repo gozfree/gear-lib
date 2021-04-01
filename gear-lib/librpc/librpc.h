@@ -25,6 +25,7 @@
 #include <libposix.h>
 #include <libhash.h>
 #include <libdarray.h>
+#include <libworkq.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -202,7 +203,7 @@ struct rpc_session {
 struct rpcs {
     struct rpc_base base;
     struct rpc_session *session_pool;
-    struct workq *wq;
+    struct workq_pool *wq_pool;
     struct hash *dict_fd2rpc;
     struct hash *hash_uuid2fd;
     struct hash *hash_session;

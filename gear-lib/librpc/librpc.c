@@ -23,7 +23,6 @@
 #include <libgevent.h>
 #include <libhash.h>
 #include <libthread.h>
-#include <libworkq.h>
 #include <libtime.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -470,7 +469,7 @@ static int process_msg(struct rpcs *s, struct rpc_session *session, struct rpc_p
         memcpy(&arg->session, session, sizeof(struct rpc_session));
         arg->ibuf = memdup(pkt->payload, h->payload_len);
         arg->ilen = h->payload_len;
-        wq_task_add(s->wq, process_wq, arg, sizeof(struct wq_arg));
+        workq_pool_task_push(s->wq_pool, process_wq, arg);
     } else {
         printf("no callback for this MSG ID(%d) in process_msg\n", h->msg_id);
     }
@@ -509,7 +508,7 @@ struct rpcs *rpc_server_create(const char *host, uint16_t port)
     s->hash_session = hash_create(1024);
     s->hash_fd2session = hash_create(10240);
     s->hash_uuid2fd = hash_create(10240);
-    s->wq = wq_create();
+    s->wq_pool = workq_pool_create();
     s->on_create_session = rpc_session_create;
     s->on_message = on_message_from_client;
     if (s->base.ops->init_server(&s->base, host, port) < 0) {
@@ -532,7 +531,7 @@ void rpc_server_destroy(struct rpcs *s)
         return;
     }
     s->base.ops->deinit(&s->base);
-    wq_destroy(s->wq);
+    workq_pool_destroy(s->wq_pool);
     rpc_base_deinit(&s->base);
     free(s);
 }
