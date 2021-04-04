@@ -467,9 +467,20 @@ retry:
             frame->data[i] = start + frame->plane_offsets[i];
         }
     } else {//frame data copy
-        for (i = 0; i < frame->planes; ++i) {
-            memcpy(frame->data[i], start + frame->plane_offsets[i],
-                   frame->linesize[i]*frame->height);
+        switch (frame->format) {
+        case PIXEL_FORMAT_YUY2:
+            for (i = 0; i < frame->planes; ++i) {
+                memcpy(frame->data[i], start + frame->plane_offsets[i],
+                       frame->linesize[i]*frame->height);
+            }
+            break;
+        case PIXEL_FORMAT_I420:
+            memcpy(frame->data[0], start + frame->plane_offsets[0], frame->linesize[0]*frame->height);
+            memcpy(frame->data[1], start + frame->plane_offsets[1], frame->linesize[1]*frame->height / 2);
+            memcpy(frame->data[2], start + frame->plane_offsets[2], frame->linesize[2]*frame->height / 2);
+            break;
+        default:
+            break;
         }
     }
     frame->total_size = qbuf.bytesused;
