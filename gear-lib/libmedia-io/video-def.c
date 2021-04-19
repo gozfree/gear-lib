@@ -462,9 +462,11 @@ struct video_packet *video_packet_create(void *data, size_t len)
 void video_packet_destroy(struct video_packet *vp)
 {
     if (vp) {
+#if 0
         if (vp->data) {
             free(vp->data);
         }
+#endif
         free(vp);
     }
 }

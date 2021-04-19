@@ -91,9 +91,11 @@ struct audio_packet *audio_packet_create(void *data, size_t len)
 void audio_packet_destroy(struct audio_packet *ap)
 {
     if (ap) {
+#if 0
         if (ap->data) {
             free(ap->data);
         }
+#endif
         free(ap);
     }
 }
