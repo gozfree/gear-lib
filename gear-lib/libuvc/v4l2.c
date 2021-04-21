@@ -462,17 +462,14 @@ retry:
 
     start = (uint8_t *)c->buf[qbuf.index].iov_base;
 
-    if (frame->flag == VFC_NONE) {//frame data ptr
+    if (frame->mem_type == MEDIA_MEM_SHALLOW) {//frame data ptr
         for (i = 0; i < frame->planes; ++i) {
             frame->data[i] = start + frame->plane_offsets[i];
         }
-    } else {//frame data copy
+    } else if (frame->mem_type == MEDIA_MEM_DEEP) {//frame data copy
         switch (frame->format) {
         case PIXEL_FORMAT_YUY2:
-            for (i = 0; i < frame->planes; ++i) {
-                memcpy(frame->data[i], start + frame->plane_offsets[i],
-                       frame->linesize[i]*frame->height);
-            }
+            memcpy(frame->data[0], start + frame->plane_offsets[0], frame->linesize[0]*frame->height);
             break;
         case PIXEL_FORMAT_I420:
             memcpy(frame->data[0], start + frame->plane_offsets[0], frame->linesize[0]*frame->height);
@@ -547,7 +544,7 @@ static void *v4l2_thread(struct thread *t, void *arg)
     if (uvc_v4l2_poll_init(c) == -1) {
         printf("uvc_v4l2_poll_init failed!\n");
     }
-    video_frame_init(&frame, uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_NONE);
+    video_frame_init(&frame, uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
     c->is_streaming = true;
     while (c->is_streaming) {
         if (uvc_v4l2_enqueue(uvc, NULL, 0) != 0) {

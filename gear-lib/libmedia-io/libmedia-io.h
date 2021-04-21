@@ -25,14 +25,34 @@
 #include <libposix.h>
 #include <stdlib.h>
 
-#define LIBMEDIA_IO_VERSION "0.1.0"
-
-#include "audio-def.h"
-#include "video-def.h"
+#define LIBMEDIA_IO_VERSION "0.2.0"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum media_type {
+    MEDIA_TYPE_AUDIO,
+    MEDIA_TYPE_VIDEO,
+    MEDIA_TYPE_SUBTITLE,
+    MEDIA_TYPE_ATTACHMENT,
+    MEDIA_TYPE_DATA,
+    MEDIA_TYPE_MAX
+};
+
+
+/*
+ * define media frame or packet memory copy type:
+ * MEDIA_MEM_DEEP: data point to the memory alloc by uplayer
+ * MEDIA_MEM_SHALLOW: data point to the addr which from hardware or prev stage
+ */
+typedef enum media_mem_type {
+    MEDIA_MEM_SHALLOW = 0,
+    MEDIA_MEM_DEEP,
+} media_mem_type_t;
+
+#include "audio-def.h"
+#include "video-def.h"
 
 /*
  * +--------------+
@@ -43,15 +63,6 @@ extern "C" {
  * |media_consumer|<-(consume)-|
  * +--------------+
  */
-
-enum media_type {
-    MEDIA_TYPE_AUDIO,
-    MEDIA_TYPE_VIDEO,
-    MEDIA_TYPE_SUBTITLE,
-    MEDIA_TYPE_ATTACHMENT,
-    MEDIA_TYPE_DATA,
-    MEDIA_TYPE_MAX
-};
 
 struct media_producer {
     union {
@@ -87,9 +98,9 @@ struct media_packet {
     enum media_type type;
 };
 
-GEAR_API struct media_packet *media_packet_create(enum media_type type, void *data, size_t len);
+GEAR_API struct media_packet *media_packet_create(enum media_type type, media_mem_type_t mem_type, void *data, size_t len);
 GEAR_API void media_packet_destroy(struct media_packet *mp);
-GEAR_API struct media_packet *media_packet_copy(const struct media_packet *src);
+GEAR_API struct media_packet *media_packet_copy(const struct media_packet *src, media_mem_type_t type);
 GEAR_API size_t media_packet_get_size(struct media_packet *mp);
 
 struct media_encoder {

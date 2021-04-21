@@ -208,7 +208,7 @@ static void *dummy_thread(struct thread *t, void *arg)
     if (uvc_dummy_poll_init(c) == -1) {
         printf("uvc_dummy_poll_init failed!\n");
     }
-    frame = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_ALLOC);
+    frame = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_DEEP);
     if (!frame) {
         printf("video_frame_create failed!\n");
         return NULL;

@@ -105,19 +105,16 @@ struct video_frame {
     uint32_t          height;
     uint64_t          timestamp;//ns
     uint64_t          frame_id;
-    int               flag;
+    media_mem_type_t  mem_type;
 };
 
 const char *pixel_format_to_string(enum pixel_format fmt);
 enum pixel_format pixel_string_to_format(const char *name);
 
-#define VFC_NONE    0   /* nothing to do */
-#define VFC_ALLOC   1   /* alloc frame->data */
-
 int video_frame_init(struct video_frame *frame, enum pixel_format format,
-                uint32_t width, uint32_t height, int flag);
+                uint32_t width, uint32_t height, media_mem_type_t type);
 struct video_frame *video_frame_create(enum pixel_format format,
-                uint32_t width, uint32_t height, int flag);
+                uint32_t width, uint32_t height, media_mem_type_t type);
 void video_frame_destroy(struct video_frame *frame);
 struct video_frame *video_frame_copy(struct video_frame *dst,
                 const struct video_frame *src);
@@ -196,7 +193,7 @@ struct video_packet {
     struct video_encoder   encoder;
 };
 
-struct video_packet *video_packet_create(void *data, size_t len);
+struct video_packet *video_packet_create(media_mem_type_t type, void *data, size_t len);
 void video_packet_destroy(struct video_packet *vp);
 
 void video_encoder_dump(struct video_encoder *ve);

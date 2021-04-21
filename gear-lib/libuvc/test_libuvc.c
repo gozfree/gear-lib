@@ -56,7 +56,7 @@ int v4l2_test()
         printf("uvc_open failed!\n");
         return -1;
     }
-    frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_NONE);
+    frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
     if (!frm) {
         printf("video_frame_create failed!\n");
         uvc_close(uvc);
@@ -90,7 +90,7 @@ int dummy_test()
         printf("uvc_open failed!\n");
         return -1;
     }
-    frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, VFC_NONE);
+    frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
     if (!frm) {
         printf("video_frame_create failed!\n");
         uvc_close(uvc);

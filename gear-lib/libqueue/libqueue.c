@@ -31,13 +31,13 @@
 
 #define QUEUE_MAX_DEPTH 200
 
-GEAR_API struct item *item_alloc(struct queue *q, void *data, size_t len, void *arg)
+GEAR_API struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t len, void *arg)
 {
-    struct item *item;
+    struct queue_item *item;
     if (!q || !data || len == 0) {
         return NULL;
     }
-    item = CALLOC(1, struct item);
+    item = CALLOC(1, struct queue_item);
     if (!item) {
         printf("malloc failed!\n");
         return NULL;
@@ -49,11 +49,12 @@ GEAR_API struct item *item_alloc(struct queue *q, void *data, size_t len, void *
         item->data.iov_base = memdup(data, len);
         item->data.iov_len = len;
     }
+    item->arg = arg;
     item->ref_cnt = q->branch_cnt;
     return item;
 }
 
-GEAR_API void item_free(struct queue *q, struct item *item)
+GEAR_API void queue_item_free(struct queue *q, struct queue_item *item)
 {
     if (!q || !item) {
         return;
@@ -67,7 +68,7 @@ GEAR_API void item_free(struct queue *q, struct item *item)
     free(item);
 }
 
-GEAR_API struct iovec *item_get_data(struct queue *q, struct item *it)
+GEAR_API struct iovec *queue_item_get_data(struct queue *q, struct queue_item *it)
 {
     if (!q || !it) {
         return NULL;
@@ -88,7 +89,7 @@ GEAR_API int queue_set_mode(struct queue *q, enum queue_mode mode)
     return 0;
 }
 
-GEAR_API int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb)
+GEAR_API int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_free_hook *free_cb)
 {
     if (!q) {
         return -1;
@@ -137,7 +138,7 @@ GEAR_API struct queue *queue_create()
 
 GEAR_API int queue_flush(struct queue *q)
 {
-    struct item *item, *next;
+    struct queue_item *item, *next;
     if (!q) {
         return -1;
     }
@@ -145,10 +146,10 @@ GEAR_API int queue_flush(struct queue *q)
 #if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
     list_for_each_entry_safe(item, next, &q->head, entry) {
 #elif defined (OS_WINDOWS)
-    list_for_each_entry_safe(item, struct item, next, struct item, &q->head, entry) {
+    list_for_each_entry_safe(item, struct queue_item, next, struct queue_item, &q->head, entry) {
 #endif
         list_del(&item->entry);
-        item_free(q, item);
+        queue_item_free(q, item);
         q->depth--;
     }
     if (q->depth != 0) {
@@ -172,13 +173,13 @@ GEAR_API void queue_destroy(struct queue *q)
 
 static void queue_pop_free(struct queue *q)
 {
-    struct item *tmp = queue_pop(q);
+    struct queue_item *tmp = queue_pop(q);
     if (tmp) {
-        item_free(q, tmp);
+        queue_item_free(q, tmp);
     }
 }
 
-GEAR_API int queue_push(struct queue *q, struct item *item)
+GEAR_API int queue_push(struct queue *q, struct queue_item *item)
 {
     if (!q || !item) {
         printf("invalid paraments!\n");
@@ -203,9 +204,9 @@ GEAR_API int queue_push(struct queue *q, struct item *item)
     return 0;
 }
 
-GEAR_API struct item *queue_pop(struct queue *q)
+GEAR_API struct queue_item *queue_pop(struct queue *q)
 {
-    struct item *item = NULL;
+    struct queue_item *item = NULL;
     if (!q) {
         printf("invalid parament!\n");
         return NULL;
@@ -240,7 +241,7 @@ GEAR_API struct item *queue_pop(struct queue *q)
         }
     }
 
-    item = list_first_entry_or_null(&q->head, struct item, entry);
+    item = list_first_entry_or_null(&q->head, struct queue_item, entry);
     if (item) {
         --item->ref_cnt;
         if (item->ref_cnt <= 0) {
@@ -332,7 +333,7 @@ GEAR_API int queue_branch_notify(struct queue *q)
     return 0;
 }
 
-GEAR_API struct item *queue_branch_pop(struct queue *q, const char *name)
+GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
     char notify = '1';

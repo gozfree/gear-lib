@@ -47,7 +47,7 @@ static void *item_alloc_hook(void *data, size_t len, void *arg)
         printf("calloc packet failed!\n");
         return NULL;
     }
-    struct media_packet *new_pkt = media_packet_copy(pkt);
+    struct media_packet *new_pkt = media_packet_copy(pkt, MEDIA_MEM_SHALLOW);
     return new_pkt;
 }
 
@@ -202,13 +202,13 @@ int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
         printf("%s invalid parament!\n", __func__);
         return -1;
     }
-    struct item *item = NULL;
+    struct queue_item *item = NULL;
     switch (pkt->type) {
     case MEDIA_TYPE_AUDIO:
-        item = item_alloc(rtmpc->q, pkt->audio->data, pkt->audio->size, pkt);
+        item = queue_item_alloc(rtmpc->q, pkt->audio->data, pkt->audio->size, pkt);
         break;
     case MEDIA_TYPE_VIDEO:
-        item = item_alloc(rtmpc->q, pkt->video->data, pkt->video->size, pkt);
+        item = queue_item_alloc(rtmpc->q, pkt->video->data, pkt->video->size, pkt);
         break;
     default:
         break;
@@ -230,14 +230,14 @@ static void *rtmpc_stream_thread(struct thread *t, void *arg)
     queue_flush(rtmpc->q);
     rtmpc->is_run = true;
     while (rtmpc->is_run) {
-        struct item *it = queue_pop(rtmpc->q);
+        struct queue_item *it = queue_pop(rtmpc->q);
         if (!it) {
             usleep(200000);
             continue;
         }
         struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
         flv_write_packet(rtmpc->flv, pkt);
-        item_free(rtmpc->q, it);
+        queue_item_free(rtmpc->q, it);
     }
     return NULL;
 }

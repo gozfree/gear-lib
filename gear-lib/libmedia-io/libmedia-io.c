@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct media_packet *media_packet_create(enum media_type type, void *data, size_t len)
+struct media_packet *media_packet_create(enum media_type type, enum media_mem_type mem_type, void *data, size_t len)
 {
     struct media_packet *mp = calloc(1, sizeof(struct media_packet));
     if (!mp) {
@@ -33,10 +33,10 @@ struct media_packet *media_packet_create(enum media_type type, void *data, size_
     mp->type = type;
     switch (mp->type) {
     case MEDIA_TYPE_AUDIO:
-        mp->audio = audio_packet_create(data, len);
+        mp->audio = audio_packet_create(mem_type, data, len);
         break;
     case MEDIA_TYPE_VIDEO:
-        mp->video = video_packet_create(data, len);
+        mp->video = video_packet_create(mem_type, data, len);
         break;
     default:
         printf("unsupport create %d media packet\n", mp->type);
@@ -64,7 +64,7 @@ void media_packet_destroy(struct media_packet *mp)
     free(mp);
 }
 
-struct media_packet *media_packet_copy(const struct media_packet *src)
+struct media_packet *media_packet_copy(const struct media_packet *src, enum media_mem_type mem_type)
 {
     if (!src)
         return NULL;
@@ -72,13 +72,13 @@ struct media_packet *media_packet_copy(const struct media_packet *src)
     struct media_packet *dst = NULL;
     switch (src->type) {
     case MEDIA_TYPE_VIDEO:
-        dst = media_packet_create(MEDIA_TYPE_VIDEO, NULL, 0);
+        dst = media_packet_create(MEDIA_TYPE_VIDEO, mem_type, NULL, 0);
         memcpy(dst->video, src->video, sizeof(struct video_packet));
         dst->video->data = calloc(1, src->video->size);
         memcpy(dst->video->data, src->video->data, src->video->size);
         break;
     case MEDIA_TYPE_AUDIO:
-        dst = media_packet_create(MEDIA_TYPE_AUDIO, NULL, 0);
+        dst = media_packet_create(MEDIA_TYPE_AUDIO, mem_type, NULL, 0);
         memcpy(dst->audio, src->audio, sizeof(struct audio_packet));
         dst->audio->data = calloc(1, src->audio->size);
         memcpy(dst->audio->data, src->audio->data, src->audio->size);

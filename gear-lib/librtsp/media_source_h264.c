@@ -45,7 +45,7 @@ static void *item_alloc_hook(void *data, size_t len, void *arg)
         loge("calloc packet failed!\n");
         return NULL;
     }
-    struct media_packet *new_pkt = media_packet_copy(pkt);
+    struct media_packet *new_pkt = media_packet_copy(pkt, MEDIA_MEM_SHALLOW);
     logd("media_packet size=%d\n", media_packet_get_size(new_pkt));
     return new_pkt;
 }
@@ -84,13 +84,13 @@ static int h264_parser_frame(struct h264_source_ctx *c, const char *name)
         const uint8_t *nalu2 = h264_find_start_code(nalu + 4, end);
         size_t bytes = nalu2 - nalu;
 
-        struct media_packet *pkt = media_packet_create(MEDIA_TYPE_VIDEO, (uint8_t *)nalu, bytes);
+        struct media_packet *pkt = media_packet_create(MEDIA_TYPE_VIDEO, MEDIA_MEM_SHALLOW, (uint8_t *)nalu, bytes);
         pkt->video->pts = 90000 * count++;
         pkt->video->dts = 90000 * count++;
         pkt->video->encoder.timebase.num = 30;
         pkt->video->encoder.timebase.den = 1;
 
-        struct item *it = item_alloc(c->q, pkt->video->data, pkt->video->size, pkt);
+        struct queue_item *it = queue_item_alloc(c->q, pkt->video->data, pkt->video->size, pkt);
         if (!it) {
             loge("item_alloc packet type %d failed!\n", pkt->type);
             ret = -1;
@@ -139,7 +139,7 @@ static void h264_file_close(struct media_source *ms)
 static int h264_file_read_frame(struct media_source *ms, void **data, size_t *len)
 {
     struct h264_source_ctx *c = (struct h264_source_ctx *)ms->opaque;
-    struct item *it = queue_pop(c->q);
+    struct queue_item *it = queue_pop(c->q);
     *data = (struct media_packet *)it->opaque.iov_base;
     *len = it->opaque.iov_len;
     logd("queue_pop ptr=%p, data=%p, len=%d\n", it->opaque.iov_base, *data, it->opaque.iov_len);

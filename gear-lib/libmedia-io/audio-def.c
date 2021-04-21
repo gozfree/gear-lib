@@ -76,15 +76,27 @@ void audio_producer_dump(struct audio_producer *as)
 
 }
 
-struct audio_packet *audio_packet_create(void *data, size_t len)
+struct audio_packet *audio_packet_create(enum media_mem_type type, void *data, size_t len)
 {
     struct audio_packet *ap;
     ap = calloc(1, sizeof(struct audio_packet));
     if (!ap) {
         return NULL;
     }
-    ap->data = data;
-    ap->size = len;
+    switch (type) {
+    case MEDIA_MEM_DEEP:
+        ap->data = memdup(data, len);
+        ap->size = len;
+        break;
+    case MEDIA_MEM_SHALLOW:
+        ap->data = data;
+        ap->size = len;
+        break;
+    default:
+        printf("%s invalid type!\n", __func__);
+        break;
+    }
+
     return ap;
 }
 

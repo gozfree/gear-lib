@@ -535,7 +535,7 @@ int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt)
         write_meta(s, flv);
 
         if (has_video) {
-            struct video_packet *vpkt = video_packet_create(NULL, 0);
+            struct video_packet *vpkt = video_packet_create(MEDIA_MEM_SHALLOW, NULL, 0);
             parse_avc_header(pkt->video, vpkt);
             vpkt->key_frame = true;
 
@@ -552,7 +552,7 @@ int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt)
     case MEDIA_TYPE_VIDEO:
         strm_idx = 0;
         struct video_packet *vpkt;
-        vpkt = video_packet_create(NULL, 0);
+        vpkt = video_packet_create(MEDIA_MEM_SHALLOW, NULL, 0);
         vpkt->key_frame = true;
         vpkt->dts = pkt->video->dts;
         vpkt->pts = pkt->video->pts;

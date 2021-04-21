@@ -134,7 +134,7 @@ const char *video_codec_type_to_string(enum video_codec_type type)
 }
 
 int video_frame_init(struct video_frame *frame, enum pixel_format format,
-                uint32_t width, uint32_t height, int flag)
+                uint32_t width, uint32_t height, media_mem_type_t mem_type)
 {
     size_t size;
 
@@ -147,7 +147,7 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
     frame->format = format;
     frame->width = width;
     frame->height = height;
-    frame->flag = flag;
+    frame->mem_type = mem_type;
 
     switch (format) {
     case PIXEL_FORMAT_I420:
@@ -160,10 +160,10 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size += (width / 2) * (height / 2);
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = (uint8_t *)aligned_alloc(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
-        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        if (mem_type == MEDIA_MEM_DEEP) {
+           frame->data[0] = (uint8_t *)aligned_alloc(ALIGNMENT, size);
+           frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+           frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width / 2;
@@ -177,9 +177,9 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size += (width / 2) * (height / 2) * 2;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
+            frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width;
@@ -189,8 +189,8 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size = width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
         }
         frame->linesize[0] = width;
         frame->planes = 1;
@@ -201,8 +201,8 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size = width * height * 2;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
         }
         frame->linesize[0] = width * 2;
         frame->planes = 1;
@@ -214,8 +214,8 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size = width * height * 4;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
         }
         frame->linesize[0] = width * 4;
         frame->planes = 1;
@@ -224,10 +224,10 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size = width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size * 3);
-        frame->data[1] = (uint8_t *)frame->data[0] + size;
-        frame->data[2] = (uint8_t *)frame->data[1] + size;
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size * 3);
+            frame->data[1] = (uint8_t *)frame->data[0] + size;
+            frame->data[2] = (uint8_t *)frame->data[1] + size;
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width;
@@ -238,8 +238,8 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size = width * height * 3;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
         }
         frame->linesize[0] = width * 3;
         frame->planes = 1;
@@ -254,10 +254,10 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size += (width / 2) * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
-        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
+            frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+            frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width / 2;
@@ -277,11 +277,11 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size += width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
-        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
-        frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
+            frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+            frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+            frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width / 2;
@@ -302,11 +302,11 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size += width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
-        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
-        frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
+            frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+            frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+            frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width / 2;
@@ -327,11 +327,11 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         size += width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);
         frame->total_size = size;
-        if (flag == VFC_ALLOC) {
-        frame->data[0] = aligned_alloc(ALIGNMENT, size);
-        frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
-        frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
-        frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
+            frame->data[1] = (uint8_t *)frame->data[0] + frame->plane_offsets[1];
+            frame->data[2] = (uint8_t *)frame->data[0] + frame->plane_offsets[2];
+            frame->data[3] = (uint8_t *)frame->data[0] + frame->plane_offsets[3];
         }
         frame->linesize[0] = width;
         frame->linesize[1] = width;
@@ -347,7 +347,7 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
 }
 
 struct video_frame *video_frame_create(enum pixel_format format,
-                uint32_t width, uint32_t height, int flag)
+                uint32_t width, uint32_t height, media_mem_type_t type)
 {
     struct video_frame *frame;
 
@@ -361,7 +361,7 @@ struct video_frame *video_frame_create(enum pixel_format format,
         printf("malloc video frame failed!\n");
         return NULL;
     }
-    if (0 != video_frame_init(frame, format, width, height, flag)) {
+    if (0 != video_frame_init(frame, format, width, height, type)) {
         printf("video_frame_init failed!\n");
         free(frame);
         frame = NULL;
@@ -373,7 +373,7 @@ struct video_frame *video_frame_create(enum pixel_format format,
 void video_frame_destroy(struct video_frame *frame)
 {
     if (frame) {
-        if (frame->flag == VFC_ALLOC) {
+        if (frame->mem_type == MEDIA_MEM_DEEP) {
             aligned_free(frame->data[0]);
         }
         free(frame);
@@ -448,14 +448,26 @@ void video_producer_dump(struct video_producer *vs)
     printf("=============================\n");
 }
 
-struct video_packet *video_packet_create(void *data, size_t len)
+struct video_packet *video_packet_create(media_mem_type_t type, void *data, size_t len)
 {
     struct video_packet *vp = calloc(1, sizeof(struct video_packet));
     if (!vp) {
         return NULL;
     }
-    vp->data = data;
-    vp->size = len;
+    switch (type) {
+    case MEDIA_MEM_DEEP:
+        vp->data = memdup(data, len);
+        vp->size = len;
+        break;
+    case MEDIA_MEM_SHALLOW:
+        vp->data = data;
+        vp->size = len;
+        break;
+    default:
+        printf("%s invalid type!\n", __func__);
+        break;
+    }
+
     return vp;
 }
 

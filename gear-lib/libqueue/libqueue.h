@@ -27,7 +27,7 @@
 #include <pthread.h>
 #endif
 
-#define LIBQUEUE_VERSION "0.1.2"
+#define LIBQUEUE_VERSION "0.2.2"
 
 /*
  * queue is multi-reader single-writer
@@ -48,58 +48,60 @@ enum queue_mode {
 };
 
 
-struct item {
-    struct iovec data;
+struct queue_item {
     struct list_head entry;
-    struct iovec opaque;
-    int ref_cnt;
+    struct iovec     data;
+    struct iovec     opaque;
+    void            *arg;
+    int              ref_cnt;
 };
 
 struct queue;
 
-typedef void *(alloc_hook)(void *data, size_t len, void *arg);
-typedef void (free_hook)(void *data);
+typedef void *(queue_alloc_hook)(void *data, size_t len, void *arg);
+typedef void (queue_free_hook)(void *data);
 
 struct queue_branch {
-    char *name;
-#define RD_FD   fds[0]
-#define WR_FD   fds[1]
-    int fds[2]; //use pipe fds to trigger and poll queue, rfd[0] wfd[1]
+    char             *name;
+    //use pipe fds to trigger and poll queue, rfd[0] wfd[1]
+    int              fds[2];
+#define RD_FD        fds[0]
+#define WR_FD        fds[1]
     struct list_head hook;
 };
 
 struct queue {
-    struct list_head head;
-    int depth;
-    int max_depth;
-    pthread_mutex_t lock;
-    pthread_cond_t cond;
-    enum queue_mode mode;
-    alloc_hook *alloc_hook;
-    free_hook *free_hook;
-    struct list_head branch;
-    int branch_cnt;
-    struct iovec opaque;
+    struct list_head  head;
+    int               depth;
+    int               max_depth;
+    pthread_mutex_t   lock;
+    pthread_cond_t    cond;
+    enum queue_mode   mode;
+    queue_alloc_hook *alloc_hook;
+    queue_free_hook  *free_hook;
+    struct list_head  branch;
+    int               branch_cnt;
+    struct iovec      opaque;
 };
 
-struct item *item_alloc(struct queue *q, void *data, size_t len, void *arg);
-void item_free(struct queue *q, struct item *item);
-struct iovec *item_get_data(struct queue *q, struct item *it);
+struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t len, void *arg);
+void queue_item_free(struct queue *q, struct queue_item *item);
+struct iovec *queue_item_get_data(struct queue *q, struct queue_item *it);
 
 struct queue *queue_create();
 void queue_destroy(struct queue *q);
 int queue_set_depth(struct queue *q, int depth);
 int queue_get_depth(struct queue *q);
 int queue_set_mode(struct queue *q, enum queue_mode mode);
-int queue_set_hook(struct queue *q, alloc_hook *alloc_cb, free_hook *free_cb);
-struct item *queue_pop(struct queue *q);
-int queue_push(struct queue *q, struct item *item);
+int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_free_hook *free_cb);
+struct queue_item *queue_pop(struct queue *q);
+int queue_push(struct queue *q, struct queue_item *item);
 int queue_flush(struct queue *q);
 
 struct queue_branch *queue_branch_new(struct queue *q, const char *name);
 int queue_branch_del(struct queue *q, const char *name);
 int queue_branch_notify(struct queue *q);
-struct item *queue_branch_pop(struct queue *q, const char *name);
+struct queue_item *queue_branch_pop(struct queue *q, const char *name);
 struct queue_branch *queue_branch_get(struct queue *q, const char *name);
 
 #ifdef __cplusplus
