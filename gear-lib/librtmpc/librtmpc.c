@@ -244,7 +244,9 @@ static void *rtmpc_stream_thread(struct thread *t, void *arg)
 
 void rtmpc_stream_stop(struct rtmpc *rtmpc)
 {
+    rtmpc->is_run = false;
     if (rtmpc) {
+        thread_join(rtmpc->thread);
         thread_destroy(rtmpc->thread);
         rtmpc->thread = NULL;
         rtmpc->is_start = false;

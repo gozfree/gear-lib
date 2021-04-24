@@ -383,7 +383,7 @@ void video_frame_destroy(struct video_frame *frame)
 struct video_frame *video_frame_copy(struct video_frame *dst, const struct video_frame *src)
 {
     if (!dst || !src) {
-        printf("invalid paramenters!\n");
+        printf("%s invalid paramenters!\n", __func__);
         return NULL;
     }
     switch (src->format) {
@@ -429,6 +429,7 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
         memcpy(dst->data[3], src->data[3], src->linesize[3] * src->height);
         break;
     default:
+        printf("%s invalid pixel format!\n", __func__);
         return NULL;
     }
     dst->timestamp = src->timestamp;
@@ -454,6 +455,7 @@ struct video_packet *video_packet_create(media_mem_type_t type, void *data, size
     if (!vp) {
         return NULL;
     }
+    vp->mem_type = type;
     switch (type) {
     case MEDIA_MEM_DEEP:
         vp->data = memdup(data, len);
@@ -473,14 +475,48 @@ struct video_packet *video_packet_create(media_mem_type_t type, void *data, size
 
 void video_packet_destroy(struct video_packet *vp)
 {
-    if (vp) {
-#if 0
+    if (!vp)
+        return;
+    switch (vp->mem_type) {
+    case MEDIA_MEM_DEEP:
         if (vp->data) {
             free(vp->data);
         }
-#endif
-        free(vp);
+        break;
+    case MEDIA_MEM_SHALLOW:
+        vp->data = NULL;
+        break;
+    default:
+        printf("%s invalid type!\n", __func__);
+        break;
     }
+    free(vp);
+}
+
+struct video_packet *video_packet_copy(struct video_packet *dst, const struct video_packet *src, media_mem_type_t type)
+{
+    if (!dst || !src) {
+        printf("%s invalid paramenters!\n", __func__);
+        return NULL;
+    }
+    switch (dst->mem_type) {
+    case MEDIA_MEM_SHALLOW:
+        dst->data = src->data;
+        break;
+    case MEDIA_MEM_DEEP:
+        if (!dst->data) {
+            dst->data = calloc(1, src->size);
+        }
+        memcpy(dst->data, src->data, src->size);
+        break;
+    }
+    dst->size = src->size;
+    dst->type = src->type;
+    dst->pts  = src->pts;
+    dst->dts  = src->dts;
+    dst->key_frame = src->key_frame;
+    dst->encoder = src->encoder;
+    return dst;
 }
 
 void video_encoder_dump(struct video_encoder *ve)

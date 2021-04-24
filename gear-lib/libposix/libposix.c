@@ -32,7 +32,11 @@
 
 GEAR_API void *memdup(const void *src, size_t len)
 {
-    void *dst = calloc(1, len);
+    void *dst = NULL;
+    if (len == 0) {
+        return NULL;
+    }
+    dst = calloc(1, len);
     if (LIKELY(dst != NULL)) {
         memcpy(dst, src, len);
     }

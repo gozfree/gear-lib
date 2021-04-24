@@ -83,6 +83,7 @@ struct audio_packet *audio_packet_create(enum media_mem_type type, void *data, s
     if (!ap) {
         return NULL;
     }
+    ap->mem_type = type;
     switch (type) {
     case MEDIA_MEM_DEEP:
         ap->data = memdup(data, len);
@@ -110,6 +111,31 @@ void audio_packet_destroy(struct audio_packet *ap)
 #endif
         free(ap);
     }
+}
+
+struct audio_packet *audio_packet_copy(struct audio_packet *dst, const struct audio_packet *src, media_mem_type_t type)
+{
+    if (!dst || !src) {
+        printf("%s invalid paramenters!\n", __func__);
+        return NULL;
+    }
+    switch (dst->mem_type) {
+    case MEDIA_MEM_SHALLOW:
+        dst->data = src->data;
+        break;
+    case MEDIA_MEM_DEEP:
+        if (!dst->data) {
+            dst->data = calloc(1, src->size);
+        }
+        memcpy(dst->data, src->data, src->size);
+        break;
+    }
+    dst->size = src->size;
+    dst->pts  = src->pts;
+    dst->dts  = src->dts;
+    dst->track_idx = src->track_idx;
+    dst->encoder = src->encoder;
+    return dst;
 }
 
 void audio_encoder_dump(struct audio_encoder *ae)

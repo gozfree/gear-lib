@@ -187,6 +187,7 @@ struct video_packet {
     uint8_t               *data;
     size_t                 size;
     enum video_packet_type type;
+    media_mem_type_t       mem_type;
     uint64_t               pts;
     uint64_t               dts;
     bool                   key_frame;
@@ -195,6 +196,7 @@ struct video_packet {
 
 struct video_packet *video_packet_create(media_mem_type_t type, void *data, size_t len);
 void video_packet_destroy(struct video_packet *vp);
+struct video_packet *video_packet_copy(struct video_packet *dst, const struct video_packet *src, media_mem_type_t type);
 
 void video_encoder_dump(struct video_encoder *ve);
 

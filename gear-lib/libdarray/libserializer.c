@@ -70,6 +70,7 @@ int serializer_array_get_data(struct serializer *s, uint8_t **output, size_t *si
 void serializer_array_reset(struct serializer *s)
 {
     struct array_data *data = s->data;
+    s->free(data);
     memset(data, 0, sizeof(struct array_data));
 }
 

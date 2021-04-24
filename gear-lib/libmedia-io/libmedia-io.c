@@ -73,15 +73,11 @@ struct media_packet *media_packet_copy(const struct media_packet *src, enum medi
     switch (src->type) {
     case MEDIA_TYPE_VIDEO:
         dst = media_packet_create(MEDIA_TYPE_VIDEO, mem_type, NULL, 0);
-        memcpy(dst->video, src->video, sizeof(struct video_packet));
-        dst->video->data = calloc(1, src->video->size);
-        memcpy(dst->video->data, src->video->data, src->video->size);
+        video_packet_copy(dst->video, src->video, mem_type);
         break;
     case MEDIA_TYPE_AUDIO:
         dst = media_packet_create(MEDIA_TYPE_AUDIO, mem_type, NULL, 0);
-        memcpy(dst->audio, src->audio, sizeof(struct audio_packet));
-        dst->audio->data = calloc(1, src->audio->size);
-        memcpy(dst->audio->data, src->audio->data, src->audio->size);
+        audio_packet_copy(dst->audio, src->audio, mem_type);
         break;
     default:
         printf("unsupport copy %d media packet\n", src->type);
