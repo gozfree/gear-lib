@@ -71,13 +71,17 @@
  */
 
 #define LOG_PREFIX_MASK     (0xFFFF)
-#define LOG_FULL_BIT        (1<<31)
-#define LOG_TAG_BIT         (1<<3)
-#define LOG_TIMESTAMP_BIT   (1<<2)
-#define LOG_PIDTID_BIT      (1<<1)
 #define LOG_FUNCLINE_BIT    (1<<0)
+#define LOG_TID_BIT         (1<<1)
+#define LOG_PID_BIT         (1<<2)
+#define LOG_TIMESTAMP_BIT   (1<<3)
+#define LOG_TAG_BIT         (1<<4)
+
+
 #define LOG_VERBOSE_BIT \
-	(LOG_TAG_BIT|LOG_TIMESTAMP_BIT|LOG_PIDTID_BIT|LOG_FUNCLINE_BIT)
+	(LOG_TAG_BIT|LOG_TIMESTAMP_BIT|LOG_PID_BIT|LOG_TID_BIT|LOG_FUNCLINE_BIT)
+#define LOG_DEFAULT_BIT \
+	(LOG_TIMESTAMP_BIT|LOG_TID_BIT|LOG_FUNCLINE_BIT)
 
 #define LOG_TAG_MASK        (0x0F)
 #define LOG_TIMESTAMP_MASK  (0x07)
@@ -100,14 +104,6 @@
 #define is_str_equal(a,b) \
     ((strlen(a) == strlen(b)) && (0 == strcasecmp(a,b)))
 
-#ifdef __GNUC__
-#define LIKELY(x)       (__builtin_expect(!!(x), 1))
-#define UNLIKELY(x)     (__builtin_expect(!!(x), 0))
-#else
-#define LIKELY(x)       (x)
-#define UNLIKELY(x)     (x)
-#endif
-
 #ifndef NAME_MAX
 #define NAME_MAX         255 /* defined in /usr/include/linux/limits.h */
 #endif
@@ -129,16 +125,15 @@ typedef struct log_driver {
 
 /* from /usr/include/sys/syslog.h */
 static const char *_log_level_str[] = {
-    "EMERG",
-    "ALERT",
-    "CRIT",
-    "ERR",
-    "WARN",
-    "NOTICE",
-    "INFO",
-    "DEBUG",
-    "VERBOSE",
-    NULL
+    [LOG_EMERG  ] = "EMERG",
+    [LOG_ALERT  ] = "ALERT",
+    [LOG_CRIT   ] = "CRIT",
+    [LOG_ERR    ] = "ERR",
+    [LOG_WARNING] = "WARN",
+    [LOG_NOTICE ] = "NOTICE",
+    [LOG_INFO   ] = "INFO",
+    [LOG_DEBUG  ] = "DEBUG",
+    [LOG_VERB   ] = "VERBOSE",
 };
 
 
@@ -482,7 +477,7 @@ static int _log_print(int lvl, const char *tag,
     char s_time[LOG_TIME_SIZE];
     char s_lvl[LOG_LEVEL_SIZE];
     char s_tag[LOG_TAG_SIZE];
-    char s_pname[LOG_PNAME_SIZE*2];
+    //char s_pname[LOG_PNAME_SIZE*2];
     char s_pid[LOG_PNAME_SIZE];
     char s_tid[LOG_PNAME_SIZE];
     char s_file[LOG_TEXT_SIZE];
@@ -527,12 +522,13 @@ static int _log_print(int lvl, const char *tag,
                 "[%7s]", _log_level_str[lvl]);
         snprintf(s_msg, sizeof(s_msg), "%s", msg);
     }
-    if (CHECK_LOG_PREFIX(_log_prefix, LOG_PIDTID_BIT)) {
-        snprintf(s_pname, sizeof(s_pname), "[%s ", _proc_name);
-        snprintf(s_pid, sizeof(s_pid), "pid:%d ", getpid());
-        snprintf(s_tid, sizeof(s_tid), "tid:%d]", (int)gettid());
+    if (CHECK_LOG_PREFIX(_log_prefix, LOG_PID_BIT)) {
+        snprintf(s_pid, sizeof(s_pid), "[pid:%d]", getpid());
         snprintf(s_tag, sizeof(s_tag), "[%s]", tag);
-        snprintf(s_file, sizeof(s_file), "[%s:%3d: %s] ", file, line, func);
+    }
+    if (CHECK_LOG_PREFIX(_log_prefix, LOG_TID_BIT)) {
+        snprintf(s_tid, sizeof(s_tid), "[tid:%d]", (int)gettid());
+        snprintf(s_tag, sizeof(s_tag), "[%s]", tag);
     }
     if (CHECK_LOG_PREFIX(_log_prefix, LOG_FUNCLINE_BIT)) {
         snprintf(s_file, sizeof(s_file), "[%s:%3d: %s] ", file, line, func);
@@ -543,11 +539,11 @@ static int _log_print(int lvl, const char *tag,
         vec[++i].iov_base = (void *)s_time;
         vec[i].iov_len = strlen(s_time);
     }
-    if (CHECK_LOG_PREFIX(_log_prefix, LOG_PIDTID_BIT)) {
-        vec[++i].iov_base = (void *)s_pname;
-        vec[i].iov_len = strlen(s_pname);
+    if (CHECK_LOG_PREFIX(_log_prefix, LOG_PID_BIT)) {
         vec[++i].iov_base = (void *)s_pid;
         vec[i].iov_len = strlen(s_pid);
+    }
+    if (CHECK_LOG_PREFIX(_log_prefix, LOG_TID_BIT)) {
         vec[++i].iov_base = (void *)s_tid;
         vec[i].iov_len = strlen(s_tid);
     }
@@ -858,7 +854,7 @@ static void log_init_once(void)
 #ifdef LOG_VERBOSE_ENABLE
     UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
 #endif
-    UPDATE_LOG_PREFIX(_log_prefix, LOG_FUNCLINE_BIT);
+    UPDATE_LOG_PREFIX(_log_prefix, LOG_DEFAULT_BIT);
 
 #ifdef LOG_IO_OPS
     _log_use_io = 1;
