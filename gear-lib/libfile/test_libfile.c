@@ -28,7 +28,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <errno.h>
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #endif

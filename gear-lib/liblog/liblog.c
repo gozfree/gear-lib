@@ -35,7 +35,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <syslog.h>
 #include <sys/uio.h>

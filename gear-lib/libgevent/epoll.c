@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef __CYGWIN__
+#if defined (OS_LINUX)
 #include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>

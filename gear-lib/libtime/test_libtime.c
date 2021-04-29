@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define __STDC_FORMAT_MACROS
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <inttypes.h>
 #endif
 

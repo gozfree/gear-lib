@@ -22,7 +22,7 @@
 #include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <fcntl.h>
 #endif
@@ -77,7 +77,7 @@ static void event_in(int fd, void *arg)
 struct gevent_base *gevent_base_create(void)
 {
     struct gevent_base *eb = NULL;
-#if defined (OS_LINUX) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     int fds[2];
     if (pipe(fds)) {
         perror("pipe failed");

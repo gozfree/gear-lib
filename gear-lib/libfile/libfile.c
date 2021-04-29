@@ -19,15 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <libposix.h>
 #include "libfile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <sys/types.h>
 #include <sys/stat.h>
+#if defined (OS_LINUX)
 #include <sys/statfs.h>
 #include <sys/vfs.h>
+#elif defined (OS_APPLE)
+#include <sys/param.h>
+#include <sys/mount.h>
+#endif
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -281,7 +287,7 @@ struct iovec *file_dump(const char *path)
 
 struct file_systat *file_get_systat(const char *path)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_APPLE)
     int i;
     struct statfs stfs;
     struct file_systat *fi = NULL;

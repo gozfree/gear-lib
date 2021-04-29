@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <sched.h>
 #include <pthread.h>
@@ -489,7 +489,7 @@ int rwlock_unlock(rw_lock_t *ptr)
  *****************************************************************************/
 int sem_lock_init(sem_lock_t *lock)
 {
-#ifndef FREERTOS
+#if defined (OS_LINUX) || (OS_WINDOWS)
     int pshared = 0;//0: threads, 1: processes
     if (0 != sem_init(lock, pshared, 0)) {
         printf("sem_init failed %d:%s\n", errno, strerror(errno));
@@ -501,7 +501,7 @@ int sem_lock_init(sem_lock_t *lock)
 
 void sem_lock_deinit(sem_lock_t *ptr)
 {
-#ifndef FREERTOS
+#if defined (OS_LINUX) || (OS_WINDOWS)
     sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return;
@@ -515,7 +515,7 @@ void sem_lock_deinit(sem_lock_t *ptr)
 int sem_lock_wait(sem_lock_t *ptr, int64_t ms)
 {
     int ret = 0;
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     struct timespec ts;
     sem_t *lock = (sem_t *)ptr;
     if (!ptr) {

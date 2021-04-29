@@ -25,7 +25,7 @@
 #include <libposix.h>
 #include <stdio.h>
 #include <stdint.h>
-#ifdef OS_LINUX
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <stdbool.h>
 #define _GNU_SOURCE
 #include <pthread.h>

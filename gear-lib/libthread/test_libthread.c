@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #endif
 
