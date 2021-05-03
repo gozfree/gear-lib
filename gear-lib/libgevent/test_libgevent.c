@@ -21,9 +21,11 @@
  ******************************************************************************/
 #include "libgevent.h"
 #include <stdio.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
+#if defined (OS_LINUX)
 #include <sys/sysinfo.h>
+#endif
 #endif
 #include <signal.h>
 
@@ -61,12 +63,12 @@ static int foo(void)
     }
     event_2000 = gevent_timer_create(2000, TIMER_PERSIST, on_time, NULL);
     if (!event_2000) {
-        printf("gevent_create failed!\n");
+        printf("gevent_timer_create failed!\n");
         return -1;
     }
     event_1500 = gevent_timer_create(1500, TIMER_PERSIST, on_time, NULL);
     if (!event_1500) {
-        printf("gevent_create failed!\n");
+        printf("gevent_timer_create failed!\n");
         return -1;
     }
     if (-1 == gevent_add(evbase, &event_stdin)) {

@@ -28,7 +28,7 @@
 #endif
 #include <errno.h>
 
-#if defined (OS_LINUX) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
 #endif
@@ -54,7 +54,7 @@ struct gevent_backend {
 };
 
 static struct gevent_backend gevent_backend_list[] = {
-#if defined (OS_LINUX) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     {GEVENT_SELECT, &selectops},
     {GEVENT_POLL,   &pollops},
 #endif
@@ -68,7 +68,11 @@ static struct gevent_backend gevent_backend_list[] = {
 #endif
 };
 
+#if defined (OS_LINUX)
 #define GEVENT_BACKEND GEVENT_EPOLL
+#elif defined (OS_APPLE)
+#define GEVENT_BACKEND GEVENT_POLL
+#endif
 
 static void event_in(int fd, void *arg)
 {
@@ -102,7 +106,7 @@ struct gevent_base *gevent_base_create(void)
     eb->loop = 1;
     eb->rfd = fds[0];
     eb->wfd = fds[1];
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_APPLE)
     fcntl(fds[0], F_SETFL, fcntl(fds[0], F_GETFL) | O_NONBLOCK);
 #endif
     da_init(eb->ev_array);
@@ -252,7 +256,7 @@ struct gevent *gevent_timer_create(time_t msec,
         void (ev_timer)(int, void *),
         void *args)
 {
-#if defined (OS_LINUX) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     enum gevent_flags flags = 0;
     int fd;
     time_t sec = msec/1000;

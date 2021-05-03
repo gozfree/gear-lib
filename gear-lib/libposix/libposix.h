@@ -61,6 +61,7 @@ extern "C" {
 #define OS_APPLE
 #include <stdbool.h>
 #include <sys/uio.h>
+#include "kernel_list.h"
 #define GEAR_API
 
 /******************************************************************************

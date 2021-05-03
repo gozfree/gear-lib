@@ -24,7 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #include "libqueue.h"
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <sys/time.h>
 #endif
@@ -143,7 +143,7 @@ GEAR_API int queue_flush(struct queue *q)
         return -1;
     }
     pthread_mutex_lock(&q->lock);
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     list_for_each_entry_safe(item, next, &q->head, entry) {
 #elif defined (OS_WINDOWS)
     list_for_each_entry_safe(item, struct queue_item, next, struct queue_item, &q->head, entry) {
@@ -214,7 +214,7 @@ GEAR_API struct queue_item *queue_pop(struct queue *q)
 
     pthread_mutex_lock(&q->lock);
     while (list_empty(&q->head)) {
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
         struct timeval now;
         struct timespec outtime;
         gettimeofday(&now, NULL);
@@ -275,7 +275,7 @@ GEAR_API int queue_branch_del(struct queue *q, const char *name)
     if (!q || !name) {
         return -1;
     }
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
@@ -300,7 +300,7 @@ GEAR_API struct queue_branch *queue_branch_get(struct queue *q, const char *name
         return NULL;
     }
 
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
@@ -320,7 +320,7 @@ GEAR_API int queue_branch_notify(struct queue *q)
         return -1;
     }
 
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
@@ -341,7 +341,7 @@ GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name)
     if (!q || !name) {
         return NULL;
     }
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     list_for_each_entry_safe(qb, next, &q->branch, hook) {
 #elif defined (OS_WINDOWS)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
