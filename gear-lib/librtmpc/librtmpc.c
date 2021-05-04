@@ -246,6 +246,7 @@ void rtmpc_stream_stop(struct rtmpc *rtmpc)
 {
     rtmpc->is_run = false;
     if (rtmpc) {
+        queue_flush(rtmpc->q);
         thread_join(rtmpc->thread);
         thread_destroy(rtmpc->thread);
         rtmpc->thread = NULL;

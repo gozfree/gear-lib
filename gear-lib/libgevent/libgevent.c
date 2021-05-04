@@ -138,11 +138,11 @@ void gevent_base_destroy(struct gevent_base *eb)
     close(eb->rfd);
     close(eb->wfd);
     eb->ops->deinit(eb->ctx);
-    do {
+    while (eb->ev_array.num > 0) {
         struct gevent **e = eb->ev_array.array + eb->ev_array.num-1;
         da_erase_item(eb->ev_array, e);
         free(*e);
-    } while (eb->ev_array.num > 0);
+    }
     da_free(eb->ev_array);
     free(eb);
 }

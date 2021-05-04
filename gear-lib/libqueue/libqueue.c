@@ -255,8 +255,12 @@ GEAR_API struct queue_item *queue_pop(struct queue *q)
 
 GEAR_API struct queue_branch *queue_branch_new(struct queue *q, const char *name)
 {
-    struct queue_branch *qb = CALLOC(1, struct queue_branch);
-    if (!q || !qb || !name) {
+    struct queue_branch *qb;
+    if (!q || !name) {
+        return NULL;
+    }
+    qb = CALLOC(1, struct queue_branch);
+    if (!qb) {
         return NULL;
     }
     if (pipe(qb->fds)) {
