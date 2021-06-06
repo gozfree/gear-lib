@@ -63,10 +63,7 @@ typedef void (queue_free_hook)(void *data);
 
 struct queue_branch {
     char             *name;
-    //use pipe fds to trigger and poll queue, rfd[0] wfd[1]
-    int              fds[2];
-#define RD_FD        fds[0]
-#define WR_FD        fds[1]
+    int              evfd;
     struct list_head hook;
 };
 

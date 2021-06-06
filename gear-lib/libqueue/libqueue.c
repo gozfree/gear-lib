@@ -27,6 +27,7 @@
 #if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <sys/time.h>
+#include <sys/eventfd.h>
 #endif
 
 #define QUEUE_MAX_DEPTH 200
@@ -263,8 +264,8 @@ GEAR_API struct queue_branch *queue_branch_new(struct queue *q, const char *name
     if (!qb) {
         return NULL;
     }
-    if (pipe(qb->fds)) {
-        printf("create pipe failed: %s\n", strerror(errno));
+    if (-1 == (qb->evfd = eventfd(0, 0))) {
+        printf("eventfd failed: %s\n", strerror(errno));
         return NULL;
     }
     qb->name = strdup(name);
@@ -286,8 +287,7 @@ GEAR_API int queue_branch_del(struct queue *q, const char *name)
 #endif
         if (!strcmp(qb->name, name)) {
             list_del(&qb->hook);
-            close(qb->fds[0]);
-            close(qb->fds[1]);
+            close(qb->evfd);
             free(qb->name);
             free(qb);
             q->branch_cnt--;
@@ -319,7 +319,7 @@ GEAR_API struct queue_branch *queue_branch_get(struct queue *q, const char *name
 GEAR_API int queue_branch_notify(struct queue *q)
 {
     struct queue_branch *qb, *next;
-    char notify = '1';
+    uint64_t notify = '1';
     if (!q) {
         return -1;
     }
@@ -330,8 +330,8 @@ GEAR_API int queue_branch_notify(struct queue *q)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
 #endif
 
-        if (write(qb->WR_FD, &notify, sizeof(notify)) != 1) {
-            printf("write pipe failed: %s\n", strerror(errno));
+        if (write(qb->evfd, &notify, sizeof(notify)) != sizeof(uint64_t)) {
+            printf("write eventfd failed: %s\n", strerror(errno));
         }
     }
     return 0;
@@ -340,7 +340,7 @@ GEAR_API int queue_branch_notify(struct queue *q)
 GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
-    char notify = '1';
+    uint64_t notify = '1';
 
     if (!q || !name) {
         return NULL;
@@ -352,8 +352,8 @@ GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name)
 #endif
 
         if (!strcmp(qb->name, name)) {
-            if (read(qb->RD_FD, &notify, sizeof(notify)) != 1) {
-                printf("read pipe failed: %s\n", strerror(errno));
+            if (read(qb->evfd, &notify, sizeof(notify)) != sizeof(uint64_t)) {
+                printf("read eventfd failed: %s\n", strerror(errno));
             }
             return queue_pop(q);
         }

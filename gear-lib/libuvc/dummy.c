@@ -29,11 +29,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <sys/eventfd.h>
 
 struct dummy_ctx {
     int fd;
-    int rd_fd;
-    int wr_fd;
+    int ev_fd;
     uint64_t seek_offset;
     uint64_t first_ts;
     uint64_t frame_id;
@@ -49,7 +49,6 @@ struct dummy_ctx {
 
 static void *uvc_dummy_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf)
 {
-    int fds[2];
     struct dummy_ctx *c = calloc(1, sizeof(struct dummy_ctx));
     if (!c) {
         printf("malloc dummy_ctx failed!\n");
@@ -63,13 +62,12 @@ static void *uvc_dummy_open(struct uvc_ctx *uvc, const char *dev, struct uvc_con
     }
     c->frame_id = 0;
     c->seek_offset = 0;
-
-    if (pipe(fds)) {
-        printf("create pipe failed(%d): %s\n", errno, strerror(errno));
+    c->ev_fd = eventfd(0, 0);
+    if (c->ev_fd == -1) {
+        printf("eventfd failed %d\n", errno);
         goto failed;
     }
-    c->rd_fd = fds[0];
-    c->wr_fd = fds[1];
+    printf("eventfd fd=%d\n", c->ev_fd);
 
     memcpy(&uvc->conf, conf, sizeof(struct uvc_config));
     c->parent = uvc;
@@ -96,14 +94,14 @@ static int msleep(uint64_t ms)
 
 static int uvc_dummy_enqueue(struct uvc_ctx *uvc, void *buf, size_t len)
 {
-    char notify = '1';
+    uint64_t notify = '1';
     uint64_t delay_ms = 0;
     struct dummy_ctx *c = (struct dummy_ctx *)uvc->opaque;
 
     delay_ms = (1000)/(uvc->conf.fps.num/(uvc->conf.fps.den*1.0));
     msleep(delay_ms);
-    if (write(c->wr_fd, &notify, 1) != 1) {
-        printf("Failed writing to notify pipe\n");
+    if (write(c->ev_fd, &notify, sizeof(uint64_t)) != sizeof(uint64_t)) {
+        printf("%s failed to notify ev_fd=%d, %d\n", __func__, c->ev_fd, errno);
         return -1;
     }
     return 0;
@@ -114,12 +112,12 @@ static int uvc_dummy_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
     int i;
     ssize_t ret;
     size_t len;
-    char notify;
+    uint64_t notify;
     struct timespec ts;
     struct dummy_ctx *c = (struct dummy_ctx *)uvc->opaque;
 
-    if (read(c->rd_fd, &notify, sizeof(notify)) != 1) {
-        printf("Failed read from notify pipe\n");
+    if (read(c->ev_fd, &notify, sizeof(notify)) != sizeof(uint64_t)) {
+        printf("failed to read from notify %d\n", errno);
         return -1;
     }
 
@@ -161,7 +159,7 @@ static int uvc_dummy_poll_init(struct dummy_ctx *c)
 
     epev.events = EPOLLIN | EPOLLOUT | EPOLLPRI | EPOLLET | EPOLLERR;
     epev.data.ptr = (void *)c;
-    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_ADD, c->rd_fd, &epev)) {
+    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_ADD, c->ev_fd, &epev)) {
         printf("epoll_ctl EPOLL_CTL_ADD failed %d!\n", errno);
         return -1;
     }
@@ -193,7 +191,7 @@ static int uvc_dummy_poll(struct uvc_ctx *uvc, int timeout)
 
 static void uvc_dummy_poll_deinit(struct dummy_ctx *c)
 {
-    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_DEL, c->rd_fd, NULL)) {
+    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_DEL, c->ev_fd, NULL)) {
         printf("epoll_ctl EPOLL_CTL_DEL failed %d!\n", errno);
     }
     close(c->epfd);
@@ -236,7 +234,7 @@ static void *dummy_thread(struct thread *t, void *arg)
 
 static int uvc_dummy_start_stream(struct uvc_ctx *uvc)
 {
-    char notify = '1';
+    uint64_t notify = '1';
     struct dummy_ctx *c = (struct dummy_ctx *)uvc->opaque;
 
     if (c->is_streaming) {
@@ -244,8 +242,8 @@ static int uvc_dummy_start_stream(struct uvc_ctx *uvc)
         return -1;
     }
 
-    if (write(c->wr_fd, &notify, 1) != 1) {
-        printf("Failed writing to notify pipe\n");
+    if (write(c->ev_fd, &notify, sizeof(uint64_t)) != sizeof(uint64_t)) {
+        printf("%s failed to notify ev_fd=%d, %d\n", __func__, c->ev_fd, errno);
         return -1;
     }
 
@@ -259,15 +257,15 @@ static int uvc_dummy_start_stream(struct uvc_ctx *uvc)
 static int uvc_dummy_stop_stream(struct uvc_ctx *uvc)
 {
     struct dummy_ctx *c = (struct dummy_ctx *)uvc->opaque;
-    char notify = '1';
+    uint64_t notify = '1';
 
     if (!c->is_streaming) {
         printf("dummy stream stopped already!\n");
         return -1;
     }
 
-    if (write(c->wr_fd, &notify, 1) != 1) {
-        printf("Failed writing to notify pipe\n");
+    if (write(c->ev_fd, &notify, sizeof(uint64_t)) != sizeof(uint64_t)) {
+        printf("%s failed to notify ev_fd=%d, %d\n", __func__, c->ev_fd, errno);
         return -1;
     }
 
@@ -299,8 +297,7 @@ static void uvc_dummy_close(struct uvc_ctx *uvc)
     uvc_dummy_stop_stream(uvc);
     close(c->fd);
     close(c->epfd);
-    close(c->rd_fd);
-    close(c->wr_fd);
+    close(c->ev_fd);
     free(c);
 }
 
