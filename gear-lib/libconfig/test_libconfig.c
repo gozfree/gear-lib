@@ -50,6 +50,8 @@ static int json_test(void)
     printf("id = %s\n", conf_get_string(conf, "test", "rgn", 1, "id"));
     printf("port= %d\n", conf_get_int(conf, "test", "rgn", 1, "port"));
     conf_set_string(conf, "test", "rgn", 1, "id", "update");
+    printf("id= %s\n", conf_get_string(conf, "test", "rgn", 1, "id"));
+    conf_save(conf);
     conf_unload(conf);
 
     return 0;

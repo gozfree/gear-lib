@@ -26,58 +26,85 @@
 #include <stdarg.h>
 #include <string.h>
 
-static char *read_file(const char *filename)
+static int read_file(const char *name, void **buf, size_t *len)
 {
-    FILE *file = NULL;
-    long length = 0;
-    char *content = NULL;
-    size_t read_chars = 0;
+    FILE *fp = NULL;
+    size_t flen = 0;
+    char *tmp = NULL;
+    size_t ret = 0;
 
-    file = fopen(filename, "rb");
-    if (file == NULL) {
-        goto cleanup;
-    }
-
-    if (fseek(file, 0, SEEK_END) != 0) {
-        goto cleanup;
-    }
-    length = ftell(file);
-    if (length < 0) {
-        goto cleanup;
-    }
-    if (fseek(file, 0, SEEK_SET) != 0) {
+    fp = fopen(name, "r+");
+    if (fp == NULL) {
         goto cleanup;
     }
 
-    content = (char*)malloc((size_t)length + sizeof(""));
-    if (content == NULL) {
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        goto cleanup;
+    }
+    flen = ftell(fp);
+    if (flen < 0) {
+        goto cleanup;
+    }
+    if (fseek(fp, 0, SEEK_SET) != 0) {
         goto cleanup;
     }
 
-    read_chars = fread(content, sizeof(char), (size_t)length, file);
-    if ((long)read_chars != length) {
-        free(content);
-        content = NULL;
+    tmp = (char*)malloc(flen + sizeof(""));
+    if (tmp == NULL) {
         goto cleanup;
     }
-    content[read_chars] = '\0';
+
+    ret = fread(tmp, sizeof(char), flen, fp);
+    if (ret != flen) {
+        free(tmp);
+        goto cleanup;
+    }
+    tmp[ret] = '\0';
+
+    *buf = tmp;
+    *len = flen;
 
 cleanup:
-    if (file != NULL) {
-        fclose(file);
+    if (fp != NULL) {
+        fclose(fp);
     }
-    return content;
+    return flen;
+}
+
+static int write_file(const char *name, const void *buf, size_t len)
+{
+    FILE *fp = NULL;
+    size_t ret = 0;
+
+    fp = fopen(name, "w+");
+    if (fp == NULL) {
+        goto cleanup;
+    }
+
+    ret = fwrite(buf, sizeof(char), len, fp);
+    if (ret != len) {
+        printf("write to %s failed: written=%zu, expect=%zu", name, ret, len);
+        goto cleanup;
+    }
+
+cleanup:
+    if (fp != NULL) {
+        fclose(fp);
+    }
+    return ret;
 }
 
 static int js_load(struct config *c, const char *name)
 {
     cJSON *json;
-    char *buf = read_file(name);
+    size_t len;
+    void *buf;
+    read_file(name, &buf, &len);
     if (!buf) {
         printf("read_file %s failed!\n", name);
         return -1;
     }
-    json = cJSON_Parse(buf);
+    json = cJSON_Parse((char *)buf);
     if (!json) {
         printf("cJSON_Parse failed!\n");
         free(buf);
@@ -108,7 +135,7 @@ static int js_set_string(struct config *c, ...)
     }
     va_end(ap);
 
-    for (i = 0; i < cnt-1; i++) {
+    for (i = 0; i < cnt-2; i++) {
         switch (type_list[i].type) {
         case TYPE_INT:
             json = cJSON_GetArrayItem(json, type_list[i].ival-1);
@@ -120,7 +147,8 @@ static int js_set_string(struct config *c, ...)
             break;
         }
     }
-    cJSON_AddItemToObject(json, type_list[cnt-2].cval, cJSON_CreateString(type_list[cnt-1].cval));
+    cJSON_ReplaceItemInObject(json, type_list[cnt-2].cval,
+                              cJSON_CreateString(type_list[cnt-1].cval));
     free(type_list);
     return 0;
 }
@@ -280,6 +308,17 @@ static void js_dump(struct config *c, FILE *f)
     }
 }
 
+static int js_save(struct config *c)
+{
+    cJSON *json = (cJSON *)c->priv;
+    char *tmp = cJSON_Print(json);
+    if (tmp) {
+        write_file(c->path, tmp, strlen(tmp));
+        free(tmp);
+    }
+    return 0;
+}
+
 static void js_unload(struct config *c)
 {
     cJSON *json = (cJSON *)c->priv;
@@ -299,6 +338,6 @@ struct config_ops json_ops = {
     NULL,
     NULL,
     js_dump,
-    NULL,
+    js_save,
     js_unload,
 };
