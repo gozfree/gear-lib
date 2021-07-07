@@ -23,19 +23,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 
-
-static ptcp_socket_t *g_src, *g_cli;
-
-static ptcp_socket_t *server(const char *host, uint16_t port)
+static int server(const char *host, uint16_t port)
 {
-    ptcp_socket_t *sock = ptcp_socket();
-    if (sock == NULL) {
+    ptcp_socket_t ptcp = ptcp_socket();
+    if (ptcp == NULL) {
         printf("ptcp_socket error!\n");
-        return NULL;
+        return -1;
     }
 
     struct sockaddr_in si;
@@ -43,21 +41,21 @@ static ptcp_socket_t *server(const char *host, uint16_t port)
     si.sin_addr.s_addr = host ? inet_addr(host) : INADDR_ANY;
     si.sin_port = htons(port);
 
-    ptcp_bind(sock, (struct sockaddr*)&si, sizeof(si));
-    ptcp_listen(sock, 0);
+    ptcp_bind(ptcp, (struct sockaddr*)&si, sizeof(si));
+    ptcp_listen(ptcp, 0);
 
     struct sockaddr remote;
     socklen_t addrlen;
-    ptcp_accept(sock, &remote, &addrlen);
+    ptcp_accept(ptcp, &remote, &addrlen);
 
 #if 1
     int len;
     char buf[32] = {0};
     while (1) {
         memset(buf, 0, sizeof(buf));
-        printf("before ptcp_recv\n");
-        len = ptcp_recv(sock, buf, sizeof(buf), 0);
-        printf("ptcp_recv len=%d, buf=%s\n", len, buf);
+        //printf("before ptcp_recv\n");
+        len = ptcp_recv(ptcp, buf, sizeof(buf), 0);
+        //printf("ptcp_recv len=%d, buf=%s\n", len, buf);
         buf[sizeof(buf)-1] = '\0';
         if (len > 0) {
             printf("ptcp_recv len=%d, buf=%s\n", len, buf);
@@ -76,22 +74,22 @@ static ptcp_socket_t *server(const char *host, uint16_t port)
     return 0;
 }
 
-static ptcp_socket_t *client(const char *host, uint16_t port)
+static int client(const char *host, uint16_t port)
 {
     int i, len, ret;
     char buf[128] = {0};
     struct sockaddr_in si;
 
-    ptcp_socket_t *sock = ptcp_socket();
-    if (sock == NULL) {
+    ptcp_socket_t ptcp = ptcp_socket();
+    if (ptcp == NULL) {
         printf("error!\n");
-        return NULL;
+        return -1;
     }
 
     si.sin_family = AF_INET;
     si.sin_addr.s_addr = inet_addr(host);
     si.sin_port = htons(port);
-    ret = ptcp_connect(sock, (struct sockaddr*)&si, sizeof(si));
+    ret = ptcp_connect(ptcp, (struct sockaddr*)&si, sizeof(si));
     if (ret < 0) {
         printf("ptcp_connect failed!\n");
     }
@@ -102,11 +100,11 @@ static ptcp_socket_t *client(const char *host, uint16_t port)
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf), "client %d\n", i);
         len = 0;
-        ptcp_send(sock, buf, strlen(buf), 0);
+        ptcp_send(ptcp, buf, strlen(buf), 0);
         printf("ptcp_send i=%d, len=%d, buf=%s\n", i, len, buf);
     }
 
-    return sock;
+    return 0;
 }
 
 int main(int argc, char **argv)
@@ -116,9 +114,9 @@ int main(int argc, char **argv)
         return 0;
     }
     if (!strcmp(argv[1], "-c")) {
-        g_cli = client("127.0.0.1", 2333);
+        client("127.0.0.1", 2333);
     } else if (!strcmp(argv[1], "-s")) {
-        g_src = server("127.0.0.1", 2333);
+        server("127.0.0.1", 2333);
     }
     pause();
     return 0;

@@ -28,6 +28,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -41,6 +42,23 @@
 #define MAX_EPOLL_EVENT 16
 
 #define DEFAULT_TCP_MTU 1400 /* Use 1400 because of VPNs and we assume IEE 802.3 */
+
+#ifndef container_of
+#define container_of(ptr, type, member) ({			\
+	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+	(type *)( (char *)__mptr - offsetof(type,member) );})
+#endif
+
+
+typedef struct _PseudoTcpSocket PseudoTcpSocket;
+typedef struct _ptcp_socket_t {
+    PseudoTcpSocket     *sock;
+    int                 fd;
+    struct sockaddr     sa;
+    socklen_t           sa_len;
+    timer_t             timer_id;
+    sem_t               sem;
+} ptcp_t;
 
 static int sock_addr_ntop(char *str, size_t len, uint32_t ip)
 {
@@ -56,7 +74,7 @@ static int sock_addr_ntop(char *str, size_t len, uint32_t ip)
 
 static void _ptcp_on_opened(PseudoTcpSocket *sock, gpointer data)
 {
-    ptcp_socket_t *ptcp = data;
+    ptcp_t *ptcp = data;
     sem_post(&ptcp->sem);
 }
 
@@ -93,7 +111,7 @@ timer_t timeout_add(uint64_t msec, void (*func)(union sigval sv), void *data)
     return timerid;
 }
 
-static void clock_reset(ptcp_socket_t *ptcp, uint64_t timeout)
+static void clock_reset(ptcp_t *ptcp, uint64_t timeout)
 {
     struct itimerspec its;
 
@@ -108,7 +126,7 @@ static void clock_reset(ptcp_socket_t *ptcp, uint64_t timeout)
     }
 }
 
-static void adjust_clock(ptcp_socket_t *ptcp)
+static void adjust_clock(ptcp_t *ptcp)
 {
     PseudoTcpSocket *sock = ptcp->sock;
     guint64 timeout = 0;
@@ -130,7 +148,7 @@ static void adjust_clock(ptcp_socket_t *ptcp)
 static PseudoTcpWriteResult _ptcp_write_packet(PseudoTcpSocket *sock,
                             const char *buffer, uint32_t len, void *user_data)
 {
-    ptcp_socket_t *ptcp = user_data;
+    ptcp_t *ptcp = user_data;
     if (pseudo_tcp_socket_is_closed(ptcp->sock)) {
         printf("Stream: pseudo TCP socket got destroyed.");
     } else {
@@ -153,7 +171,7 @@ static PseudoTcpWriteResult _ptcp_write_packet(PseudoTcpSocket *sock,
     return WR_FAIL;
 }
 
-static PseudoTcpWriteResult ptcp_read(ptcp_socket_t *ptcp, void *buf, size_t len)
+static PseudoTcpWriteResult ptcp_read(ptcp_t *ptcp, void *buf, size_t len)
 {
     ssize_t res;
 #define RECV_BUF_LEN (64*1024)
@@ -178,16 +196,14 @@ static PseudoTcpWriteResult ptcp_read(ptcp_socket_t *ptcp, void *buf, size_t len
 static void notify_clock(union sigval sv)
 {
     void *data = (void *)sv.sival_ptr;
-    ptcp_socket_t *ptcp = (ptcp_socket_t *)data;
-//    printf("Socket %p: Notifying clock\n", p);
+    ptcp_t *ptcp = (ptcp_t *)data;
     pseudo_tcp_socket_notify_clock(ptcp->sock);
     adjust_clock(ptcp);
 }
 
-
-ptcp_socket_t *ptcp_socket()
+ptcp_socket_t ptcp_socket()
 {
-    ptcp_socket_t *ptcp = calloc(1, sizeof(ptcp_socket_t));
+    ptcp_t *ptcp = calloc(1, sizeof(ptcp_t));
     if (!ptcp) {
         printf("malloc ptcp failed!\n");
         return NULL;
@@ -217,11 +233,12 @@ ptcp_socket_t *ptcp_socket()
     ptcp->fd = fd;
     sem_init(&ptcp->sem, 0, 0);
     ptcp->timer_id = timeout_add(0, notify_clock, ptcp);
-    return ptcp;
+    return &ptcp->fd;
 }
 
-int ptcp_bind(ptcp_socket_t *ptcp, const struct sockaddr *sa, socklen_t addrlen)
+int ptcp_bind(ptcp_socket_t sock, const struct sockaddr *sa, socklen_t addrlen)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     if (-1 == bind(ptcp->fd, sa, addrlen)) {
         struct sockaddr_in *si = (struct sockaddr_in *)sa;
         char ip[16];
@@ -236,14 +253,14 @@ int ptcp_bind(ptcp_socket_t *ptcp, const struct sockaddr *sa, socklen_t addrlen)
 static void ptcp_event_read(void *arg)
 {
     char buf[10240] = {0};
-    ptcp_socket_t *ptcp = (ptcp_socket_t *)arg;
+    ptcp_t *ptcp = (ptcp_t *)arg;
     if (WR_SUCCESS == ptcp_read(ptcp, buf, sizeof(buf))) {
     }
 }
 
 static void *ptcp_event_loop(void *arg)
 {
-    ptcp_socket_t *ptcp = (ptcp_socket_t *)arg;
+    ptcp_t *ptcp = (ptcp_t *)arg;
     int epfd;
     int ret, i;
     struct epoll_event evbuf[MAX_EPOLL_EVENT];
@@ -289,15 +306,17 @@ static void *ptcp_event_loop(void *arg)
     return NULL;
 }
 
-int ptcp_listen(ptcp_socket_t *ptcp, int backlog)
+int ptcp_listen(ptcp_socket_t sock, int backlog)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     pthread_t tid;
     pthread_create(&tid, NULL, ptcp_event_loop, ptcp);
     return 0;
 }
 
-int ptcp_accept(ptcp_socket_t *ptcp, struct sockaddr *addr, socklen_t *addrlen)
+int ptcp_accept(ptcp_socket_t sock, struct sockaddr *addr, socklen_t *addrlen)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     sem_wait(&ptcp->sem);
     *addrlen = ptcp->sa_len;
     memcpy(addr, &ptcp->sa, *addrlen);
@@ -308,8 +327,9 @@ int ptcp_accept(ptcp_socket_t *ptcp, struct sockaddr *addr, socklen_t *addrlen)
     return 0;
 }
 
-int ptcp_close(ptcp_socket_t *ptcp)
+int ptcp_close(ptcp_socket_t sock)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     if (!ptcp) {
         printf("invalid paraments\n");
         return -1;
@@ -321,8 +341,9 @@ int ptcp_close(ptcp_socket_t *ptcp)
     return 0;
 }
 
-int ptcp_connect(ptcp_socket_t *ptcp, const struct sockaddr *sa, socklen_t addrlen)
+int ptcp_connect(ptcp_socket_t sock, const struct sockaddr *sa, socklen_t addrlen)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     pthread_t tid;
     if (-1 == connect(ptcp->fd, sa, addrlen)) {
         printf("connect error: %s\n", strerror(errno));
@@ -338,12 +359,14 @@ int ptcp_connect(ptcp_socket_t *ptcp, const struct sockaddr *sa, socklen_t addrl
     return 0;
 }
 
-ssize_t ptcp_recv(ptcp_socket_t *ptcp, void *buf, size_t len, int flags)
+ssize_t ptcp_recv(ptcp_socket_t sock, void *buf, size_t len, int flags)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     return pseudo_tcp_socket_recv(ptcp->sock, buf, len);
 }
 
-ssize_t ptcp_send(ptcp_socket_t *ptcp, const void *buf, size_t len, int flags)
+ssize_t ptcp_send(ptcp_socket_t sock, const void *buf, size_t len, int flags)
 {
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     return pseudo_tcp_socket_send(ptcp->sock, buf, len);
 }
