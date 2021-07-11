@@ -160,7 +160,7 @@ static PseudoTcpWriteResult _ptcp_write_packet(PseudoTcpSocket *sock,
         struct sockaddr_in *si = (struct sockaddr_in *)&ptcp->sa;
         char ip[16];
         sock_addr_ntop(ip, sizeof(ip), si->sin_addr.s_addr);
-        printf("%s:%d sendto res=%zu, ip=%s, port=%d\n", __func__, __LINE__, res, ip, ntohs(si->sin_port));
+        //printf("%s:%d sendto res=%zu, ip=%s, port=%d\n", __func__, __LINE__, res, ip, ntohs(si->sin_port));
         adjust_clock(ptcp);
         if (res < len) {
             printf("sendto len=%d, res=%d\n", (int)len, (int)res);
@@ -185,7 +185,7 @@ static PseudoTcpWriteResult ptcp_read(ptcp_t *ptcp, void *buf, size_t len)
     struct sockaddr_in *si = (struct sockaddr_in *)&ptcp->sa;
     char ip[16];
     sock_addr_ntop(ip, sizeof(ip), si->sin_addr.s_addr);
-    printf("%s:%d recvfrom res=%zu, ip=%s, port=%d\n", __func__, __LINE__, res, ip, ntohs(si->sin_port));
+    //printf("%s:%d recvfrom res=%zu, ip=%s, port=%d\n", __func__, __LINE__, res, ip, ntohs(si->sin_port));
     if (TRUE == pseudo_tcp_socket_notify_packet(ptcp->sock, rbuf, res)) {
         adjust_clock(ptcp);
         return WR_SUCCESS;
@@ -216,7 +216,7 @@ ptcp_socket_t ptcp_socket()
         _ptcp_on_closed,
         _ptcp_write_packet
     };
-    pseudo_tcp_set_debug_level (PSEUDO_TCP_DEBUG_NONE);
+    pseudo_tcp_set_debug_level(PSEUDO_TCP_DEBUG_NONE);
     PseudoTcpSocket *sock = pseudo_tcp_socket_new(1, &pseudo_tcp_callbacks);
     if (!sock) {
         printf("pseudo_tcp_socket_new failed!\n");
@@ -227,13 +227,19 @@ ptcp_socket_t ptcp_socket()
     if (-1 == fd) {
         return NULL;
     }
-    printf("%s:%d fd=%d\n", __func__, __LINE__, fd);
 
     ptcp->sock = sock;
     ptcp->fd = fd;
     sem_init(&ptcp->sem, 0, 0);
     ptcp->timer_id = timeout_add(0, notify_clock, ptcp);
+    printf("%s:%d ptcp_socket success ptcp=%p, fd = %d\n", __func__, __LINE__, ptcp, ptcp->fd);
     return &ptcp->fd;
+}
+
+int ptcp_get_socket_fd(ptcp_socket_t sock)
+{
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
+    return ptcp->fd;
 }
 
 int ptcp_bind(ptcp_socket_t sock, const struct sockaddr *sa, socklen_t addrlen)
@@ -323,8 +329,7 @@ int ptcp_accept(ptcp_socket_t sock, struct sockaddr *addr, socklen_t *addrlen)
     struct sockaddr_in *si = (struct sockaddr_in *)&ptcp->sa;
     char ip[16];
     sock_addr_ntop(ip, sizeof(ip), si->sin_addr.s_addr);
-    printf("ip = %s: port = %d failed: %d\n", ip, ntohs(si->sin_port), errno);
-    return 0;
+    return ptcp->fd;
 }
 
 int ptcp_close(ptcp_socket_t sock)
@@ -346,7 +351,7 @@ int ptcp_connect(ptcp_socket_t sock, const struct sockaddr *sa, socklen_t addrle
     ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     pthread_t tid;
     if (-1 == connect(ptcp->fd, sa, addrlen)) {
-        printf("connect error: %s\n", strerror(errno));
+        printf("connect fd=%d error: %s\n", ptcp->fd, strerror(errno));
         return -1;
     }
     memcpy(&ptcp->sa, sa, addrlen);
