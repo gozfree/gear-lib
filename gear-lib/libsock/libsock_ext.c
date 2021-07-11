@@ -22,6 +22,7 @@
 #include "libsock_ext.h"
 #include <libgevent.h>
 #include "libsock.h"
+#include "libptcp.h"
 #include <errno.h>
 
 static void on_error(int fd, void *arg)
@@ -44,7 +45,7 @@ static void on_recv(int fd, void *arg)
             s->on_disconnect(fd, NULL);
         }
     } else if (ret < 0) {
-        printf("recv failed!\n");
+        printf("%s:%d recv failed!\n", __func__, __LINE__);
     }
 }
 
@@ -63,11 +64,30 @@ static void on_client_recv(int fd, void *arg)
             c->on_disconnect(fd, NULL);
         }
     } else if (ret < 0) {
-        printf("recv failed!\n");
+        printf("%s:%d recv failed!\n", __func__, __LINE__);
     }
 }
 
-static void tcp_on_connect(int fd, void *arg)
+static void on_ptcp_recv(int fd, void *arg)
+{
+    char buf[2048];
+    int ret=0;
+    memset(buf, 0, sizeof(buf));
+    struct sock_server *s = (struct sock_server *)arg;
+    ret = sock_recv(s->fd64, buf, 2048);
+    if (ret > 0) {
+        s->on_buffer(fd, buf, ret);
+    } else if (ret == 0) {
+        printf("delete connection fd:%d\n", fd);
+        if (s->on_disconnect) {
+            s->on_disconnect(fd, NULL);
+        }
+    } else if (ret < 0) {
+        printf("%s:%d recv failed!\n", __func__, __LINE__);
+    }
+}
+
+static void on_tcp_connect(int fd, void *arg)
 {
     int afd;
     uint32_t ip;
@@ -98,6 +118,37 @@ static void tcp_on_connect(int fd, void *arg)
     }
 }
 
+static void on_ptcp_connect(int fd, void *arg)
+{
+    int afd;
+    uint32_t ip;
+    uint16_t port;
+    struct gevent *e = NULL;
+    struct sock_server *s = (struct sock_server *)arg;
+    struct sock_connection sc;
+
+    afd = sock_accept(s->fd64, &ip, &port);
+    if (afd == -1) {
+        printf("errno=%d %s\n", errno, strerror(errno));
+        return;
+    }
+    if (s->on_connect) {
+        sc.fd = afd;
+        sc.type = SOCK_STREAM;
+        if (-1 == sock_getaddr_by_fd(sc.fd, &sc.local)) {
+            printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
+        }
+        sc.remote.ip = ip;
+        sc.remote.port = port;
+        sock_addr_ntop(sc.remote.ip_str, ip);
+        s->on_connect(fd, &sc);
+    }
+    e = gevent_create(afd, on_ptcp_recv, NULL, on_error, s);
+    if (-1 == gevent_mod(s->evbase, &e)) {
+        printf("event_add failed!\n");
+    }
+}
+
 struct sock_server *sock_server_create(const char *host, uint16_t port, enum sock_type type)
 {
     struct sock_server *s;
@@ -118,6 +169,9 @@ struct sock_server *sock_server_create(const char *host, uint16_t port, enum soc
     case SOCK_TYPE_UDP:
         s->fd = sock_udp_bind(host, port);
         //sock_set_noblk(s->fd, true);
+        break;
+    case SOCK_TYPE_PTCP:
+        s->fd64 = sock_ptcp_bind_listen(host, port);
         break;
     default:
         printf("invalid sock_type!\n");
@@ -149,13 +203,20 @@ int sock_server_set_callback(struct sock_server *s,
         e = gevent_create(s->fd, on_recv, NULL, on_error, s);
         break;
     case SOCK_TYPE_TCP:
-        e = gevent_create(s->fd, tcp_on_connect, NULL, on_error, s);
+        e = gevent_create(s->fd, on_tcp_connect, NULL, on_error, s);
         break;
+    case SOCK_TYPE_PTCP: {
+        ptcp_socket_t ptcp = *(ptcp_socket_t *) &s->fd64;
+        int fd = ptcp_get_socket_fd(ptcp);
+        printf("ptcp_get_socket_fd fd=%d\n", fd);
+        e = gevent_create(fd, on_ptcp_connect, NULL, on_error, s);
+    } break;
     default:
         break;
     }
     if (-1 == gevent_add(s->evbase, &e)) {
         printf("event_add failed!\n");
+        return -1;
     }
     return 0;
 }
@@ -231,16 +292,21 @@ GEAR_API int sock_client_connect(struct sock_client *c)
     switch (c->type) {
     case SOCK_TYPE_TCP:
         c->conn = sock_tcp_connect(c->host, c->port);
+        c->fd = c->conn->fd;
         break;
     case SOCK_TYPE_UDP:
         c->conn = sock_udp_connect(c->host, c->port);
+        c->fd = c->conn->fd;
+        break;
+    case SOCK_TYPE_PTCP:
+        c->conn = sock_ptcp_connect(c->host, c->port);
+        c->fd = c->conn->fd64;
         break;
     default:
         printf("invalid sock_type!\n");
         break;
     }
-    c->fd = c->conn->fd;
-    e = gevent_create(c->conn->fd, on_client_recv, NULL, on_error, c);
+    e = gevent_create(c->fd, on_client_recv, NULL, on_error, c);
     if (-1 == gevent_add(c->evbase, &e)) {
         printf("event_add failed!\n");
     }

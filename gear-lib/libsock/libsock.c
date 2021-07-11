@@ -295,11 +295,15 @@ struct sock_connection *sock_accept_connect(int fd)
     return sc;
 }
 
-int sock_accept(int fd, uint32_t *ip, uint16_t *port)
+int sock_accept(uint64_t fd, uint32_t *ip, uint16_t *port)
 {
     struct sockaddr_in si;
     socklen_t len = sizeof(si);
+#ifdef ENABLE_PTCP
+    int afd = ptcp_accept(*(ptcp_socket_t *)&fd, (struct sockaddr *)&si, &len);
+#else
     int afd = accept(fd, (struct sockaddr *)&si, &len);
+#endif
     if (afd == -1) {
         printf("accept: %s\n", strerror(errno));
         return -1;
@@ -763,7 +767,7 @@ int sock_set_buflen(int fd, int size)
     return 0;
 }
 
-int sock_send(int fd, const void *buf, size_t len)
+int sock_send(uint64_t fd, const void *buf, size_t len)
 {
     ssize_t n;
     char *p = (char *)buf;
@@ -779,7 +783,11 @@ int sock_send(int fd, const void *buf, size_t len)
     while (left > 0) {
         if (left < step)
             step = left;
+#ifdef ENABLE_PTCP
+        n = ptcp_send(*(ptcp_socket_t *)&fd, p, step, 0);
+#else
         n = send(fd, p, step, 0);
+#endif
         if (n > 0) {
             p += n;
             left -= n;
@@ -842,7 +850,7 @@ int sock_sendto(int fd, const char *ip, uint16_t port,
     return (len - left);
 }
 
-int sock_recv(int fd, void *buf, size_t len)
+int sock_recv(uint64_t fd, void *buf, size_t len)
 {
     int n;
     char *p = (char *)buf;
@@ -856,7 +864,11 @@ int sock_recv(int fd, void *buf, size_t len)
     while (left > 0) {
         if (left < step)
             step = left;
+#ifdef ENABLE_PTCP
+        n = ptcp_recv(*(ptcp_socket_t *)&fd, p, step, 0);
+#else
         n = recv(fd, p, step, 0);
+#endif
         if (n > 0) {
             p += n;
             left -= n;
@@ -925,4 +937,84 @@ int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
     *port = ntohs(si.sin_port);
 
     return (len - left);
+}
+
+uint64_t sock_ptcp_bind_listen(const char *host, uint16_t port)
+{
+    struct sockaddr_in si;
+
+    ptcp_socket_t fd = ptcp_socket();
+    if (NULL == fd) {
+        printf("socket failed: %s\n", strerror(errno));
+        goto fail;
+    }
+    si.sin_family = AF_INET;
+    if (!host || strlen(host) == 0) {
+        si.sin_addr.s_addr = INADDR_ANY;
+    } else {
+        si.sin_addr.s_addr = inet_addr(host);
+    }
+    si.sin_port = htons(port);
+    if (-1 == ptcp_bind(fd, (struct sockaddr*)&si, sizeof(si))) {
+        printf("bind failed: %s\n", strerror(errno));
+        goto fail;
+    }
+    if (-1 == ptcp_listen(fd, SOMAXCONN)) {
+        printf("listen failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    return *(uint64_t *)&fd;
+fail:
+    if (NULL != fd) {
+        ptcp_close(fd);
+    }
+    return -1;
+}
+
+struct sock_connection *sock_ptcp_connect(const char *host, uint16_t port)
+{
+    int ret;
+    struct sockaddr_in si;
+    struct sock_connection *sc = NULL;
+
+    ptcp_socket_t ptcp = ptcp_socket();
+    if (ptcp == NULL) {
+        printf("ptcp_socket error!\n");
+        return NULL;
+    }
+
+    si.sin_family = AF_INET;
+    si.sin_addr.s_addr = inet_addr(host);
+    si.sin_port = htons(port);
+    ret = ptcp_connect(ptcp, (struct sockaddr*)&si, sizeof(si));
+    if (-1 == ret) {
+        printf("connect failed: %s\n", strerror(errno));
+        goto fail;
+    }
+
+    sc = (struct sock_connection* )calloc(1, sizeof(struct sock_connection));
+    if (sc == NULL) {
+        printf("malloc failed!\n");
+        return NULL;
+    }
+    sc->fd64 = *(uint64_t *)&ptcp;
+    sc->remote.ip = inet_addr(host);
+    sc->remote.port = port;
+    sc->type = SOCK_DGRAM;
+    sc->fd = ptcp_get_socket_fd(ptcp);
+    printf("%s:%d xxxx fd=%d, fd64=%lx\n", __func__, __LINE__, sc->fd, sc->fd64);
+    if (-1 == sock_getaddr_by_fd(sc->fd, &sc->local)) {
+        printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
+        goto fail;
+    }
+    return sc;
+fail:
+    if (NULL != ptcp) {
+        ptcp_close(ptcp);
+    }
+    if (sc) {
+        free(sc);
+    }
+    return NULL;
 }

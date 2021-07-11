@@ -33,6 +33,10 @@
 #define INET_ADDRSTRLEN 16
 #endif
 
+#ifdef ENABLE_PTCP
+#include <libptcp.h>
+#endif
+
 #define LIBSOCK_VERSION "0.1.1"
 
 #ifdef __cplusplus
@@ -47,6 +51,9 @@ enum sock_type {
     SOCK_TYPE_UDP = 0,
     SOCK_TYPE_TCP,
     SOCK_TYPE_UNIX,
+#ifdef ENABLE_PTCP
+    SOCK_TYPE_PTCP,
+#endif
     SOCK_TYPE_MAX,
 };
 
@@ -63,6 +70,7 @@ typedef struct sock_addr_list {
 
 typedef struct sock_connection {
     int fd;
+    uint64_t fd64;
     int type;
     struct sock_addr local;
     struct sock_addr remote;
@@ -71,7 +79,9 @@ typedef struct sock_connection {
 //socket tcp apis
 GEAR_API struct sock_connection *sock_tcp_connect(const char *host, uint16_t port);
 GEAR_API int sock_tcp_bind_listen(const char *host, uint16_t port);
-GEAR_API int sock_accept(int fd, uint32_t *ip, uint16_t *port);
+GEAR_API uint64_t sock_ptcp_bind_listen(const char *host, uint16_t port);
+struct sock_connection *sock_ptcp_connect(const char *host, uint16_t port);
+GEAR_API int sock_accept(uint64_t fd, uint32_t *ip, uint16_t *port);
 GEAR_API struct sock_connection *sock_accept_connect(int fd);
 
 //socket udp apis
@@ -85,12 +95,12 @@ int sock_unix_bind_listen(const char *host, uint16_t port);
 //socket common apis
 void sock_close(int fd);
 
-int sock_send(int fd, const void *buf, size_t len);
+int sock_send(uint64_t fd, const void *buf, size_t len);
 int sock_sendto(int fd, const char *ip, uint16_t port,
                 const void *buf, size_t len);
 int sock_send_sync_recv(int fd, const void *sbuf, size_t slen,
                 void *rbuf, size_t rlen, int timeout);
-int sock_recv(int fd, void *buf, size_t len);
+int sock_recv(uint64_t fd, void *buf, size_t len);
 int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port,
                 void *buf, size_t len);
 

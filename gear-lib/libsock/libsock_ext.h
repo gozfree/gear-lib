@@ -30,6 +30,7 @@ extern "C" {
 
 struct sock_server {
     int fd;
+    uint64_t fd64;
     struct sock_connection *conn;
     enum sock_type type;
     struct gevent_base *evbase;

@@ -72,7 +72,7 @@ static void on_connect_client(int fd, struct sock_connection *conn)
 
 static void on_recv_buf(int fd, void *buf, size_t len)
 {
-    printf("xxx fd = %d, recv buf = %s\n", fd, (char *)buf);
+    printf("%s:%d fd = %d, recv buf = %s\n", __func__, __LINE__, fd, (char *)buf);
 }
 
 void usage()
@@ -154,6 +154,15 @@ int main(int argc, char **argv)
         ss = sock_server_create(NULL, port, SOCK_TYPE_TCP);
         sock_server_set_callback(ss, on_connect_server, on_recv_buf, NULL);
         sock_server_dispatch(ss);
+    } else if (!strcmp(argv[1], "-S")) {
+        if (argc == 3)
+            port = atoi(argv[2]);
+        else
+            port = 0;
+        ss = sock_server_create(NULL, port, SOCK_TYPE_PTCP);
+        printf("sock_server_create PTCP success!\n");
+        sock_server_set_callback(ss, on_connect_server, on_recv_buf, NULL);
+        sock_server_dispatch(ss);
     } else if (!strcmp(argv[1], "-c")) {
         if (argc == 3) {
             ip = "127.0.0.1";
@@ -169,7 +178,29 @@ int main(int argc, char **argv)
             memset(buf, 0, sizeof(buf));
             printf("input> ");
             scanf("%s", buf);
+            printf("%s:%d fd=%d\n", __func__, __LINE__, sc->fd);
             n = sock_send(sc->fd, buf, strlen(buf));
+            if (n == -1) {
+                printf("sock_send failed!\n");
+                return -1;
+            }
+        }
+    } else if (!strcmp(argv[1], "-C")) {
+        if (argc == 3) {
+            ip = "127.0.0.1";
+            port = atoi(argv[2]);
+        } else if (argc == 4) {
+            ip = argv[2];
+            port = atoi(argv[3]);
+        }
+        sc = sock_client_create(ip, port, SOCK_TYPE_PTCP);
+        sock_client_set_callback(sc, on_connect_client, on_recv_buf, NULL);
+        sock_client_connect(sc);
+        while (1) {
+            memset(buf, 0, sizeof(buf));
+            printf("input> ");
+            scanf("%s", buf);
+            n = sock_send(sc->conn->fd64, buf, strlen(buf));
             if (n == -1) {
                 printf("sock_send failed!\n");
                 return -1;
