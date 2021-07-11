@@ -25,6 +25,7 @@
 #if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/eventfd.h>
 #endif
 #include <errno.h>
 
@@ -76,23 +77,20 @@ static struct gevent_backend gevent_backend_list[] = {
 
 static void event_in(int fd, void *arg)
 {
+    uint64_t notify;
+    if (sizeof(uint64_t) != read(fd, &notify, sizeof(uint64_t))) {
+        printf("read notify failed %d\n", errno);
+    }
 }
 
 struct gevent_base *gevent_base_create(void)
 {
     struct gevent_base *eb = NULL;
 #if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
-    int fds[2];
-    if (pipe(fds)) {
-        perror("pipe failed");
-        return NULL;
-    }
 #endif
     eb = (struct gevent_base *)calloc(1, sizeof(struct gevent_base));
     if (!eb) {
         printf("malloc gevent_base failed!\n");
-        close(fds[0]);
-        close(fds[1]);
         return NULL;
     }
 
@@ -104,13 +102,13 @@ struct gevent_base *gevent_base_create(void)
     eb->ctx = eb->ops->init();
 
     eb->loop = 1;
-    eb->rfd = fds[0];
-    eb->wfd = fds[1];
-#if defined (OS_LINUX) || defined (OS_APPLE)
-    fcntl(fds[0], F_SETFL, fcntl(fds[0], F_GETFL) | O_NONBLOCK);
-#endif
+    eb->inner_fd = eventfd(0, 0);
+    if (eb->inner_fd == -1) {
+        printf("eventfd failed %d\n", errno);
+        goto failed;
+    }
     da_init(eb->ev_array);
-    eb->inner_event = gevent_create(eb->rfd, event_in, NULL, NULL, NULL);
+    eb->inner_event = gevent_create(eb->inner_fd, event_in, NULL, NULL, NULL);
     if (!eb->inner_event) {
         printf("gevent_create inner_event failed!\n");
         goto failed;
@@ -135,8 +133,7 @@ void gevent_base_destroy(struct gevent_base *eb)
     }
     gevent_del(eb, &eb->inner_event);
     gevent_destroy(eb->inner_event);
-    close(eb->rfd);
-    close(eb->wfd);
+    close(eb->inner_fd);
     eb->ops->deinit(eb->ctx);
     while (eb->ev_array.num > 0) {
         struct gevent **e = eb->ev_array.array + eb->ev_array.num-1;
@@ -189,19 +186,17 @@ int gevent_base_loop_stop(struct gevent_base *eb)
 
 void gevent_base_loop_break(struct gevent_base *eb)
 {
-    char buf[1];
-    buf[0] = 0;
+    uint64_t notify = '1';
     eb->loop = 0;
-    if (1 != write(eb->wfd, buf, 1)) {
+    if (sizeof(uint64_t) != write(eb->inner_fd, &notify, sizeof(uint64_t))) {
         perror("write error");
     }
 }
 
 void gevent_base_signal(struct gevent_base *eb)
 {
-    char buf[1];
-    buf[0] = 0;
-    if (1 != write(eb->wfd, buf, 1)) {
+    uint64_t notify;
+    if (sizeof(uint64_t) != write(eb->inner_fd, &notify, sizeof(uint64_t))) {
         perror("write error");
     }
 }
@@ -334,3 +329,13 @@ int gevent_del(struct gevent_base *eb, struct gevent **e)
     return ret;
 }
 
+int gevent_mod(struct gevent_base *eb, struct gevent **e)
+{
+    if (!e || !eb) {
+        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
+        return -1;
+    }
+    da_erase_item(eb->ev_array, e);
+    da_push_back(eb->ev_array, e);
+    return eb->ops->mod(eb, *e);
+}

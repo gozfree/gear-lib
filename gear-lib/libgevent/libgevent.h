@@ -73,14 +73,14 @@ struct gevent_ops {
     void (*deinit)(void *ctx);
     int (*add)(struct gevent_base *eb, struct gevent *e);
     int (*del)(struct gevent_base *eb, struct gevent *e);
+    int (*mod)(struct gevent_base *eb, struct gevent *e);
     int (*dispatch)(struct gevent_base *eb, struct timeval *tv);
 };
 
 struct gevent_base {
     void *ctx;
     int loop;
-    int rfd;
-    int wfd;
+    int inner_fd;
     DARRAY(struct gevent *) ev_array; /* just for save and free event */
     struct thread *thread;
     const struct gevent_ops *ops;
@@ -112,6 +112,7 @@ GEAR_API void gevent_destroy(struct gevent *e);
  */
 GEAR_API int gevent_add(struct gevent_base *eb, struct gevent **e);
 GEAR_API int gevent_del(struct gevent_base *eb, struct gevent **e);
+GEAR_API int gevent_mod(struct gevent_base *eb, struct gevent **e);
 
 enum gevent_timer_type {
     TIMER_ONESHOT = 0,
