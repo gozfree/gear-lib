@@ -31,10 +31,14 @@ typedef struct {
     uint32_t addr;
 } stun_addr;
 
-int stun_init(const char *ip);
-int stun_socket(const char *ip, uint16_t port, stun_addr *map);
-int stun_nat_type();
-void stun_keep_alive(int fd);
+struct stun_t {
+    stun_addr addr;
+};
+
+int stun_init(struct stun_t *stun, const char *ip);
+int stun_socket(struct stun_t *stun, const char *ip, uint16_t port, stun_addr *map);
+int stun_nat_type(struct stun_t *stun);
+void stun_keep_alive(struct stun_t *stun, int fd);
 
 
 #ifdef __cplusplus

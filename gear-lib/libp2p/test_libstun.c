@@ -150,12 +150,15 @@ static int test(const char *local_ip, uint16_t local_port)
     struct addr_info args;
     char ip[64] = {0};
     uint16_t port;
+    struct stun_t stun;
 
-    if (0 == stun_init(stun_server_ip)) {
+    if (0 != stun_init(&stun, stun_server_ip)) {
         printf("stun init failed!\n");
         return -1;
     }
-    fd = stun_socket(local_ip, local_port, &mapped);
+    printf("stun init ok!\n");
+    printf("stun_socket %s:%d\n", local_ip, local_port);
+    fd = stun_socket(&stun, local_ip, local_port, &mapped);
     if (fd == -1) {
         printf("stun open socket failed!\n");
         return -1;
@@ -168,7 +171,7 @@ static int test(const char *local_ip, uint16_t local_port)
     printf("ip = %s port = %d\n", inet_ntoa(si.sin_addr), ntohs(si.sin_port));
 
 
-    stun_nat_type();
+    stun_nat_type(&stun);
 
     pthread_create(&tid, NULL, keep_alive, (void *)&fd);
     sa.s_addr = ntohl(mapped.addr);

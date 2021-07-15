@@ -47,7 +47,6 @@
 #define STUN_MAX_UNKNOWN_ATTRIBUTES (8)
 #define STUN_MAX_MESSAGE_SIZE       (2048)
 
-static stun_addr g_stun_srv;
 static const int INVALID_SOCKET = -1;
 static const int SOCKET_ERROR = -1;
 
@@ -1270,26 +1269,27 @@ static int stunOpenSocket(stun_addr *dest, stun_addr * mapAddr,
     return myFd;
 }
 
-int stun_init(const char *ip)
+int stun_init(struct stun_t *stun, const char *ip)
 {
-    return stunParseServerName((char *)ip, &g_stun_srv);
+    stunParseServerName((char *)ip, &stun->addr);
+    return 0;
 }
 
-int stun_socket(const char *ip, uint16_t port, stun_addr *map)
+int stun_socket(struct stun_t *stun, const char *ip, uint16_t port, stun_addr *map)
 {
     int fd;
     stun_addr src;
     if (ip == NULL) {
-        fd = stunOpenSocket(&g_stun_srv, map, port, NULL);
+        fd = stunOpenSocket(&stun->addr, map, port, NULL);
     } else {
         stunParseServerName((char *)ip, &src);
-        fd = stunOpenSocket(&g_stun_srv, map, port, &src);
+        fd = stunOpenSocket(&stun->addr, map, port, &src);
     }
 
     return fd;
 }
 
-int stun_nat_type(void)
+int stun_nat_type(struct stun_t *stun)
 {
     int presPort = 0;
     int hairpin = 0;
@@ -1298,7 +1298,7 @@ int stun_nat_type(void)
     sAddr.port = 0;
     sAddr.addr = 0;
 
-    NatType stype = stunNatType(&g_stun_srv, &presPort, &hairpin, 0, &sAddr);
+    NatType stype = stunNatType(&stun->addr, &presPort, &hairpin, 0, &sAddr);
     switch (stype) {
         case StunTypeOpen:
             printf("No NAT detected - P2P should work\n");
@@ -1328,8 +1328,8 @@ int stun_nat_type(void)
     return stype;
 }
 
-void stun_keep_alive(int fd)
+void stun_keep_alive(struct stun_t *stun, int fd)
 {
     char buf[32] = "keep alive";
-    sendMessage(fd, buf, strlen(buf), g_stun_srv.addr, g_stun_srv.port);
+    sendMessage(fd, buf, strlen(buf), stun->addr.addr, stun->addr.port);
 }
