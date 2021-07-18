@@ -166,7 +166,6 @@ static int socket_init_client(struct rpc_base *r, const char *host, uint16_t por
     }
     c->fd = c->connect->fd;
     hash_set32(c->hash_fd2conn, c->connect->fd, c->connect);
-    printf("connect %s:%d fd=%d\n", host, port, c->fd);
     if (-1 == sock_set_block(c->fd)) {
         printf("sock_set_block failed!\n");
     }
@@ -179,7 +178,7 @@ static int socket_init_client(struct rpc_base *r, const char *host, uint16_t por
     }
     thread_lock(r->dispatch_thread);
     if (thread_wait(r->dispatch_thread, 2000) == -1) {
-        printf("wait response failed %d:%s\n", errno, strerror(errno));
+        printf("%s wait response failed %d:%s\n", __func__, errno, strerror(errno));
     }
     thread_unlock(r->dispatch_thread);
 

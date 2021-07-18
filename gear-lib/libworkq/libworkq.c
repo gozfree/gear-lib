@@ -138,7 +138,6 @@ struct workq_pool *workq_pool_create()
         da_push_back(pool->wq_array, &wq);
     }
 
-    printf("create %d threads\n", cpus);
     return pool;
 
 failed:

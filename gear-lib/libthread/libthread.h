@@ -126,7 +126,7 @@ typedef struct thread {
     void *arg;
 } thread_t;
 
-struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...);
+struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg);
 int thread_join(struct thread *t);
 void thread_destroy(struct thread *t);
 void thread_get_info(struct thread *t);

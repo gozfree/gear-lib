@@ -45,19 +45,14 @@ static void *__thread_func(void *arg)
     return NULL;
 }
 
-GEAR_API struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg, ...)
+GEAR_API struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg)
 {
-    enum lock_type type;
-    va_list ap;
+    enum lock_type type = THREAD_LOCK_COND;
     struct thread *t = CALLOC(1, struct thread);
     if (!t) {
         printf("malloc thread failed(%d): %s\n", errno, strerror(errno));
         goto err;
     }
-    va_start(ap, arg);
-    //type = va_arg(ap, enum lock_type);
-    type = va_arg(ap, int);
-    va_end(ap);
 
     if (type != THREAD_LOCK_SPIN && type != THREAD_LOCK_MUTEX &&
         type != THREAD_LOCK_SEM && type != THREAD_LOCK_COND) {
@@ -253,6 +248,7 @@ GEAR_API int thread_unlock(struct thread *t)
 GEAR_API int thread_wait(struct thread *t, int64_t ms)
 {
     if (!t) {
+        printf("%s invalid paramenters!\n", __func__);
         return -1;
     }
     switch (t->type) {
@@ -264,6 +260,7 @@ GEAR_API int thread_wait(struct thread *t, int64_t ms)
         return sem_lock_wait(&t->lock.sem, ms);
         break;
     default:
+        printf("%s unsupport thread type!\n", __func__);
         break;
     }
     return -1;

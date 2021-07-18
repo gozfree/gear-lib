@@ -179,19 +179,6 @@ typedef struct {
     StunAtrAddress4 secondaryAddress;
 } StunMessage;
 
-// Define enum with different types of NAT
-typedef enum {
-    StunTypeUnknown = 0,
-    StunTypeFailure,
-    StunTypeOpen,
-    StunTypeBlocked,
-    StunTypeConeNat,
-    StunTypeRestrictedNat,
-    StunTypePortRestrictedNat,
-    StunTypeSymNat,
-    StunTypeSymFirewall,
-} NatType;
-
 static void computeHmac(char *hmac, const char *input,
                 int length, const char *key, int sizeKey)
 {
@@ -819,10 +806,10 @@ static int stunRandomPort(void)
     return ret;
 }
 
-static int stunParseHostName(char *peerName,
-                  uint32_t *ip, uint16_t *portVal, uint16_t defaultPort)
+static int stunParseHostName(char *peerName, uint32_t *ip, uint16_t *portVal)
 {
     struct in_addr sin_addr;
+    uint16_t defaultPort = STUN_PORT;
 
     char host[512];
     strncpy(host, peerName, 512);
@@ -862,9 +849,10 @@ static int stunParseHostName(char *peerName,
 
     h = gethostbyname(host);
     if (h == NULL) {
-        fprintf(stderr, "error was %d\n", errno);
+        printf("%s gethostbyname failed %d\n", __func__, errno);
         *ip = ntohl(0x7F000001L);
-        return 0;
+        *portVal = 0xFFFF;
+        return -1;
     } else {
         sin_addr = *(struct in_addr *)h->h_addr;
         *ip = ntohl(sin_addr.s_addr);
@@ -872,17 +860,7 @@ static int stunParseHostName(char *peerName,
 
     *portVal = portNum;
 
-    return 1;
-}
-
-static int stunParseServerName(char *name, stun_addr *addr)
-{
-    // TODO - put in DNS SRV stuff.
-    int ret = stunParseHostName(name, &addr->addr, &addr->port, STUN_PORT);
-    if (ret != 1) {
-        addr->port = 0xFFFF;
-    }
-    return ret;
+    return 0;
 }
 
 static void stunBuildReqSimple(StunMessage * msg,
@@ -961,7 +939,7 @@ static void stunSendTest(int myFd, stun_addr *dest,
     //usleep(10 * 1000);
 }
 
-static NatType stunNatType(stun_addr *dest,
+static stun_nat_type_t stun_get_nat_type(stun_addr *dest,
     int * preservePort, // if set, is return for if NAT preservers ports or not
     int * hairpin, // if set, is the return for if NAT will hairpin packets
     int port,   // port to use for the test, 0 to choose random port
@@ -985,7 +963,7 @@ static NatType stunNatType(stun_addr *dest,
 
     if ((myFd1 == INVALID_SOCKET) || (myFd2 == INVALID_SOCKET)) {
         fprintf(stderr, "Some problem opening port/interface to send on\n");
-        return StunTypeFailure;
+        return STUN_NAT_TYPE_Failure;
     }
 
     assert(myFd1 != INVALID_SOCKET);
@@ -1035,7 +1013,7 @@ static NatType stunNatType(stun_addr *dest,
         if (err == SOCKET_ERROR) {
             // error occured
             fprintf(stderr, "Error %d %s in select\n", e, strerror(e));
-            return StunTypeFailure;
+            return STUN_NAT_TYPE_Failure;
         } else if (err == 0) {
             // timeout occured
             count++;
@@ -1175,29 +1153,29 @@ static NatType stunNatType(stun_addr *dest,
     if (respTestI) {
         if (isNat) {
             if (respTestII) {
-                return StunTypeConeNat;
+                return STUN_NAT_TYPE_ConeNat;
             } else {
                 if (mappedIpSame) {
                     if (respTestIII) {
-                        return StunTypeRestrictedNat;
+                        return STUN_NAT_TYPE_RestrictedNat;
                     } else {
-                        return StunTypePortRestrictedNat;
+                        return STUN_NAT_TYPE_PortRestrictedNat;
                     }
                 } else {
-                    return StunTypeSymNat;
+                    return STUN_NAT_TYPE_SymNat;
                 }
             }
         } else {
             if (respTestII) {
-                return StunTypeOpen;
+                return STUN_NAT_TYPE_Open;
             } else {
-                return StunTypeSymFirewall;
+                return STUN_NAT_TYPE_SymFirewall;
             }
         }
     } else {
-        return StunTypeBlocked;
+        return STUN_NAT_TYPE_Blocked;
     }
-    return StunTypeUnknown;
+    return STUN_NAT_TYPE_Unknown;
 }
 
 static int stunOpenSocket(stun_addr *dest, stun_addr * mapAddr,
@@ -1271,8 +1249,7 @@ static int stunOpenSocket(stun_addr *dest, stun_addr * mapAddr,
 
 int stun_init(struct stun_t *stun, const char *ip)
 {
-    stunParseServerName((char *)ip, &stun->addr);
-    return 0;
+    return stunParseHostName((char *)ip, &stun->addr.addr, &stun->addr.port);
 }
 
 int stun_socket(struct stun_t *stun, const char *ip, uint16_t port, stun_addr *map)
@@ -1282,14 +1259,14 @@ int stun_socket(struct stun_t *stun, const char *ip, uint16_t port, stun_addr *m
     if (ip == NULL) {
         fd = stunOpenSocket(&stun->addr, map, port, NULL);
     } else {
-        stunParseServerName((char *)ip, &src);
+        stunParseHostName((char *)ip, &stun->addr.addr, &stun->addr.port);
         fd = stunOpenSocket(&stun->addr, map, port, &src);
     }
 
     return fd;
 }
 
-int stun_nat_type(struct stun_t *stun)
+stun_nat_type_t stun_nat_type(struct stun_t *stun)
 {
     int presPort = 0;
     int hairpin = 0;
@@ -1298,32 +1275,32 @@ int stun_nat_type(struct stun_t *stun)
     sAddr.port = 0;
     sAddr.addr = 0;
 
-    NatType stype = stunNatType(&stun->addr, &presPort, &hairpin, 0, &sAddr);
+    stun_nat_type_t stype = stun_get_nat_type(&stun->addr, &presPort, &hairpin, 0, &sAddr);
     switch (stype) {
-        case StunTypeOpen:
-            printf("No NAT detected - P2P should work\n");
-            break;
-        case StunTypeConeNat:
-            printf("NAT type: Full Cone Nat detect - P2P will work with STUN\n");
-            break;
-        case StunTypeRestrictedNat:
-            printf("NAT type: Address restricted - P2P will work with STUN\n");
-            break;
-        case StunTypePortRestrictedNat:
-            printf("NAT type: Port restricted - P2P will work with STUN\n");
-            break;
-        case StunTypeSymNat:
-            printf("NAT type: Symetric - P2P will NOT work\n");
-            break;
-        case StunTypeBlocked:
-            printf("Could not reach the stun server - check server name is correct\n");
-            break;
-        case StunTypeFailure:
-            printf("Local network is not work!\n");
-            break;
-        default:
-            printf("Unkown NAT type\n");
-            break;
+    case STUN_NAT_TYPE_Open:
+        printf("No NAT detected - P2P should work\n");
+        break;
+    case STUN_NAT_TYPE_ConeNat:
+        printf("NAT type: Full Cone Nat detect - P2P will work with STUN\n");
+        break;
+    case STUN_NAT_TYPE_RestrictedNat:
+        printf("NAT type: Address restricted - P2P will work with STUN\n");
+        break;
+    case STUN_NAT_TYPE_PortRestrictedNat:
+        printf("NAT type: Port restricted - P2P will work with STUN\n");
+        break;
+    case STUN_NAT_TYPE_SymNat:
+        printf("NAT type: Symetric - P2P will NOT work\n");
+        break;
+    case STUN_NAT_TYPE_Blocked:
+        printf("Could not reach stun server - check server name is correct\n");
+        break;
+    case STUN_NAT_TYPE_Failure:
+        printf("Local network is not work!\n");
+        break;
+    default:
+        printf("Unkown NAT type\n");
+        break;
     }
     return stype;
 }

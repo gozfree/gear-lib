@@ -230,8 +230,6 @@ static void *rpc_client_thread(struct thread *t, void *arg)
         buf[i] = i;
     }
 
-    RPC_REGISTER_MSG_MAP(RPC_CLIENT_API);
-
     while (loop) {
         memset(buf, 0, len);
         printf("input cmd> ");
@@ -250,7 +248,6 @@ static void *rpc_client_thread(struct thread *t, void *arg)
             break;
         case 'q':
             loop = 0;
-            rpc_client_destroy(r);
             break;
         case 's':
             printf("input shell cmd> ");
@@ -267,6 +264,7 @@ static void *rpc_client_thread(struct thread *t, void *arg)
         //dump_buffer(buf, len);
     }
 
+    rpc_client_destroy(r);
     exit(0);
     return NULL;
 }
@@ -278,10 +276,9 @@ static int rpc_client_test(char *ip, uint16_t port)
         printf("rpc_client_create failed\n");
         return -1;
     }
+    RPC_REGISTER_MSG_MAP(RPC_CLIENT_API);
     g_rpc_thread = thread_create(rpc_client_thread, g_rpc);
-    while (1) {
-        sleep(1);
-    }
+    rpc_client_dispatch(g_rpc);
     return 0;
 }
 
@@ -293,9 +290,7 @@ static int rpc_server_test(uint16_t port)
         return -1;
     }
     RPC_REGISTER_MSG_MAP(RPC_SERVER_API);
-    while (1) {
-        sleep(1);
-    }
+    rpc_server_dispatch(g_rpcs);
     return 0;
 }
 

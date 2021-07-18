@@ -25,6 +25,7 @@
 #include <libsock.h>
 #include <librpc.h>
 #include "libptcp.h"
+#include "libstun.h"
 
 #define LIBP2P_VERSION "0.1.0"
 
@@ -48,8 +49,9 @@ typedef enum p2p_rpc_state {
 
 typedef struct p2p {
     struct rpc *rpc;
+    struct stun_t stun;
     struct nat_info nat;
-    ptcp_socket_t *ps;
+    ptcp_socket_t ptcp;
     enum p2p_rpc_state rpc_state;
 } p2p_t;
 

@@ -26,6 +26,18 @@
 extern "C" {
 #endif
 
+typedef enum {
+    STUN_NAT_TYPE_Unknown = 0,
+    STUN_NAT_TYPE_Failure,
+    STUN_NAT_TYPE_Open,
+    STUN_NAT_TYPE_Blocked,
+    STUN_NAT_TYPE_ConeNat,
+    STUN_NAT_TYPE_RestrictedNat,
+    STUN_NAT_TYPE_PortRestrictedNat,
+    STUN_NAT_TYPE_SymNat,
+    STUN_NAT_TYPE_SymFirewall,
+} stun_nat_type_t;
+
 typedef struct {
     uint16_t port;
     uint32_t addr;
@@ -37,7 +49,7 @@ struct stun_t {
 
 int stun_init(struct stun_t *stun, const char *ip);
 int stun_socket(struct stun_t *stun, const char *ip, uint16_t port, stun_addr *map);
-int stun_nat_type(struct stun_t *stun);
+stun_nat_type_t stun_nat_type(struct stun_t *stun);
 void stun_keep_alive(struct stun_t *stun, int fd);
 
 

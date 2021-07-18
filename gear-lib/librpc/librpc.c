@@ -123,10 +123,10 @@ static int rpc_base_init(struct rpc_base *r)
 
 static void rpc_base_deinit(struct rpc_base *r)
 {
-    r->ops = NULL;
     gevent_base_loop_break(r->evbase);
     gevent_base_destroy(r->evbase);
     thread_destroy(r->dispatch_thread);
+    r->ops = NULL;
 }
 
 static size_t pack_msg(struct rpc_packet *pkt, uint32_t msg_id,
@@ -305,7 +305,7 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
     if (IS_RPC_MSG_NEED_RETURN(msg_id)) {
         thread_lock(r->base.dispatch_thread);
         if (thread_wait(r->base.dispatch_thread, 2000) == -1) {
-            printf("wait response failed %d:%s\n", errno, strerror(errno));
+            printf("%s wait response failed %d:%s\n", __func__, errno, strerror(errno));
             return -1;
         }
         thread_unlock(r->base.dispatch_thread);
@@ -376,13 +376,18 @@ failed:
     return NULL;
 }
 
+int rpc_client_dispatch(struct rpc *r)
+{
+    return gevent_base_loop(r->base.evbase);
+}
+
 void rpc_client_destroy(struct rpc *r)
 {
     if (!r) {
         return;
     }
-    rpc_base_deinit(&r->base);
     r->base.ops->deinit(&r->base);
+    rpc_base_deinit(&r->base);
     free(r);
 }
 
@@ -523,6 +528,11 @@ failed:
         free(s);
     }
     return NULL;
+}
+
+int rpc_server_dispatch(struct rpcs *s)
+{
+    return gevent_base_loop(s->base.evbase);
 }
 
 void rpc_server_destroy(struct rpcs *s)
