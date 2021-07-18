@@ -34,8 +34,10 @@ extern "C" {
 typedef int* ptcp_socket_t;
 
 ptcp_socket_t ptcp_socket();
+ptcp_socket_t ptcp_socket_by_fd(int fd);
 int ptcp_get_socket_fd(ptcp_socket_t sock);
 int ptcp_close(ptcp_socket_t sock);
+int ptcp_close_by_fd(ptcp_socket_t sock, int fd);
 int ptcp_bind(ptcp_socket_t sock, const struct sockaddr *sa, socklen_t addrlen);
 int ptcp_listen(ptcp_socket_t sock, int backlog);
 int ptcp_accept(ptcp_socket_t sock, struct sockaddr *addr, socklen_t *addrlen);

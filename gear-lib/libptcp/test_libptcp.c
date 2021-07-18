@@ -30,7 +30,11 @@
 
 static int server(const char *host, uint16_t port)
 {
-    ptcp_socket_t ptcp = ptcp_socket();
+    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (-1 == fd) {
+        return -1;
+    }
+    ptcp_socket_t ptcp = ptcp_socket_by_fd(fd);
     if (ptcp == NULL) {
         printf("ptcp_socket error!\n");
         return -1;
@@ -70,7 +74,8 @@ static int server(const char *host, uint16_t port)
         usleep(10 * 1000);
     }
 #endif
-    //ptcp_close(sock);
+    ptcp_close_by_fd(ptcp, fd);
+    close(fd);
     return 0;
 }
 
@@ -80,7 +85,11 @@ static int client(const char *host, uint16_t port)
     char buf[128] = {0};
     struct sockaddr_in si;
 
-    ptcp_socket_t ptcp = ptcp_socket();
+    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (-1 == fd) {
+        return -1;
+    }
+    ptcp_socket_t ptcp = ptcp_socket_by_fd(fd);
     if (ptcp == NULL) {
         printf("error!\n");
         return -1;
@@ -96,14 +105,15 @@ static int client(const char *host, uint16_t port)
 
     for (i = 0; i < 100; i++) {
     //while (1) {
-        usleep(1000 * 1000);
+        usleep(100 * 1000);
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf), "client %d\n", i);
         len = 0;
         ptcp_send(ptcp, buf, strlen(buf), 0);
         printf("ptcp_send i=%d, len=%d, buf=%s\n", i, len, buf);
     }
-
+    ptcp_close_by_fd(ptcp, fd);
+    close(fd);
     return 0;
 }
 

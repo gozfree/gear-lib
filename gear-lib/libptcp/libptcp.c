@@ -93,7 +93,7 @@ static void _ptcp_on_closed(PseudoTcpSocket *tcp, guint32 error, gpointer data)
     //printf("%s:%d xxxx\n", __func__, __LINE__);
 }
 
-timer_t timeout_add(uint64_t msec, void (*func)(union sigval sv), void *data)
+static timer_t timeout_add(uint64_t msec, void (*func)(union sigval sv), void *data)
 {
     timer_t timerid = (timer_t)-1;
     struct sigevent sev;
@@ -109,6 +109,11 @@ timer_t timeout_add(uint64_t msec, void (*func)(union sigval sv), void *data)
     }
 
     return timerid;
+}
+
+static int timeout_del(timer_t tid)
+{
+    return timer_delete(tid);
 }
 
 static void clock_reset(ptcp_t *ptcp, uint64_t timeout)
@@ -201,8 +206,12 @@ static void notify_clock(union sigval sv)
     adjust_clock(ptcp);
 }
 
-ptcp_socket_t ptcp_socket()
+ptcp_socket_t ptcp_socket_by_fd(int fd)
 {
+    if (fd <= 0) {
+        printf("%s fd invalid!\n", __func__);
+        return NULL;
+    }
     ptcp_t *ptcp = calloc(1, sizeof(ptcp_t));
     if (!ptcp) {
         printf("malloc ptcp failed!\n");
@@ -223,17 +232,21 @@ ptcp_socket_t ptcp_socket()
         return NULL;
     }
     pseudo_tcp_socket_notify_mtu(sock, DEFAULT_TCP_MTU);
-    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (-1 == fd) {
-        return NULL;
-    }
-
     ptcp->sock = sock;
     ptcp->fd = fd;
     sem_init(&ptcp->sem, 0, 0);
     ptcp->timer_id = timeout_add(0, notify_clock, ptcp);
     printf("%s:%d ptcp_socket success ptcp=%p, fd = %d\n", __func__, __LINE__, ptcp, ptcp->fd);
     return &ptcp->fd;
+}
+
+ptcp_socket_t ptcp_socket()
+{
+    int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (-1 == fd) {
+        return NULL;
+    }
+    return ptcp_socket_by_fd(fd);
 }
 
 int ptcp_get_socket_fd(ptcp_socket_t sock)
@@ -332,7 +345,7 @@ int ptcp_accept(ptcp_socket_t sock, struct sockaddr *addr, socklen_t *addrlen)
     return ptcp->fd;
 }
 
-int ptcp_close(ptcp_socket_t sock)
+int ptcp_close_by_fd(ptcp_socket_t sock, int fd)
 {
     ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
     if (!ptcp) {
@@ -342,8 +355,17 @@ int ptcp_close(ptcp_socket_t sock)
     pseudo_tcp_socket_close(ptcp->sock, true);
     pseudo_tcp_socket_delete(ptcp->sock);
     sem_destroy(&ptcp->sem);
+    timeout_del(ptcp->timer_id);
     free(ptcp);
     return 0;
+}
+
+int ptcp_close(ptcp_socket_t sock)
+{
+    ptcp_t *ptcp = container_of(sock, ptcp_t, fd);
+    int fd = ptcp->fd;
+    ptcp_close_by_fd(sock, fd);
+    return close(fd);
 }
 
 int ptcp_connect(ptcp_socket_t sock, const struct sockaddr *sa, socklen_t addrlen)
