@@ -152,22 +152,6 @@ static struct hash_item *hash_lookup(struct hash *h, const char *key, uint32_t *
             return hi;
         }
     }
-#if 0
-    uint32_t perturb;
-    for (perturb = *hash; ; perturb >>= 5) {
-        i = (i<<2) + i + perturb + 1;
-        i &= (h->bucket-1);
-        list = &((struct hlist_head *)h->opaque_list)[i];
-        hi = container_of(list->first, struct hash_item, item);
-        if (!hi) {
-            return NULL;
-        }
-        if ((hi->hash == *hash) && strcmp(hi->key, key) == 0) {
-            return hi;
-        }
-    }
-#endif
-
     return NULL;
 }
 
@@ -315,3 +299,46 @@ void *hash_get_and_del32(struct hash *h, uint32_t key)
     return hash_get_and_del(h, key_str);
 }
 
+int hash_get_all_cnt(struct hash *h)
+{
+    struct hlist_head *list;
+    struct hash_item *hi;
+    struct hlist_node *next;
+    uint32_t i;
+    int num = 0;
+
+    for (i = 0; i < h->bucket - 1; i++) {
+        list = &((struct hlist_head *)h->opaque_list)[i];
+#if defined (__linux__) || defined (__CYGWIN__)
+        hlist_for_each_entry_safe(hi, next, list, item) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+        hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
+#endif
+            num++;
+        }
+    }
+    return num;
+}
+
+void hash_dump_all(struct hash *h, char **key, void **val)
+{
+    struct hlist_head *list;
+    struct hash_item *hi;
+    struct hlist_node *next;
+    uint32_t i;
+    int num = 0;
+
+    for (i = 0; i < h->bucket - 1; i++) {
+        list = &((struct hlist_head *)h->opaque_list)[i];
+#if defined (__linux__) || defined (__CYGWIN__)
+        hlist_for_each_entry_safe(hi, next, list, item) {
+#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+        hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
+#endif
+            printf("key:val = %s:%p\n", hi->key, hi->val);
+            *(key+num) = hi->key;
+            *(val+num) = hi->val;
+            num++;
+        }
+    }
+}

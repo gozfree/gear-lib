@@ -26,8 +26,8 @@
 #include <sys/time.h>
 
 #define PALIGN   "%15s: %6.4f sec\n"
-#define NKEYS   1024*1024
-//#define NKEYS   10240
+//#define NKEYS   1024*1024
+#define NKEYS   100
 
 static double epoch_double(void)
 {
@@ -81,6 +81,16 @@ int main(int argc, char * argv[])
     }
     t2 = epoch_double();
     printf(PALIGN, "lookup", t2 - t1);
+    int cnt = hash_get_all_cnt(d);
+    printf("cnt = %d\n", cnt);
+    char **key = calloc(cnt, sizeof(char **));
+    void **ptr = calloc(cnt, sizeof(void **));
+    hash_dump_all(d, key, ptr);
+    for (i = 0; i < cnt; i++) {
+        printf("dump key:val = %s:%p\n", key[i], ptr[i]);
+    }
+    free(key);
+    free(ptr);
 
 //    if (nkeys<100)
         //dict_dump(d, stdout);
