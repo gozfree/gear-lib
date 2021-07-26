@@ -35,6 +35,17 @@ static struct rpcs *g_rpcs;
 
 #define MAX_UUID_LEN                (21)
 
+static int on_get_connect_cnt(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
+{
+    struct rpcs *s = rpc_server_get_handle(r);
+    int cnt = hash_get_all_cnt(s->hash_session);
+    *olen = sizeof(int);
+    int *tmp = calloc(1, sizeof(int));
+    *tmp = cnt;
+    *obuf = tmp;
+    return 0;
+}
+
 static int on_get_connect_list(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
 #if 0
@@ -159,6 +170,7 @@ END_RPC_MAP()
 
 BEGIN_RPC_MAP(RPC_SERVER_API)
 RPC_MAP(RPC_TEST, on_test)
+RPC_MAP(RPC_GET_CONNECT_CNT, on_get_connect_cnt)
 RPC_MAP(RPC_GET_CONNECT_LIST, on_get_connect_list)
 RPC_MAP(RPC_PEER_POST_MSG, on_peer_post_msg)
 RPC_MAP(RPC_SHELL_HELP, on_shell_help)
@@ -179,6 +191,12 @@ static int rpc_get_connect_list(struct rpc *r, struct rpc_connect *list, int *nu
     rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, NULL, 0);
     //printf("func_id = %x\n", RPC_GET_CONNECT_LIST);
     //dump_packet(&r->packet);
+    return 0;
+}
+
+static int rpc_get_connect_cnt(struct rpc *r, int *num)
+{
+    rpc_call(r, RPC_GET_CONNECT_CNT, NULL, 0, num, sizeof(int));
     return 0;
 }
 
@@ -224,6 +242,7 @@ static void *rpc_client_thread(struct thread *t, void *arg)
     int loop = 1;
     int i;
     int len = 1024;
+    int connect_cnt = 0;
     char ch;
     char *buf = (char *)calloc(1, len);
     for (i = 0; i < len; i++) {
@@ -235,6 +254,10 @@ static void *rpc_client_thread(struct thread *t, void *arg)
         printf("input cmd> ");
         ch = getchar();
         switch (ch) {
+        case 'n':
+            rpc_get_connect_cnt(r, &connect_cnt);
+            printf("get connect cnt=%d\n", connect_cnt);
+            break;
         case 'a':
             rpc_get_connect_list(r, NULL, NULL);
             break;

@@ -31,6 +31,8 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
+#define ENABLE_DEBUG 0
+
 extern struct rpc_ops socket_ops;
 
 struct rpc_backend {
@@ -58,6 +60,7 @@ struct wq_arg {
     size_t ilen;
     void *obuf;
     size_t olen;
+    struct rpcs *rpcs;
 };
 
 static struct hash *_msg_map_registered = NULL;
@@ -175,17 +178,21 @@ static int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
 
     head_size = sizeof(rpc_header_t);
 
-    //printf("rpc_send >>>>\n");
-    //print_packet(pkt);
+#if ENABLE_DEBUG
+    printf("rpc_send >>>>\n");
+    print_packet(pkt);
+#endif
     ret = r->ops->send(r, (void *)&pkt->header, head_size);
     if (ret != head_size) {
         printf("send failed!\n");
         return -1;
     }
-    ret = r->ops->send(r, pkt->payload, pkt->header.payload_len);
-    if (ret != (int)pkt->header.payload_len) {
-        printf("send failed!\n");
-        return -1;
+    if (pkt->payload && pkt->header.payload_len > 0) {
+        ret = r->ops->send(r, pkt->payload, pkt->header.payload_len);
+        if (ret != (int)pkt->header.payload_len) {
+            printf("send failed!\n");
+            return -1;
+        }
     }
     return (head_size + pkt->header.payload_len);
 }
@@ -202,6 +209,8 @@ static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
         printf("recv failed, head_size = %d, ret = %d\n", head_size, ret);
         return -1;
     }
+    if (pkt->header.payload_len == 0)
+        return ret;
     pkt->payload = calloc(1, pkt->header.payload_len);
 
     ret = r->ops->recv(r, pkt->payload, pkt->header.payload_len);
@@ -209,8 +218,10 @@ static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
         printf("peer connect closed\n");
         return 0;
     }
-    //printf("rpc_recv <<<<\n");
-    //print_packet(pkt);
+#if ENABLE_DEBUG
+    printf("rpc_recv <<<<\n");
+    print_packet(pkt);
+#endif
     return ret;
 }
 
@@ -461,6 +472,12 @@ static void process_wq(void *arg)
     }
 }
 
+struct rpcs *rpc_server_get_handle(struct rpc_session *r)
+{
+    struct wq_arg *wq_arg = container_of(r, struct wq_arg, session);
+    return wq_arg->rpcs;
+}
+
 static int process_msg(struct rpcs *s, struct rpc_session *session, struct rpc_packet *pkt)
 {
     int ret = 0;
@@ -470,6 +487,7 @@ static int process_msg(struct rpcs *s, struct rpc_session *session, struct rpc_p
     msg_handler = find_msg_handler(h->msg_id);
     if (msg_handler) {
         struct wq_arg *arg = calloc(1, sizeof(struct wq_arg));
+        arg->rpcs = s;
         memcpy(&arg->handler, msg_handler, sizeof(msg_handler_t));
         memcpy(&arg->session, session, sizeof(struct rpc_session));
         arg->ibuf = memdup(pkt->payload, h->payload_len);
@@ -512,7 +530,6 @@ struct rpcs *rpc_server_create(const char *host, uint16_t port)
 
     s->hash_session = hash_create(1024);
     s->hash_fd2session = hash_create(10240);
-    s->hash_uuid2fd = hash_create(10240);
     s->wq_pool = workq_pool_create();
     s->on_create_session = rpc_session_create;
     s->on_message = on_message_from_client;

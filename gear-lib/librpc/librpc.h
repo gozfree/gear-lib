@@ -203,13 +203,9 @@ struct rpc_session {
 
 struct rpcs {
     struct rpc_base base;
-    struct rpc_session *session_pool;
     struct workq_pool *wq_pool;
-    struct hash *dict_fd2rpc;
-    struct hash *hash_uuid2fd;
     struct hash *hash_session;
     struct hash *hash_fd2session;
-    uint32_t uuid_hash;
     struct rpc_session *(*on_create_session)(struct rpcs *s, int fd, uint32_t uuid);
     int (*on_message)(struct rpcs *s, struct rpc_session *session);
 };
@@ -217,6 +213,7 @@ struct rpcs {
 GEAR_API struct rpcs *rpc_server_create(const char *host, uint16_t port);
 GEAR_API void rpc_server_destroy(struct rpcs *s);
 GEAR_API int rpc_server_dispatch(struct rpcs *s);
+GEAR_API struct rpcs *rpc_server_get_handle(struct rpc_session *r);
 
 
 #define RPC_MSG_ID_MASK             0xFFFFFFFF
