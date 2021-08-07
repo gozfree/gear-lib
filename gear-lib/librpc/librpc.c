@@ -31,7 +31,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#define ENABLE_DEBUG 0
+#define ENABLE_DEBUG 1
 
 extern struct rpc_ops socket_ops;
 
@@ -100,6 +100,20 @@ void print_packet(struct rpc_packet *pkt)
     printf("================\n");
 }
 
+void print_session(struct rpc_session *ss)
+{
+    char ts[64];
+    printf("================\n");
+    printf("rpc_session[%p]:\n", ss);
+    printf("session.uuid_dst    = 0x%08x\n", ss->uuid_dst);
+    printf("session.uuid_src    = 0x%08x\n", ss->uuid_src);
+    printf("session.msg_id      = 0x%08x\n", ss->msg_id);
+    printf("session.timestamp   = %" PRIu64 "(%s)\n", ss->timestamp,
+            time_str_human_by_msec(ss->timestamp, ts, sizeof(ts)));
+    printf("session.checksum    = 0x%08lx\n", ss->cseq);
+    printf("================\n");
+}
+
 static void *event_thread(struct thread *t, void *arg)
 {
     struct rpc_base *r = (struct rpc_base *)arg;
@@ -132,14 +146,16 @@ static void rpc_base_deinit(struct rpc_base *r)
     r->ops = NULL;
 }
 
-static size_t pack_msg(struct rpc_packet *pkt, uint32_t msg_id,
-                const void *in_arg, size_t in_len)
+size_t pack_msg(struct rpc_packet *pkt, uint32_t uuid_dst, uint32_t uuid_src,
+                uint32_t msg_id, const void *in_arg, size_t in_len)
 {
     struct rpc_header *hdr;
     size_t pkt_len;
     struct time_info ti;
 
     hdr = &(pkt->header);
+    hdr->uuid_dst = uuid_dst;
+    hdr->uuid_src = uuid_src;
     hdr->msg_id = msg_id;
     time_info(&ti);
     hdr->timestamp = ti.utc_msec;
@@ -172,7 +188,7 @@ static size_t unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
     return pkt_len;
 }
 
-static int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
+int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
 {
     int ret, head_size;
 
@@ -288,6 +304,7 @@ int register_msg_map(msg_handler_t *map, int num_entry)
             printf("register_msg_map:register failed at %d \n", i);
             return -1;
         }
+        printf("register_msg_map <msg_id, func> : <0x%d: %p>\n", map[i].msg_id, map[i].cb);
     }
     return 0;
 }
@@ -304,7 +321,7 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
         printf("invalid parament!\n");
         return -1;
     }
-    size_t pkt_len = pack_msg(&send_pkt, msg_id, in_arg, in_len);
+    size_t pkt_len = pack_msg(&send_pkt, r->uuid_dst, r->uuid_src, msg_id, in_arg, in_len);
     if (pkt_len == 0) {
         printf("pack_msg failed!\n");
         return -1;
@@ -347,7 +364,7 @@ static int on_connect_to_server(struct rpc *rpc)
             printf("rpc_recv failed!\n");
             return -1;
         }
-        rpc->uuid = *(uint32_t *)pkt.payload;
+        rpc->uuid_src = *(uint32_t *)pkt.payload;
         thread_lock(rpc->base.dispatch_thread);
         thread_signal(rpc->base.dispatch_thread);
         thread_unlock(rpc->base.dispatch_thread);
@@ -379,7 +396,7 @@ struct rpc *rpc_client_create(const char *host, uint16_t port)
         printf("init_client failed!\n");
         goto failed;
     }
-    printf("rpc_client_create success, rpc=%p, uuid=0x%08X\n", r, r->uuid);
+    printf("rpc_client_create success, rpc=%p, uuid=0x%08X\n", r, r->uuid_src);
     return r;
 
 failed:
@@ -400,6 +417,12 @@ void rpc_client_destroy(struct rpc *r)
     r->base.ops->deinit(&r->base);
     rpc_base_deinit(&r->base);
     free(r);
+}
+
+GEAR_API int rpc_client_set_dest(struct rpc *r, uint32_t uuid_dst)
+{
+    r->uuid_dst = uuid_dst;
+    return 0;
 }
 
 /******************************************************************************
@@ -424,7 +447,7 @@ static struct rpc_session *rpc_session_create(struct rpcs *s, int fd, uint32_t u
     }
     memcpy(&session->base, &s->base, sizeof(struct rpc_base));
     session->base.fd = fd;
-    session->uuid = uuid;
+    session->uuid_src = uuid;
     session->cseq = 0;
     hash_set32(s->hash_session, uuid, session);
 
@@ -466,7 +489,7 @@ static void process_wq(void *arg)
     if (&wq->handler) {
         wq->handler.cb(session, wq->ibuf, wq->ilen, &wq->obuf, &wq->olen);
         if (IS_RPC_MSG_NEED_RETURN(wq->handler.msg_id)) {
-            pack_msg(&pkt, wq->handler.msg_id, wq->obuf, wq->olen);
+            pack_msg(&pkt, 0, session->uuid_src, wq->handler.msg_id, wq->obuf, wq->olen);
             rpc_send(&session->base, &pkt);
         }
     }
@@ -487,11 +510,17 @@ static int process_msg(struct rpcs *s, struct rpc_session *session, struct rpc_p
     msg_handler = find_msg_handler(h->msg_id);
     if (msg_handler) {
         struct wq_arg *arg = calloc(1, sizeof(struct wq_arg));
+        struct rpc_session *ss = &arg->session;
         arg->rpcs = s;
         memcpy(&arg->handler, msg_handler, sizeof(msg_handler_t));
         memcpy(&arg->session, session, sizeof(struct rpc_session));
+        ss->uuid_dst = pkt->header.uuid_dst;
+        ss->timestamp = pkt->header.timestamp;
+        ss->msg_id = pkt->header.msg_id;
         arg->ibuf = memdup(pkt->payload, h->payload_len);
         arg->ilen = h->payload_len;
+
+        print_session(&arg->session);
         workq_pool_task_push(s->wq_pool, process_wq, arg);
     } else {
         printf("no callback for this MSG ID(%d) in process_msg\n", h->msg_id);
@@ -506,8 +535,8 @@ static int on_message_from_client(struct rpcs *s, struct rpc_session *session)
 
     ret = rpc_recv(&session->base, &pkt);
     if (ret == 0) {
-        printf("del connect: uuid:0x%08x\n", session->uuid);
-        rpc_session_destroy(s, session->uuid);
+        printf("del connect: uuid:0x%08x\n", session->uuid_src);
+        rpc_session_destroy(s, session->uuid_src);
     } else if (ret == -1) {
         printf("rpc_recv failed\n");
     } else {

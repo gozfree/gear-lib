@@ -154,6 +154,10 @@ typedef struct msg_handler {
     rpc_callback cb;
 } msg_handler_t;
 int register_msg_map(msg_handler_t *map, int num_entry);
+size_t pack_msg(struct rpc_packet *pkt, uint32_t uuid_dst, uint32_t uuid_src,
+                uint32_t msg_id, const void *in_arg, size_t in_len);
+int rpc_send(struct rpc_base *r, struct rpc_packet *pkt);
+
 
 #define RPC_REGISTER_MSG_MAP(map_name)             \
     register_msg_map(__msg_action_map##map_name,  \
@@ -179,13 +183,15 @@ struct rpc {
     struct rpc_base base;
     struct hash *hash_async_cmd;
     enum rpc_state state;
-    uint32_t uuid;
+    uint32_t uuid_src;
+    uint32_t uuid_dst;
     int (*on_connect_server)(struct rpc *rpc);
 };
 
 GEAR_API struct rpc *rpc_client_create(const char *host, uint16_t port);
 GEAR_API void rpc_client_destroy(struct rpc *r);
 GEAR_API int rpc_client_dispatch(struct rpc *r);
+GEAR_API int rpc_client_set_dest(struct rpc *r, uint32_t uuid);
 
 GEAR_API int rpc_call(struct rpc *r, uint32_t cmd_id,
             const void *in_arg, size_t in_len,
@@ -196,7 +202,9 @@ GEAR_API int rpc_call(struct rpc *r, uint32_t cmd_id,
  ******************************************************************************/
 struct rpc_session {
     struct rpc_base base;
-    uint32_t uuid;
+    uint32_t uuid_src;
+    uint32_t uuid_dst;
+    uint32_t msg_id;
     uint64_t timestamp;
     uint64_t cseq;
 };

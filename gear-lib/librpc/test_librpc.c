@@ -108,23 +108,24 @@ static int on_test_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **o
 
 static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
-#if 0
-    char uuid_src[9];
-    char uuid_dst[9];
-    snprintf(uuid_src, sizeof(uuid_src), "%x", r->recv_pkt.header.uuid_src);
-    snprintf(uuid_dst, sizeof(uuid_dst), "%x", r->recv_pkt.header.uuid_dst);
+    struct rpcs *s = rpc_server_get_handle(r);
+    printf("post msg uuid = %x, ibuf==%s, ilen=%zu\n", r->uuid_src, (char *)ibuf, ilen);
 
-    printf("post msg from %s to %s\n", uuid_src, uuid_dst);
-    char *valfd = (char *)hash_get(r->dict_uuid2fd, uuid_dst);
-    if (!valfd) {
-        printf("hash_get failed: key=%08x\n", r->send_pkt.header.uuid_dst);
+    printf("post msg from %x to %x\n", r->uuid_src, r->uuid_dst);
+    struct rpc_session *dst_session = (struct rpc_session *)hash_get32(s->hash_session, r->uuid_dst);
+    if (!dst_session) {
+        printf("hash_get failed: key=%08x\n", r->uuid_dst);
         return -1;
     }
-    int dst_fd = strtol(valfd, NULL, 16);
-    //printf("dst_fd = %d\n", dst_fd);
-    r->fd = dst_fd;
-    r->send_pkt.header.msg_id = RPC_PEER_POST_MSG;
-    return rpc_send(r, arg, len);
+#if 1
+    struct rpc_packet send_pkt;
+    size_t pkt_len = pack_msg(&send_pkt, r->uuid_dst, r->uuid_src, r->msg_id, ibuf, ilen);
+    if (pkt_len == 0) {
+        printf("pack_msg failed!\n");
+        return -1;
+    }
+
+    return rpc_send(&dst_session->base, &send_pkt);
 #else
     printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
@@ -209,8 +210,9 @@ static int rpc_shell_help(struct rpc *r, void *buf, size_t len)
     return 0;
 }
 
-static int rpc_peer_post_msg(struct rpc *r, void *buf, size_t len)
+static int rpc_peer_post_msg(struct rpc *r, uint32_t uuid, void *buf, size_t len)
 {
+    rpc_client_set_dest(r, uuid);
     rpc_call(r, RPC_PEER_POST_MSG, buf, len, NULL, 0);
     //printf("func_id = %x\n", RPC_PEER_POST_MSG);
     //dump_packet(&r->packet);
@@ -267,7 +269,7 @@ static void *rpc_client_thread(struct thread *t, void *arg)
             printf("uuid_dst = %x\n", uuid_dst);
             //r->send_pkt.header.uuid_dst = uuid_dst;
             sprintf(buf, "%s", "hello world");
-            rpc_peer_post_msg(r, buf, 12);
+            rpc_peer_post_msg(r, uuid_dst, buf, 12);
             break;
         case 'q':
             loop = 0;
@@ -300,6 +302,11 @@ static int rpc_client_test(char *ip, uint16_t port)
         return -1;
     }
     RPC_REGISTER_MSG_MAP(RPC_CLIENT_API);
+    printf("RPC_TEST:%d\n", RPC_TEST);
+    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+    printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
+    printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
+    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
     g_rpc_thread = thread_create(rpc_client_thread, g_rpc);
     rpc_client_dispatch(g_rpc);
     return 0;
@@ -313,6 +320,12 @@ static int rpc_server_test(uint16_t port)
         return -1;
     }
     RPC_REGISTER_MSG_MAP(RPC_SERVER_API);
+    printf("RPC_TEST:%d\n", RPC_TEST);
+    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+    printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
+    printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
+    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+    g_rpc_thread = thread_create(rpc_client_thread, g_rpc);
     rpc_server_dispatch(g_rpcs);
     return 0;
 }
