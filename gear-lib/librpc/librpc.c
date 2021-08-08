@@ -105,6 +105,7 @@ void print_session(struct rpc_session *ss)
     char ts[64];
     printf("================\n");
     printf("rpc_session[%p]:\n", ss);
+    printf("session.base.fd     = %d\n", ss->base.fd);
     printf("session.uuid_dst    = 0x%08x\n", ss->uuid_dst);
     printf("session.uuid_src    = 0x%08x\n", ss->uuid_src);
     printf("session.msg_id      = 0x%08x\n", ss->msg_id);
@@ -196,6 +197,8 @@ int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
 
 #if ENABLE_DEBUG
     printf("rpc_send >>>>\n");
+    struct rpc_session *session = container_of(r, struct rpc_session, base);
+    print_session(session);
     print_packet(pkt);
 #endif
     ret = r->ops->send(r, (void *)&pkt->header, head_size);
@@ -236,6 +239,8 @@ static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
     }
 #if ENABLE_DEBUG
     printf("rpc_recv <<<<\n");
+    struct rpc_session *session = container_of(r, struct rpc_session, base);
+    print_session(session);
     print_packet(pkt);
 #endif
     return ret;
@@ -332,6 +337,7 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
     }
     if (IS_RPC_MSG_NEED_RETURN(msg_id)) {
         thread_lock(r->base.dispatch_thread);
+        r->state = rpc_send_syn;
         if (thread_wait(r->base.dispatch_thread, 2000) == -1) {
             printf("%s wait response failed %d:%s\n", __func__, errno, strerror(errno));
             return -1;
@@ -368,11 +374,32 @@ static int on_connect_to_server(struct rpc *rpc)
         thread_lock(rpc->base.dispatch_thread);
         thread_signal(rpc->base.dispatch_thread);
         thread_unlock(rpc->base.dispatch_thread);
-        rpc->state = rpc_connected;
-    } else if (rpc->state == rpc_connected) {
+        rpc->state = rpc_connecting;
+    } else if (rpc->state == rpc_connecting) {
         thread_lock(rpc->base.dispatch_thread);
         thread_signal(rpc->base.dispatch_thread);
         thread_unlock(rpc->base.dispatch_thread);
+        rpc->state = rpc_connected;
+    } else if (rpc->state == rpc_connected) {
+        struct rpc_packet recv_pkt;
+        msg_handler_t *msg_handler;
+        memset(&recv_pkt, 0, sizeof(recv_pkt));
+        memset(payload, 0, sizeof(payload));
+        recv_pkt.payload = payload;
+        recv_pkt.header.payload_len = sizeof(payload);
+        if (-1 == rpc_recv(&rpc->base, &recv_pkt)) {
+            printf("rpc_recv failed!\n");
+            return -1;
+        }
+        printf("recv =%s, ilen=%d\n", (char *)recv_pkt.payload, recv_pkt.header.payload_len);
+        msg_handler = find_msg_handler(recv_pkt.header.msg_id);
+        if (msg_handler) {
+            msg_handler->cb(NULL, recv_pkt.payload, recv_pkt.header.payload_len, NULL, NULL);
+        }
+
+    } else if (rpc->state == rpc_send_syn) {
+
+    } else if (rpc->state == rpc_send_ack) {
     } else {
         printf("rpc state is invalid!\n");
     }
@@ -396,7 +423,7 @@ struct rpc *rpc_client_create(const char *host, uint16_t port)
         printf("init_client failed!\n");
         goto failed;
     }
-    printf("rpc_client_create success, rpc=%p, uuid=0x%08X\n", r, r->uuid_src);
+    printf("rpc_client_create success, uuid = 0x%08X\n", r->uuid_src);
     return r;
 
 failed:
@@ -464,7 +491,6 @@ static struct rpc_session *rpc_session_create(struct rpcs *s, int fd, uint32_t u
     if (ret == -1) {
         printf("%s: rpc_send failed\n", __func__);
     }
-    printf("rpc_session_create: uuid:0x%08x\n", uuid);
     return session;
 }
 
@@ -520,7 +546,6 @@ static int process_msg(struct rpcs *s, struct rpc_session *session, struct rpc_p
         arg->ibuf = memdup(pkt->payload, h->payload_len);
         arg->ilen = h->payload_len;
 
-        print_session(&arg->session);
         workq_pool_task_push(s->wq_pool, process_wq, arg);
     } else {
         printf("no callback for this MSG ID(%d) in process_msg\n", h->msg_id);

@@ -208,6 +208,7 @@ static int socket_send(struct rpc_base *r, const void *buf, size_t len)
         printf("find connection fd=%d failed!\n", r->fd);
         return -1;
     }
+    printf("sock_send fd = %d, r->fd=%d\n", conn->fd, r->fd);
     ret = sock_send(conn->fd, buf, len);
     if (ret == -1) {
         printf("send failed: %d\n", errno);

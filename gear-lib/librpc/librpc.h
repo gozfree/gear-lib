@@ -158,6 +158,8 @@ size_t pack_msg(struct rpc_packet *pkt, uint32_t uuid_dst, uint32_t uuid_src,
                 uint32_t msg_id, const void *in_arg, size_t in_len);
 int rpc_send(struct rpc_base *r, struct rpc_packet *pkt);
 
+void print_session(struct rpc_session *ss);
+void print_packet(struct rpc_packet *pkt);
 
 #define RPC_REGISTER_MSG_MAP(map_name)             \
     register_msg_map(__msg_action_map##map_name,  \
@@ -175,7 +177,10 @@ int rpc_send(struct rpc_base *r, struct rpc_packet *pkt);
  ******************************************************************************/
 typedef enum rpc_state {
     rpc_inited,
+    rpc_connecting,
     rpc_connected,
+    rpc_send_syn,
+    rpc_send_ack,
     rpc_disconnect,
 } rpc_state;
 
@@ -183,6 +188,7 @@ struct rpc {
     struct rpc_base base;
     struct hash *hash_async_cmd;
     enum rpc_state state;
+    uint32_t msg_id;
     uint32_t uuid_src;
     uint32_t uuid_dst;
     int (*on_connect_server)(struct rpc *rpc);

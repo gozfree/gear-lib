@@ -109,7 +109,8 @@ static int on_test_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **o
 static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
     struct rpcs *s = rpc_server_get_handle(r);
-    printf("post msg uuid = %x, ibuf==%s, ilen=%zu\n", r->uuid_src, (char *)ibuf, ilen);
+
+    printf("post msg uuid = %x, ibuf=%s, ilen=%zu\n", r->uuid_src, (char *)ibuf, ilen);
 
     printf("post msg from %x to %x\n", r->uuid_src, r->uuid_dst);
     struct rpc_session *dst_session = (struct rpc_session *)hash_get32(s->hash_session, r->uuid_dst);
@@ -117,7 +118,6 @@ static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void
         printf("hash_get failed: key=%08x\n", r->uuid_dst);
         return -1;
     }
-#if 1
     struct rpc_packet send_pkt;
     size_t pkt_len = pack_msg(&send_pkt, r->uuid_dst, r->uuid_src, r->msg_id, ibuf, ilen);
     if (pkt_len == 0) {
@@ -126,17 +126,11 @@ static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void
     }
 
     return rpc_send(&dst_session->base, &send_pkt);
-#else
-    printf("%s:%d xxxx\n", __func__, __LINE__);
-    return 0;
-#endif
 }
 
 static int on_peer_post_msg_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
-    //printf("on_peer_post_msg_resp len = %d\n", len);
-//    printf("msg from %x:\n%s\n", r->send_pkt.header.uuid_src, (char *)arg);
-    printf("%s:%d xxxx\n", __func__, __LINE__);
+    printf("msg :%s\n", (char *)ibuf);
     return 0;
 }
 
