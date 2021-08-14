@@ -78,9 +78,9 @@ static void dump_buffer(void *buf, int len)
 
 static void dump_packet(struct rpc_packet *r)
 {
-    printf("packet header:");
+    printf("packet header (%zu):", sizeof(struct rpc_header));
     dump_buffer(&r->header, (int)sizeof(struct rpc_header));
-    printf("packet payload:");
+    printf("packet payload (%d):", r->header.payload_len);
     dump_buffer(r->payload, r->header.payload_len);
 }
 
@@ -185,6 +185,7 @@ static size_t unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
     *msg_id = hdr->msg_id;
     *out_len = hdr->payload_len;
     memcpy(out_arg, pkt->payload, *out_len);
+    free(pkt->payload);
     pkt_len = sizeof(struct rpc_packet) + hdr->payload_len;
     return pkt_len;
 }
@@ -192,6 +193,8 @@ static size_t unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
 int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
 {
     int ret, head_size;
+    void *buf = NULL;
+    int len;
 
     head_size = sizeof(rpc_header_t);
 
@@ -201,19 +204,25 @@ int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
     print_session(session);
     print_packet(pkt);
 #endif
-    ret = r->ops->send(r, (void *)&pkt->header, head_size);
-    if (ret != head_size) {
-        printf("send failed!\n");
+    len = head_size + pkt->header.payload_len;
+    buf = calloc(1, len);
+    if (!buf) {
+        printf("%s:%d alloc buf failed!\n", __func__, __LINE__);
         return -1;
     }
-    if (pkt->payload && pkt->header.payload_len > 0) {
-        ret = r->ops->send(r, pkt->payload, pkt->header.payload_len);
-        if (ret != (int)pkt->header.payload_len) {
-            printf("send failed!\n");
-            return -1;
-        }
+    memcpy(buf, (void *)&pkt->header, head_size);
+    memcpy(buf+head_size, pkt->payload, pkt->header.payload_len);
+
+    ret = r->ops->send(r, buf, len);
+    if (ret < 0) {
+        printf("%s:%d send failed!\n", __func__, __LINE__);
+        ret = -1;
+    } if (ret != len) {
+        printf("%s:%d send len %d not matched %d failed!\n", __func__, __LINE__, ret, len);
+        ret = -1;
     }
-    return (head_size + pkt->header.payload_len);
+    free(buf);
+    return ret;
 }
 
 static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
@@ -223,13 +232,18 @@ static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
 
     ret = r->ops->recv(r, (void *)&pkt->header, head_size);
     if (ret == 0) {
+        printf("peer connect closed\n");
         return 0;
+    } else if (ret < 0) {
+        printf("recv failed: %d\n", errno);
+        return -1;
     } else if (ret != head_size) {
         printf("recv failed, head_size = %d, ret = %d\n", head_size, ret);
         return -1;
     }
     if (pkt->header.payload_len == 0)
         return ret;
+
     pkt->payload = calloc(1, pkt->header.payload_len);
 
     ret = r->ops->recv(r, pkt->payload, pkt->header.payload_len);
@@ -320,7 +334,7 @@ int register_msg_map(msg_handler_t *map, int num_entry)
 int rpc_call(struct rpc *r, uint32_t msg_id,
              const void *in_arg, size_t in_len, void *out_arg, size_t out_len)
 {
-    char payload[1024];
+    int ret;
     struct rpc_packet send_pkt, recv_pkt;
     if (!r) {
         printf("invalid parament!\n");
@@ -331,7 +345,8 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
         printf("pack_msg failed!\n");
         return -1;
     }
-    if (-1 == rpc_send(&r->base, &send_pkt)) {
+    ret = rpc_send(&r->base, &send_pkt);
+    if (-1 == ret) {
         printf("rpc_send failed\n");
         return -1;
     }
@@ -344,9 +359,6 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
         }
         thread_unlock(r->base.dispatch_thread);
         memset(&recv_pkt, 0, sizeof(recv_pkt));
-        memset(payload, 0, sizeof(payload));
-        recv_pkt.payload = payload;
-        recv_pkt.header.payload_len = sizeof(payload);
         if (-1 == rpc_recv(&r->base, &recv_pkt)) {
             printf("rpc_recv failed!\n");
             return -1;
@@ -358,47 +370,47 @@ int rpc_call(struct rpc *r, uint32_t msg_id,
 
 static int on_connect_to_server(struct rpc *rpc)
 {
-    char payload[1024];
     struct rpc_packet pkt;
+    msg_handler_t *msg_handler;
 
     if (rpc->state == rpc_inited) {
         memset(&pkt, 0, sizeof(pkt));
-        memset(payload, 0, sizeof(payload));
-        pkt.payload = payload;
-        pkt.header.payload_len = sizeof(payload);
         if (-1 == rpc_recv(&rpc->base, &pkt)) {
             printf("rpc_recv failed!\n");
             return -1;
         }
-        rpc->uuid_src = *(uint32_t *)pkt.payload;
+        memcpy(&rpc->uuid_src, pkt.payload, sizeof(rpc->uuid_src));
+        free(pkt.payload);
         thread_lock(rpc->base.dispatch_thread);
         thread_signal(rpc->base.dispatch_thread);
         thread_unlock(rpc->base.dispatch_thread);
-        rpc->state = rpc_connecting;
+        rpc->state = rpc_connected;
+#if ENABLE_DEBUG
+        printf("rpc state: rpc_inited -> rpc_connecting\n");
+#endif
     } else if (rpc->state == rpc_connecting) {
         thread_lock(rpc->base.dispatch_thread);
         thread_signal(rpc->base.dispatch_thread);
         thread_unlock(rpc->base.dispatch_thread);
         rpc->state = rpc_connected;
+#if ENABLE_DEBUG
+        printf("rpc state: rpc_connecting -> rpc_connected\n");
+#endif
     } else if (rpc->state == rpc_connected) {
-        struct rpc_packet recv_pkt;
-        msg_handler_t *msg_handler;
-        memset(&recv_pkt, 0, sizeof(recv_pkt));
-        memset(payload, 0, sizeof(payload));
-        recv_pkt.payload = payload;
-        recv_pkt.header.payload_len = sizeof(payload);
-        if (-1 == rpc_recv(&rpc->base, &recv_pkt)) {
+        memset(&pkt, 0, sizeof(pkt));
+        if (-1 == rpc_recv(&rpc->base, &pkt)) {
             printf("rpc_recv failed!\n");
             return -1;
         }
-        printf("recv =%s, ilen=%d\n", (char *)recv_pkt.payload, recv_pkt.header.payload_len);
-        msg_handler = find_msg_handler(recv_pkt.header.msg_id);
+        msg_handler = find_msg_handler(pkt.header.msg_id);
         if (msg_handler) {
-            msg_handler->cb(NULL, recv_pkt.payload, recv_pkt.header.payload_len, NULL, NULL);
+            msg_handler->cb(&rpc->session, pkt.payload, pkt.header.payload_len, NULL, NULL);
         }
-
+#if ENABLE_DEBUG
+        printf("rpc state: rpc_connected -> rpc_connected\n");
+#endif
     } else if (rpc->state == rpc_send_syn) {
-
+        printf("rpc state: ... -> rpc_send_syn\n");
     } else if (rpc->state == rpc_send_ack) {
     } else {
         printf("rpc state is invalid!\n");
@@ -423,6 +435,9 @@ struct rpc *rpc_client_create(const char *host, uint16_t port)
         printf("init_client failed!\n");
         goto failed;
     }
+    r->session.base = r->base;
+    r->session.uuid_src = r->uuid_src;
+    r->session.uuid_dst = r->uuid_dst;
     printf("rpc_client_create success, uuid = 0x%08X\n", r->uuid_src);
     return r;
 

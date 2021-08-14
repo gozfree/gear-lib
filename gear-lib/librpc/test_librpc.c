@@ -30,8 +30,6 @@
 #include <unistd.h>
 
 static struct thread *g_rpc_thread;
-static struct rpc *g_rpc;
-static struct rpcs *g_rpcs;
 
 #define MAX_UUID_LEN                (21)
 
@@ -110,8 +108,6 @@ static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void
 {
     struct rpcs *s = rpc_server_get_handle(r);
 
-    printf("post msg uuid = %x, ibuf=%s, ilen=%zu\n", r->uuid_src, (char *)ibuf, ilen);
-
     printf("post msg from %x to %x\n", r->uuid_src, r->uuid_dst);
     struct rpc_session *dst_session = (struct rpc_session *)hash_get32(s->hash_session, r->uuid_dst);
     if (!dst_session) {
@@ -130,7 +126,7 @@ static int on_peer_post_msg(struct rpc_session *r, void *ibuf, size_t ilen, void
 
 static int on_peer_post_msg_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
-    printf("msg :%s\n", (char *)ibuf);
+    printf("msg from %x :%s\n", r->uuid_dst, (char *)ibuf);
     return 0;
 }
 
@@ -288,10 +284,35 @@ static void *rpc_client_thread(struct thread *t, void *arg)
     return NULL;
 }
 
+static void *rpc_server_thread(struct thread *t, void *arg)
+{
+    struct rpcs *rpcs = (struct rpcs *)arg;
+    int loop = 1;
+    char ch;
+    while (loop) {
+        printf("input cmd> ");
+        ch = getchar();
+        switch (ch) {
+        case 'q':
+            loop = 0;
+            break;
+        case 'h':
+            cmd_usage();
+            break;
+        default:
+            break;
+        }
+    }
+
+    rpc_server_destroy(rpcs);
+    exit(0);
+    return NULL;
+}
+
 static int rpc_client_test(char *ip, uint16_t port)
 {
-    g_rpc = rpc_client_create(ip, port);
-    if (!g_rpc) {
+    struct rpc *rpc = rpc_client_create(ip, port);
+    if (!rpc) {
         printf("rpc_client_create failed\n");
         return -1;
     }
@@ -301,15 +322,15 @@ static int rpc_client_test(char *ip, uint16_t port)
     printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
     printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
     printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
-    g_rpc_thread = thread_create(rpc_client_thread, g_rpc);
-    rpc_client_dispatch(g_rpc);
+    g_rpc_thread = thread_create(rpc_client_thread, rpc);
+    rpc_client_dispatch(rpc);
     return 0;
 }
 
 static int rpc_server_test(uint16_t port)
 {
-    g_rpcs = rpc_server_create(NULL, port);
-    if (g_rpcs == NULL) {
+    struct rpcs *rpcs = rpc_server_create(NULL, port);
+    if (rpcs == NULL) {
         printf("rpc_server_create failed!\n");
         return -1;
     }
@@ -319,8 +340,8 @@ static int rpc_server_test(uint16_t port)
     printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
     printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
     printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
-    g_rpc_thread = thread_create(rpc_client_thread, g_rpc);
-    rpc_server_dispatch(g_rpcs);
+    g_rpc_thread = thread_create(rpc_server_thread, rpcs);
+    rpc_server_dispatch(rpcs);
     return 0;
 }
 

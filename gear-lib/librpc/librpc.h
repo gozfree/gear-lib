@@ -145,6 +145,15 @@ struct rpc_base {
     struct thread *dispatch_thread;
 };
 
+struct rpc_session {
+    struct rpc_base base;
+    uint32_t uuid_src;
+    uint32_t uuid_dst;
+    uint32_t msg_id;
+    uint64_t timestamp;
+    uint64_t cseq;
+};
+
 typedef int (*rpc_callback)(struct rpc_session *session,
                             void *ibuf, size_t ilen,
                             void **obuf, size_t *olen);
@@ -186,6 +195,7 @@ typedef enum rpc_state {
 
 struct rpc {
     struct rpc_base base;
+    struct rpc_session session;
     struct hash *hash_async_cmd;
     enum rpc_state state;
     uint32_t msg_id;
@@ -206,15 +216,6 @@ GEAR_API int rpc_call(struct rpc *r, uint32_t cmd_id,
 /******************************************************************************
  * server API
  ******************************************************************************/
-struct rpc_session {
-    struct rpc_base base;
-    uint32_t uuid_src;
-    uint32_t uuid_dst;
-    uint32_t msg_id;
-    uint64_t timestamp;
-    uint64_t cseq;
-};
-
 struct rpcs {
     struct rpc_base base;
     struct workq_pool *wq_pool;
