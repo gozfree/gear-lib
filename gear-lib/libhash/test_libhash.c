@@ -82,10 +82,14 @@ int main(int argc, char * argv[])
     t2 = epoch_double();
     printf(PALIGN, "lookup", t2 - t1);
     int cnt = hash_get_all_cnt(d);
+    int num = 0;
     printf("cnt = %d\n", cnt);
     char **key = calloc(cnt, sizeof(char **));
     void **ptr = calloc(cnt, sizeof(void **));
-    hash_dump_all(d, key, ptr);
+    hash_dump_all(d, &num, key, ptr);
+    if (num != cnt) {
+        printf("hash cnt %d does not match expect %d\n", num, cnt);
+    }
     for (i = 0; i < cnt; i++) {
         printf("dump key:val = %s:%p\n", key[i], ptr[i]);
     }

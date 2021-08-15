@@ -320,13 +320,13 @@ int hash_get_all_cnt(struct hash *h)
     return num;
 }
 
-void hash_dump_all(struct hash *h, char **key, void **val)
+void hash_dump_all(struct hash *h, int *num, char **key, void **val)
 {
     struct hlist_head *list;
     struct hash_item *hi;
     struct hlist_node *next;
     uint32_t i;
-    int num = 0;
+    *num = 0;
 
     for (i = 0; i < h->bucket - 1; i++) {
         list = &((struct hlist_head *)h->opaque_list)[i];
@@ -336,9 +336,9 @@ void hash_dump_all(struct hash *h, char **key, void **val)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
 #endif
             printf("key:val = %s:%p\n", hi->key, hi->val);
-            *(key+num) = hi->key;
-            *(val+num) = hi->val;
-            num++;
+            *(key+*num) = hi->key;
+            *(val+*num) = hi->val;
+            (*num)++;
         }
     }
 }
