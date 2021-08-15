@@ -112,7 +112,6 @@ extern "C" {
  * common API
  ******************************************************************************/
 struct rpc_base;
-struct rpc_session;
 
 typedef struct rpc_header {
     uint32_t uuid_dst;
@@ -155,8 +154,7 @@ struct rpc_session {
 };
 
 typedef int (*rpc_callback)(struct rpc_session *session,
-                            void *ibuf, size_t ilen,
-                            void **obuf, size_t *olen);
+                            void *ibuf, size_t ilen, void **obuf, size_t *olen);
 
 typedef struct msg_handler {
     uint32_t msg_id;
@@ -171,8 +169,8 @@ void print_session(struct rpc_session *ss);
 void print_packet(struct rpc_packet *pkt);
 
 #define RPC_REGISTER_MSG_MAP(map_name)             \
-    register_msg_map(__msg_action_map##map_name,  \
-                     (sizeof(__msg_action_map##map_name )/sizeof(msg_handler_t)));
+    register_msg_map(__msg_action_map##map_name,   \
+        (sizeof(__msg_action_map##map_name )/sizeof(msg_handler_t)));
 
 
 #define BEGIN_RPC_MAP(map_name)  \
@@ -194,13 +192,8 @@ typedef enum rpc_state {
 } rpc_state;
 
 struct rpc {
-    struct rpc_base base;
     struct rpc_session session;
-    struct hash *hash_async_cmd;
     enum rpc_state state;
-    uint32_t msg_id;
-    uint32_t uuid_src;
-    uint32_t uuid_dst;
     int (*on_connect_server)(struct rpc *rpc);
 };
 
@@ -208,10 +201,10 @@ GEAR_API struct rpc *rpc_client_create(const char *host, uint16_t port);
 GEAR_API void rpc_client_destroy(struct rpc *r);
 GEAR_API int rpc_client_dispatch(struct rpc *r);
 GEAR_API int rpc_client_set_dest(struct rpc *r, uint32_t uuid);
+GEAR_API void rpc_client_dump_info(struct rpc *r);
 
 GEAR_API int rpc_call(struct rpc *r, uint32_t cmd_id,
-            const void *in_arg, size_t in_len,
-            void *out_arg, size_t out_len);
+            const void *in_arg, size_t in_len, void *out_arg, size_t out_len);
 
 /******************************************************************************
  * server API

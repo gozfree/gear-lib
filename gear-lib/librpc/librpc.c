@@ -76,12 +76,12 @@ static void dump_buffer(void *buf, int len)
     printf("\n");
 }
 
-static void dump_packet(struct rpc_packet *r)
+static void dump_packet(struct rpc_packet *pkt)
 {
     printf("packet header (%zu):", sizeof(struct rpc_header));
-    dump_buffer(&r->header, (int)sizeof(struct rpc_header));
-    printf("packet payload (%d):", r->header.payload_len);
-    dump_buffer(r->payload, r->header.payload_len);
+    dump_buffer(&pkt->header, (int)sizeof(struct rpc_header));
+    printf("packet payload (%d):", pkt->header.payload_len);
+    dump_buffer(pkt->payload, pkt->header.payload_len);
 }
 
 void print_packet(struct rpc_packet *pkt)
@@ -117,34 +117,34 @@ void print_session(struct rpc_session *ss)
 
 static void *event_thread(struct thread *t, void *arg)
 {
-    struct rpc_base *r = (struct rpc_base *)arg;
-    gevent_base_loop(r->evbase);
+    struct rpc_base *base = (struct rpc_base *)arg;
+    gevent_base_loop(base->evbase);
     return NULL;
 }
 
-static int rpc_base_init(struct rpc_base *r)
+static int rpc_base_init(struct rpc_base *base)
 {
-    r->ops = rpc_backend_list[RPC_BACKEND].ops;
-    r->evbase = gevent_base_create();
-    if (!r->evbase) {
+    base->ops = rpc_backend_list[RPC_BACKEND].ops;
+    base->evbase = gevent_base_create();
+    if (!base->evbase) {
         printf("gevent_base_create failed!\n");
         return -1;
     }
-    da_init(r->ev_list);
-    r->dispatch_thread = thread_create(event_thread, r);
-    if (!r->dispatch_thread) {
+    da_init(base->ev_list);
+    base->dispatch_thread = thread_create(event_thread, base);
+    if (!base->dispatch_thread) {
         printf("thread_create failed!\n");
         return -1;
     }
     return 0;
 }
 
-static void rpc_base_deinit(struct rpc_base *r)
+static void rpc_base_deinit(struct rpc_base *base)
 {
-    gevent_base_loop_break(r->evbase);
-    gevent_base_destroy(r->evbase);
-    thread_destroy(r->dispatch_thread);
-    r->ops = NULL;
+    gevent_base_loop_break(base->evbase);
+    gevent_base_destroy(base->evbase);
+    thread_destroy(base->dispatch_thread);
+    base->ops = NULL;
 }
 
 size_t pack_msg(struct rpc_packet *pkt, uint32_t uuid_dst, uint32_t uuid_src,
@@ -190,7 +190,7 @@ static size_t unpack_msg(struct rpc_packet *pkt, uint32_t *msg_id,
     return pkt_len;
 }
 
-int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
+int rpc_send(struct rpc_base *base, struct rpc_packet *pkt)
 {
     int ret, head_size;
     void *buf = NULL;
@@ -200,7 +200,7 @@ int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
 
 #if ENABLE_DEBUG
     printf("rpc_send >>>>\n");
-    struct rpc_session *session = container_of(r, struct rpc_session, base);
+    struct rpc_session *session = container_of(base, struct rpc_session, base);
     print_session(session);
     print_packet(pkt);
 #endif
@@ -213,7 +213,7 @@ int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
     memcpy(buf, (void *)&pkt->header, head_size);
     memcpy(buf+head_size, pkt->payload, pkt->header.payload_len);
 
-    ret = r->ops->send(r, buf, len);
+    ret = base->ops->send(base, buf, len);
     if (ret < 0) {
         printf("%s:%d send failed!\n", __func__, __LINE__);
         ret = -1;
@@ -225,12 +225,12 @@ int rpc_send(struct rpc_base *r, struct rpc_packet *pkt)
     return ret;
 }
 
-static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
+static int rpc_recv(struct rpc_base *base, struct rpc_packet *pkt)
 {
     int ret;
     int head_size = sizeof(rpc_header_t);
 
-    ret = r->ops->recv(r, (void *)&pkt->header, head_size);
+    ret = base->ops->recv(base, (void *)&pkt->header, head_size);
     if (ret == 0) {
         printf("peer connect closed\n");
         return 0;
@@ -246,14 +246,14 @@ static int rpc_recv(struct rpc_base *r, struct rpc_packet *pkt)
 
     pkt->payload = calloc(1, pkt->header.payload_len);
 
-    ret = r->ops->recv(r, pkt->payload, pkt->header.payload_len);
+    ret = base->ops->recv(base, pkt->payload, pkt->header.payload_len);
     if (ret == 0) {
         printf("peer connect closed\n");
         return 0;
     }
 #if ENABLE_DEBUG
     printf("rpc_recv <<<<\n");
-    struct rpc_session *session = container_of(r, struct rpc_session, base);
+    struct rpc_session *session = container_of(base, struct rpc_session, base);
     print_session(session);
     print_packet(pkt);
 #endif
@@ -331,35 +331,36 @@ int register_msg_map(msg_handler_t *map, int num_entry)
 /******************************************************************************
  * client API
  ******************************************************************************/
-int rpc_call(struct rpc *r, uint32_t msg_id,
+int rpc_call(struct rpc *rpc, uint32_t msg_id,
              const void *in_arg, size_t in_len, void *out_arg, size_t out_len)
 {
     int ret;
+    struct rpc_session *ss = &rpc->session;
     struct rpc_packet send_pkt, recv_pkt;
-    if (!r) {
+    if (!rpc) {
         printf("invalid parament!\n");
         return -1;
     }
-    size_t pkt_len = pack_msg(&send_pkt, r->uuid_dst, r->uuid_src, msg_id, in_arg, in_len);
+    size_t pkt_len = pack_msg(&send_pkt, ss->uuid_dst, ss->uuid_src, msg_id, in_arg, in_len);
     if (pkt_len == 0) {
         printf("pack_msg failed!\n");
         return -1;
     }
-    ret = rpc_send(&r->base, &send_pkt);
+    ret = rpc_send(&ss->base, &send_pkt);
     if (-1 == ret) {
         printf("rpc_send failed\n");
         return -1;
     }
     if (IS_RPC_MSG_NEED_RETURN(msg_id)) {
-        thread_lock(r->base.dispatch_thread);
-        r->state = rpc_send_syn;
-        if (thread_wait(r->base.dispatch_thread, 2000) == -1) {
+        thread_lock(ss->base.dispatch_thread);
+        rpc->state = rpc_send_syn;
+        if (thread_wait(ss->base.dispatch_thread, 2000) == -1) {
             printf("%s wait response failed %d:%s\n", __func__, errno, strerror(errno));
             return -1;
         }
-        thread_unlock(r->base.dispatch_thread);
+        thread_unlock(ss->base.dispatch_thread);
         memset(&recv_pkt, 0, sizeof(recv_pkt));
-        if (-1 == rpc_recv(&r->base, &recv_pkt)) {
+        if (-1 == rpc_recv(&ss->base, &recv_pkt)) {
             printf("rpc_recv failed!\n");
             return -1;
         }
@@ -372,39 +373,40 @@ static int on_connect_to_server(struct rpc *rpc)
 {
     struct rpc_packet pkt;
     msg_handler_t *msg_handler;
+    struct rpc_session *ss = &rpc->session;
 
     if (rpc->state == rpc_inited) {
         memset(&pkt, 0, sizeof(pkt));
-        if (-1 == rpc_recv(&rpc->base, &pkt)) {
+        if (-1 == rpc_recv(&ss->base, &pkt)) {
             printf("rpc_recv failed!\n");
             return -1;
         }
-        memcpy(&rpc->uuid_src, pkt.payload, sizeof(rpc->uuid_src));
+        memcpy(&ss->uuid_src, pkt.payload, sizeof(uint32_t));
         free(pkt.payload);
-        thread_lock(rpc->base.dispatch_thread);
-        thread_signal(rpc->base.dispatch_thread);
-        thread_unlock(rpc->base.dispatch_thread);
+        thread_lock(ss->base.dispatch_thread);
+        thread_signal(ss->base.dispatch_thread);
+        thread_unlock(ss->base.dispatch_thread);
         rpc->state = rpc_connected;
 #if ENABLE_DEBUG
         printf("rpc state: rpc_inited -> rpc_connecting\n");
 #endif
     } else if (rpc->state == rpc_connecting) {
-        thread_lock(rpc->base.dispatch_thread);
-        thread_signal(rpc->base.dispatch_thread);
-        thread_unlock(rpc->base.dispatch_thread);
+        thread_lock(ss->base.dispatch_thread);
+        thread_signal(ss->base.dispatch_thread);
+        thread_unlock(ss->base.dispatch_thread);
         rpc->state = rpc_connected;
 #if ENABLE_DEBUG
         printf("rpc state: rpc_connecting -> rpc_connected\n");
 #endif
     } else if (rpc->state == rpc_connected) {
         memset(&pkt, 0, sizeof(pkt));
-        if (-1 == rpc_recv(&rpc->base, &pkt)) {
+        if (-1 == rpc_recv(&ss->base, &pkt)) {
             printf("rpc_recv failed!\n");
             return -1;
         }
         msg_handler = find_msg_handler(pkt.header.msg_id);
         if (msg_handler) {
-            msg_handler->cb(&rpc->session, pkt.payload, pkt.header.payload_len, NULL, NULL);
+            msg_handler->cb(ss, pkt.payload, pkt.header.payload_len, NULL, NULL);
         }
 #if ENABLE_DEBUG
         printf("rpc state: rpc_connected -> rpc_connected\n");
@@ -420,51 +422,54 @@ static int on_connect_to_server(struct rpc *rpc)
 
 struct rpc *rpc_client_create(const char *host, uint16_t port)
 {
-    struct rpc *r = calloc(1, sizeof(struct rpc));
-    if (!r) {
+    struct rpc *rpc = calloc(1, sizeof(struct rpc));
+    if (!rpc) {
         printf("malloc failed!\n");
         return NULL;
     }
-    if (rpc_base_init(&r->base) < 0) {
+    if (rpc_base_init(&rpc->session.base) < 0) {
         printf("rpc_base_init failed!\n");
         return NULL;
     }
-    r->on_connect_server = on_connect_to_server;
-    r->state = rpc_inited;
-    if (r->base.ops->init_client(&r->base, host, port) < 0) {
+    rpc->on_connect_server = on_connect_to_server;
+    rpc->state = rpc_inited;
+    if (rpc->session.base.ops->init_client(&rpc->session.base, host, port) < 0) {
         printf("init_client failed!\n");
         goto failed;
     }
-    r->session.base = r->base;
-    r->session.uuid_src = r->uuid_src;
-    r->session.uuid_dst = r->uuid_dst;
-    printf("rpc_client_create success, uuid = 0x%08X\n", r->uuid_src);
-    return r;
+
+    printf("rpc_client_create success, uuid = 0x%08X\n", rpc->session.uuid_src);
+    return rpc;
 
 failed:
-    free(r);
+    free(rpc);
     return NULL;
 }
 
-int rpc_client_dispatch(struct rpc *r)
+int rpc_client_dispatch(struct rpc *rpc)
 {
-    return gevent_base_loop(r->base.evbase);
+    return gevent_base_loop(rpc->session.base.evbase);
 }
 
-void rpc_client_destroy(struct rpc *r)
+void rpc_client_destroy(struct rpc *rpc)
 {
-    if (!r) {
+    if (!rpc) {
         return;
     }
-    r->base.ops->deinit(&r->base);
-    rpc_base_deinit(&r->base);
-    free(r);
+    rpc->session.base.ops->deinit(&rpc->session.base);
+    rpc_base_deinit(&rpc->session.base);
+    free(rpc);
 }
 
-GEAR_API int rpc_client_set_dest(struct rpc *r, uint32_t uuid_dst)
+GEAR_API int rpc_client_set_dest(struct rpc *rpc, uint32_t uuid_dst)
 {
-    r->uuid_dst = uuid_dst;
+    rpc->session.uuid_dst = uuid_dst;
     return 0;
+}
+
+void rpc_client_dump_info(struct rpc *rpc)
+{
+    print_session(&rpc->session);
 }
 
 /******************************************************************************
@@ -536,9 +541,9 @@ static void process_wq(void *arg)
     }
 }
 
-struct rpcs *rpc_server_get_handle(struct rpc_session *r)
+struct rpcs *rpc_server_get_handle(struct rpc_session *ss)
 {
-    struct wq_arg *wq_arg = container_of(r, struct wq_arg, session);
+    struct wq_arg *wq_arg = container_of(ss, struct wq_arg, session);
     return wq_arg->rpcs;
 }
 

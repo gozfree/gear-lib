@@ -46,6 +46,20 @@ static int on_get_connect_cnt(struct rpc_session *r, void *ibuf, size_t ilen, vo
 
 static int on_get_connect_list(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
+    struct rpcs *s = rpc_server_get_handle(r);
+    int i = 0;
+    int num = 0;
+    int cnt = hash_get_all_cnt(s->hash_session);
+    char **key = calloc(cnt, sizeof(char **));
+    void **ptr = calloc(cnt, sizeof(void **));
+    printf("connect cnt = %d\n", cnt);
+    hash_dump_all(s->hash_session, &num, key, ptr);
+    if (num != cnt) {
+        printf("hash cnt %d does not match expect %d\n", num, cnt);
+    }
+    for (i = 0; i < cnt; i++) {
+        printf("dump key:val = %s:%p\n", key[i], ptr[i]);
+    }
 #if 0
     void *ptr;
     int num = 0;
@@ -252,6 +266,9 @@ static void *rpc_client_thread(struct thread *t, void *arg)
             break;
         case 'a':
             rpc_get_connect_list(r, NULL, NULL);
+            break;
+        case 'i':
+            rpc_client_dump_info(r);
             break;
         case 'p':
             printf("input uuid_dst> ");

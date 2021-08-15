@@ -146,7 +146,8 @@ failed:
 static void on_connect_of_client(int fd, void *arg)
 {
     struct rpc_base *r = (struct rpc_base *)arg;
-    struct rpc *rpc = container_of(r, struct rpc, base);
+    struct rpc_session *ss = container_of(r, struct rpc_session, base);
+    struct rpc *rpc = container_of(ss, struct rpc, session);
     rpc->on_connect_server(rpc);
 }
 
