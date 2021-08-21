@@ -46,20 +46,33 @@ static int on_get_connect_cnt(struct rpc_session *r, void *ibuf, size_t ilen, vo
 
 static int on_get_connect_list(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
 {
+    int expect = *(int*)ibuf;
     struct rpcs *s = rpc_server_get_handle(r);
+    struct rpc_session *ss, *session;
     int i = 0;
     int num = 0;
     int cnt = hash_get_all_cnt(s->hash_session);
     char **key = calloc(cnt, sizeof(char **));
     void **ptr = calloc(cnt, sizeof(void **));
-    printf("connect cnt = %d\n", cnt);
+    printf("connect cnt = %d, ibuf=%d\n", cnt, *(int*)ibuf);
     hash_dump_all(s->hash_session, &num, key, ptr);
     if (num != cnt) {
-        printf("hash cnt %d does not match expect %d\n", num, cnt);
+        printf("hash cnt %d does not match dump %d\n", num, cnt);
     }
+    if (num != expect) {
+        printf("hash cnt %d does not match expected  %d\n", num, expect);
+    }
+    ss = calloc(cnt, sizeof(struct rpc_session));
+
+    printf("dump connect list:\n");
     for (i = 0; i < cnt; i++) {
-        printf("dump key:val = %s:%p\n", key[i], ptr[i]);
+        session = ptr[i];
+        print_session(session);
+        memcpy(&ss[i], session, sizeof(struct rpc_session));
+        //printf("session[%d]dump key:val = %s:%x\n", key[i], session->uuid_src);
     }
+    *obuf = ss;
+    *olen = cnt*sizeof(struct rpc_session);
 #if 0
     void *ptr;
     int num = 0;
@@ -81,26 +94,6 @@ static int on_get_connect_list(struct rpc_session *r, void *ibuf, size_t ilen, v
     r->send_pkt.header.payload_len = buf->iov_len;
     logi("rpc_send len = %d, buf = %s\n", buf->iov_len, buf->iov_base);
     rpc_send(r, buf->iov_base, buf->iov_len);
-#endif
-    printf("%s:%d xxxx\n", __func__, __LINE__);
-    return 0;
-}
-
-static int on_get_connect_list_resp(struct rpc_session *r, void *ibuf, size_t ilen, void **obuf, size_t *olen)
-{
-#if 0
-    char *ptr;
-    int num = 0;
-    len = r->recv_pkt.header.payload_len;
-    printf("strlen = %zu, %s\n", strlen((const char *)arg), (char *)arg);
-    printf("on_get_connect_list, len = %d\n", r->recv_pkt.header.payload_len);
-    num = len / MAX_UUID_LEN;
-    printf("\n");
-    for (ptr = (char *)arg; num > 0; --num) {
-        printf("uuid list: %s\n", (char *)ptr);
-        len = MAX_UUID_LEN;
-        ptr += len;
-    }
 #endif
     printf("%s:%d xxxx\n", __func__, __LINE__);
     return 0;
@@ -168,7 +161,6 @@ static int on_shell_help_resp(struct rpc_session *r, void *ibuf, size_t ilen, vo
 
 BEGIN_RPC_MAP(RPC_CLIENT_API)
 RPC_MAP(RPC_TEST, on_test_resp)
-RPC_MAP(RPC_GET_CONNECT_LIST, on_get_connect_list_resp)
 RPC_MAP(RPC_PEER_POST_MSG, on_peer_post_msg_resp)
 RPC_MAP(RPC_SHELL_HELP, on_shell_help_resp)
 END_RPC_MAP()
@@ -181,21 +173,16 @@ RPC_MAP(RPC_PEER_POST_MSG, on_peer_post_msg)
 RPC_MAP(RPC_SHELL_HELP, on_shell_help)
 END_RPC_MAP()
 
-
-typedef struct rpc_connect {
-//    char uuid[MAX_UUID_LEN];
-
-} rpc_connect_t;
-
-
-static int rpc_get_connect_list(struct rpc *r, struct rpc_connect *list, int *num)
+static int rpc_get_connect_list(struct rpc *r, int cnt)
 {
-    int len = 100;
-    char *buf = (char *)calloc(1, len);
-    memset(buf, 0xA5, len);
-    rpc_call(r, RPC_GET_CONNECT_LIST, buf, len, NULL, 0);
-    //printf("func_id = %x\n", RPC_GET_CONNECT_LIST);
-    //dump_packet(&r->packet);
+    int i;
+    struct rpc_session *ss;
+    ss = calloc(cnt, sizeof(struct rpc_session));
+    rpc_call(r, RPC_GET_CONNECT_LIST, &cnt, sizeof(int), ss, sizeof(ss));
+    printf("get connect list:\n");
+    for (i = 0; i < cnt; i++) {
+        print_session(&ss[i]);
+    }
     return 0;
 }
 
@@ -265,7 +252,7 @@ static void *rpc_client_thread(struct thread *t, void *arg)
             printf("get connect cnt=%d\n", connect_cnt);
             break;
         case 'a':
-            rpc_get_connect_list(r, NULL, NULL);
+            rpc_get_connect_list(r, connect_cnt);
             break;
         case 'i':
             rpc_client_dump_info(r);
@@ -338,7 +325,7 @@ static int rpc_client_test(char *ip, uint16_t port)
     printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
     printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
     printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
-    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+    printf("RPC_GET_CONNECT_CNT:%d\n", RPC_GET_CONNECT_CNT);
     g_rpc_thread = thread_create(rpc_client_thread, rpc);
     rpc_client_dispatch(rpc);
     return 0;
@@ -356,7 +343,7 @@ static int rpc_server_test(uint16_t port)
     printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
     printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
     printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
-    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+    printf("RPC_GET_CONNECT_CNT:%d\n", RPC_GET_CONNECT_CNT);
     g_rpc_thread = thread_create(rpc_server_thread, rpcs);
     rpc_server_dispatch(rpcs);
     return 0;

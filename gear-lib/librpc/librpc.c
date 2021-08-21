@@ -31,7 +31,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#define ENABLE_DEBUG 1
+#define ENABLE_DEBUG 0
 
 extern struct rpc_ops socket_ops;
 
@@ -359,6 +359,7 @@ int rpc_call(struct rpc *rpc, uint32_t msg_id,
             return -1;
         }
         thread_unlock(ss->base.dispatch_thread);
+        rpc->state = rpc_connected;
         memset(&recv_pkt, 0, sizeof(recv_pkt));
         if (-1 == rpc_recv(&ss->base, &recv_pkt)) {
             printf("rpc_recv failed!\n");
@@ -412,6 +413,9 @@ static int on_connect_to_server(struct rpc *rpc)
         printf("rpc state: rpc_connected -> rpc_connected\n");
 #endif
     } else if (rpc->state == rpc_send_syn) {
+        thread_lock(ss->base.dispatch_thread);
+        thread_signal(ss->base.dispatch_thread);
+        thread_unlock(ss->base.dispatch_thread);
         printf("rpc state: ... -> rpc_send_syn\n");
     } else if (rpc->state == rpc_send_ack) {
     } else {
