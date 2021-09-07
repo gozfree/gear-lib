@@ -39,6 +39,8 @@
 #include <assert.h>
 #include "libptcp.h"
 
+static FILE *fp;
+
 static long filesize(FILE *fd)
 {
     long curpos, length;
@@ -276,15 +278,15 @@ static int ptcp_errno(void *arg)
 static int file_send(char *name, struct xfer_callback *cbs)
 {
     int len, flen, slen, total;
-    char buf[1024] = {0};
-    FILE *fp = fopen(name, "r");
+    char buf[10240] = {0};
+    fp = fopen(name, "r");
     assert(fp);
     total = flen = filesize(fp);
     void *arg = cbs->xfer_client_init("127.0.0.1", 5555);
 
     sleep(1);
     while (flen > 0) {
-        usleep(20 * 1000);
+        usleep(40 * 1000);
         len = fread(buf, 1, sizeof(buf), fp);
         if (len == -1) {
             printf("%s:%d xxxx\n", __func__, __LINE__);
@@ -310,8 +312,8 @@ static int file_send(char *name, struct xfer_callback *cbs)
 static int file_recv(char *name, struct xfer_callback *cbs)
 {
     int len, flen, rlen;
-    char buf[1024] = {0};
-    FILE *fp = fopen(name, "w");
+    char buf[10240] = {0};
+    fp = fopen(name, "w");
     assert(fp);
     void *arg = cbs->xfer_server_init("127.0.0.1", 5555);
     assert(arg);
@@ -343,6 +345,7 @@ static int file_recv(char *name, struct xfer_callback *cbs)
 
 static void sigterm_handler(int sig)
 {
+    fclose(fp);
     exit(0);
 }
 

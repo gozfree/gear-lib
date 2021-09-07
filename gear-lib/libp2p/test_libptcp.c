@@ -55,15 +55,17 @@ static int server(const char *host, uint16_t port)
 
     while (1) {
         memset(buf, 0, sizeof(buf));
+        printf("before ptcp_recv\n");
         len = ptcp_recv(ps, buf, sizeof(buf));
+        buf[sizeof(buf)-1] = '\0';
         if (len > 0) {
             printf("ptcp_recv len=%d, buf=%s\n", len, buf);
         } else if (ptcp_is_closed(ps)) {
             printf("ptcp is closed\n");
             return -1;
         } else if (EWOULDBLOCK == ptcp_get_error(ps)){
-            //printf("ptcp is error: %d\n", ptcp_get_error(ps));
-            usleep(100 * 1000);
+            printf("ptcp is error: %d\n", ptcp_get_error(ps));
+            usleep(1000 * 1000);
         }
     }
     return 0;
@@ -90,10 +92,10 @@ static int client(const char *host, uint16_t port)
         printf("ptcp_connect success\n");
     }
 
-    sleep(1);
+    //sleep(1);
     i = 1;
-    //for (i = 0; i < 100; i++) {
-    while (1) {
+    for (i = 0; i < 100; i++) {
+    //while (1) {
         usleep(10 * 1000);
         memset(buf, 0, sizeof(buf));
         snprintf(buf, sizeof(buf), "client %d\n", i);

@@ -939,6 +939,7 @@ int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
     return (len - left);
 }
 
+#ifdef ENABLE_PTCP
 uint64_t sock_ptcp_bind_listen(const char *host, uint16_t port)
 {
     struct sockaddr_in si;
@@ -971,7 +972,9 @@ fail:
     }
     return -1;
 }
+#endif
 
+#ifdef ENABLE_PTCP
 struct sock_connection *sock_ptcp_connect(const char *host, uint16_t port)
 {
     int ret;
@@ -1018,3 +1021,4 @@ fail:
     }
     return NULL;
 }
+#endif

@@ -53,7 +53,7 @@ static int on_get_connect_list_resp(struct rpc_session *r, void *arg, size_t len
 {
     char *ptr;
     int num = 0;
-    printf("on_get_connect_list, len = %d\n", len);
+    printf("on_get_connect_list, len = %zu\n", len);
     num = len / MAX_UUID_LEN;
     for (ptr = (char *)arg; num > 0; --num) {
         printf("uuid list: %s\n", ptr);
@@ -301,6 +301,12 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
         return NULL;
     }
     RPC_REGISTER_MSG_MAP(RPC_CLIENT_API);
+    printf("RPC_TEST:%d\n", RPC_TEST);
+    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+    printf("RPC_PEER_POST_MSG:%d\n", RPC_PEER_POST_MSG);
+    printf("RPC_SHELL_HELP:%d\n", RPC_SHELL_HELP);
+    printf("RPC_GET_CONNECT_LIST:%d\n", RPC_GET_CONNECT_LIST);
+
     sock_getaddr_by_fd(p2p->rpc->base.fd, &tmpaddr);
     sock_addr_ntop(_local_ip, tmpaddr.ip);
     //_local_port = tmpaddr.port;
@@ -331,8 +337,10 @@ struct p2p *p2p_init(const char *rpc_srv, const char *stun_srv)
 int p2p_connect(struct p2p *p2p, uint32_t peer_id)
 {
     int len = (int)sizeof(struct nat_info);
+    printf("rpc_peer_post_msg from %x to %x\n", p2p->rpc->uuid, peer_id);
     p2p->rpc->uuid = peer_id;
     //rpc_send(p2p->rpc, (void *)&p2p->nat, len);
+    printf("rpc_peer_post_msg len = %d\n", len);
     rpc_peer_post_msg(p2p->rpc, (void *)&p2p->nat, len);
     p2p->rpc_state = P2P_RPC_SYN_SENT;
 

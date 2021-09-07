@@ -159,10 +159,12 @@ int main(int argc, char **argv)
             port = atoi(argv[2]);
         else
             port = 0;
+#ifdef ENABLE_PTCP
         ss = sock_server_create(NULL, port, SOCK_TYPE_PTCP);
         printf("sock_server_create PTCP success!\n");
         sock_server_set_callback(ss, on_connect_server, on_recv_buf, NULL);
         sock_server_dispatch(ss);
+#endif
     } else if (!strcmp(argv[1], "-c")) {
         if (argc == 3) {
             ip = "127.0.0.1";
@@ -193,6 +195,7 @@ int main(int argc, char **argv)
             ip = argv[2];
             port = atoi(argv[3]);
         }
+#ifdef ENABLE_PTCP
         sc = sock_client_create(ip, port, SOCK_TYPE_PTCP);
         sock_client_set_callback(sc, on_connect_client, on_recv_buf, NULL);
         sock_client_connect(sc);
@@ -206,6 +209,7 @@ int main(int argc, char **argv)
                 return -1;
             }
         }
+#endif
     }
     if (!strcmp(argv[1], "-t")) {
         addr_test();

@@ -22,7 +22,9 @@
 #include "libsock_ext.h"
 #include <libgevent.h>
 #include "libsock.h"
+#ifdef ENABLE_PTCP
 #include "libptcp.h"
+#endif
 #include <errno.h>
 
 static void on_error(int fd, void *arg)
@@ -68,6 +70,7 @@ static void on_client_recv(int fd, void *arg)
     }
 }
 
+#ifdef ENABLE_PTCP
 static void on_ptcp_recv(int fd, void *arg)
 {
     char buf[2048];
@@ -86,6 +89,7 @@ static void on_ptcp_recv(int fd, void *arg)
         printf("%s:%d recv failed!\n", __func__, __LINE__);
     }
 }
+#endif
 
 static void on_tcp_connect(int fd, void *arg)
 {
@@ -118,6 +122,7 @@ static void on_tcp_connect(int fd, void *arg)
     }
 }
 
+#ifdef ENABLE_PTCP
 static void on_ptcp_connect(int fd, void *arg)
 {
     int afd;
@@ -148,6 +153,7 @@ static void on_ptcp_connect(int fd, void *arg)
         printf("event_add failed!\n");
     }
 }
+#endif
 
 struct sock_server *sock_server_create(const char *host, uint16_t port, enum sock_type type)
 {
@@ -170,9 +176,11 @@ struct sock_server *sock_server_create(const char *host, uint16_t port, enum soc
         s->fd = sock_udp_bind(host, port);
         //sock_set_noblk(s->fd, true);
         break;
+#ifdef ENABLE_PTCP
     case SOCK_TYPE_PTCP:
         s->fd64 = sock_ptcp_bind_listen(host, port);
         break;
+#endif
     default:
         printf("invalid sock_type!\n");
         break;
@@ -205,12 +213,14 @@ int sock_server_set_callback(struct sock_server *s,
     case SOCK_TYPE_TCP:
         e = gevent_create(s->fd, on_tcp_connect, NULL, on_error, s);
         break;
+#ifdef ENABLE_PTCP
     case SOCK_TYPE_PTCP: {
         ptcp_socket_t ptcp = *(ptcp_socket_t *) &s->fd64;
         int fd = ptcp_get_socket_fd(ptcp);
         printf("ptcp_get_socket_fd fd=%d\n", fd);
         e = gevent_create(fd, on_ptcp_connect, NULL, on_error, s);
     } break;
+#endif
     default:
         break;
     }
@@ -298,10 +308,12 @@ GEAR_API int sock_client_connect(struct sock_client *c)
         c->conn = sock_udp_connect(c->host, c->port);
         c->fd = c->conn->fd;
         break;
+#ifdef ENABLE_PTCP
     case SOCK_TYPE_PTCP:
         c->conn = sock_ptcp_connect(c->host, c->port);
         c->fd = c->conn->fd64;
         break;
+#endif
     default:
         printf("invalid sock_type!\n");
         break;

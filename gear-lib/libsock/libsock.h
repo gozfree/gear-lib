@@ -79,8 +79,10 @@ typedef struct sock_connection {
 //socket tcp apis
 GEAR_API struct sock_connection *sock_tcp_connect(const char *host, uint16_t port);
 GEAR_API int sock_tcp_bind_listen(const char *host, uint16_t port);
+#ifdef ENABLE_PTCP
 GEAR_API uint64_t sock_ptcp_bind_listen(const char *host, uint16_t port);
 struct sock_connection *sock_ptcp_connect(const char *host, uint16_t port);
+#endif
 GEAR_API int sock_accept(uint64_t fd, uint32_t *ip, uint16_t *port);
 GEAR_API struct sock_connection *sock_accept_connect(int fd);
 

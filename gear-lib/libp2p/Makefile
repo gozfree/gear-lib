@@ -28,10 +28,13 @@ TGT_LIB_H	= $(LIBNAME).h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
-TGT_UNIT_TEST	= test_$(LIBNAME) test_libstun test_libptcp
+TGT_UNIT_TEST	= test_$(LIBNAME) test_libstun
+# test_file_transfer
+#test_libptcp 
 
 OBJS_LIB	= $(LIBNAME).o
-OBJS_LIB	+= libstun.o libptcp.o
+OBJS_LIB	+= libstun.o
+# libptcp.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -55,17 +58,8 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib -lrpc -lhash -lgevent -lsock -lthread
-LDFLAGS	+= -L$(PLATFORM_LIB) -pthread
-ifeq ($(ARCH), pi)
-LDFLAGS	+= -lgcc_s
-endif
-LDFLAGS	+= $(ANDROID_PRE_LDFLAGS)
-LDFLAGS	+= $($(ARCH)_LDFLAGS)
-ifneq ($(ARCH), android)
-LDFLAGS	+= -lrt
-endif
-
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lrpc -lhash -lgevent -lsock -lthread -ltime -lworkq -lposix -lptcp
+LDFLAGS	+= -pthread -lrt
 
 ###############################################################################
 # target
@@ -91,8 +85,18 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
-$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
+test_libp2p: test_libp2p.o
 	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+
+test_libstun: test_libstun.o
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+
+test_libptcp: test_libptcp.o
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+
+test_file_transfer: test_file_transfer.o
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS)
+
 
 clean:
 	$(RM_V) -f $(OBJS)

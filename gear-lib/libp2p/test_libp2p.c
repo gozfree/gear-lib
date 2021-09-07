@@ -30,11 +30,11 @@
 #include <errno.h>
 
 
-static const char *_rpc_ip = "192.168.1.211";
+static const char *_rpc_ip = "192.168.8.102";
 //static char *_rpc_ip = "180.153.102.147";
 //static char *_rpc_ip = "116.228.149.106";
 
-static const char *_stun_ip = "192.168.1.211";
+static const char *_stun_ip = "192.168.8.102";
 //static char *_stun_ip = "180.153.102.147";
 //static char *_stun_ip = "116.228.149.106";
 static void *input_thread(void *arg)
@@ -72,7 +72,8 @@ int main(int argc, char **argv)
         printf("p2p_init failed!\n");
         return -1;
     }
-    printf("p2p id: %x\n", p2p->rpc->send_pkt.header.uuid_src);
+    printf("p2p_init success!\n");
+    //printf("p2p id: %x\n", p2p->rpc->send_pkt.header.uuid_src);
     pthread_create(&tid, NULL, input_thread, p2p);
     p2p_dispatch(p2p);
     return 0;

@@ -23,7 +23,7 @@ RM_V		?= $(RM)
 # target and object
 ###############################################################################
 ENABLE_SOCK_EXT = 1
-ENABLE_PTCP = 1
+ENABLE_PTCP = 0
 LIBNAME		= libsock
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
@@ -64,7 +64,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 ifeq ($(ENABLE_SOCK_EXT), 1)
 CFLAGS	+= -DENABLE_SOCK_EXT
 endif
-ifeq ($(ENABLE_SOCK_EXT), 1)
+ifeq ($(ENABLE_PTCP), 1)
 CFLAGS	+= -DENABLE_PTCP
 endif
 SHARED	:= -shared
@@ -105,7 +105,7 @@ $(TGT_LIB_SO): $(OBJS_LIB)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST) $(ANDROID_MAIN_OBJ)
-	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib/gear-lib -lgevent -lthread -ldarray -lptcp
+	$(CC_V) -o $@ $^ $(TGT_LIB_A) $(LDFLAGS) -L$(OUTLIBPATH)/lib/gear-lib -lgevent -lthread -ldarray
 
 clean:
 	$(RM_V) -f $(OBJS)
