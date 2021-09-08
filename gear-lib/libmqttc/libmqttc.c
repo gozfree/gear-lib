@@ -26,7 +26,10 @@
 
 #define MAX_NO_OF_REMAINING_LENGTH_BYTES 4
 
-#define NOSTACKTRACE 1
+//#define NOSTACKTRACE 0
+#define TRACE_MINIMUM 0
+#define TRACE_MEDIUM 1
+#define TRACE_MAXIMUM  2
 
 #if defined(NOSTACKTRACE)
 #define FUNC_ENTRY
@@ -78,6 +81,15 @@ char* StackTrace_get(unsigned long);
 #endif
 #endif
 
+void StackTrace_entry(const char* name, int line, int trace)
+{
+    printf("%s:%d %d\n", name, line, trace);
+}
+
+void StackTrace_exit(const char* name, int line, void* return_value, int trace)
+{
+    printf("%s:%d ret=%d %d\n", name, line, *(int *)return_value, trace);
+}
 
 #define min(a, b) ((a < b) ? 1 : 0)
 
@@ -132,7 +144,7 @@ int TimerLeftMS(Timer* timer)
 	return (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000;
 }
 
-int MQTTStringFormat_connect(char* strbuf, int strbuflen, MQTTPacket_connectData* data)
+int mqtt_stringFormat_connect(char* strbuf, int strbuflen, MQTTPacket_connectData* data)
 {
 	int strindex = 0;
 
@@ -155,14 +167,14 @@ int MQTTStringFormat_connect(char* strbuf, int strbuflen, MQTTPacket_connectData
 	return strindex;
 }
 
-int MQTTStringFormat_connack(char* strbuf, int strbuflen, unsigned char connack_rc, unsigned char sessionPresent)
+int mqtt_stringFormat_connack(char* strbuf, int strbuflen, unsigned char connack_rc, unsigned char sessionPresent)
 {
 	int strindex = snprintf(strbuf, strbuflen, "CONNACK session present %d, rc %d", sessionPresent, connack_rc);
 	return strindex;
 }
 
-int MQTTStringFormat_publish(char* strbuf, int strbuflen, unsigned char dup, int qos, unsigned char retained,
-		unsigned short packetid, MQTTString topicName, unsigned char* payload, int payloadlen)
+int mqtt_stringFormat_publish(char* strbuf, int strbuflen, unsigned char dup, int qos, unsigned char retained,
+		unsigned short packetid, mqtt_string topicName, unsigned char* payload, int payloadlen)
 {
 	int strindex = snprintf(strbuf, strbuflen,
 				"PUBLISH dup %d, QoS %d, retained %d, packet id %d, topic %.*s, payload length %d, payload %.*s",
@@ -172,7 +184,7 @@ int MQTTStringFormat_publish(char* strbuf, int strbuflen, unsigned char dup, int
 	return strindex;
 }
 
-int MQTTStringFormat_ack(char* strbuf, int strbuflen, unsigned char packettype, unsigned char dup, unsigned short packetid)
+int mqtt_stringFormat_ack(char* strbuf, int strbuflen, unsigned char packettype, unsigned char dup, unsigned short packetid)
 {
 	int strindex = snprintf(strbuf, strbuflen, "%s, packet id %d", MQTTPacket_names[packettype], packetid);
 	if (dup)
@@ -180,8 +192,8 @@ int MQTTStringFormat_ack(char* strbuf, int strbuflen, unsigned char packettype, 
 	return strindex;
 }
 
-int MQTTStringFormat_subscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid, int count,
-		MQTTString topicFilters[], int requestedQoSs[])
+int mqtt_stringFormat_subscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid, int count,
+		mqtt_string topicFilters[], int requestedQoSs[])
 {
 	return snprintf(strbuf, strbuflen,
 		"SUBSCRIBE dup %d, packet id %d count %d topic %.*s qos %d",
@@ -190,14 +202,14 @@ int MQTTStringFormat_subscribe(char* strbuf, int strbuflen, unsigned char dup, u
 		requestedQoSs[0]);
 }
 
-int MQTTStringFormat_suback(char* strbuf, int strbuflen, unsigned short packetid, int count, int* grantedQoSs)
+int mqtt_stringFormat_suback(char* strbuf, int strbuflen, unsigned short packetid, int count, int* grantedQoSs)
 {
 	return snprintf(strbuf, strbuflen,
 		"SUBACK packet id %d count %d granted qos %d", packetid, count, grantedQoSs[0]);
 }
 
-int MQTTStringFormat_unsubscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid,
-		int count, MQTTString topicFilters[])
+int mqtt_stringFormat_unsubscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid,
+		int count, mqtt_string topicFilters[])
 {
 	return snprintf(strbuf, strbuflen,
 					"UNSUBSCRIBE dup %d, packet id %d count %d topic %.*s",
@@ -223,7 +235,7 @@ char* MQTTFormat_toClientString(char* strbuf, int strbuflen, unsigned char* buf,
 	{
 		unsigned char sessionPresent, connack_rc;
 		if (MQTTDeserialize_connack(&sessionPresent, &connack_rc, buf, buflen) == 1)
-			strindex = MQTTStringFormat_connack(strbuf, strbuflen, connack_rc, sessionPresent);
+			strindex = mqtt_stringFormat_connack(strbuf, strbuflen, connack_rc, sessionPresent);
 	}
 	break;
 	case PUBLISH:
@@ -231,10 +243,10 @@ char* MQTTFormat_toClientString(char* strbuf, int strbuflen, unsigned char* buf,
 		unsigned char dup, retained, *payload;
 		unsigned short packetid;
 		int qos, payloadlen;
-		MQTTString topicName = MQTTString_initializer;
+		mqtt_string topicName = mqtt_string_initializer;
 		if (MQTTDeserialize_publish(&dup, &qos, &retained, &packetid, &topicName,
 				&payload, &payloadlen, buf, buflen) == 1)
-			strindex = MQTTStringFormat_publish(strbuf, strbuflen, dup, qos, retained, packetid,
+			strindex = mqtt_stringFormat_publish(strbuf, strbuflen, dup, qos, retained, packetid,
 					topicName, payload, payloadlen);
 	}
 	break;
@@ -246,7 +258,7 @@ char* MQTTFormat_toClientString(char* strbuf, int strbuflen, unsigned char* buf,
 		unsigned char packettype, dup;
 		unsigned short packetid;
 		if (MQTTDeserialize_ack(&packettype, &dup, &packetid, buf, buflen) == 1)
-			strindex = MQTTStringFormat_ack(strbuf, strbuflen, packettype, dup, packetid);
+			strindex = mqtt_stringFormat_ack(strbuf, strbuflen, packettype, dup, packetid);
 	}
 	break;
 	case SUBACK:
@@ -255,14 +267,14 @@ char* MQTTFormat_toClientString(char* strbuf, int strbuflen, unsigned char* buf,
 		int maxcount = 1, count = 0;
 		int grantedQoSs[1];
 		if (MQTTDeserialize_suback(&packetid, maxcount, &count, grantedQoSs, buf, buflen) == 1)
-			strindex = MQTTStringFormat_suback(strbuf, strbuflen, packetid, count, grantedQoSs);
+			strindex = mqtt_stringFormat_suback(strbuf, strbuflen, packetid, count, grantedQoSs);
 	}
 	break;
 	case UNSUBACK:
 	{
 		unsigned short packetid;
 		if (MQTTDeserialize_unsuback(&packetid, buf, buflen) == 1)
-			strindex = MQTTStringFormat_ack(strbuf, strbuflen, UNSUBACK, 0, packetid);
+			strindex = mqtt_stringFormat_ack(strbuf, strbuflen, UNSUBACK, 0, packetid);
 	}
 	break;
 	case PINGREQ:
@@ -293,7 +305,7 @@ char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf,
 		MQTTPacket_connectData data;
 		int rc;
 		if ((rc = MQTTDeserialize_connect(&data, buf, buflen)) == 1)
-			strindex = MQTTStringFormat_connect(strbuf, strbuflen, &data);
+			strindex = mqtt_stringFormat_connect(strbuf, strbuflen, &data);
 	}
 	break;
 	case PUBLISH:
@@ -301,10 +313,10 @@ char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf,
 		unsigned char dup, retained, *payload;
 		unsigned short packetid;
 		int qos, payloadlen;
-		MQTTString topicName = MQTTString_initializer;
+		mqtt_string topicName = mqtt_string_initializer;
 		if (MQTTDeserialize_publish(&dup, &qos, &retained, &packetid, &topicName,
 				&payload, &payloadlen, buf, buflen) == 1)
-			strindex = MQTTStringFormat_publish(strbuf, strbuflen, dup, qos, retained, packetid,
+			strindex = mqtt_stringFormat_publish(strbuf, strbuflen, dup, qos, retained, packetid,
 					topicName, payload, payloadlen);
 	}
 	break;
@@ -316,7 +328,7 @@ char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf,
 		unsigned char packettype, dup;
 		unsigned short packetid;
 		if (MQTTDeserialize_ack(&packettype, &dup, &packetid, buf, buflen) == 1)
-			strindex = MQTTStringFormat_ack(strbuf, strbuflen, packettype, dup, packetid);
+			strindex = mqtt_stringFormat_ack(strbuf, strbuflen, packettype, dup, packetid);
 	}
 	break;
 	case SUBSCRIBE:
@@ -324,11 +336,11 @@ char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf,
 		unsigned char dup;
 		unsigned short packetid;
 		int maxcount = 1, count = 0;
-		MQTTString topicFilters[1];
+		mqtt_string topicFilters[1];
 		int requestedQoSs[1];
 		if (MQTTDeserialize_subscribe(&dup, &packetid, maxcount, &count,
 				topicFilters, requestedQoSs, buf, buflen) == 1)
-			strindex = MQTTStringFormat_subscribe(strbuf, strbuflen, dup, packetid, count, topicFilters, requestedQoSs);;
+			strindex = mqtt_stringFormat_subscribe(strbuf, strbuflen, dup, packetid, count, topicFilters, requestedQoSs);;
 	}
 	break;
 	case UNSUBSCRIBE:
@@ -336,9 +348,9 @@ char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf,
 		unsigned char dup;
 		unsigned short packetid;
 		int maxcount = 1, count = 0;
-		MQTTString topicFilters[1];
+		mqtt_string topicFilters[1];
 		if (MQTTDeserialize_unsubscribe(&dup, &packetid, maxcount, &count, topicFilters, buf, buflen) == 1)
-			strindex =  MQTTStringFormat_unsubscribe(strbuf, strbuflen, dup, packetid, count, topicFilters);
+			strindex =  mqtt_stringFormat_unsubscribe(strbuf, strbuflen, dup, packetid, count, topicFilters);
 	}
 	break;
 	case PINGREQ:
@@ -511,7 +523,7 @@ int getLenStringLen(char* ptr)
 	return len;
 }
 
-void writeMQTTString(unsigned char** pptr, MQTTString mqttstring)
+void writemqtt_string(unsigned char** pptr, mqtt_string mqttstring)
 {
 	if (mqttstring.lenstring.len > 0)
 	{
@@ -526,12 +538,12 @@ void writeMQTTString(unsigned char** pptr, MQTTString mqttstring)
 }
 
 /**
- * @param mqttstring the MQTTString structure into which the data is to be read
+ * @param mqttstring the mqtt_string structure into which the data is to be read
  * @param pptr pointer to the output buffer - incremented by the number of bytes used & returned
  * @param enddata pointer to the end of the data: do not read beyond
  * @return 1 if successful, 0 if not
  */
-int readMQTTLenString(MQTTString* mqttstring, unsigned char** pptr, unsigned char* enddata)
+int readMQTTLenString(mqtt_string* mqttstring, unsigned char** pptr, unsigned char* enddata)
 {
 	int rc = 0;
 
@@ -557,7 +569,7 @@ int readMQTTLenString(MQTTString* mqttstring, unsigned char** pptr, unsigned cha
  * @param mqttstring the string to return the length of
  * @return the length of the string
  */
-int MQTTstrlen(MQTTString mqttstring)
+int MQTTstrlen(mqtt_string mqttstring)
 {
 	int rc = 0;
 
@@ -569,12 +581,12 @@ int MQTTstrlen(MQTTString mqttstring)
 }
 
 /**
- * Compares an MQTTString to a C string
- * @param a the MQTTString to compare
+ * Compares an mqtt_string to a C string
+ * @param a the mqtt_string to compare
  * @param bptr the C string to compare
  * @return boolean - equal or not
  */
-int MQTTPacket_equals(MQTTString* a, char* bptr)
+int MQTTPacket_equals(mqtt_string* a, char* bptr)
 {
 	int alen = 0,
 		blen = 0;
@@ -738,7 +750,7 @@ exit:
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return the length of the serialized data.  <= 0 indicates error
   */
-int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
+int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, mqtt_string topicFilters[],
 		unsigned char* buf, int len)
 {
 	mqtt_header header = {0};
@@ -811,7 +823,7 @@ exit:
   * @param topicFilters the array of topic filter strings to be used in the publish
   * @return the length of buffer needed to contain the serialized version of the packet
   */
-int MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[])
+int MQTTSerialize_unsubscribeLength(int count, mqtt_string topicFilters[])
 {
 	int i;
 	int len = 2; /* packetid */
@@ -832,7 +844,7 @@ int MQTTSerialize_unsubscribeLength(int count, MQTTString topicFilters[])
   * @return the length of the serialized data.  <= 0 indicates error
   */
 int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
-		int count, MQTTString topicFilters[])
+		int count, mqtt_string topicFilters[])
 {
 	unsigned char *ptr = buf;
 	mqtt_header header = {0};
@@ -858,7 +870,7 @@ int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup,
 	writeInt(&ptr, packetid);
 
 	for (i = 0; i < count; ++i)
-		writeMQTTString(&ptr, topicFilters[i]);
+		writemqtt_string(&ptr, topicFilters[i]);
 
 	rc = ptr - buf;
 exit:
@@ -893,7 +905,7 @@ int MQTTDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int b
   * @param topicFilters the array of topic filter strings to be used in the publish
   * @return the length of buffer needed to contain the serialized version of the packet
   */
-int MQTTSerialize_subscribeLength(int count, MQTTString topicFilters[])
+int MQTTSerialize_subscribeLength(int count, mqtt_string topicFilters[])
 {
 	int i;
 	int len = 2; /* packetid */
@@ -915,7 +927,7 @@ int MQTTSerialize_subscribeLength(int count, MQTTString topicFilters[])
   * @return the length of the serialized data.  <= 0 indicates error
   */
 int MQTTSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid, int count,
-		MQTTString topicFilters[], int requestedQoSs[])
+		mqtt_string topicFilters[], int requestedQoSs[])
 {
 	unsigned char *ptr = buf;
 	mqtt_header header = {0};
@@ -942,7 +954,7 @@ int MQTTSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, u
 
 	for (i = 0; i < count; ++i)
 	{
-		writeMQTTString(&ptr, topicFilters[i]);
+		writemqtt_string(&ptr, topicFilters[i]);
 		writeChar(&ptr, requestedQoSs[i]);
 	}
 
@@ -1011,7 +1023,7 @@ exit:
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return the length of the serialized data.  <= 0 indicates error
   */
-int MQTTDeserialize_subscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, MQTTString topicFilters[],
+int MQTTDeserialize_subscribe(unsigned char* dup, unsigned short* packetid, int maxcount, int* count, mqtt_string topicFilters[],
 	int requestedQoSs[], unsigned char* buf, int buflen)
 {
 	mqtt_header header = {0};
@@ -1093,14 +1105,14 @@ exit:
   * @param qos returned integer - the MQTT QoS value
   * @param retained returned integer - the MQTT retained flag
   * @param packetid returned integer - the MQTT packet identifier
-  * @param topicName returned MQTTString - the MQTT topic in the publish
+  * @param topicName returned mqtt_string - the MQTT topic in the publish
   * @param payload returned byte buffer - the MQTT publish payload
   * @param payloadlen returned integer - the length of the MQTT payload
   * @param buf the raw buffer data, of the correct length determined by the remaining length field
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success
   */
-int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, MQTTString* topicName,
+int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, mqtt_string* topicName,
 		unsigned char** payload, int* payloadlen, unsigned char* buf, int buflen)
 {
 	mqtt_header header = {0};
@@ -1177,7 +1189,7 @@ exit:
   * @param payloadlen the length of the payload to be sent
   * @return the length of buffer needed to contain the serialized version of the packet
   */
-int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
+int MQTTSerialize_publishLength(int qos, mqtt_string topicName, int payloadlen)
 {
 	int len = 0;
 
@@ -1195,13 +1207,13 @@ int MQTTSerialize_publishLength(int qos, MQTTString topicName, int payloadlen)
   * @param qos integer - the MQTT QoS value
   * @param retained integer - the MQTT retained flag
   * @param packetid integer - the MQTT packet identifier
-  * @param topicName MQTTString - the MQTT topic in the publish
+  * @param topicName mqtt_string - the MQTT topic in the publish
   * @param payload byte buffer - the MQTT publish payload
   * @param payloadlen integer - the length of the MQTT payload
   * @return the length of the serialized data.  <= 0 indicates error
   */
 int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
-		MQTTString topicName, unsigned char* payload, int payloadlen)
+		mqtt_string topicName, unsigned char* payload, int payloadlen)
 {
 	unsigned char *ptr = buf;
 	mqtt_header header = {0};
@@ -1223,7 +1235,7 @@ int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int
 
 	ptr += MQTTPacket_encode(ptr, rem_len); /* write remaining length */;
 
-	writeMQTTString(&ptr, topicName);
+	writemqtt_string(&ptr, topicName);
 
 	if (qos > 0)
 		writeInt(&ptr, packetid);
@@ -1310,7 +1322,7 @@ int MQTTSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packeti
 	return MQTTSerialize_ack(buf, buflen, PUBCOMP, 0, packetid);
 }
 
-static void NewMessageData(MessageData* md, MQTTString* aTopicName, MQTTMessage* aMessage) {
+static void NewMessageData(MessageData* md, mqtt_string* aTopicName, MQTTMessage* aMessage) {
     md->topicName = aTopicName;
     md->message = aMessage;
 }
@@ -1327,7 +1339,7 @@ static int sendPacket(mqtt_client* c, int length, Timer* timer)
 
     while (sent < length && !TimerIsExpired(timer))
     {
-        rc = c->ipstack->mqttwrite(c->ipstack, &c->buf[sent], length, TimerLeftMS(timer));
+        rc = c->ipstack->write(c->ipstack, &c->buf[sent], length, TimerLeftMS(timer));
         if (rc < 0)  // there was an error writing the data
             break;
         sent += rc;
@@ -1383,7 +1395,7 @@ static int decodePacket(mqtt_client* c, int* value, int timeout)
             rc = MQTTPACKET_READ_ERROR; /* bad data */
             goto exit;
         }
-        rc = c->ipstack->mqttread(c->ipstack, &i, 1, timeout);
+        rc = c->ipstack->read(c->ipstack, &i, 1, timeout);
         if (rc != 1)
             goto exit;
         *value += (i & 127) * multiplier;
@@ -1400,7 +1412,7 @@ static int readPacket(mqtt_client* c, Timer* timer)
     int rem_len = 0;
 
     /* 1. read the header byte.  This has the packet type in it */
-    int rc = c->ipstack->mqttread(c->ipstack, c->readbuf, 1, TimerLeftMS(timer));
+    int rc = c->ipstack->read(c->ipstack, c->readbuf, 1, TimerLeftMS(timer));
     if (rc != 1)
         goto exit;
 
@@ -1416,7 +1428,7 @@ static int readPacket(mqtt_client* c, Timer* timer)
     }
 
     /* 3. read the rest of the buffer using a callback to supply the rest of the data */
-    if (rem_len > 0 && (rc = c->ipstack->mqttread(c->ipstack, c->readbuf + len, rem_len, TimerLeftMS(timer)) != rem_len)) {
+    if (rem_len > 0 && (rc = c->ipstack->read(c->ipstack, c->readbuf + len, rem_len, TimerLeftMS(timer)) != rem_len)) {
         rc = 0;
         goto exit;
     }
@@ -1432,7 +1444,7 @@ exit:
 // assume topic filter and name is in correct format
 // # can only be at end
 // + and # can only be next to separator
-static char isTopicMatched(char* topicFilter, MQTTString* topicName)
+static char isTopicMatched(char* topicFilter, mqtt_string* topicName)
 {
     char* curf = topicFilter;
     char* curn = topicName->lenstring.data;
@@ -1459,7 +1471,7 @@ static char isTopicMatched(char* topicFilter, MQTTString* topicName)
     return (curn == curn_end) && (*curf == '\0');
 }
 
-int deliverMessage(mqtt_client* c, MQTTString* topicName, MQTTMessage* message)
+int deliverMessage(mqtt_client* c, mqtt_string* topicName, MQTTMessage* message)
 {
     int i;
     int rc = FAILURE;
@@ -1555,7 +1567,7 @@ int cycle(mqtt_client* c, Timer* timer)
             break;
         case PUBLISH:
         {
-            MQTTString topicName;
+            mqtt_string topicName;
             MQTTMessage msg;
             int intQoS;
             msg.payloadlen = 0; /* this is a size_t, but deserialize publish sets this as int */
@@ -1790,7 +1802,7 @@ int MQTTSubscribeWithResults(mqtt_client* c, const char* topicFilter, enum QoS q
     int rc = FAILURE;
     Timer timer;
     int len = 0;
-    MQTTString topic = MQTTString_initializer;
+    mqtt_string topic = mqtt_string_initializer;
     topic.cstring = (char *)topicFilter;
 
 #if defined(MQTT_TASK)
@@ -1842,7 +1854,7 @@ int MQTTUnsubscribe(mqtt_client* c, const char* topicFilter)
 {
     int rc = FAILURE;
     Timer timer;
-    MQTTString topic = MQTTString_initializer;
+    mqtt_string topic = mqtt_string_initializer;
     topic.cstring = (char *)topicFilter;
     int len = 0;
 
@@ -1885,7 +1897,7 @@ int MQTTPublish(mqtt_client* c, const char* topicName, MQTTMessage* message)
 {
     int rc = FAILURE;
     Timer timer;
-    MQTTString topic = MQTTString_initializer;
+    mqtt_string topic = mqtt_string_initializer;
     topic.cstring = (char *)topicName;
     int len = 0;
 
@@ -2004,7 +2016,7 @@ int MQTTSerialize_connect(unsigned char* buf, int buflen, MQTTPacket_connectData
 {
 	unsigned char *ptr = buf;
 	mqtt_header header = {0};
-	MQTTConnectFlags flags = {0};
+	mqtt_conn_flags flags = {0};
 	int len = 0;
 	int rc = -1;
 
@@ -2048,16 +2060,16 @@ int MQTTSerialize_connect(unsigned char* buf, int buflen, MQTTPacket_connectData
 
 	writeChar(&ptr, flags.all);
 	writeInt(&ptr, options->keepAliveInterval);
-	writeMQTTString(&ptr, options->clientID);
+	writemqtt_string(&ptr, options->clientID);
 	if (options->willFlag)
 	{
-		writeMQTTString(&ptr, options->will.topicName);
-		writeMQTTString(&ptr, options->will.message);
+		writemqtt_string(&ptr, options->will.topicName);
+		writemqtt_string(&ptr, options->will.message);
 	}
 	if (flags.bits.username)
-		writeMQTTString(&ptr, options->username);
+		writemqtt_string(&ptr, options->username);
 	if (flags.bits.password)
-		writeMQTTString(&ptr, options->password);
+		writemqtt_string(&ptr, options->password);
 
 	rc = ptr - buf;
 
@@ -2157,11 +2169,11 @@ int MQTTSerialize_pingreq(unsigned char* buf, int buflen)
 
 /**
   * Validates MQTT protocol name and version combinations
-  * @param protocol the MQTT protocol name as an MQTTString
+  * @param protocol the MQTT protocol name as an mqtt_string
   * @param version the MQTT protocol version number, as in the connect packet
   * @return correct MQTT combination?  1 is true, 0 is false
   */
-int MQTTPacket_checkVersion(MQTTString* protocol, int version)
+int MQTTPacket_checkVersion(mqtt_string* protocol, int version)
 {
 	int rc = 0;
 
@@ -2184,11 +2196,11 @@ int MQTTPacket_checkVersion(MQTTString* protocol, int version)
 int MQTTDeserialize_connect(MQTTPacket_connectData* data, unsigned char* buf, int len)
 {
 	mqtt_header header = {0};
-	MQTTConnectFlags flags = {0};
+	mqtt_conn_flags flags = {0};
 	unsigned char* curdata = buf;
 	unsigned char* enddata = &buf[len];
 	int rc = 0;
-	MQTTString Protocol;
+	mqtt_string Protocol;
 	int version;
 	int mylen = 0;
 

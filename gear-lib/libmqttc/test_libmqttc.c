@@ -81,8 +81,8 @@ int linux_write(Network* n, unsigned char* buffer, int len, int timeout_ms)
 void NetworkInit(Network* n)
 {
 	n->my_socket = 0;
-	n->mqttread = linux_read;
-	n->mqttwrite = linux_write;
+	n->read = linux_read;
+	n->write = linux_write;
 }
 
 

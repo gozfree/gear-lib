@@ -37,8 +37,8 @@ typedef struct Timer {
 
 typedef struct Network {
 	int my_socket;
-	int (*mqttread) (struct Network*, unsigned char*, int, int);
-	int (*mqttwrite) (struct Network*, unsigned char*, int, int);
+	int (*read) (struct Network*, unsigned char*, int, int);
+	int (*write) (struct Network*, unsigned char*, int, int);
 } Network;
 
 enum mqtt_errors {
@@ -69,7 +69,7 @@ enum mqtt_connack_return_codes {
 typedef union
 {
 	unsigned char byte;	                /**< the whole byte */
-#if defined(LITTLE_ENDIAN)
+#if defined(REVERSED)
 	struct
 	{
 		unsigned int type : 4;			/**< message type nibble */
@@ -92,15 +92,15 @@ typedef struct
 {
 	int len;
 	char* data;
-} MQTTLenString;
+} mqtt_len_string;
 
 typedef struct
 {
 	char* cstring;
-	MQTTLenString lenstring;
-} MQTTString;
+	mqtt_len_string lenstring;
+} mqtt_string;
 
-#define MQTTString_initializer {NULL, {0, NULL}}
+#define mqtt_string_initializer {NULL, {0, NULL}}
 
 typedef union
 {
@@ -128,7 +128,7 @@ typedef union
 		unsigned int username : 1;			/**< 3.1 user name */
 	} bits;
 #endif
-} MQTTConnectFlags;	/**< connect flags byte */
+} mqtt_conn_flags;	/**< connect flags byte */
 
 
 
@@ -143,9 +143,9 @@ typedef struct
 	/** The version number of this structure.  Must be 0 */
 	int struct_version;
 	/** The LWT topic to which the LWT message will be published. */
-	MQTTString topicName;
+	mqtt_string topicName;
 	/** The LWT payload. */
-	MQTTString message;
+	mqtt_string message;
 	/**
       * The retained flag for the LWT message (see MQTTAsync_message.retained).
       */
@@ -170,13 +170,13 @@ typedef struct
 	/** Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
 	  */
 	unsigned char MQTTVersion;
-	MQTTString clientID;
+	mqtt_string clientID;
 	unsigned short keepAliveInterval;
 	unsigned char cleansession;
 	unsigned char willFlag;
 	MQTTPacket_willOptions will;
-	MQTTString username;
-	MQTTString password;
+	mqtt_string username;
+	mqtt_string password;
 } MQTTPacket_connectData;
 
 typedef union
@@ -199,12 +199,12 @@ typedef union
 
 
 
-int MQTTstrlen(MQTTString mqttstring);
+int MQTTstrlen(mqtt_string mqttstring);
 
 int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
-		MQTTString topicName, unsigned char* payload, int payloadlen);
+		mqtt_string topicName, unsigned char* payload, int payloadlen);
 
-int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, MQTTString* topicName,
+int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, mqtt_string* topicName,
 		unsigned char** payload, int* payloadlen, unsigned char* buf, int len);
 
 int MQTTSerialize_puback(unsigned char* buf, int buflen, unsigned short packetid);
@@ -212,19 +212,19 @@ int MQTTSerialize_pubrel(unsigned char* buf, int buflen, unsigned char dup, unsi
 int MQTTSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid);
 
 int MQTTSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
-		int count, MQTTString topicFilters[], int requestedQoSs[]);
+		int count, mqtt_string topicFilters[], int requestedQoSs[]);
 
 int MQTTDeserialize_subscribe(unsigned char* dup, unsigned short* packetid,
-		int maxcount, int* count, MQTTString topicFilters[], int requestedQoSs[], unsigned char* buf, int len);
+		int maxcount, int* count, mqtt_string topicFilters[], int requestedQoSs[], unsigned char* buf, int len);
 
 int MQTTSerialize_suback(unsigned char* buf, int buflen, unsigned short packetid, int count, int* grantedQoSs);
 
 int MQTTDeserialize_suback(unsigned short* packetid, int maxcount, int* count, int grantedQoSs[], unsigned char* buf, int len);
 
 int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
-		int count, MQTTString topicFilters[]);
+		int count, mqtt_string topicFilters[]);
 
-int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int max_count, int* count, MQTTString topicFilters[],
+int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int max_count, int* count, mqtt_string topicFilters[],
 		unsigned char* buf, int len);
 
 int MQTTSerialize_unsuback(unsigned char* buf, int buflen, unsigned short packetid);
@@ -233,16 +233,16 @@ int MQTTDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int l
 
 
 const char* MQTTPacket_getName(unsigned short packetid);
-int MQTTStringFormat_connect(char* strbuf, int strbuflen, MQTTPacket_connectData* data);
-int MQTTStringFormat_connack(char* strbuf, int strbuflen, unsigned char connack_rc, unsigned char sessionPresent);
-int MQTTStringFormat_publish(char* strbuf, int strbuflen, unsigned char dup, int qos, unsigned char retained,
-		unsigned short packetid, MQTTString topicName, unsigned char* payload, int payloadlen);
-int MQTTStringFormat_ack(char* strbuf, int strbuflen, unsigned char packettype, unsigned char dup, unsigned short packetid);
-int MQTTStringFormat_subscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid, int count,
-		MQTTString topicFilters[], int requestedQoSs[]);
-int MQTTStringFormat_suback(char* strbuf, int strbuflen, unsigned short packetid, int count, int* grantedQoSs);
-int MQTTStringFormat_unsubscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid,
-		int count, MQTTString topicFilters[]);
+int mqtt_stringFormat_connect(char* strbuf, int strbuflen, MQTTPacket_connectData* data);
+int mqtt_stringFormat_connack(char* strbuf, int strbuflen, unsigned char connack_rc, unsigned char sessionPresent);
+int mqtt_stringFormat_publish(char* strbuf, int strbuflen, unsigned char dup, int qos, unsigned char retained,
+		unsigned short packetid, mqtt_string topicName, unsigned char* payload, int payloadlen);
+int mqtt_stringFormat_ack(char* strbuf, int strbuflen, unsigned char packettype, unsigned char dup, unsigned short packetid);
+int mqtt_stringFormat_subscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid, int count,
+		mqtt_string topicFilters[], int requestedQoSs[]);
+int mqtt_stringFormat_suback(char* strbuf, int strbuflen, unsigned short packetid, int count, int* grantedQoSs);
+int mqtt_stringFormat_unsubscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid,
+		int count, mqtt_string topicFilters[]);
 char* MQTTFormat_toClientString(char* strbuf, int strbuflen, unsigned char* buf, int buflen);
 char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf, int buflen);
 
@@ -250,7 +250,7 @@ int MQTTSerialize_ack(unsigned char* buf, int buflen, unsigned char type, unsign
 int MQTTDeserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned short* packetid, unsigned char* buf, int buflen);
 
 int MQTTPacket_len(int rem_len);
-int MQTTPacket_equals(MQTTString* a, char* b);
+int MQTTPacket_equals(mqtt_string* a, char* b);
 
 int MQTTPacket_encode(unsigned char* buf, int length);
 int MQTTPacket_decode(int (*getcharfn)(unsigned char*, int), int* value);
@@ -260,9 +260,9 @@ int readInt(unsigned char** pptr);
 char readChar(unsigned char** pptr);
 void writeChar(unsigned char** pptr, char c);
 void writeInt(unsigned char** pptr, int anInt);
-int readMQTTLenString(MQTTString* mqttstring, unsigned char** pptr, unsigned char* enddata);
+int readMQTTLenString(mqtt_string* mqttstring, unsigned char** pptr, unsigned char* enddata);
 void writeCString(unsigned char** pptr, const char* string);
-void writeMQTTString(unsigned char** pptr, MQTTString mqttstring);
+void writemqtt_string(unsigned char** pptr, mqtt_string mqttstring);
 
 int MQTTPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int));
 
@@ -301,7 +301,7 @@ typedef struct MQTTMessage
 typedef struct MessageData
 {
     MQTTMessage* message;
-    MQTTString* topicName;
+    mqtt_string* topicName;
 } MessageData;
 
 typedef struct MQTTConnackData
