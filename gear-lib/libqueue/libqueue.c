@@ -21,6 +21,7 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include "libqueue.h"
@@ -32,7 +33,7 @@
 
 #define QUEUE_MAX_DEPTH 200
 
-GEAR_API struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t len, void *arg)
+struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t len, void *arg)
 {
     struct queue_item *item;
     if (!q || !data || len == 0) {
@@ -55,7 +56,7 @@ GEAR_API struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t
     return item;
 }
 
-GEAR_API void queue_item_free(struct queue *q, struct queue_item *item)
+void queue_item_free(struct queue *q, struct queue_item *item)
 {
     if (!q || !item) {
         return;
@@ -69,7 +70,7 @@ GEAR_API void queue_item_free(struct queue *q, struct queue_item *item)
     free(item);
 }
 
-GEAR_API struct iovec *queue_item_get_data(struct queue *q, struct queue_item *it)
+struct iovec *queue_item_get_data(struct queue *q, struct queue_item *it)
 {
     if (!q || !it) {
         return NULL;
@@ -81,7 +82,7 @@ GEAR_API struct iovec *queue_item_get_data(struct queue *q, struct queue_item *i
     }
 }
 
-GEAR_API int queue_set_mode(struct queue *q, enum queue_mode mode)
+int queue_set_mode(struct queue *q, enum queue_mode mode)
 {
     if (!q) {
         return -1;
@@ -90,7 +91,7 @@ GEAR_API int queue_set_mode(struct queue *q, enum queue_mode mode)
     return 0;
 }
 
-GEAR_API int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_free_hook *free_cb)
+int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_free_hook *free_cb)
 {
     if (!q) {
         return -1;
@@ -100,7 +101,7 @@ GEAR_API int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_f
     return 0;
 }
 
-GEAR_API int queue_set_depth(struct queue *q, int depth)
+int queue_set_depth(struct queue *q, int depth)
 {
     if (!q || depth <= 0) {
         return -1;
@@ -109,7 +110,7 @@ GEAR_API int queue_set_depth(struct queue *q, int depth)
     return 0;
 }
 
-GEAR_API int queue_get_depth(struct queue *q)
+int queue_get_depth(struct queue *q)
 {
     if (!q) {
         return -1;
@@ -117,7 +118,7 @@ GEAR_API int queue_get_depth(struct queue *q)
     return q->depth;
 }
 
-GEAR_API struct queue *queue_create()
+struct queue *queue_create()
 {
     struct queue *q = CALLOC(1, struct queue);
     if (!q) {
@@ -137,7 +138,7 @@ GEAR_API struct queue *queue_create()
     return q;
 }
 
-GEAR_API int queue_flush(struct queue *q)
+int queue_flush(struct queue *q)
 {
     struct queue_item *item, *next;
     if (!q) {
@@ -161,7 +162,7 @@ GEAR_API int queue_flush(struct queue *q)
     return 0;
 }
 
-GEAR_API void queue_destroy(struct queue *q)
+void queue_destroy(struct queue *q)
 {
     if (!q) {
         return;
@@ -180,7 +181,7 @@ static void queue_pop_free(struct queue *q)
     }
 }
 
-GEAR_API int queue_push(struct queue *q, struct queue_item *item)
+int queue_push(struct queue *q, struct queue_item *item)
 {
     if (!q || !item) {
         printf("invalid paraments!\n");
@@ -205,7 +206,7 @@ GEAR_API int queue_push(struct queue *q, struct queue_item *item)
     return 0;
 }
 
-GEAR_API struct queue_item *queue_pop(struct queue *q)
+struct queue_item *queue_pop(struct queue *q)
 {
     struct queue_item *item = NULL;
     if (!q) {
@@ -254,7 +255,7 @@ GEAR_API struct queue_item *queue_pop(struct queue *q)
     return item;
 }
 
-GEAR_API struct queue_branch *queue_branch_new(struct queue *q, const char *name)
+struct queue_branch *queue_branch_new(struct queue *q, const char *name)
 {
     struct queue_branch *qb;
     if (!q || !name) {
@@ -264,17 +265,19 @@ GEAR_API struct queue_branch *queue_branch_new(struct queue *q, const char *name
     if (!qb) {
         return NULL;
     }
+#if !defined (OS_WINDOWS)
     if (-1 == (qb->evfd = eventfd(0, 0))) {
         printf("eventfd failed: %s\n", strerror(errno));
         return NULL;
     }
+#endif
     qb->name = strdup(name);
     list_add_tail(&qb->hook, &q->branch);
     q->branch_cnt++;
     return qb;
 }
 
-GEAR_API int queue_branch_del(struct queue *q, const char *name)
+int queue_branch_del(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
     if (!q || !name) {
@@ -287,7 +290,9 @@ GEAR_API int queue_branch_del(struct queue *q, const char *name)
 #endif
         if (!strcmp(qb->name, name)) {
             list_del(&qb->hook);
+#if !defined (OS_WINDOWS)
             close(qb->evfd);
+#endif
             free(qb->name);
             free(qb);
             q->branch_cnt--;
@@ -297,7 +302,7 @@ GEAR_API int queue_branch_del(struct queue *q, const char *name)
     return -1;
 }
 
-GEAR_API struct queue_branch *queue_branch_get(struct queue *q, const char *name)
+struct queue_branch *queue_branch_get(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
     if (!q || !name) {
@@ -316,7 +321,7 @@ GEAR_API struct queue_branch *queue_branch_get(struct queue *q, const char *name
     return NULL;
 }
 
-GEAR_API int queue_branch_notify(struct queue *q)
+int queue_branch_notify(struct queue *q)
 {
     struct queue_branch *qb, *next;
     uint64_t notify = '1';
@@ -330,14 +335,16 @@ GEAR_API int queue_branch_notify(struct queue *q)
     list_for_each_entry_safe(qb, struct queue_branch, next, struct queue_branch, &q->branch, hook) {
 #endif
 
+#if !defined (OS_WINDOWS)
         if (write(qb->evfd, &notify, sizeof(notify)) != sizeof(uint64_t)) {
             printf("write eventfd failed: %s\n", strerror(errno));
         }
+#endif
     }
     return 0;
 }
 
-GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name)
+struct queue_item *queue_branch_pop(struct queue *q, const char *name)
 {
     struct queue_branch *qb, *next;
     uint64_t notify = '1';
@@ -352,9 +359,11 @@ GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name)
 #endif
 
         if (!strcmp(qb->name, name)) {
+#if !defined (OS_WINDOWS)
             if (read(qb->evfd, &notify, sizeof(notify)) != sizeof(uint64_t)) {
                 printf("read eventfd failed: %s\n", strerror(errno));
             }
+#endif
             return queue_pop(q);
         }
     }

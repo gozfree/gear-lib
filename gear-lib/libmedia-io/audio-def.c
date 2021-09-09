@@ -60,10 +60,11 @@ const char *sample_format_to_string(enum sample_format fmt)
 
 enum sample_format sample_string_to_format(const char *name)
 {
+    int i;
     if (!name) {
         return SAMPLE_FORMAT_NONE;
     }
-    for (int i = 0; i < SAMPLE_FORMAT_PCM_MAX; i++) {
+    for (i = 0; i < SAMPLE_FORMAT_PCM_MAX; i++) {
         if (!strncasecmp(name, sample_fmt_tbl[i].name, sizeof(sample_fmt_tbl[i].name))) {
             return sample_fmt_tbl[i].format;
         }

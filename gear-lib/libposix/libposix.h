@@ -49,10 +49,11 @@ extern "C" {
  ******************************************************************************/
 #elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #define OS_WINDOWS
+#define GEAR_API __declspec(dllexport)
+
 #include "libposix4win.h"
 #include "kernel_list_win32.h"
 
-#define GEAR_API __declspec(dllexport)
 
 /******************************************************************************
  * OS_APPLE

@@ -20,7 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 
-#include "libposix4win.h"
+#include "libposix.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

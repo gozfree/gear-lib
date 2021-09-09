@@ -61,7 +61,9 @@ typedef SSIZE_T                   off_t;
 #define snprintf                  _snprintf
 #define sprintf                   _sprintf
 #define strcasecmp                _stricmp
+#define strncasecmp               _strnicmp
 #define strdup                    _strdup
+
 
 #define PATH_SPLIT                '\\'
 #define PRId8                     "hhd"
@@ -76,9 +78,9 @@ typedef SSIZE_T                   off_t;
 #define iovec                     _WSABUF
 #define iov_len                   len
 #define iov_base                  buf
-ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+GEAR_API ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
-char *dup_wchar_to_utf8(wchar_t *w);
+GEAR_API char *dup_wchar_to_utf8(wchar_t *w);
 
 
 /******************************************************************************
@@ -97,8 +99,6 @@ typedef int                       mode_t;
 #define W_OK                      2
 #define X_OK                      1
 
-int stat(const char *file, struct stat *buf);
-int access(const char *pathname, int mode);
 #define mkdir(path,mode)          _mkdir(path)
 #define getcwd(buf, size)         GetModuleFileName(NULL, buf, size)
 
@@ -121,41 +121,39 @@ typedef struct pthread_attr_t {
     void *unused;
 } pthread_attr_t;
 
-int pthread_create(pthread_t *thread, const pthread_attr_t *attr, 
-                   void *(*start_routine)(void*), void *arg);
-int pthread_join(pthread_t thread, void **retval);
-pthread_t pthread_self(void);
+GEAR_API int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*), void *arg);
 
-int pthread_attr_init(pthread_attr_t *attr);
-void pthread_attr_destroy(pthread_attr_t *attr);
-int pthread_mutex_init(pthread_mutex_t *m, void *attr);
-int pthread_mutex_destroy(pthread_mutex_t *m);
-int pthread_mutex_lock(pthread_mutex_t *m);
-int pthread_mutex_unlock(pthread_mutex_t *m);
+GEAR_API int pthread_join(pthread_t thread, void **retval);
+GEAR_API pthread_t pthread_self(void);
 
-int pthread_rwlock_init(pthread_rwlock_t *m, void *attr);
-int pthread_rwlock_destroy(pthread_rwlock_t *m);
-int pthread_rwlock_rdlock(pthread_rwlock_t *m);
-int pthread_rwlock_wrlock(pthread_rwlock_t *m);
-int pthread_rwlock_unlock(pthread_rwlock_t *m);
+GEAR_API int pthread_attr_init(pthread_attr_t *attr);
+GEAR_API void pthread_attr_destroy(pthread_attr_t *attr);
+GEAR_API int pthread_mutex_init(pthread_mutex_t *m, void *attr);
+GEAR_API int pthread_mutex_destroy(pthread_mutex_t *m);
+GEAR_API int pthread_mutex_lock(pthread_mutex_t *m);
+GEAR_API int pthread_mutex_unlock(pthread_mutex_t *m);
 
-int sem_init(sem_t *sem, int pshared, unsigned int value);
-int sem_destroy(sem_t *sem);
-int sem_wait(sem_t *sem);
-int sem_trywait(sem_t *sem);
-int sem_timedwait(sem_t *sem, const struct timespec *abstime);
-int sem_post(sem_t *sem);
+GEAR_API int pthread_rwlock_init(pthread_rwlock_t *m, void *attr);
+GEAR_API int pthread_rwlock_destroy(pthread_rwlock_t *m);
+GEAR_API int pthread_rwlock_rdlock(pthread_rwlock_t *m);
+GEAR_API int pthread_rwlock_wrlock(pthread_rwlock_t *m);
+GEAR_API int pthread_rwlock_unlock(pthread_rwlock_t *m);
 
-
+GEAR_API int sem_init(sem_t *sem, int pshared, unsigned int value);
+GEAR_API int sem_destroy(sem_t *sem);
+GEAR_API int sem_wait(sem_t *sem);
+GEAR_API int sem_trywait(sem_t *sem);
+GEAR_API int sem_timedwait(sem_t *sem, const struct timespec *abstime);
+GEAR_API int sem_post(sem_t *sem);
 
 
-int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
-int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr);
-int pthread_cond_destroy(pthread_cond_t *cond);
-int pthread_cond_broadcast(pthread_cond_t *cond);
-int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
-int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms);
-int pthread_cond_signal(pthread_cond_t *cond);
+GEAR_API int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
+GEAR_API int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr);
+GEAR_API int pthread_cond_destroy(pthread_cond_t *cond);
+GEAR_API int pthread_cond_broadcast(pthread_cond_t *cond);
+GEAR_API int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+GEAR_API int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms);
+GEAR_API int pthread_cond_signal(pthread_cond_t *cond);
 
 #define getpid                    GetCurrentProcessId
 #define gettid                    GetCurrentThreadId
@@ -192,7 +190,7 @@ struct timezone
     int tz_dsttime;
 };
 
-int gettimeofday(struct timeval *tv, struct timezone *tz);
+GEAR_API int gettimeofday(struct timeval *tv, struct timezone *tz);
 #define localtime_r(timep,result) localtime_s(result, timep)
 #define sleep(n) Sleep(n*1000)
 
@@ -244,7 +242,7 @@ typedef int clockid_t;
  * system APIs
  ******************************************************************************/
 
-int get_nprocs();
+GEAR_API int get_nprocs();
 
 /******************************************************************************
  * memory APIs

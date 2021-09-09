@@ -24,8 +24,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
+#if defined (OS_LINUX)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#endif
 
 #define ALIGNMENT 32
 #define ALIGN_SIZE(size, align) (((size) + (align - 1)) & (~(align - 1)))
@@ -97,10 +99,11 @@ static struct video_codec_type_name video_codec_tbl[] = {
 
 enum pixel_format pixel_string_to_format(const char *name)
 {
+    int i;
     if (!name) {
         return PIXEL_FORMAT_NONE;
     }
-    for (int i = 0; i < PIXEL_FORMAT_MAX; i++) {
+    for (i = 0; i < PIXEL_FORMAT_MAX; i++) {
         if (!strncasecmp(name, pxlfmt_tbl[i].name, sizeof(pxlfmt_tbl[i].name))) {
             return pxlfmt_tbl[i].format;
         }
@@ -116,10 +119,11 @@ const char *pixel_format_to_string(enum pixel_format fmt)
 
 enum video_codec_type video_codec_string_to_type(const char *name)
 {
+    int i;
     if (!name) {
         return VIDEO_CODEC_NONE;
     }
-    for (int i = 0; i < VIDEO_CODEC_MAX; i++) {
+    for (i = 0; i < VIDEO_CODEC_MAX; i++) {
         if (!strncasecmp(name, video_codec_tbl[i].name, sizeof(video_codec_tbl[i].name))) {
             return video_codec_tbl[i].type;
         }

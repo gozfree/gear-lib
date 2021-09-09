@@ -22,6 +22,7 @@
 #include "libposix.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #if defined (OS_LINUX) || defined (OS_APPLE)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>

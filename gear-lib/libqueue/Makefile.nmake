@@ -28,7 +28,7 @@ CFLAGS  = $(CFLAGS) /O2 /GF
 CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
 
-LIBS	= ../libposix/libposix.lib
+LIBS	= /NOLOGO ws2_32.lib ../libposix/libposix.lib
 
 ###############################################################################
 # target
@@ -43,6 +43,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR) $(OBJS_LIB) $(LIBS) /out:$(TGT_LIB_A)
 
 $(TGT_LIB_SO): $(OBJS_LIB)
+	$(LD) /Dll $(OBJS_LIB) $(LIBS)
 
 $(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
 	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /link $(LIBS)

@@ -110,13 +110,13 @@ typedef struct rational {
 #endif
 #endif
 
-void *memdup(const void *src, size_t len);
-struct iovec *iovec_create(size_t len);
-void iovec_destroy(struct iovec *);
+GEAR_API void *memdup(const void *src, size_t len);
+GEAR_API struct iovec *iovec_create(size_t len);
+GEAR_API void iovec_destroy(struct iovec *);
 
-bool is_little_endian(void);
+GEAR_API bool is_little_endian(void);
 
-int get_proc_name(char *name, size_t len);
+GEAR_API int get_proc_name(char *name, size_t len);
 
 
 #ifdef __cplusplus

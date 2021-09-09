@@ -66,10 +66,10 @@ void media_packet_destroy(struct media_packet *mp)
 
 struct media_packet *media_packet_copy(const struct media_packet *src, enum media_mem_type mem_type)
 {
+    struct media_packet *dst = NULL;
     if (!src)
         return NULL;
 
-    struct media_packet *dst = NULL;
     switch (src->type) {
     case MEDIA_TYPE_VIDEO:
         dst = media_packet_create(MEDIA_TYPE_VIDEO, mem_type, NULL, 0);
