@@ -28,7 +28,7 @@ CFLAGS  = $(CFLAGS) /O2 /GF
 CFLAGS  = $(CFLAGS) /Od /W3 /Zi
 !ENDIF
 
-LIBS	= /NOLOGO ws2_32.lib ../libposix/libposix.lib
+LIBS	= /NOLOGO ../libposix/libposix.lib
 
 ###############################################################################
 # target

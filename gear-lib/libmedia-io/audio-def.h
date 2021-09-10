@@ -129,11 +129,10 @@ struct audio_packet {
     struct audio_encoder encoder;
 };
 
-struct audio_packet *audio_packet_create(enum media_mem_type type, void *data, size_t len);
-void audio_packet_destroy(struct audio_packet *packet);
-struct audio_packet *audio_packet_copy(struct audio_packet *dst, const struct audio_packet *src, media_mem_type_t type);
-
-void audio_encoder_dump(struct audio_encoder *ve);
+GEAR_API struct audio_packet *audio_packet_create(enum media_mem_type type, void *data, size_t len);
+GEAR_API void audio_packet_destroy(struct audio_packet *packet);
+GEAR_API struct audio_packet *audio_packet_copy(struct audio_packet *dst, const struct audio_packet *src, media_mem_type_t type);
+GEAR_API void audio_encoder_dump(struct audio_encoder *ve);
 
 #ifdef __cplusplus
 }

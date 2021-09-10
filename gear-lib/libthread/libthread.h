@@ -126,19 +126,17 @@ typedef struct thread {
     void *arg;
 } thread_t;
 
-struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg);
-int thread_join(struct thread *t);
-void thread_destroy(struct thread *t);
-void thread_get_info(struct thread *t);
-int thread_set_name(struct thread *t, const char *name);
+GEAR_API struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg);
+GEAR_API int thread_join(struct thread *t);
+GEAR_API void thread_destroy(struct thread *t);
+GEAR_API void thread_get_info(struct thread *t);
+GEAR_API int thread_set_name(struct thread *t, const char *name);
 
-int thread_lock(struct thread *t);
-int thread_unlock(struct thread *t);
-
-int thread_wait(struct thread *t, int64_t ms);
-int thread_signal(struct thread *t);
-int thread_signal_all(struct thread *t);
-
+GEAR_API int thread_lock(struct thread *t);
+GEAR_API int thread_unlock(struct thread *t);
+GEAR_API int thread_wait(struct thread *t, int64_t ms);
+GEAR_API int thread_signal(struct thread *t);
+GEAR_API int thread_signal_all(struct thread *t);
 
 #ifdef __cplusplus
 }

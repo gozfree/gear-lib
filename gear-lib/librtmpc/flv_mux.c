@@ -23,8 +23,8 @@
 #include <libserializer.h>
 #include <libposix.h>
 #include "flv_mux.h"
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+//#define __STDC_FORMAT_MACROS
+//#include <inttypes.h>
 
 enum {
     FLV_CODECID_H263    = 2,
@@ -238,6 +238,7 @@ static int build_meta_data(struct flv_muxer *flv, uint8_t **output, size_t *size
 {
     struct serializer *s, ss;
     uint8_t *data;
+    unsigned int codec_id = 0xffffffff;
 
     s = &ss;
     serializer_array_init(&ss);
@@ -279,7 +280,6 @@ static int build_meta_data(struct flv_muxer *flv, uint8_t **output, size_t *size
         s_w8(s, (flv->audio->channels == 2));
 
         s_amf_string(s, "audiocodecid");
-        unsigned int codec_id = 0xffffffff;
 
         switch (flv->audio->format) {
         case AUDIO_CODEC_AAC:
@@ -521,6 +521,8 @@ int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt)
     size_t size;
     int strm_idx;
     struct serializer *s;
+    struct video_packet *vpkt;
+
     if (!flv || !pkt) {
         printf("%s: invalid parameter!\n", __func__);
         return -1;
@@ -550,7 +552,6 @@ int flv_write_packet(struct flv_muxer *flv, struct media_packet *pkt)
     switch (pkt->type) {
     case MEDIA_TYPE_VIDEO:
         strm_idx = 0;
-        struct video_packet *vpkt;
         vpkt = video_packet_create(MEDIA_MEM_DEEP, NULL, 0);
         vpkt->key_frame = true;
         vpkt->dts = pkt->video->dts;

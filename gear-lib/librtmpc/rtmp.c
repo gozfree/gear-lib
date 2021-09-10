@@ -820,6 +820,12 @@ add_addr_info(struct sockaddr_storage *service, socklen_t *addrlen, AVal *host, 
 {
     char *hostname;
     int ret = TRUE;
+    struct addrinfo hints;
+    struct addrinfo *result = NULL;
+    struct addrinfo *ptr = NULL;
+    char portStr[8];
+    int err;
+
     if (host->av_val[host->av_len] || host->av_val[0] == '[')
     {
         int v6 = host->av_val[0] == '[';
@@ -832,10 +838,6 @@ add_addr_info(struct sockaddr_storage *service, socklen_t *addrlen, AVal *host, 
         hostname = host->av_val;
     }
 
-    struct addrinfo hints;
-    struct addrinfo *result = NULL;
-    struct addrinfo *ptr = NULL;
-
     memset(&hints, 0, sizeof(hints));
 
     hints.ai_family = AF_UNSPEC;
@@ -845,11 +847,10 @@ add_addr_info(struct sockaddr_storage *service, socklen_t *addrlen, AVal *host, 
     service->ss_family = AF_UNSPEC;
     *addrlen = 0;
 
-    char portStr[8];
 
     sprintf(portStr, "%d", port);
 
-    int err = getaddrinfo(hostname, portStr, &hints, &result);
+    err = getaddrinfo(hostname, portStr, &hints, &result);
 
     if (err)
     {

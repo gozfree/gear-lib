@@ -408,6 +408,19 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
     return 0;
 }
 
+
+void usleep(unsigned long usec)
+{
+    HANDLE timer;
+    LARGE_INTEGER interval;
+    interval.QuadPart = -(10 * usec);
+
+    timer = CreateWaitableTimer(NULL, TRUE, NULL);
+    SetWaitableTimer(timer, &interval, 0, NULL, NULL, 0);
+    WaitForSingleObject(timer, INFINITE);
+    CloseHandle(timer);
+}
+
 int win_time(struct timeval *tv, struct win_time_t *time)
 {
     LARGE_INTEGER li;

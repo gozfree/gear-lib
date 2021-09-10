@@ -81,25 +81,25 @@ struct queue {
     struct iovec      opaque;
 };
 
-struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t len, void *arg);
-void queue_item_free(struct queue *q, struct queue_item *item);
-struct iovec *queue_item_get_data(struct queue *q, struct queue_item *it);
+GEAR_API struct queue_item *queue_item_alloc(struct queue *q, void *data, size_t len, void *arg);
+GEAR_API void queue_item_free(struct queue *q, struct queue_item *item);
+GEAR_API struct iovec *queue_item_get_data(struct queue *q, struct queue_item *it);
 
-struct queue *queue_create();
-void queue_destroy(struct queue *q);
-int queue_set_depth(struct queue *q, int depth);
-int queue_get_depth(struct queue *q);
-int queue_set_mode(struct queue *q, enum queue_mode mode);
-int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_free_hook *free_cb);
-struct queue_item *queue_pop(struct queue *q);
-int queue_push(struct queue *q, struct queue_item *item);
-int queue_flush(struct queue *q);
+GEAR_API struct queue *queue_create();
+GEAR_API void queue_destroy(struct queue *q);
+GEAR_API int queue_set_depth(struct queue *q, int depth);
+GEAR_API int queue_get_depth(struct queue *q);
+GEAR_API int queue_set_mode(struct queue *q, enum queue_mode mode);
+GEAR_API int queue_set_hook(struct queue *q, queue_alloc_hook *alloc_cb, queue_free_hook *free_cb);
+GEAR_API struct queue_item *queue_pop(struct queue *q);
+GEAR_API int queue_push(struct queue *q, struct queue_item *item);
+GEAR_API int queue_flush(struct queue *q);
 
-struct queue_branch *queue_branch_new(struct queue *q, const char *name);
-int queue_branch_del(struct queue *q, const char *name);
-int queue_branch_notify(struct queue *q);
-struct queue_item *queue_branch_pop(struct queue *q, const char *name);
-struct queue_branch *queue_branch_get(struct queue *q, const char *name);
+GEAR_API struct queue_branch *queue_branch_new(struct queue *q, const char *name);
+GEAR_API int queue_branch_del(struct queue *q, const char *name);
+GEAR_API int queue_branch_notify(struct queue *q);
+GEAR_API struct queue_item *queue_branch_pop(struct queue *q, const char *name);
+GEAR_API struct queue_branch *queue_branch_get(struct queue *q, const char *name);
 
 #ifdef __cplusplus
 }

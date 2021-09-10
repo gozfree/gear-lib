@@ -194,11 +194,10 @@ struct video_packet {
     struct video_encoder   encoder;
 };
 
-struct video_packet *video_packet_create(media_mem_type_t type, void *data, size_t len);
-void video_packet_destroy(struct video_packet *vp);
-struct video_packet *video_packet_copy(struct video_packet *dst, const struct video_packet *src, media_mem_type_t type);
-
-void video_encoder_dump(struct video_encoder *ve);
+GEAR_API struct video_packet *video_packet_create(media_mem_type_t type, void *data, size_t len);
+GEAR_API void video_packet_destroy(struct video_packet *vp);
+GEAR_API struct video_packet *video_packet_copy(struct video_packet *dst, const struct video_packet *src, media_mem_type_t type);
+GEAR_API void video_encoder_dump(struct video_encoder *ve);
 
 #ifdef __cplusplus
 }

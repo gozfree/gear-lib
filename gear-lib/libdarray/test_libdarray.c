@@ -40,8 +40,8 @@ static int foo()
 int main(int argc, char **argv)
 {
     int j;
-    foo();
     DARRAY(int) i;
+    foo();
     da_init(i);
     for (j = 0; j < 10; j++) {
         da_push_back(i, &j);

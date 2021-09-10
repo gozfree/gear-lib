@@ -45,7 +45,7 @@ static void *__thread_func(void *arg)
     return NULL;
 }
 
-GEAR_API struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg)
+struct thread *thread_create(void *(*func)(struct thread *, void *), void *arg)
 {
     enum lock_type type = THREAD_LOCK_COND;
     struct thread *t = CALLOC(1, struct thread);
@@ -107,7 +107,7 @@ err:
     return NULL;
 }
 
-GEAR_API int thread_join(struct thread *t)
+int thread_join(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -115,7 +115,7 @@ GEAR_API int thread_join(struct thread *t)
     return pthread_join(t->tid, NULL);
 }
 
-GEAR_API void thread_destroy(struct thread *t)
+void thread_destroy(struct thread *t)
 {
     if (!t) {
         return;
@@ -141,7 +141,7 @@ GEAR_API void thread_destroy(struct thread *t)
     free(t);
 }
 
-GEAR_API int thread_set_name(struct thread *t, const char *name)
+int thread_set_name(struct thread *t, const char *name)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
 
@@ -156,7 +156,7 @@ GEAR_API int thread_set_name(struct thread *t, const char *name)
 #endif
 }
 
-GEAR_API void thread_get_info(struct thread *t)
+void thread_get_info(struct thread *t)
 {
 #if defined (__linux__) || defined (__CYGWIN__)
     int i;
@@ -209,7 +209,7 @@ GEAR_API void thread_get_info(struct thread *t)
 #endif
 }
 
-GEAR_API int thread_lock(struct thread *t)
+int thread_lock(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -227,7 +227,7 @@ GEAR_API int thread_lock(struct thread *t)
     return -1;
 }
 
-GEAR_API int thread_unlock(struct thread *t)
+int thread_unlock(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -245,7 +245,7 @@ GEAR_API int thread_unlock(struct thread *t)
     return -1;
 }
 
-GEAR_API int thread_wait(struct thread *t, int64_t ms)
+int thread_wait(struct thread *t, int64_t ms)
 {
     if (!t) {
         printf("%s invalid paramenters!\n", __func__);
@@ -266,7 +266,7 @@ GEAR_API int thread_wait(struct thread *t, int64_t ms)
     return -1;
 }
 
-GEAR_API int thread_signal(struct thread *t)
+int thread_signal(struct thread *t)
 {
     if (!t) {
         return -1;
@@ -284,7 +284,7 @@ GEAR_API int thread_signal(struct thread *t)
     return 0;
 }
 
-GEAR_API int thread_signal_all(struct thread *t)
+int thread_signal_all(struct thread *t)
 {
     if (!t) {
         return -1;

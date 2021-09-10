@@ -489,7 +489,7 @@ int rwlock_unlock(rw_lock_t *ptr)
  *****************************************************************************/
 int sem_lock_init(sem_lock_t *lock)
 {
-#if defined (OS_LINUX) || (OS_WINDOWS)
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
     int pshared = 0;//0: threads, 1: processes
     if (0 != sem_init(lock, pshared, 0)) {
         printf("sem_init failed %d:%s\n", errno, strerror(errno));
@@ -501,7 +501,7 @@ int sem_lock_init(sem_lock_t *lock)
 
 void sem_lock_deinit(sem_lock_t *ptr)
 {
-#if defined (OS_LINUX) || (OS_WINDOWS)
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
     sem_t *lock = (sem_t *)ptr;
     if (!ptr) {
         return;

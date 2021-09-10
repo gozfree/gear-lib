@@ -24,7 +24,9 @@
 #include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
+#if defined (OS_LINUX)
 #include <unistd.h>
+#endif
 #include <string.h>
 
 void rtmpc_destroy(struct rtmpc *rtmpc)
@@ -42,12 +44,13 @@ void rtmpc_destroy(struct rtmpc *rtmpc)
 
 static void *item_alloc_hook(void *data, size_t len, void *arg)
 {
+    struct media_packet *new_pkt;
     struct media_packet *pkt = (struct media_packet *)arg;
     if (!pkt) {
         printf("calloc packet failed!\n");
         return NULL;
     }
-    struct media_packet *new_pkt = media_packet_copy(pkt, MEDIA_MEM_SHALLOW);
+    new_pkt = media_packet_copy(pkt, MEDIA_MEM_SHALLOW);
     return new_pkt;
 }
 
@@ -66,12 +69,13 @@ static int flv_mux_output(void *ctx, uint8_t *data, size_t size, int strm_idx)
 
 struct rtmpc *rtmpc_create(const char *url)
 {
+    RTMP *base;
     struct rtmpc *rtmpc = (struct rtmpc *)calloc(1, sizeof(struct rtmpc));
     if (!rtmpc) {
         printf("malloc rtmpc failed!\n");
         goto failed;
     }
-    RTMP *base = RTMP_Alloc();
+    base = RTMP_Alloc();
     if (!base) {
         printf("RTMP_Alloc failed!\n");
         goto failed;
@@ -128,12 +132,13 @@ static inline void set_rtmp_val(AVal *val, char *str, int len)
 
 struct rtmpc *rtmpc_create2(struct rtmp_url *url)
 {
+    RTMP *base;
     struct rtmpc *rtmpc = (struct rtmpc *)calloc(1, sizeof(struct rtmpc));
     if (!rtmpc) {
         printf("malloc rtmpc failed!\n");
         goto failed;
     }
-    RTMP *base = RTMP_Alloc();
+    base = RTMP_Alloc();
     if (!base) {
         printf("RTMP_Alloc failed!\n");
         goto failed;
@@ -198,11 +203,11 @@ int rtmpc_stream_add(struct rtmpc *rtmpc, struct media_packet *pkt)
 
 int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 {
+    struct queue_item *item = NULL;
     if (!rtmpc || !pkt) {
         printf("%s invalid parament!\n", __func__);
         return -1;
     }
-    struct queue_item *item = NULL;
     switch (pkt->type) {
     case MEDIA_TYPE_AUDIO:
         item = queue_item_alloc(rtmpc->q, pkt->audio->data, pkt->audio->size, pkt);
@@ -226,6 +231,7 @@ int rtmpc_send_packet(struct rtmpc *rtmpc, struct media_packet *pkt)
 
 static void *rtmpc_stream_thread(struct thread *t, void *arg)
 {
+    struct media_packet *pkt;
     struct rtmpc *rtmpc = (struct rtmpc *)arg;
     queue_flush(rtmpc->q);
     rtmpc->is_run = true;
@@ -235,7 +241,7 @@ static void *rtmpc_stream_thread(struct thread *t, void *arg)
             usleep(200000);
             continue;
         }
-        struct media_packet *pkt = (struct media_packet *)it->opaque.iov_base;
+        pkt = (struct media_packet *)it->opaque.iov_base;
         flv_write_packet(rtmpc->flv, pkt);
         queue_item_free(rtmpc->q, it);
     }

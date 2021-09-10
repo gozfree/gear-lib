@@ -193,6 +193,7 @@ struct timezone
 GEAR_API int gettimeofday(struct timeval *tv, struct timezone *tz);
 #define localtime_r(timep,result) localtime_s(result, timep)
 #define sleep(n) Sleep(n*1000)
+GEAR_API void usleep(unsigned long usec);
 
 typedef int clockid_t;
 #define CLOCK_REALTIME           ((clockid_t)1)
