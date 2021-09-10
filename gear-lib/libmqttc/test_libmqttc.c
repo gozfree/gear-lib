@@ -154,7 +154,7 @@ struct Options
   int proxy_port;
 	int verbose;
 	int test_no;
-	int MQTTVersion;
+	int mqtt_version;
 	int iterations;
 } options =
 {
@@ -225,8 +225,8 @@ void getopts(int argc, char** argv)
 		{
 			if (++count < argc)
 			{
-				options.MQTTVersion = atoi(argv[count]);
-				printf("setting MQTT version to %d\n", options.MQTTVersion);
+				options.mqtt_version = atoi(argv[count]);
+				printf("setting MQTT version to %d\n", options.mqtt_version);
 			}
 			else
 				usage();
@@ -384,12 +384,12 @@ void myassert(char* filename, int lineno, char* description, int value, char* fo
 
 
 static volatile MessageData* test1_message_data = NULL;
-static MQTTMessage pubmsg;
+static mqtt_msg pubmsg;
 
 void messageArrived(MessageData* md)
 {
   test1_message_data = md;
-  MQTTMessage* m = md->message;
+  mqtt_msg* m = md->message;
 
 	assert("Good message lengths", pubmsg.payloadlen == m->payloadlen,
          "payloadlen was %d", m->payloadlen);
@@ -423,14 +423,14 @@ void test1_sendAndReceive(mqtt_client* c, int qos, char* test_topic)
 	for (i = 0; i < iterations; ++i)
 	{
     test1_message_data = NULL;
-		rc = MQTTPublish(c, test_topic, &pubmsg);
+		rc = mqtt_publish(c, test_topic, &pubmsg);
 		assert("Good rc from publish", rc == SUCCESS, "rc was %d", rc);
 
     /* wait for the message to be received */
     wait_seconds = 10;
 		while ((test1_message_data == NULL) && (wait_seconds-- > 0))
 		{
-      MQTTYield(c, 100);
+      mqtt_yield(c, 100);
 		}
 		assert("Message Arrived", wait_seconds > 0, "Time out waiting for message %d\n", i);
 
@@ -442,7 +442,7 @@ void test1_sendAndReceive(mqtt_client* c, int qos, char* test_topic)
   wait_seconds = 2;
   while (wait_seconds-- > 0)
   {
-      MQTTYield(c, 1000);
+      mqtt_yield(c, 1000);
   }
 }
 
@@ -467,9 +467,9 @@ int test1(struct Options options)
   NetworkConnect(&n, options.host, options.port);
   mqtt_clientInit(&c, &n, 1000, buf, 100, readbuf, 100);
 
-  MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+  mqtt_pkt_conn_data data = mqtt_pkt_conn_data_initializer;
   data.willFlag = 1;
-  data.MQTTVersion = options.MQTTVersion;
+  data.mqtt_version = options.mqtt_version;
   data.clientID.cstring = "single-threaded-test";
   data.username.cstring = "testuser";
   data.password.cstring = "testpassword";
@@ -483,12 +483,12 @@ int test1(struct Options options)
 	data.will.topicName.cstring = "will topic";
 
 	MyLog(LOGA_DEBUG, "Connecting");
-  rc = MQTTConnect(&c, &data);
+  rc = mqtt_conn(&c, &data);
 	assert("Good rc from connect", rc == SUCCESS, "rc was %d", rc);
 	if (rc != SUCCESS)
 		goto exit;
 
-	rc = MQTTSubscribe(&c, test_topic, subsqos, messageArrived);
+	rc = mqtt_subscribe(&c, test_topic, subsqos, messageArrived);
 	assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
 
 	test1_sendAndReceive(&c, 0, test_topic);
@@ -497,16 +497,16 @@ int test1(struct Options options)
 
 	MyLog(LOGA_DEBUG, "Stopping\n");
 
-	rc = MQTTUnsubscribe(&c, test_topic);
+	rc = mqtt_unsubscribe(&c, test_topic);
 	assert("Unsubscribe successful", rc == SUCCESS, "rc was %d", rc);
-	rc = MQTTDisconnect(&c);
+	rc = mqtt_disconn(&c);
 	assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
 
 	/* Just to make sure we can connect again */
   NetworkConnect(&n, options.host, options.port);
-  rc = MQTTConnect(&c, &data);
+  rc = mqtt_conn(&c, &data);
 	assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
-	rc = MQTTDisconnect(&c);
+	rc = mqtt_disconn(&c);
 	assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
 
 exit:
@@ -533,8 +533,8 @@ int test2(struct Options options)
 	char* test_topic = "C client test2";
   unsigned char buf[100];
   unsigned char readbuf[100];
-  MQTTConnackData connack;
-  MQTTSubackData suback;
+  mqtt_connack_data connack;
+  mqtt_suback_data suback;
 
 	fprintf(xml, "<testcase classname=\"test2\" name=\"connack return data\"");
 	global_start_time = start_clock();
@@ -545,9 +545,9 @@ int test2(struct Options options)
   NetworkConnect(&n, options.host, options.port);
   mqtt_clientInit(&c, &n, 1000, buf, 100, readbuf, 100);
 
-  MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+  mqtt_pkt_conn_data data = mqtt_pkt_conn_data_initializer;
   data.willFlag = 1;
-  data.MQTTVersion = options.MQTTVersion;
+  data.mqtt_version = options.mqtt_version;
   data.clientID.cstring = "connack-return-data";
   data.username.cstring = "testuser";
   data.password.cstring = "testpassword";
@@ -561,19 +561,19 @@ int test2(struct Options options)
 	data.will.topicName.cstring = "will topic";
 
 	MyLog(LOGA_DEBUG, "Connecting");
-  rc = MQTTConnect(&c, &data);
+  rc = mqtt_conn(&c, &data);
 	assert("Good rc from connect", rc == SUCCESS, "rc was %d", rc);
 	if (rc != SUCCESS)
 		goto exit;
 
-	rc = MQTTDisconnect(&c);
+	rc = mqtt_disconn(&c);
 	assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
   /* now connect cleansession false */
   NetworkConnect(&n, options.host, options.port);
   data.cleansession = 0;
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Good rc from connect", rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
@@ -581,39 +581,39 @@ int test2(struct Options options)
          "sessionPresent was %d", connack.sessionPresent);
 
   /* set up some state */
-  rc = MQTTSubscribeWithResults(&c, test_topic, subsqos, messageArrived, &suback);
+  rc = mqtt_subscribeWithResults(&c, test_topic, subsqos, messageArrived, &suback);
   assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
   assert("Good granted QoS", suback.grantedQoS == subsqos,
          "granted QoS was %d", suback.grantedQoS);
 
-  rc = MQTTDisconnect(&c);
+  rc = mqtt_disconn(&c);
   assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
 	/* Connect and check sessionPresent */
   NetworkConnect(&n, options.host, options.port);
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
 	assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
   assert("Session present is 1", connack.sessionPresent == 1,
            "sessionPresent was %d", connack.sessionPresent);
 
-	rc = MQTTDisconnect(&c);
+	rc = mqtt_disconn(&c);
 	assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
   /* Connect and check sessionPresent is cleared */
   data.cleansession = 1;
   NetworkConnect(&n, options.host, options.port);
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
   assert("Session present is 0", connack.sessionPresent == 0,
            "sessionPresent was %d", connack.sessionPresent);
 
-  rc = MQTTDisconnect(&c);
+  rc = mqtt_disconn(&c);
   assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
@@ -634,7 +634,7 @@ static volatile MessageData* test2_message_data = NULL;
 void messageArrived2(MessageData* md)
 {
     test2_message_data = md;
-	  MQTTMessage *m = md->message;
+	  mqtt_msg *m = md->message;
 
     assert("Good message lengths", pubmsg.payloadlen == m->payloadlen,
          "payloadlen was %d", m->payloadlen);
@@ -658,14 +658,14 @@ int check_subs_exist(mqtt_client* c, const char* test_topic, int which)
     pubmsg.dup = 0;
 
     test1_message_data = test2_message_data = NULL;
-    rc = MQTTPublish(c, test_topic, &pubmsg);
+    rc = mqtt_publish(c, test_topic, &pubmsg);
     assert("Good rc from publish", rc == SUCCESS, "rc was %d", rc);
 
     /* wait for the message to be received */
     wait_seconds = 10;
     while (wait_seconds-- > 0)
     {
-        MQTTYield(c, 100);
+        mqtt_yield(c, 100);
     }
 
     rc = (((which == 1 || which == 3) && test1_message_data) ||
@@ -690,8 +690,8 @@ int test3(struct Options options)
   int wait_seconds = 0;
   unsigned char buf[100];
   unsigned char readbuf[100];
-  MQTTConnackData connack;
-  MQTTSubackData suback;
+  mqtt_connack_data connack;
+  mqtt_suback_data suback;
 
   fprintf(xml, "<testcase classname=\"test3\" name=\"session state\"");
   global_start_time = start_clock();
@@ -701,9 +701,9 @@ int test3(struct Options options)
   NetworkInit(&n);
   mqtt_clientInit(&c, &n, 1000, buf, 100, readbuf, 100);
 
-  MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
+  mqtt_pkt_conn_data data = mqtt_pkt_conn_data_initializer;
   data.willFlag = 1;
-  data.MQTTVersion = options.MQTTVersion;
+  data.mqtt_version = options.mqtt_version;
   data.clientID.cstring = (char*)"connack-session-state";
   data.username.cstring = (char*)"testuser";
   data.password.cstring = (char*)"testpassword";
@@ -716,8 +716,8 @@ int test3(struct Options options)
   data.will.retained = 0;
   data.will.topicName.cstring = (char*)"will topic";
 
-  assert("Not connected", MQTTIsConnected(&c) == 0,
-         "isconnected was %d", MQTTIsConnected(&c));
+  assert("Not connected", mqtt_is_connected(&c) == 0,
+         "isconnected was %d", mqtt_is_connected(&c));
 
   MyLog(LOGA_DEBUG, "Connecting");
   rc = NetworkConnect(&n, options.host, options.port);
@@ -725,7 +725,7 @@ int test3(struct Options options)
   if (rc != SUCCESS)
     goto exit;
 
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Good rc from connect", rc == SUCCESS, "rc was %d", rc);
   if (rc != SUCCESS)
     goto exit;
@@ -734,10 +734,10 @@ int test3(struct Options options)
   assert("Session present is 0", connack.sessionPresent == 0,
          "sessionPresent was %d", connack.sessionPresent);
 
-  assert("Good rc in connack", MQTTIsConnected(&c) == 1,
-                "isconnected was %d", MQTTIsConnected(&c));
+  assert("Good rc in connack", mqtt_is_connected(&c) == 1,
+                "isconnected was %d", mqtt_is_connected(&c));
 
-  rc = MQTTDisconnect(&c);
+  rc = mqtt_disconn(&c);
   assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
@@ -745,28 +745,28 @@ int test3(struct Options options)
   data.cleansession = 0;
   rc = NetworkConnect(&n, options.proxy_host, options.proxy_port);
   assert("TCP connect successful",  rc == SUCCESS, "rc was %d", rc);
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
   assert("Session present is 0", connack.sessionPresent == 0,
            "sessionPresent was %d", connack.sessionPresent);
 
-  rc = MQTTSubscribeWithResults(&c, test_topic, subsqos, messageArrived, &suback);
+  rc = mqtt_subscribeWithResults(&c, test_topic, subsqos, messageArrived, &suback);
   assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
   assert("Granted QoS rc from subscribe", suback.grantedQoS == QOS2,
          "rc was %d", suback.grantedQoS);
 
   check_subs_exist(&c, test_topic, 1);
 
-  rc = MQTTSubscribeWithResults(&c, test_topic, subsqos, messageArrived2, &suback);
+  rc = mqtt_subscribeWithResults(&c, test_topic, subsqos, messageArrived2, &suback);
   assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
   assert("Granted QoS rc from subscribe", suback.grantedQoS == QOS2,
                   "rc was %d", suback.grantedQoS);
 
   check_subs_exist(&c, test_topic, 2);
 
-  rc = MQTTDisconnect(&c);
+  rc = mqtt_disconn(&c);
   assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
@@ -774,7 +774,7 @@ int test3(struct Options options)
   data.cleansession = 0;
   rc = NetworkConnect(&n, options.proxy_host, options.proxy_port);
   assert("TCP connect successful",  rc == SUCCESS, "rc was %d", rc);
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
@@ -783,7 +783,7 @@ int test3(struct Options options)
 
   check_subs_exist(&c, test_topic, 2);
 
-  rc = MQTTSubscribeWithResults(&c, test_topic, subsqos, messageArrived, &suback);
+  rc = mqtt_subscribeWithResults(&c, test_topic, subsqos, messageArrived, &suback);
   assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
   assert("Granted QoS rc from subscribe", suback.grantedQoS == QOS2,
             "rc was %d", suback.grantedQoS);
@@ -797,24 +797,24 @@ int test3(struct Options options)
   pubmsg.qos = QOS0;
   pubmsg.retained = 0;
   pubmsg.dup = 0;
-  rc = MQTTPublish(&c, "MQTTSAS topic", &pubmsg);
+  rc = mqtt_publish(&c, "MQTTSAS topic", &pubmsg);
   assert("Good rc from publish", rc == SUCCESS, "rc was %d", rc);
 
   // wait for failure to be noticed by keepalive
   wait_seconds = 20;
-  while (MQTTIsConnected(&c) && (wait_seconds-- > 0))
+  while (mqtt_is_connected(&c) && (wait_seconds-- > 0))
   {
-      MQTTYield(&c, 1000);
+      mqtt_yield(&c, 1000);
   }
-  assert("Disconnected", !MQTTIsConnected(&c), "isConnected was %d",
-         MQTTIsConnected(&c));
+  assert("Disconnected", !mqtt_is_connected(&c), "isConnected was %d",
+         mqtt_is_connected(&c));
   NetworkDisconnect(&n);
 
   /* reconnect with cleansession false */
   data.cleansession = 0;
   rc = NetworkConnect(&n, options.host, options.port);
   assert("TCP connect successful",  rc == SUCCESS, "rc was %d", rc);
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
@@ -823,14 +823,14 @@ int test3(struct Options options)
 
   check_subs_exist(&c, test_topic, 1);
 
-  rc = MQTTSubscribeWithResults(&c, test_topic, subsqos, messageArrived2, &suback);
+  rc = mqtt_subscribeWithResults(&c, test_topic, subsqos, messageArrived2, &suback);
   assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
   assert("Granted QoS rc from subscribe", suback.grantedQoS == QOS2,
                   "rc was %d", suback.grantedQoS);
 
   check_subs_exist(&c, test_topic, 2);
 
-  rc = MQTTDisconnect(&c);
+  rc = mqtt_disconn(&c);
   assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
@@ -838,21 +838,21 @@ int test3(struct Options options)
   data.cleansession = 1;
   rc = NetworkConnect(&n, options.host, options.port);
   assert("TCP connect successful",  rc == SUCCESS, "rc was %d", rc);
-  rc = MQTTConnectWithResults(&c, &data, &connack);
+  rc = mqtt_connWithResults(&c, &data, &connack);
   assert("Connect successful",  rc == SUCCESS, "rc was %d", rc);
 
   assert("Good rc in connack", connack.rc == 0, "rc was %d", connack.rc);
   assert("Session present is 0", connack.sessionPresent == 0,
            "sessionPresent was %d", connack.sessionPresent);
 
-  rc = MQTTSubscribeWithResults(&c, test_topic, subsqos, messageArrived2, &suback);
+  rc = mqtt_subscribeWithResults(&c, test_topic, subsqos, messageArrived2, &suback);
   assert("Good rc from subscribe", rc == SUCCESS, "rc was %d", rc);
   assert("Granted QoS rc from subscribe", suback.grantedQoS == QOS2,
                   "rc was %d", suback.grantedQoS);
 
   check_subs_exist(&c, test_topic, 2);
 
-  rc = MQTTDisconnect(&c);
+  rc = mqtt_disconn(&c);
   assert("Disconnect successful", rc == SUCCESS, "rc was %d", rc);
   NetworkDisconnect(&n);
 
@@ -917,7 +917,7 @@ int test6(struct Options options)
 
 	opts.keepAliveInterval = 2;
 	opts.cleansession = 1;
-	opts.MQTTVersion = MQTTVERSION_3_1_1;
+	opts.mqtt_version = MQTTVERSION_3_1_1;
 	opts.will = &wopts;
 	opts.will->message = test6_will_message;
 	opts.will->qos = 1;
@@ -1024,7 +1024,7 @@ int test6a(struct Options options)
 
 	opts.keepAliveInterval = 2;
 	opts.cleansession = 1;
-	opts.MQTTVersion = MQTTVERSION_3_1_1;
+	opts.mqtt_version = MQTTVERSION_3_1_1;
 	opts.will = &wopts;
 	opts.will->payload.data = test6_will_message;
 	opts.will->payload.len = strlen(test6_will_message) + 1;

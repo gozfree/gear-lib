@@ -155,10 +155,10 @@ typedef struct
       * MQTTAsync_message.qos and @ref qos).
       */
 	char qos;
-} MQTTPacket_willOptions;
+} mqtt_pkt_will_options;
 
 
-#define MQTTPacket_willOptions_initializer { {'M', 'Q', 'T', 'W'}, 0, {NULL, {0, NULL}}, {NULL, {0, NULL}}, 0, 0 }
+#define mqtt_pkt_will_options_initializer { {'M', 'Q', 'T', 'W'}, 0, {NULL, {0, NULL}}, {NULL, {0, NULL}}, 0, 0 }
 
 
 typedef struct
@@ -169,15 +169,15 @@ typedef struct
 	int struct_version;
 	/** Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
 	  */
-	unsigned char MQTTVersion;
+	unsigned char mqtt_version;
 	mqtt_string clientID;
 	unsigned short keepAliveInterval;
 	unsigned char cleansession;
 	unsigned char willFlag;
-	MQTTPacket_willOptions will;
+	mqtt_pkt_will_options will;
 	mqtt_string username;
 	mqtt_string password;
-} MQTTPacket_connectData;
+} mqtt_pkt_conn_data;
 
 typedef union
 {
@@ -195,45 +195,45 @@ typedef union
     unsigned int reserved: 7;	     			/**< unused */
 	} bits;
 #endif
-} MQTTConnackFlags;	/**< connack flags byte */
+} mqtt_connack_flags;	/**< connack flags byte */
 
 
 
-int MQTTstrlen(mqtt_string mqttstring);
+int mqtt_strlen(mqtt_string mqttstring);
 
-int MQTTSerialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
+int mqtt_serialize_publish(unsigned char* buf, int buflen, unsigned char dup, int qos, unsigned char retained, unsigned short packetid,
 		mqtt_string topicName, unsigned char* payload, int payloadlen);
 
-int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, mqtt_string* topicName,
+int mqtt_deserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, mqtt_string* topicName,
 		unsigned char** payload, int* payloadlen, unsigned char* buf, int len);
 
-int MQTTSerialize_puback(unsigned char* buf, int buflen, unsigned short packetid);
-int MQTTSerialize_pubrel(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid);
-int MQTTSerialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid);
+int mqtt_serialize_puback(unsigned char* buf, int buflen, unsigned short packetid);
+int mqtt_serialize_pubrel(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid);
+int mqtt_serialize_pubcomp(unsigned char* buf, int buflen, unsigned short packetid);
 
-int MQTTSerialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
+int mqtt_serialize_subscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
 		int count, mqtt_string topicFilters[], int requestedQoSs[]);
 
-int MQTTDeserialize_subscribe(unsigned char* dup, unsigned short* packetid,
+int mqtt_deserialize_subscribe(unsigned char* dup, unsigned short* packetid,
 		int maxcount, int* count, mqtt_string topicFilters[], int requestedQoSs[], unsigned char* buf, int len);
 
-int MQTTSerialize_suback(unsigned char* buf, int buflen, unsigned short packetid, int count, int* grantedQoSs);
+int mqtt_serialize_suback(unsigned char* buf, int buflen, unsigned short packetid, int count, int* grantedQoSs);
 
-int MQTTDeserialize_suback(unsigned short* packetid, int maxcount, int* count, int grantedQoSs[], unsigned char* buf, int len);
+int mqtt_deserialize_suback(unsigned short* packetid, int maxcount, int* count, int grantedQoSs[], unsigned char* buf, int len);
 
-int MQTTSerialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
+int mqtt_serialize_unsubscribe(unsigned char* buf, int buflen, unsigned char dup, unsigned short packetid,
 		int count, mqtt_string topicFilters[]);
 
-int MQTTDeserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int max_count, int* count, mqtt_string topicFilters[],
+int mqtt_deserialize_unsubscribe(unsigned char* dup, unsigned short* packetid, int max_count, int* count, mqtt_string topicFilters[],
 		unsigned char* buf, int len);
 
-int MQTTSerialize_unsuback(unsigned char* buf, int buflen, unsigned short packetid);
+int mqtt_serialize_unsuback(unsigned char* buf, int buflen, unsigned short packetid);
 
-int MQTTDeserialize_unsuback(unsigned short* packetid, unsigned char* buf, int len);
+int mqtt_deserialize_unsuback(unsigned short* packetid, unsigned char* buf, int len);
 
 
-const char* MQTTPacket_getName(unsigned short packetid);
-int mqtt_stringFormat_connect(char* strbuf, int strbuflen, MQTTPacket_connectData* data);
+const char* mqtt_pkt_getname(unsigned short packetid);
+int mqtt_stringFormat_connect(char* strbuf, int strbuflen, mqtt_pkt_conn_data* data);
 int mqtt_stringFormat_connack(char* strbuf, int strbuflen, unsigned char connack_rc, unsigned char sessionPresent);
 int mqtt_stringFormat_publish(char* strbuf, int strbuflen, unsigned char dup, int qos, unsigned char retained,
 		unsigned short packetid, mqtt_string topicName, unsigned char* payload, int payloadlen);
@@ -243,28 +243,20 @@ int mqtt_stringFormat_subscribe(char* strbuf, int strbuflen, unsigned char dup, 
 int mqtt_stringFormat_suback(char* strbuf, int strbuflen, unsigned short packetid, int count, int* grantedQoSs);
 int mqtt_stringFormat_unsubscribe(char* strbuf, int strbuflen, unsigned char dup, unsigned short packetid,
 		int count, mqtt_string topicFilters[]);
-char* MQTTFormat_toClientString(char* strbuf, int strbuflen, unsigned char* buf, int buflen);
-char* MQTTFormat_toServerString(char* strbuf, int strbuflen, unsigned char* buf, int buflen);
+char* mqtt_fmt_toClientString(char* strbuf, int strbuflen, unsigned char* buf, int buflen);
+char* mqtt_fmt_toServerString(char* strbuf, int strbuflen, unsigned char* buf, int buflen);
 
-int MQTTSerialize_ack(unsigned char* buf, int buflen, unsigned char type, unsigned char dup, unsigned short packetid);
-int MQTTDeserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned short* packetid, unsigned char* buf, int buflen);
+int mqtt_serialize_ack(unsigned char* buf, int buflen, unsigned char type, unsigned char dup, unsigned short packetid);
+int mqtt_deserialize_ack(unsigned char* packettype, unsigned char* dup, unsigned short* packetid, unsigned char* buf, int buflen);
 
-int MQTTPacket_len(int rem_len);
-int MQTTPacket_equals(mqtt_string* a, char* b);
+int mqtt_pkt_len(int rem_len);
+int mqtt_pkt_equals(mqtt_string* a, char* b);
 
-int MQTTPacket_encode(unsigned char* buf, int length);
-int MQTTPacket_decode(int (*getcharfn)(unsigned char*, int), int* value);
-int MQTTPacket_decodeBuf(unsigned char* buf, int* value);
+int mqtt_pkt_encode(unsigned char* buf, int length);
+int mqtt_pkt_decode(int (*getcharfn)(unsigned char*, int), int* value);
+int mqtt_pkt_decodeBuf(unsigned char* buf, int* value);
 
-int readInt(unsigned char** pptr);
-char readChar(unsigned char** pptr);
-void writeChar(unsigned char** pptr, char c);
-void writeInt(unsigned char** pptr, int anInt);
-int readMQTTLenString(mqtt_string* mqttstring, unsigned char** pptr, unsigned char* enddata);
-void writeCString(unsigned char** pptr, const char* string);
-void writemqtt_string(unsigned char** pptr, mqtt_string mqttstring);
-
-int MQTTPacket_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int));
+int mqtt_pkt_read(unsigned char* buf, int buflen, int (*getfn)(unsigned char*, int));
 
 typedef struct {
 	int (*getfn)(void *, unsigned char*, int); /* must return -1 for error, 0 for call again, or the number of bytes read */
@@ -273,9 +265,9 @@ typedef struct {
 	int rem_len;
 	int len;
 	char state;
-}MQTTTransport;
+}mqtt_transport;
 
-int MQTTPacket_readnb(unsigned char* buf, int buflen, MQTTTransport *trp);
+int mqtt_pkt_readnb(unsigned char* buf, int buflen, mqtt_transport *trp);
 
 #define MAX_PACKET_ID 65535 /* according to the MQTT specification - do not change! */
 
@@ -288,7 +280,7 @@ enum QoS { QOS0, QOS1, QOS2, SUBFAIL=0x80 };
 /* all failure return codes must be negative */
 enum returnCode { BUFFER_OVERFLOW = -2, FAILURE = -1, SUCCESS = 0 };
 
-typedef struct MQTTMessage
+typedef struct mqtt_msg
 {
     enum QoS qos;
     unsigned char retained;
@@ -296,24 +288,24 @@ typedef struct MQTTMessage
     unsigned short id;
     void *payload;
     size_t payloadlen;
-} MQTTMessage;
+} mqtt_msg;
 
 typedef struct MessageData
 {
-    MQTTMessage* message;
+    mqtt_msg* message;
     mqtt_string* topicName;
 } MessageData;
 
-typedef struct MQTTConnackData
+typedef struct mqtt_connack_data
 {
     unsigned char rc;
     unsigned char sessionPresent;
-} MQTTConnackData;
+} mqtt_connack_data;
 
-typedef struct MQTTSubackData
+typedef struct mqtt_suback_data
 {
     enum QoS grantedQoS;
-} MQTTSubackData;
+} mqtt_suback_data;
 
 typedef void (*messageHandler)(MessageData*);
 
@@ -361,15 +353,15 @@ void mqtt_clientInit(mqtt_client* client, Network* network, unsigned int command
  *  @param options - connect options
  *  @return success code
  */
-int MQTTConnectWithResults(mqtt_client* client, MQTTPacket_connectData* options,
-    MQTTConnackData* data);
+int mqtt_connWithResults(mqtt_client* client, mqtt_pkt_conn_data* options,
+    mqtt_connack_data* data);
 
 /** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
  *  The nework object must be connected to the network endpoint before calling this
  *  @param options - connect options
  *  @return success code
  */
-int MQTTConnect(mqtt_client* client, MQTTPacket_connectData* options);
+int mqtt_conn(mqtt_client* client, mqtt_pkt_conn_data* options);
 
 /** MQTT Publish - send an MQTT publish packet and wait for all acks to complete for all QoSs
  *  @param client - the client object to use
@@ -377,7 +369,7 @@ int MQTTConnect(mqtt_client* client, MQTTPacket_connectData* options);
  *  @param message - the message to send
  *  @return success code
  */
-int MQTTPublish(mqtt_client* client, const char*, MQTTMessage*);
+int mqtt_publish(mqtt_client* client, const char*, mqtt_msg*);
 
 /** MQTT SetMessageHandler - set or remove a per topic message handler
  *  @param client - the client object to use
@@ -385,7 +377,7 @@ int MQTTPublish(mqtt_client* client, const char*, MQTTMessage*);
  *  @param messageHandler - pointer to the message handler function or NULL to remove
  *  @return success code
  */
-int MQTTSetMessageHandler(mqtt_client* c, const char* topicFilter, messageHandler messageHandler);
+int mqtt_set_msg_handler(mqtt_client* c, const char* topicFilter, messageHandler messageHandler);
 
 /** MQTT Subscribe - send an MQTT subscribe packet and wait for suback before returning.
  *  @param client - the client object to use
@@ -393,7 +385,7 @@ int MQTTSetMessageHandler(mqtt_client* c, const char* topicFilter, messageHandle
  *  @param message - the message to send
  *  @return success code
  */
-int MQTTSubscribe(mqtt_client* client, const char* topicFilter, enum QoS, messageHandler);
+int mqtt_subscribe(mqtt_client* client, const char* topicFilter, enum QoS, messageHandler);
 
 /** MQTT Subscribe - send an MQTT subscribe packet and wait for suback before returning.
  *  @param client - the client object to use
@@ -402,53 +394,53 @@ int MQTTSubscribe(mqtt_client* client, const char* topicFilter, enum QoS, messag
  *  @param data - suback granted QoS returned
  *  @return success code
  */
-int MQTTSubscribeWithResults(mqtt_client* client, const char* topicFilter, enum QoS, messageHandler, MQTTSubackData* data);
+int mqtt_subscribeWithResults(mqtt_client* client, const char* topicFilter, enum QoS, messageHandler, mqtt_suback_data* data);
 
 /** MQTT Subscribe - send an MQTT unsubscribe packet and wait for unsuback before returning.
  *  @param client - the client object to use
  *  @param topicFilter - the topic filter to unsubscribe from
  *  @return success code
  */
-int MQTTUnsubscribe(mqtt_client* client, const char* topicFilter);
+int mqtt_unsubscribe(mqtt_client* client, const char* topicFilter);
 
 /** MQTT Disconnect - send an MQTT disconnect packet and close the connection
  *  @param client - the client object to use
  *  @return success code
  */
-int MQTTDisconnect(mqtt_client* client);
+int mqtt_disconn(mqtt_client* client);
 
 /** MQTT Yield - MQTT background
  *  @param client - the client object to use
  *  @param time - the time, in milliseconds, to yield for
  *  @return success code
  */
-int MQTTYield(mqtt_client* client, int time);
+int mqtt_yield(mqtt_client* client, int time);
 
 /** MQTT isConnected
  *  @param client - the client object to use
  *  @return truth value indicating whether the client is connected to the server
  */
-int MQTTIsConnected(mqtt_client* client);
+int mqtt_is_connected(mqtt_client* client);
 
 #if defined(MQTT_TASK)
-/** MQTT start background thread for a client.  After this, MQTTYield should not be called.
+/** MQTT start background thread for a client.  After this, mqtt_yield should not be called.
 *  @param client - the client object to use
 *  @return success code
 */
-int MQTTStartTask(mqtt_client* client);
+int mqtt_start_task(mqtt_client* client);
 #endif
 
-#define MQTTPacket_connectData_initializer { {'M', 'Q', 'T', 'C'}, 0, 4, {NULL, {0, NULL}}, 60, 1, 0, \
-		MQTTPacket_willOptions_initializer, {NULL, {0, NULL}}, {NULL, {0, NULL}} }
+#define mqtt_pkt_conn_data_initializer { {'M', 'Q', 'T', 'C'}, 0, 4, {NULL, {0, NULL}}, 60, 1, 0, \
+		mqtt_pkt_will_options_initializer, {NULL, {0, NULL}}, {NULL, {0, NULL}} }
 
-int MQTTSerialize_connect(unsigned char* buf, int buflen, MQTTPacket_connectData* options);
-int MQTTDeserialize_connect(MQTTPacket_connectData* data, unsigned char* buf, int len);
+int mqtt_serialize_connect(unsigned char* buf, int buflen, mqtt_pkt_conn_data* options);
+int mqtt_deserialize_connect(mqtt_pkt_conn_data* data, unsigned char* buf, int len);
 
-int MQTTSerialize_connack(unsigned char* buf, int buflen, unsigned char connack_rc, unsigned char sessionPresent);
-int MQTTDeserialize_connack(unsigned char* sessionPresent, unsigned char* connack_rc, unsigned char* buf, int buflen);
+int mqtt_serialize_connack(unsigned char* buf, int buflen, unsigned char connack_rc, unsigned char sessionPresent);
+int mqtt_deserialize_connack(unsigned char* sessionPresent, unsigned char* connack_rc, unsigned char* buf, int buflen);
 
-int MQTTSerialize_disconnect(unsigned char* buf, int buflen);
-int MQTTSerialize_pingreq(unsigned char* buf, int buflen);
+int mqtt_serialize_disconnect(unsigned char* buf, int buflen);
+int mqtt_serialize_pingreq(unsigned char* buf, int buflen);
 
 #ifdef __cplusplus
 }
