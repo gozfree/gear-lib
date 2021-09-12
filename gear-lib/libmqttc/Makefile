@@ -45,7 +45,7 @@ CFLAGS  := -g -Wall -fPIC
 LTYPE   := debug
 endif
 #-Werror 
-CFLAGS  += -DLINUX_SO
+CFLAGS  += -DLINUX_SO -DMQTT_CLIENT -DMQTT_SERVER
 
 ifeq ($(OUTPUT),/usr/local)
 OUTLIBPATH :=/usr/local
