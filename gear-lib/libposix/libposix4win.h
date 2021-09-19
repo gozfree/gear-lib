@@ -52,7 +52,9 @@ typedef int                       bool;
 #define __func__                  __FUNCTION__
 
 typedef SSIZE_T                   ssize_t;
+#ifndef _FILE_OFFSET_BITS_SET_OFFT
 typedef SSIZE_T                   off_t;
+#endif
 
 
 /******************************************************************************
@@ -66,14 +68,14 @@ typedef SSIZE_T                   off_t;
 
 
 #define PATH_SPLIT                '\\'
-#define PRId8                     "hhd"
-#define PRId16                    "hd"
-#define PRId32                    "ld"
-#define PRId64                    "lld"
-#define PRIu8                     "hhu"
-#define PRIu16                    "hu"
-#define PRIu32                    "lu"
-#define PRIu64                    "llu"
+#define PRId8                     "d"
+#define PRId16                    "d"
+#define PRId32                    "d"
+#define PRId64                    "I64d"
+#define PRIu8                     "u"
+#define PRIu16                    "u"
+#define PRIu32                    "u"
+#define PRIu64                    "I64u"
 
 #define iovec                     _WSABUF
 #define iov_len                   len
@@ -90,9 +92,13 @@ GEAR_API char *dup_wchar_to_utf8(wchar_t *w);
 #define STDOUT_FILENO             1       /* standard output file descriptor */
 #define STDERR_FILENO             2       /* standard error file descriptor */
 #define MAXPATHLEN                1024
+#ifndef PATH_MAX
 #define PATH_MAX                  4096
+#endif
 
+#ifndef _MODE_T_
 typedef int                       mode_t;
+#endif
 
 #define F_OK                      0
 #define R_OK                      4
@@ -184,22 +190,53 @@ struct win_time_t
     int msec;/** This represents the milisecond part, with the value is 0-999 */
 };
 
+#ifndef  _TIMEZONE_DEFINED
 struct timezone
 {
     int tz_minuteswest;
     int tz_dsttime;
 };
+#endif
 
 GEAR_API int gettimeofday(struct timeval *tv, struct timezone *tz);
-#define localtime_r(timep,result) localtime_s(result, timep)
+
+#define timeradd(tvp, uvp, vvp) \
+        do { \
+                (vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec; \
+                (vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec; \
+                if ((vvp)->tv_usec >= 1000000) { \
+                        (vvp)->tv_sec++; \
+                        (vvp)->tv_usec -= 1000000; \
+                } \
+        } while (0)
+
+#define timersub(tvp, uvp, vvp) \
+        do { \
+                (vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec; \
+                (vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec; \
+                if ((vvp)->tv_usec < 0) { \
+                        (vvp)->tv_sec--; \
+                        (vvp)->tv_usec += 1000000; \
+                } \
+        } while (0)
+
+#define localtime_r(timep,result) ERR_PTR(localtime_s(result, timep)==0?true:false)
 #define sleep(n) Sleep(n*1000)
 GEAR_API void usleep(unsigned long usec);
 
 typedef int clockid_t;
+#ifndef CLOCK_REALTIME
 #define CLOCK_REALTIME           ((clockid_t)1)
+#endif
+#ifndef CLOCK_PROCESS_CPUTIME_ID
 #define CLOCK_PROCESS_CPUTIME_ID ((clockid_t)2)
+#endif
+#ifndef CLOCK_THREAD_CPUTIME_ID
 #define CLOCK_THREAD_CPUTIME_ID  ((clockid_t)3)
+#endif
+#ifndef CLOCK_MONOTONIC
 #define CLOCK_MONOTONIC          ((clockid_t)4)
+#endif
 
 
 /******************************************************************************

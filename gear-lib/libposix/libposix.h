@@ -93,7 +93,7 @@ extern "C" {
 #error "OS_UNDEFINED"
 #endif
 
-#include "gear_misc.h"
+#include "libposix_ext.h"
 
 #ifdef __cplusplus
 }

@@ -25,13 +25,22 @@ LIBNAME		= libposix
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
-TGT_LIB_H	+= kernel_list.h gear_misc.h
+TGT_LIB_H	+= kernel_list.h libposix_ext.h
+ifeq ($(ARCH), win)
+TGT_LIB_H	+= libposix4win.h kernel_list_win32.h
+endif
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o libposix4linux.o
+OBJS_LIB	= $(LIBNAME).o
+ifeq ($(ARCH), linux)
+OBJS_LIB	+= libposix4linux.o
+endif
+ifeq ($(ARCH), win)
+OBJS_LIB	+= libposix4win.o
+endif
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################

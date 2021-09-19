@@ -27,6 +27,63 @@ extern "C" {
 #endif
 
 /******************************************************************************
+ * BASIC MACRO DEFINES
+ ******************************************************************************/
+
+#ifdef __GNUC__
+#define LIKELY(x)           (__builtin_expect(!!(x), 1))
+#define UNLIKELY(x)         (__builtin_expect(!!(x), 0))
+#else
+#define LIKELY(x)           (x)
+#define UNLIKELY(x)         (x)
+#endif
+
+
+#define MAX_ERRNO           (4095)
+#define IS_ERR_VALUE(x)     UNLIKELY((unsigned long)(intptr_t)(void *)(intptr_t)(x) >= (unsigned long)-MAX_ERRNO)
+
+static inline void *ERR_PTR(long error)
+{
+    return (void *) (intptr_t)error;
+}
+
+static inline long PTR_ERR(const void *ptr)
+{
+    return (long) (intptr_t)ptr;
+}
+
+static inline bool IS_ERR(const void *ptr)
+{
+    return IS_ERR_VALUE((unsigned long)(intptr_t)ptr);
+}
+
+static inline bool IS_ERR_OR_NULL(const void *ptr)
+{
+    return UNLIKELY(!ptr) || IS_ERR_VALUE((unsigned long)(intptr_t)ptr);
+}
+
+/**
+ * ERR_CAST - Explicitly cast an error-valued pointer to another pointer type
+ * @ptr: The pointer to cast.
+ *
+ * Explicitly cast an error-valued pointer to another pointer type in such a
+ * way as to make it clear that's what's going on.
+ */
+static inline void * ERR_CAST(const void *ptr)
+{
+    /* cast away the const */
+    return (void *) ptr;
+}
+
+static inline int PTR_ERR_OR_ZERO(const void *ptr)
+{
+    if (IS_ERR(ptr))
+        return PTR_ERR(ptr);
+    else
+        return 0;
+}
+
+/******************************************************************************
  * MACRO DEFINES ARE UPPERCASE
  ******************************************************************************/
 typedef struct rational {
@@ -38,14 +95,6 @@ typedef struct rational {
  * Variable-argument unused annotation
  */
 #define UNUSED(e, ...)      (void) ((void) (e), ##__VA_ARGS__)
-
-#ifdef __GNUC__
-#define LIKELY(x)           (__builtin_expect(!!(x), 1))
-#define UNLIKELY(x)         (__builtin_expect(!!(x), 0))
-#else
-#define LIKELY(x)           (x)
-#define UNLIKELY(x)         (x)
-#endif
 
 #define SWAP(a, b)          \
     do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
@@ -83,7 +132,7 @@ typedef struct rational {
         printf("%s\n", _tmp);                                            \
     } while (0)
 
-#define ALIGN2(x, a)	(((x) + (a) - 1) & ~((a) - 1))
+#define ALIGN2(x, a)    (((x) + (a) - 1) & ~((a) - 1))
 
 #define is_alpha(c) (((c) >=  'a' && (c) <= 'z') || ((c) >=  'A' && (c) <= 'Z'))
 

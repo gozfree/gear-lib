@@ -53,7 +53,7 @@ int access(const char *file, int mode)
     return ret;
 }
 
-static unsigned __stdcall __thread_func(void *arg)
+static long unsigned int __stdcall __thread_func(void *arg)
 {
     pthread_win_t *h = (pthread_win_t *)arg;
     h->ret = h->func(h->arg);
@@ -156,8 +156,12 @@ int pthread_mutex_unlock(pthread_mutex_t *m)
 
 int pthread_rwlock_init(pthread_rwlock_t *m, void* attr)
 {
+#if _WIN32_WINNT >= 0x0600
     InitializeSRWLock(m);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int pthread_rwlock_destroy(pthread_rwlock_t *m)
@@ -168,14 +172,22 @@ int pthread_rwlock_destroy(pthread_rwlock_t *m)
 
 int pthread_rwlock_rdlock(pthread_rwlock_t *m)
 {
+#if _WIN32_WINNT >= 0x0600
     AcquireSRWLockExclusive(m);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int pthread_rwlock_unlock(pthread_rwlock_t *m)
 {
+#if _WIN32_WINNT >= 0x0600
     ReleaseSRWLockExclusive(m);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int sem_init(sem_t *sem, int pshared, unsigned int value)
@@ -205,18 +217,26 @@ int sem_post(sem_t *sem)
 
 int pthread_once(pthread_once_t *once_control, void (*init_routine)(void))
 {
+#if _WIN32_WINNT >= 0x0600
     BOOL pending = FALSE;
     InitOnceBeginInitialize(once_control, 0, &pending, NULL);
     if (pending)
         init_routine();
     InitOnceComplete(once_control, 0, NULL);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr)
 {
+#if _WIN32_WINNT >= 0x0600
     InitializeConditionVariable(cond);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int pthread_cond_destroy(pthread_cond_t *cond)
@@ -226,29 +246,43 @@ int pthread_cond_destroy(pthread_cond_t *cond)
 
 int pthread_cond_broadcast(pthread_cond_t *cond)
 {
+#if _WIN32_WINNT >= 0x0600
     WakeAllConditionVariable(cond);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
+#if _WIN32_WINNT >= 0x0600
     SleepConditionVariableSRW(cond, (PSRWLOCK)mutex, INFINITE, 0);
     return 0;
+#else
+    return -1;
+#endif
 }
 
 int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms)
 {
+#if _WIN32_WINNT >= 0x0600
     SleepConditionVariableSRW(cond, (PSRWLOCK)mutex, ms, 0);
     return 0;
+#else
+    return -1;
+#endif
 }
-
 
 int pthread_cond_signal(pthread_cond_t *cond)
 {
+#if _WIN32_WINNT >= 0x0600
     WakeConditionVariable(cond);
     return 0;
+#else
+    return -1;
+#endif
 }
-
 
 int utf8towchar(const char *filename_utf8, wchar_t **filename_w)
 {
@@ -328,7 +362,7 @@ void showProcessInformation()
         pe32.dwSize = sizeof(PROCESSENTRY32);
         if (Process32First(hSnapshot, &pe32)) {
             do {
-               printf("pid %d %s\n", pe32.th32ProcessID, pe32.szExeFile);
+               printf("pid %ld %s\n", pe32.th32ProcessID, pe32.szExeFile);
             } while(Process32Next(hSnapshot, &pe32));
          }
          CloseHandle(hSnapshot);
@@ -339,7 +373,6 @@ int get_proc_name(char *name, size_t len)
 {
     PROCESSENTRY32 pe32;
     int got = 0;
-    int i = 0;
     HANDLE hd = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (!hd) {
         return -1;
@@ -407,7 +440,6 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 
     return 0;
 }
-
 
 void usleep(unsigned long usec)
 {
@@ -477,10 +509,10 @@ int get_nprocs()
 
 void *align_malloc(size_t size, size_t align)
 {
-    long diff;
+    size_t  diff;
     void *ptr = malloc(size + align);
     if (ptr) {
-        diff = ((~(long)ptr) & (align - 1)) + 1;
+        diff = ((~(size_t)ptr) & (align - 1)) + 1;
         ptr = (char *)ptr + diff;
         ((char *)ptr)[-1] = (char)diff;
     }
