@@ -108,7 +108,7 @@ static void *send_thread(struct thread *t, void *ptr)
     }
     ms->is_active = true;
     unsigned int ssrc = (unsigned int)rtp_ssrc();
-    uint64_t pts = time_msec();
+    uint64_t pts = time_now_msec();
     unsigned int seq = ssrc;
     logd("rtp send thread %s created\n", t->name);
     while (t->run) {

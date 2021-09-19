@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libposix.h>
+#include "libtime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,12 +30,10 @@
 #include <sys/timeb.h>
 #endif
 
-#include "libtime.h"
-
 #define TIME_FORMAT "%Y%m%d%H%M%S"
 
 
-uint64_t time_sec()
+uint64_t time_now_sec()
 {
     time_t t;
     t = time(NULL);
@@ -45,7 +43,7 @@ uint64_t time_sec()
     return t;
 }
 
-char *time_sec_str()
+char *time_now_sec_str()
 {
     time_t t;
     struct tm *tm;
@@ -60,10 +58,10 @@ char *time_sec_str()
     return asctime(tm);
 }
 
-char *time_str_human(char *str, int len)
+char *time_now_str_format(char *str, int len)
 {
     struct time_info ti;
-    if (-1 == time_info(&ti)) {
+    if (-1 == time_now_info(&ti)) {
         return NULL;
     }
     snprintf(str, len, "%04d%02d%02d%02d%02d%02d",
@@ -71,7 +69,7 @@ char *time_str_human(char *str, int len)
     return str;
 }
 
-char *time_str_human_by_utc(uint32_t utc, char *str, int len)
+char *time_str_format_by_utc(uint32_t utc, char *str, int len)
 {
     struct time_info ti;
     if (-1 == time_info_by_utc(utc, &ti)) {
@@ -82,7 +80,7 @@ char *time_str_human_by_utc(uint32_t utc, char *str, int len)
     return str;
 }
 
-char *time_str_human_by_msec(uint64_t msec, char *str, int len)
+char *time_str_format_by_msec(uint64_t msec, char *str, int len)
 {
     struct time_info ti;
     if (-1 == time_info_by_msec(msec, &ti)) {
@@ -93,14 +91,13 @@ char *time_str_human_by_msec(uint64_t msec, char *str, int len)
     return str;
 }
 
-
-char *time_str_human_by_timeval(struct timeval *tv, char *str, int len)
+char *time_str_format_by_timeval(struct timeval *tv, char *str, int len)
 {
-    uint32_t sec = time_usec(tv)/1000000;
-    return time_str_human_by_utc(sec, str, len);
+    uint32_t sec = time_now_usec(tv)/1000000;
+    return time_str_format_by_utc(sec, str, len);
 }
 
-uint64_t time_usec(struct timeval *val)
+uint64_t time_now_usec(struct timeval *val)
 {
     struct timeval tv;
     if (val == NULL) {
@@ -113,7 +110,7 @@ uint64_t time_usec(struct timeval *val)
     return (uint64_t)(((uint64_t)tv.tv_sec)*1000*1000 + (uint64_t)tv.tv_usec);
 }
 
-uint64_t _time_clock_gettime(clockid_t clk_id)
+static uint64_t _time_clock_gettime(clockid_t clk_id)
 {
 #if defined (OS_LINUX) || defined (OS_APPLE)
     struct timespec ts;
@@ -127,22 +124,22 @@ uint64_t _time_clock_gettime(clockid_t clk_id)
 #endif
 }
 
-uint64_t time_msec()
+uint64_t time_now_msec()
 {
-    return _time_clock_gettime(CLOCK_REALTIME)/1000;
+    return _time_clock_gettime(CLOCK_REALTIME)/(1000*1000);
 }
 
-uint64_t time_nsec()
+uint64_t time_now_nsec()
 {
     return _time_clock_gettime(CLOCK_REALTIME);
 }
 
-uint64_t time_nsec_bootup()
+uint64_t time_bootup_nsec()
 {
     return _time_clock_gettime(CLOCK_MONOTONIC);
 }
 
-char *time_msec_str(char *str, int len)
+char *time_now_msec_str(char *str, int len)
 {
     char date_fmt[20];
     char date_ms[4];
@@ -173,10 +170,15 @@ char *time_msec_str(char *str, int len)
 
 int time_sleep_ms(uint64_t ms)
 {
+#if defined (OS_LINUX)
     struct timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = ms*1000;
     return select(0, NULL, NULL, NULL, &tv);
+#elif defined (OS_WINDOWS)
+    usleep(ms*1000);
+    return 0;
+#endif
 }
 
 int time_info_by_utc(uint32_t utc, struct time_info *ti)
@@ -253,7 +255,7 @@ int time_info_by_msec(uint64_t msec, struct time_info *ti)
     return 0;
 }
 
-int time_info(struct time_info *ti)
+int time_now_info(struct time_info *ti)
 {
     time_t utc;
     struct timeval tv;
@@ -319,20 +321,11 @@ int time_set_info(struct time_info *ti)
 }
 #endif
 
-bool time_passed_sec(int sec)
+uint64_t time_elapsed_ms(struct timeval *prev)
 {
-    bool ret = false;
-    static uint64_t last_sec = 0;
-    static uint64_t now_sec = 0;
-    now_sec = time_sec();
-    if (last_sec == 0) {
-        last_sec = now_sec;
-    }
-    if (now_sec - last_sec >= (uint32_t)sec) {
-        ret = true;
-        last_sec = now_sec;
-    } else {
-        ret = false;
-    }
-    return ret;
+    struct timeval now, res;
+
+    gettimeofday(&now, NULL);
+    timersub(&now, prev, &res);
+    return (res.tv_sec)*1000 + (res.tv_usec)/1000;
 }
