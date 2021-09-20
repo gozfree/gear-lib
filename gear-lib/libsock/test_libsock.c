@@ -30,17 +30,17 @@
 #include <signal.h>
 #endif
 
-static void on_connect_server(int fd, struct sock_connection *conn)
+static void on_connect_server(struct sock_server *s, struct sock_connection *conn)
 {
     printf("on_connect_server: fd=%d local=%s:%d, remote=%s:%d\n", conn->fd,
             conn->local.ip_str, conn->local.port,
             conn->remote.ip_str, conn->remote.port);
 }
 
-static void on_connect_client(int fd, struct sock_connection *conn)
+static void on_connect_client(struct sock_client *c, struct sock_connection *conn)
 {
     int ret=0;
-    printf("on_connect_client: fd=%d local=%s:%d, remote=%s:%d\n", conn->fd,
+    printf("on_connect_client: fd=%d local=%s:%d, remote=%s:%d\n", c->conn->fd,
             conn->local.ip_str, conn->local.port,
             conn->remote.ip_str, conn->remote.port);
 #if defined (OS_LINUX)
@@ -70,9 +70,15 @@ static void on_connect_client(int fd, struct sock_connection *conn)
 #endif
 }
 
-static void on_recv_buf(int fd, void *buf, size_t len)
+static void on_recv_buf(struct sock_server *s, void *buf, size_t len)
 {
-    printf("%s:%d fd = %d, recv buf = %s\n", __func__, __LINE__, fd, (char *)buf);
+    printf("%s:%d fd = %d, recv buf = %s\n", __func__, __LINE__, s->fd, (char *)buf);
+}
+
+
+static void on_recv_buf_cli(struct sock_client *c, void *buf, size_t len)
+{
+    printf("%s:%d fd = %d, recv buf = %s\n", __func__, __LINE__, c->fd, (char *)buf);
 }
 
 void usage()
@@ -174,7 +180,7 @@ int main(int argc, char **argv)
             port = atoi(argv[3]);
         }
         sc = sock_client_create(ip, port, SOCK_TYPE_TCP);
-        sock_client_set_callback(sc, on_connect_client, on_recv_buf, NULL);
+        sock_client_set_callback(sc, on_connect_client, on_recv_buf_cli, NULL);
         sock_client_connect(sc);
         while (1) {
             memset(buf, 0, sizeof(buf));
@@ -197,7 +203,7 @@ int main(int argc, char **argv)
         }
 #ifdef ENABLE_PTCP
         sc = sock_client_create(ip, port, SOCK_TYPE_PTCP);
-        sock_client_set_callback(sc, on_connect_client, on_recv_buf, NULL);
+        sock_client_set_callback(sc, on_connect_client, on_recv_buf_cli, NULL);
         sock_client_connect(sc);
         while (1) {
             memset(buf, 0, sizeof(buf));

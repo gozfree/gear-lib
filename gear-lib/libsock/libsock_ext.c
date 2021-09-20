@@ -40,11 +40,11 @@ static void on_recv(int fd, void *arg)
     struct sock_server *s = (struct sock_server *)arg;
     ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
-        s->on_buffer(fd, buf, ret);
+        s->on_buffer(s, buf, ret);
     } else if (ret == 0) {
         printf("delete connection fd:%d\n", fd);
         if (s->on_disconnect) {
-            s->on_disconnect(fd, NULL);
+            s->on_disconnect(s, NULL);
         }
     } else if (ret < 0) {
         printf("%s:%d recv failed!\n", __func__, __LINE__);
@@ -59,11 +59,11 @@ static void on_client_recv(int fd, void *arg)
     struct sock_client *c = (struct sock_client *)arg;
     ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
-        c->on_buffer(fd, buf, ret);
+        c->on_buffer(c, buf, ret);
     } else if (ret == 0) {
         printf("delete connection fd:%d\n", fd);
         if (c->on_disconnect) {
-            c->on_disconnect(fd, NULL);
+            c->on_disconnect(c, NULL);
         }
     } else if (ret < 0) {
         printf("%s:%d recv failed!\n", __func__, __LINE__);
@@ -114,7 +114,7 @@ static void on_tcp_connect(int fd, void *arg)
         sc.remote.ip = ip;
         sc.remote.port = port;
         sock_addr_ntop(sc.remote.ip_str, ip);
-        s->on_connect(fd, &sc);
+        s->on_connect(s, &sc);
     }
     e = gevent_create(afd, on_recv, NULL, on_error, s);
     if (-1 == gevent_add(s->evbase, &e)) {
@@ -195,9 +195,9 @@ struct sock_server *sock_server_create(const char *host, uint16_t port, enum soc
 }
 
 int sock_server_set_callback(struct sock_server *s,
-        void (*on_connect)(int fd, struct sock_connection *conn),
-        void (*on_buffer)(int, void *buf, size_t len),
-        void (*on_disconnect)(int fd, struct sock_connection *conn))
+        void (*on_connect)(struct sock_server *s, struct sock_connection *conn),
+        void (*on_buffer)(struct sock_server *s, void *buf, size_t len),
+        void (*on_disconnect)(struct sock_server *s, struct sock_connection *conn))
 {
     struct gevent *e;
     if (!s) {
@@ -274,9 +274,9 @@ struct sock_client *sock_client_create(const char *host, uint16_t port, enum soc
 }
 
 int sock_client_set_callback(struct sock_client *c,
-        void (*on_connect)(int fd, struct sock_connection *conn),
-        void (*on_buffer)(int, void *buf, size_t len),
-        void (*on_disconnect)(int fd, struct sock_connection *conn))
+        void (*on_connect)(struct sock_client *c, struct sock_connection *conn),
+        void (*on_buffer)(struct sock_client *c, void *buf, size_t len),
+        void (*on_disconnect)(struct sock_client *c, struct sock_connection *conn))
 {
     if (!c) {
         return -1;
@@ -324,7 +324,7 @@ GEAR_API int sock_client_connect(struct sock_client *c)
     }
     if (c->conn) {
         if (c->on_connect) {
-            c->on_connect(c->conn->fd, c->conn);
+            c->on_connect(c, c->conn);
         }
     }
     c->thread = thread_create(sock_client_thread, c);
