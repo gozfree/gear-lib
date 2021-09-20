@@ -299,18 +299,18 @@ static void *sock_client_thread(struct thread *thread, void *arg)
 GEAR_API int sock_client_connect(struct sock_client *c)
 {
     struct gevent *e;
+    c->conn = sock_tcp_connect(c->host, c->port);
+    if (!c->conn) {
+        printf("sock_tcp_connect %s:%d failed!\n", c->host, c->port);
+        return -1;
+    }
     switch (c->type) {
     case SOCK_TYPE_TCP:
-        c->conn = sock_tcp_connect(c->host, c->port);
-        c->fd = c->conn->fd;
-        break;
     case SOCK_TYPE_UDP:
-        c->conn = sock_udp_connect(c->host, c->port);
         c->fd = c->conn->fd;
         break;
 #ifdef ENABLE_PTCP
     case SOCK_TYPE_PTCP:
-        c->conn = sock_ptcp_connect(c->host, c->port);
         c->fd = c->conn->fd64;
         break;
 #endif

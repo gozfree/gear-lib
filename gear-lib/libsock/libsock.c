@@ -66,6 +66,43 @@ static void sock_post_deinit_win()
 }
 #endif
 
+static int host_to_sockaddr(const char *host, struct in_addr *addr)
+{
+    struct addrinfo *res = NULL;
+    struct addrinfo *ap;
+    struct addrinfo hints;
+    int ret;
+    memset(&hints, 0, sizeof(struct addrinfo));
+#if USE_IPV6
+    hints.ai_family = AF_UNSPEC;
+#else
+    hints.ai_family = AF_INET;
+#endif
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_flags = AI_CANONNAME;
+
+    ret = getaddrinfo(host, NULL, &hints, &res);
+    if (ret != 0) {
+        printf("getaddrinfo: %s\n", gai_strerror(ret));
+        return -1;
+    }
+    for (ap = res; ap != NULL; ap = ap->ai_next) {
+        if (ap->ai_family == hints.ai_family) {
+            break;
+        }
+    }
+    if (ap == NULL) {
+        printf("addrinfo is invalid!\n");
+        freeaddrinfo(res);
+        return -1;
+    }
+
+    *addr = ((struct sockaddr_in*)(ap->ai_addr))->sin_addr;
+    freeaddrinfo(res);
+    return 0;
+}
+
 static struct sock_connection *_sock_connect(int type, const char *host, uint16_t port)
 {
     int domain = -1;
@@ -88,10 +125,16 @@ static struct sock_connection *_sock_connect(int type, const char *host, uint16_
     switch (type) {
     case SOCK_STREAM:
     case SOCK_DGRAM:
+#if USE_IPV6
+        domain = AF_UNSPEC;
+#else
         domain = AF_INET;
+#endif
         si.sin_family = domain;
-        si.sin_addr.s_addr = inet_addr(host);
+        //si.sin_addr.s_addr = inet_addr(host);
+        host_to_sockaddr(host, &si.sin_addr);
         si.sin_port = htons(port);
+
         sa = (struct sockaddr*)&si;
         sa_len = sizeof(si);
         break;
@@ -137,10 +180,10 @@ static struct sock_connection *_sock_connect(int type, const char *host, uint16_
 
     return sc;
 fail:
-    if (-1 != sc->fd) {
-        close(sc->fd);
-    }
     if (sc) {
+        if (-1 != sc->fd) {
+            close(sc->fd);
+        }
         free(sc);
     }
     return NULL;
@@ -815,7 +858,7 @@ int sock_sendto(int fd, const char *ip, uint16_t port,
     ssize_t n;
     char *p = (char *)buf;
     size_t left = len;
-    size_t step = MTU;
+    size_t step = len;
     struct sockaddr_in sa;
     int cnt = 0;
 
@@ -855,7 +898,7 @@ int sock_recv(uint64_t fd, void *buf, size_t len)
     int n;
     char *p = (char *)buf;
     size_t left = len;
-    size_t step = MTU;
+    size_t step = len;
     int cnt = 0;
     if (buf == NULL || len == 0) {
         printf("%s paraments invalid!\n", __func__);
@@ -905,7 +948,7 @@ int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len)
     char *p = (char *)buf;
     int cnt = 0;
     size_t left = len;
-    size_t step = MTU;
+    size_t step = len;
     struct sockaddr_in si;
     socklen_t si_len = sizeof(si);
 

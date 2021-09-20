@@ -25,7 +25,6 @@
 #include <libposix.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #if defined (OS_LINUX)
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -103,8 +102,7 @@ int sock_sendto(int fd, const char *ip, uint16_t port,
 int sock_send_sync_recv(int fd, const void *sbuf, size_t slen,
                 void *rbuf, size_t rlen, int timeout);
 int sock_recv(uint64_t fd, void *buf, size_t len);
-int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port,
-                void *buf, size_t len);
+int sock_recvfrom(int fd, uint32_t *ip, uint16_t *port, void *buf, size_t len);
 
 uint32_t sock_addr_pton(const char *ip);
 int sock_addr_ntop(char *str, uint32_t ip);
