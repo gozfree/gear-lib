@@ -1,3 +1,11 @@
+
+## Supported
+|  |  |
+|--|--|
+|linux | gcc | x86_64-w64-mingw32-gcc | cmake |
+|windows | Visual Studio c1 | linux-mingw | cmake |
+|mac | gcc | cmake| |
+
 ### esp32
    * toolchain: xtensa-esp32-elf  
     copy or softlink gear-lib to esp32 components dir  

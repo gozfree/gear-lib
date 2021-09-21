@@ -20,22 +20,18 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libmqttc.h"
+#include <libtime.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <errno.h>
-
-#define LOGA_DEBUG 0
-#define LOGA_INFO 1
 #include <stdarg.h>
 #include <time.h>
 #include <sys/timeb.h>
 
+
+#define LOGA_DEBUG 0
+#define LOGA_INFO 1
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
 static volatile MessageData* test1_message_data = NULL;
@@ -60,8 +56,10 @@ struct Options
     int iterations;
 } options = {
     "localhost",
+    //"127.0.0.1",
     1883,
     "localhost",
+    //"127.0.0.1",
     1885,
     0, //verbose
     0, //test_no
@@ -130,8 +128,8 @@ void MyLog(int LOGA_level, char* format, ...)
 
     struct tm *timeinfo;
 
-    if (LOGA_level == LOGA_DEBUG && options.verbose == 0)
-        return;
+    //if (LOGA_level == LOGA_DEBUG && options.verbose == 0)
+     //   return;
 
     ftime(&ts);
     timeinfo = localtime(&ts.time);
@@ -148,16 +146,6 @@ void MyLog(int LOGA_level, char* format, ...)
 }
 
 
-#if defined(WIN32) || defined(_WINDOWS)
-#define mqsleep(A) Sleep(1000*A)
-#define START_TIME_TYPE DWORD
-static DWORD start_time = 0;
-START_TIME_TYPE start_clock(void)
-{
-    return GetTickCount();
-}
-#else
-#define mqsleep sleep
 #define START_TIME_TYPE struct timeval
 /* TODO - unused - remove? static struct timeval start_time; */
 START_TIME_TYPE start_clock(void)
@@ -166,15 +154,8 @@ START_TIME_TYPE start_clock(void)
     gettimeofday(&start_time, NULL);
     return start_time;
 }
-#endif
 
 
-#if defined(WIN32)
-long elapsed(START_TIME_TYPE start_time)
-{
-    return GetTickCount() - start_time;
-}
-#else
 long elapsed(START_TIME_TYPE start_time)
 {
     struct timeval now, res;
@@ -183,7 +164,6 @@ long elapsed(START_TIME_TYPE start_time)
     timersub(&now, &start_time, &res);
     return (res.tv_sec)*1000 + (res.tv_usec)/1000;
 }
-#endif
 
 #define assert(a, b, c, d) myassert(__FILE__, __LINE__, a, b, c, d)
 #define assert1(a, b, c, d, e) myassert(__FILE__, __LINE__, a, b, c, d, e)
@@ -192,12 +172,14 @@ int tests = 0;
 int failures = 0;
 FILE* xml;
 START_TIME_TYPE global_start_time;
+struct timeval g_start_time;
 char output[3000];
 char* cur_output = output;
 
 void write_test_result(void)
 {
-    long duration = elapsed(global_start_time);
+    //long duration = elapsed(global_start_time);
+    uint64_t duration = time_elapsed_ms(&g_start_time);
 
     fprintf(xml, " time=\"%ld.%.3ld\" >\n", duration / 1000, duration % 1000);
     if (cur_output != output) {
@@ -248,7 +230,7 @@ Test1: single-threaded client
 void test1_sendAndReceive(mqtt_client* c, int qos, char* test_topic)
 {
     int i = 0;
-    int iterations = 50;
+    int iterations = 5;
     int rc;
     int wait_seconds;
 
@@ -263,7 +245,7 @@ void test1_sendAndReceive(mqtt_client* c, int qos, char* test_topic)
     for (i = 0; i < iterations; ++i) {
         test1_message_data = NULL;
         rc = mqtt_publish(c, test_topic, &pubmsg);
-        assert("Good rc from publish", rc == MQTT_SUCCESS, "rc was %d", rc);
+        assert("Good rc from publish", rc == MQTT_SUCCESS, "rc was %d\n", rc);
 
         /* wait for the message to be received */
         wait_seconds = 10;
@@ -289,15 +271,14 @@ int test1(struct Options options)
     mqtt_client c;
     int rc = 0;
     char* test_topic = "C client test1";
-    unsigned char buf[100];
-    unsigned char readbuf[100];
 
     fprintf(xml, "<testcase classname=\"test1\" name=\"single threaded client using receive\"");
-    global_start_time = start_clock();
+    //global_start_time = start_clock();
+    gettimeofday(&g_start_time, NULL);
     failures = 0;
     MyLog(LOGA_INFO, "Starting test 1 - single threaded client using receive");
 
-    mqtt_client_init(&c, options.host, options.port, buf, 100, readbuf, 100);
+    mqtt_client_init(&c, options.host, options.port);
 
     mqtt_suback_data tmp_subback_data;
     mqtt_connack_data tmp_data;
@@ -334,17 +315,20 @@ int test1(struct Options options)
     rc = mqtt_disconnect(&c);
     assert("Disconnect successful", rc == MQTT_SUCCESS, "rc was %d", rc);
 
+#if 0
     /* Just to make sure we can connect again */
     //NetworkConnect(&c.ipstack, options.host, options.port);
     rc = mqtt_connect(&c, &data, &tmp_data);
     assert("Connect successful",  rc == MQTT_SUCCESS, "rc was %d", rc);
     rc = mqtt_disconnect(&c);
     assert("Disconnect successful", rc == MQTT_SUCCESS, "rc was %d", rc);
+#endif
 
 exit:
     MyLog(LOGA_INFO, "TEST1: test %s. %d tests run, %d failures.",
                     (failures == 0) ? "passed" : "failed", tests, failures);
     write_test_result();
+    mqtt_client_deinit(&c);
     return failures;
 }
 
@@ -362,8 +346,6 @@ int test2(struct Options options)
     mqtt_client c;
     int rc = 0;
     char* test_topic = "C client test2";
-    unsigned char buf[100];
-    unsigned char readbuf[100];
     mqtt_connack_data connack;
     mqtt_suback_data suback;
 
@@ -372,7 +354,7 @@ int test2(struct Options options)
     failures = 0;
     MyLog(LOGA_INFO, "Starting test 2 - connack return data");
 
-    mqtt_client_init(&c, options.host, options.port, buf, 100, readbuf, 100);
+    mqtt_client_init(&c, options.host, options.port);
 
     mqtt_connack_data tmp_data;
     mqtt_pkt_conn_data data = mqtt_pkt_conn_data_initializer;
@@ -512,8 +494,6 @@ int test3(struct Options options)
     int rc;
     const char* test_topic = "C client test3";
     int wait_seconds = 0;
-    unsigned char buf[100];
-    unsigned char readbuf[100];
     mqtt_connack_data connack;
     mqtt_suback_data suback;
 
@@ -522,7 +502,7 @@ int test3(struct Options options)
     failures = 0;
     MyLog(LOGA_INFO, "Starting test 3 - session state");
 
-    mqtt_client_init(&c, options.host, options.port, buf, 100, readbuf, 100);
+    mqtt_client_init(&c, options.host, options.port);
 
     mqtt_pkt_conn_data data = mqtt_pkt_conn_data_initializer;
     data.willFlag = 1;
@@ -793,11 +773,7 @@ int test6(struct Options options)
     count = 0;
     while (++count < 40)
     {
-#if defined(WIN32)
-            Sleep(1000L);
-#else
             sleep(1);
-#endif
             if (test6_will_message_arrived == 1 && test6_connection_lost_called == 1)
                     break;
     }
@@ -898,11 +874,7 @@ int test6a(struct Options options)
     MyLog(LOGA_INFO, "Waiting to receive the will message");
     count = 0;
     while (++count < 40) {
-#if defined(WIN32)
-        Sleep(1000L);
-#else
         sleep(1);
-#endif
         if (test6_will_message_arrived == 1 && test6_connection_lost_called == 1)
                 break;
     }
@@ -956,8 +928,7 @@ int main(int argc, char** argv)
     if (rc == 0)
         MyLog(LOGA_INFO, "verdict pass");
     else
-        MyLog(LOGA_INFO, "verdict fail");
-
+        MyLog(LOGA_INFO, "verdict fail"); 
     fprintf(xml, "</testsuite>\n");
     fclose(xml);
     return rc;

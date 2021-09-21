@@ -24,6 +24,7 @@
 
 #define LIBMQTTC_VERSION "0.0.1"
 
+#include <libposix.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -31,6 +32,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct mqtt_client;
+struct mqttc_ops {
+    void *(*init)(const char *host, uint16_t port);
+    void (*deinit)(struct mqtt_client *c);
+    int (*connect)(struct mqtt_client *c);
+    int (*disconnect)(struct mqtt_client *c);
+    int (*read)(struct mqtt_client *c, void *buf, size_t len);
+    int (*write)(struct mqtt_client *c, const void *buf, size_t len);
+};
 
 typedef struct Timer {
     struct timeval end_time;
@@ -233,6 +244,7 @@ typedef void (*messageHandler)(MessageData*);
 
 typedef struct mqtt_client
 {
+    const struct mqttc_ops *ops;
     char *host;
     int port;
     int fd;
@@ -260,6 +272,7 @@ typedef struct mqtt_client
     Mutex mutex;
     Thread thread;
 #endif
+    void *priv;
 } mqtt_client;
 
 /**
@@ -267,9 +280,8 @@ typedef struct mqtt_client
  * @param client
  * @param
  */
-int mqtt_client_init(mqtt_client* c, const char *host, int port,
-                        uint8_t* sendbuf, size_t sendbuf_size,
-                        uint8_t* readbuf, size_t readbuf_size);
+int mqtt_client_init(mqtt_client* c, const char *host, int port);
+void mqtt_client_deinit(mqtt_client* c);
 
 /** MQTT Connect - send an MQTT connect packet down the network and wait for a Connack
  *  The nework object must be connected to the network endpoint before calling this

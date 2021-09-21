@@ -26,7 +26,7 @@
 | librtsp: RTSP协议，适合IPCamera和NVR开发 | librtmpc: RTMP协议，适合推流直播 |
 | libsock: Socket封装 | librpc: 远程过程调用库 |
 | libipc: 进程间通信 | libp2p: p2p穿透传输 |
-| libhomekit: Apple homekit协议库 | |
+| libmqttc: MQTT客户端协议 | libhomekit: Apple homekit协议库 |
 
 ## 异步
 |  |  |
