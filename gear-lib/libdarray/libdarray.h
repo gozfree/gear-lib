@@ -22,6 +22,7 @@
 #ifndef LIBDARRAY_H
 #define LIBDARRAY_H
 
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -39,23 +40,23 @@ struct darray {
     size_t capacity;
 };
 
-void darray_init(struct darray *dst);
-void darray_free(struct darray *dst);
-size_t darray_push_back(const size_t size, struct darray *dst, const void *item);
-void darray_pop_back(const size_t size, struct darray *dst);
-size_t darray_find(const size_t size, const struct darray *da, const void *item,
+GEAR_API void darray_init(struct darray *dst);
+GEAR_API void darray_free(struct darray *dst);
+GEAR_API size_t darray_push_back(const size_t size, struct darray *dst, const void *item);
+GEAR_API void darray_pop_back(const size_t size, struct darray *dst);
+GEAR_API size_t darray_find(const size_t size, const struct darray *da, const void *item,
                 const size_t idx);
-void *darray_end(const size_t size, const struct darray *da);
-void darray_reserve(const size_t size, struct darray *dst, const size_t capacity);
-size_t darray_push_back_array(const size_t size, struct darray *dst,
+GEAR_API void *darray_end(const size_t size, const struct darray *da);
+GEAR_API void darray_reserve(const size_t size, struct darray *dst, const size_t capacity);
+GEAR_API size_t darray_push_back_array(const size_t size, struct darray *dst,
                 const void *array, const size_t num);
-void darray_insert(const size_t element_size, struct darray *dst,
+GEAR_API void darray_insert(const size_t element_size, struct darray *dst,
                 const size_t idx, const void *item);
-void darray_erase(const size_t element_size, struct darray *dst,
+GEAR_API void darray_erase(const size_t element_size, struct darray *dst,
                 const size_t idx);
-void darray_erase_item(const size_t element_size,
+GEAR_API void darray_erase_item(const size_t element_size,
                 struct darray *dst, const void *item);
-void darray_resize(const size_t element_size, struct darray *dst,
+GEAR_API void darray_resize(const size_t element_size, struct darray *dst,
                 const size_t size);
 
 

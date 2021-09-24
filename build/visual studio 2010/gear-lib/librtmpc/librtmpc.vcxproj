@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{592CA352-77A6-4930-B24D-207C4110D0B0}</ProjectGuid>
+    <RootNamespace>librtmpc</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libqueue;..\..\..\..\gear-lib\libthread;..\..\..\..\gear-lib\libmedia-io;..\..\..\..\gear-lib\libdarray;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/DNO_CRYPTO %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libposix.lib;libmedia-io.lib;libqueue.lib;libthread.lib;libdarray.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\amf.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\bytes.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\cencode.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\dh.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\dhgroups.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\flv_mux.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\handshake.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\http.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\librtmpc.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\log.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\md5.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\rtmp.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\rtmp_sys.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\amf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\cencode.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\flv_mux.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\hashswf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\librtmpc.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\log.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\md5.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\parseurl.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\rtmp.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\test_librtmpc.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

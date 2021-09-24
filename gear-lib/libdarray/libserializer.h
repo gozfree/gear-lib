@@ -36,31 +36,31 @@ struct serializer {
     void    (*free)(void *);
 };
 
-int serializer_array_init(struct serializer *s);
-void serializer_array_deinit(struct serializer *s);
-int serializer_array_get_data(struct serializer *s, uint8_t **output, size_t *size);
-void serializer_array_reset(struct serializer *s);
+GEAR_API int serializer_array_init(struct serializer *s);
+GEAR_API void serializer_array_deinit(struct serializer *s);
+GEAR_API int serializer_array_get_data(struct serializer *s, uint8_t **output, size_t *size);
+GEAR_API void serializer_array_reset(struct serializer *s);
 
-int serializer_file_init(struct serializer *s, const char *path);
-void serializer_file_deinit(struct serializer *s);
+GEAR_API int serializer_file_init(struct serializer *s, const char *path);
+GEAR_API void serializer_file_deinit(struct serializer *s);
 
-size_t s_read(struct serializer *s, void *data, size_t size);
-size_t s_write(struct serializer *s, const void *data, size_t size);
-size_t s_getpos(struct serializer *s);
+GEAR_API size_t s_read(struct serializer *s, void *data, size_t size);
+GEAR_API size_t s_write(struct serializer *s, const void *data, size_t size);
+GEAR_API size_t s_getpos(struct serializer *s);
 
-void s_w8(struct serializer *s, uint8_t u8);
-void s_wl16(struct serializer *s, uint16_t u16);
-void s_wl24(struct serializer *s, uint32_t u24);
-void s_wl32(struct serializer *s, uint32_t u32);
-void s_wl64(struct serializer *s, uint64_t u64);
-void s_wlf(struct serializer *s, float f);
-void s_wld(struct serializer *s, double d);
-void s_wb16(struct serializer *s, uint16_t u16);
-void s_wb24(struct serializer *s, uint32_t u24);
-void s_wb32(struct serializer *s, uint32_t u32);
-void s_wb64(struct serializer *s, uint64_t u64);
-void s_wbf(struct serializer *s, float f);
-void s_wbd(struct serializer *s, double d);
+GEAR_API void s_w8(struct serializer *s, uint8_t u8);
+GEAR_API void s_wl16(struct serializer *s, uint16_t u16);
+GEAR_API void s_wl24(struct serializer *s, uint32_t u24);
+GEAR_API void s_wl32(struct serializer *s, uint32_t u32);
+GEAR_API void s_wl64(struct serializer *s, uint64_t u64);
+GEAR_API void s_wlf(struct serializer *s, float f);
+GEAR_API void s_wld(struct serializer *s, double d);
+GEAR_API void s_wb16(struct serializer *s, uint16_t u16);
+GEAR_API void s_wb24(struct serializer *s, uint32_t u24);
+GEAR_API void s_wb32(struct serializer *s, uint32_t u32);
+GEAR_API void s_wb64(struct serializer *s, uint64_t u64);
+GEAR_API void s_wbf(struct serializer *s, float f);
+GEAR_API void s_wbd(struct serializer *s, double d);
 
 #ifdef __cplusplus
 }
