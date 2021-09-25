@@ -23,6 +23,9 @@
 #include "liblog.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef OS_LINUX
+#include <pthread.h>
+#endif
 
 static void test_no_init(void)
 {
