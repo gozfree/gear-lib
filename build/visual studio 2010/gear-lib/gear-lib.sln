@@ -48,6 +48,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfile", "libfile\libfile.vcxproj", "{C8C000B6-BF66-420C-A7B8-D566E955731A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbase64", "libbase64\libbase64.vcxproj", "{BAF9105C-FF03-4D1C-96A0-DF2F8270936F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2E965CCF-A6DE-4D7D-84A6-ED3F79659914} = {2E965CCF-A6DE-4D7D-84A6-ED3F79659914}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtime", "libtime\libtime.vcxproj", "{2B438236-335D-4F87-8D3A-A10300C7F7DA}"
 	ProjectSection(ProjectDependencies) = postProject
