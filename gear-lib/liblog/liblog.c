@@ -31,12 +31,10 @@
 #include <errno.h>
 #include <time.h>
 #include <fcntl.h>
-#include <pthread.h>
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-
 #if defined (OS_LINUX) || defined (OS_APPLE)
+#include <pthread.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <syslog.h>
 #include <sys/uio.h>
 #ifndef __CYGWIN__
@@ -125,6 +123,7 @@ typedef struct log_driver {
 
 /* from /usr/include/sys/syslog.h */
 static const char *_log_level_str[] = {
+#ifdef OS_LINUX
     [LOG_EMERG  ] = "EMERG",
     [LOG_ALERT  ] = "ALERT",
     [LOG_CRIT   ] = "CRIT",
@@ -134,6 +133,17 @@ static const char *_log_level_str[] = {
     [LOG_INFO   ] = "INFO",
     [LOG_DEBUG  ] = "DEBUG",
     [LOG_VERB   ] = "VERBOSE",
+#else
+    "EMERG",
+    "ALERT",
+    "CRIT",
+    "ERR",
+    "WARN",
+    "NOTICE",
+    "INFO",
+    "DEBUG",
+    "VERBOSE",
+#endif
 };
 
 

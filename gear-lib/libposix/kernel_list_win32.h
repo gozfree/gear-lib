@@ -57,7 +57,7 @@ struct hlist_node {
  *
  */
 #define container_of(ptr, type, member) (type *)((char *)ptr - offsetof(type, member))
-
+#define typeof	decltype
 /*
  * below is from "linux/include/linux/list.h"
  * and remove some unused macros

@@ -21,6 +21,7 @@
  ******************************************************************************/
 #include "libgevent.h"
 #if defined (OS_LINUX)
+#ifndef __CYGWIN__
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -207,4 +208,5 @@ struct gevent_ops epollops = {
     .mod      = epoll_mod,
     .dispatch = epoll_dispatch,
 };
+#endif
 #endif

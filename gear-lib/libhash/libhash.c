@@ -24,8 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
 /*
  * [opaque_list]
  * [bucket0] -> item[1] -> item[2] -> ... -> item[m0]
@@ -139,13 +137,14 @@ static struct hash_item *hash_lookup(struct hash *h, const char *key, uint32_t *
     struct hash_item *hi;
     struct hlist_node *next;
     uint32_t i;
+
     *hash = hash_gen32(key, strlen(key));
     i = *hash & (h->bucket-1);
     list = &((struct hlist_head *)h->opaque_list)[i];
 
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     hlist_for_each_entry_safe(hi, next, list, item) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
     hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
 #endif
         if ((hi->hash == *hash) && strcmp(hi->key, key) == 0) {
@@ -187,9 +186,9 @@ void hash_destroy(struct hash *h)
     }
     list = h->opaque_list;
     for (i = 0; i < h->bucket; i++) {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
         hlist_for_each_entry_safe(hi, next, &list[i], item) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, &list[i], item) {
 #endif
             hlist_del((struct hlist_node *)hi);
@@ -309,9 +308,9 @@ int hash_get_all_cnt(struct hash *h)
 
     for (i = 0; i < h->bucket - 1; i++) {
         list = &((struct hlist_head *)h->opaque_list)[i];
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
         hlist_for_each_entry_safe(hi, next, list, item) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
 #endif
             num++;
@@ -330,9 +329,9 @@ void hash_dump_all(struct hash *h, int *num, char **key, void **val)
 
     for (i = 0; i < h->bucket - 1; i++) {
         list = &((struct hlist_head *)h->opaque_list)[i];
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
         hlist_for_each_entry_safe(hi, next, list, item) {
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
+#elif defined (OS_WINDOWS)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
 #endif
             printf("key:val = %s:%p\n", hi->key, hi->val);

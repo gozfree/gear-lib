@@ -500,6 +500,64 @@ char *dup_wchar_to_utf8(wchar_t *w)
     return s;
 }
 
+int pipe(int fds[2])
+{
+    PHANDLE rd;
+    PHANDLE wr;
+
+    SECURITY_ATTRIBUTES sa;
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.bInheritHandle = TRUE;
+    sa.lpSecurityDescriptor = NULL;
+
+    if (!CreatePipe(&rd, &wr, &sa, 0)) {
+        return -1;
+    }
+    fds[0] = rd;
+    fds[1] = wr;
+    return 0;
+}
+
+int eventfd(unsigned int initval, int flags)
+{
+    int fds[2];
+    PHANDLE rd;
+    PHANDLE wr;
+
+    SECURITY_ATTRIBUTES sa;
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.bInheritHandle = TRUE;
+    sa.lpSecurityDescriptor = NULL;
+
+    if (!CreatePipe(&rd, &wr, &sa, 0)) {
+        return -1;
+    }
+    fds[0] = rd;
+    fds[1] = wr;
+    return 0;
+}
+
+
+int pipe_write(int fd, const void *buf, size_t len)
+{
+    int written;
+    int ret;
+    if (WriteFile(fd, buf, len, &written, NULL)) {
+        return written;
+    }
+    return -1;
+}
+
+int pipe_read(int fd, void *buf, size_t len)
+{
+    int readen;
+    int ret;
+    if (ReadFile(fd, buf, len, &readen, NULL)) {
+        return readen;
+    }
+    return -1;
+}
+
 int get_nprocs()
 {
     SYSTEM_INFO si;

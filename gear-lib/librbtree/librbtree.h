@@ -24,6 +24,8 @@
 
 #define LIBRBTREE_VERSION "0.1.0"
 
+#include <libposix.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

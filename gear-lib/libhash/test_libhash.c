@@ -20,10 +20,10 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libhash.h"
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <sys/time.h>
 
 #define PALIGN   "%15s: %6.4f sec\n"
 //#define NKEYS   1024*1024
@@ -38,12 +38,16 @@ static double epoch_double(void)
 
 int main(int argc, char * argv[])
 {
-    struct hash * d ;
-    double t1, t2 ;
-    int i ;
-    int nkeys ;
-    char * buffer ;
-    char * val ;
+    struct hash * d;
+    double t1, t2;
+    int i;
+    int nkeys;
+    char * buffer;
+    char * val;
+    int num = 0;
+    int cnt = 0;
+    char **key;
+    void **ptr;
 
     nkeys = (argc>1) ? (int)atoi(argv[1]) : NKEYS ;
     printf("%15s: %d\n", "values", nkeys);
@@ -81,11 +85,11 @@ int main(int argc, char * argv[])
     }
     t2 = epoch_double();
     printf(PALIGN, "lookup", t2 - t1);
-    int cnt = hash_get_all_cnt(d);
-    int num = 0;
+    cnt = hash_get_all_cnt(d);
+
     printf("cnt = %d\n", cnt);
-    char **key = calloc(cnt, sizeof(char **));
-    void **ptr = calloc(cnt, sizeof(void **));
+    key = (char **)calloc(cnt, sizeof(char **));
+    ptr = (void **)calloc(cnt, sizeof(void **));
     hash_dump_all(d, &num, key, ptr);
     if (num != cnt) {
         printf("hash cnt %d does not match expect %d\n", num, cnt);

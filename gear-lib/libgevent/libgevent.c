@@ -25,7 +25,9 @@
 #if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef __CYGWIN__
 #include <sys/eventfd.h>
+#endif
 #endif
 #include <errno.h>
 
@@ -73,6 +75,8 @@ static struct gevent_backend gevent_backend_list[] = {
 #define GEVENT_BACKEND GEVENT_EPOLL
 #elif defined (OS_APPLE)
 #define GEVENT_BACKEND GEVENT_POLL
+#elif defined (OS_WINDOWS)
+#define GEVENT_BACKEND GEVENT_IOCP
 #endif
 
 static void event_in(int fd, void *arg)
@@ -102,11 +106,13 @@ struct gevent_base *gevent_base_create(void)
     eb->ctx = eb->ops->init();
 
     eb->loop = 1;
+#ifndef __CYGWIN__
     eb->inner_fd = eventfd(0, 0);
     if (eb->inner_fd == -1) {
         printf("eventfd failed %d\n", errno);
         goto failed;
     }
+#endif
     da_init(eb->ev_array);
     eb->inner_event = gevent_create(eb->inner_fd, event_in, NULL, NULL, NULL);
     if (!eb->inner_event) {

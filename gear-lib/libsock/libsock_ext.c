@@ -34,10 +34,11 @@ static void on_error(int fd, void *arg)
 
 static void on_recv(int fd, void *arg)
 {
+    struct sock_server *s;
     char buf[2048];
     int ret=0;
     memset(buf, 0, sizeof(buf));
-    struct sock_server *s = (struct sock_server *)arg;
+    s = (struct sock_server *)arg;
     ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
         s->on_buffer(s, buf, ret);
@@ -53,10 +54,11 @@ static void on_recv(int fd, void *arg)
 
 static void on_client_recv(int fd, void *arg)
 {
+    struct sock_client *c;
     char buf[2048];
     int ret=0;
     memset(buf, 0, sizeof(buf));
-    struct sock_client *c = (struct sock_client *)arg;
+    c = (struct sock_client *)arg;
     ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
         c->on_buffer(c, buf, ret);

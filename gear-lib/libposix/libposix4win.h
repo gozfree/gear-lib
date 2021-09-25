@@ -46,7 +46,7 @@ extern "C" {
  ******************************************************************************/
 #define false                     0
 #define true                      1
-typedef int                       bool;
+#define bool                      int
 
 #define inline                    __inline
 #define __func__                  __FUNCTION__
@@ -279,6 +279,13 @@ typedef int clockid_t;
 /******************************************************************************
  * system APIs
  ******************************************************************************/
+GEAR_API int pipe(int fds[2]);
+GEAR_API int pipe_read(int fd, void *buf, size_t len);
+GEAR_API int pipe_write(int fd, const void *buf, size_t len);
+//#define write pipe_write
+//#define read pipe_read
+
+GEAR_API int eventfd(unsigned int initval, int flags);
 
 GEAR_API int get_nprocs();
 

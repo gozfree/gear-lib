@@ -39,7 +39,11 @@ extern "C" {
 #define OS_LINUX
 #include <stdbool.h>
 #include <stdint.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <sys/uio.h>
+#include <sys/time.h>
+
 #include "kernel_list.h"
 
 #define GEAR_API __attribute__((visibility("default")))
