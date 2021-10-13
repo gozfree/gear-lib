@@ -96,7 +96,7 @@ static int _mq_connect(struct ipc *ipc, const char *name)
         printf("mq_open %s failed: %d:%s\n", name, errno, strerror(errno));
         return -1;
     }
-    strncpy(ctx->mq_wr_name, name, sizeof(ctx->mq_wr_name));
+    //strncpy(ctx->mq_wr_name, name, sizeof(ctx->mq_wr_name));
     if (0 > _mq_send(ipc, ctx->mq_rd_name, strlen(ctx->mq_rd_name))) {
         printf("_mq_send failed!\n");
         return -1;

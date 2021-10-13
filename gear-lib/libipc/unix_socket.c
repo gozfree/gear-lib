@@ -160,6 +160,9 @@ static void sk_deinit(struct ipc *ipc)
 {
     struct sk_ctx *c = (struct sk_ctx *)ipc->ctx;
     close(c->fd);
+    if (!access(c->sockaddr.sun_path, F_OK)) {
+        remove(c->sockaddr.sun_path);
+    }
     free(c);
 }
 
