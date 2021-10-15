@@ -164,7 +164,7 @@ static int io_sync(struct file_desc *file)
     if (!file) {
         return -1;
     }
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     return fsync(file->fd);
 #else
     return 0;

@@ -333,7 +333,7 @@ char *file_path_pwd()
 
 char *file_path_suffix(char *path)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     return basename(path);
 #else
     return NULL;
@@ -342,7 +342,7 @@ char *file_path_suffix(char *path)
 
 char *file_path_prefix(char *path)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     return dirname(path);
 #else
     return NULL;
@@ -405,7 +405,7 @@ int file_dir_create(const char *path)
 
 int dfs_remove_dir(const char *path)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -448,7 +448,7 @@ int file_dir_remove(const char *path)
 
 int file_dir_tree(const char *path)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -486,7 +486,7 @@ int file_dir_tree(const char *path)
 
 int dfs_dir_size(const char *path, uint64_t *size)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -529,7 +529,7 @@ int file_dir_size(const char *path, uint64_t *size)
 
 int file_num_in_dir(const char *path)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     if (!path) {
         return -1;
     }
@@ -555,7 +555,7 @@ int file_num_in_dir(const char *path)
 
 int file_get_info(const char *path, struct file_info *info)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
     struct stat st;
     if (-1 == stat(path, &st)) {
         printf("stat %s failed!\n", path);

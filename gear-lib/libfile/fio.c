@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX)
 #include <unistd.h>
 #endif
 

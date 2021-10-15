@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #if defined (__linux__) || defined (__CYGWIN__)
+/*NOTE: must be firstly */
 #define _GNU_SOURCE
 #include <pthread.h>
 #endif
@@ -143,8 +144,7 @@ void thread_destroy(struct thread *t)
 
 int thread_set_name(struct thread *t, const char *name)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
-
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
     if (0 != pthread_setname_np(t->tid, name)) {
         printf("pthread_setname_np %s failed: %d\n", name, errno);
         return -1;
@@ -158,7 +158,7 @@ int thread_set_name(struct thread *t, const char *name)
 
 void thread_get_info(struct thread *t)
 {
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
     int i;
     size_t v;
     void *stkaddr;
