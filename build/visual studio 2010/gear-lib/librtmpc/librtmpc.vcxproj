@@ -41,7 +41,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libqueue;..\..\..\..\gear-lib\libthread;..\..\..\..\gear-lib\libmedia-io;..\..\..\..\gear-lib\libdarray;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libqueue;..\..\..\..\gear-lib\libthread;..\..\..\..\gear-lib\libmedia-io;..\..\..\..\gear-lib\libdarray;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/DNO_CRYPTO %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>

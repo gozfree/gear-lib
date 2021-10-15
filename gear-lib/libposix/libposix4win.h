@@ -37,6 +37,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "pthreads4w/pthread.h"
+#include "pthreads4w/semaphore.h"
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -112,54 +116,6 @@ typedef int                       mode_t;
 /******************************************************************************
  * pthread APIs
  ******************************************************************************/
-
-#define pthread_once_t            INIT_ONCE
-#define PTHREAD_ONCE_INIT         INIT_ONCE_STATIC_INIT
-#define pthread_mutex_t           HANDLE
-#define pthread_cond_t            CONDITION_VARIABLE
-#define pthread_rwlock_t          SRWLOCK
-#define sem_t                     HANDLE
-
-
-typedef unsigned long int pthread_t;
-
-typedef struct pthread_attr_t {
-    void *unused;
-} pthread_attr_t;
-
-GEAR_API int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*), void *arg);
-
-GEAR_API int pthread_join(pthread_t thread, void **retval);
-GEAR_API pthread_t pthread_self(void);
-
-GEAR_API int pthread_attr_init(pthread_attr_t *attr);
-GEAR_API void pthread_attr_destroy(pthread_attr_t *attr);
-GEAR_API int pthread_mutex_init(pthread_mutex_t *m, void *attr);
-GEAR_API int pthread_mutex_destroy(pthread_mutex_t *m);
-GEAR_API int pthread_mutex_lock(pthread_mutex_t *m);
-GEAR_API int pthread_mutex_unlock(pthread_mutex_t *m);
-
-GEAR_API int pthread_rwlock_init(pthread_rwlock_t *m, void *attr);
-GEAR_API int pthread_rwlock_destroy(pthread_rwlock_t *m);
-GEAR_API int pthread_rwlock_rdlock(pthread_rwlock_t *m);
-GEAR_API int pthread_rwlock_wrlock(pthread_rwlock_t *m);
-GEAR_API int pthread_rwlock_unlock(pthread_rwlock_t *m);
-
-GEAR_API int sem_init(sem_t *sem, int pshared, unsigned int value);
-GEAR_API int sem_destroy(sem_t *sem);
-GEAR_API int sem_wait(sem_t *sem);
-GEAR_API int sem_trywait(sem_t *sem);
-GEAR_API int sem_timedwait(sem_t *sem, const struct timespec *abstime);
-GEAR_API int sem_post(sem_t *sem);
-
-
-GEAR_API int pthread_once(pthread_once_t *once_control, void (*init_routine)(void));
-GEAR_API int pthread_cond_init(pthread_cond_t *cond, const void *unused_attr);
-GEAR_API int pthread_cond_destroy(pthread_cond_t *cond);
-GEAR_API int pthread_cond_broadcast(pthread_cond_t *cond);
-GEAR_API int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
-GEAR_API int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms);
-GEAR_API int pthread_cond_signal(pthread_cond_t *cond);
 
 #define getpid                    GetCurrentProcessId
 #define gettid                    GetCurrentThreadId

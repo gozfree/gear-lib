@@ -16,7 +16,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -41,9 +41,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix\pthreads4w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>Kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -63,10 +65,12 @@
     <ClInclude Include="..\..\..\..\gear-lib\libposix\kernel_list_win32.h" />
     <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix.h" />
     <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix4win.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix4win.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix4win.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

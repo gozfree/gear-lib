@@ -36,6 +36,8 @@
 #if !defined(_IMPLEMENT_H)
 #define _IMPLEMENT_H
 
+#include "config.h"
+
 #if !defined (__PTW32_CONFIG_H)
 # error "config.h was not #included"
 #endif

@@ -31,7 +31,7 @@ void thread_print_info(struct thread *t)
 {
     thread_lock(t);
     printf("========\n");
-    printf("thread id = %ld\n", (long)t->tid);
+    printf("thread id = %ld\n", *(long *)&t->tid);
     printf("========\n");
     thread_unlock(t);
 }
@@ -49,8 +49,8 @@ void foo()
     struct thread *t1 = thread_create(thread, NULL);
     struct thread *t2 = thread_create(thread, NULL);
     struct thread *t3 = thread_create(thread, NULL);
-    printf("%s: t1->tid = %ld\n", __func__, (long)t1->tid);
-    printf("%s: t2->tid = %ld\n", __func__, (long)t2->tid);
+    printf("%s: t1->tid = %ld\n", __func__, *(long *)&t1->tid);
+    printf("%s: t2->tid = %ld\n", __func__, *(long *)&t2->tid);
     thread_print_info(t1);
     thread_print_info(t2);
     thread_print_info(t3);

@@ -208,6 +208,9 @@ int queue_push(struct queue *q, struct queue_item *item)
 
 struct queue_item *queue_pop(struct queue *q)
 {
+    struct timeval now;
+    struct timespec outtime;
+    int ret;
     struct queue_item *item = NULL;
     if (!q) {
         printf("invalid parament!\n");
@@ -216,16 +219,10 @@ struct queue_item *queue_pop(struct queue *q)
 
     pthread_mutex_lock(&q->lock);
     while (list_empty(&q->head)) {
-#if defined (OS_LINUX) || defined (OS_RTOS) || defined (OS_RTTHREAD) || defined (OS_APPLE)
-        struct timeval now;
-        struct timespec outtime;
         gettimeofday(&now, NULL);
         outtime.tv_sec = now.tv_sec + 1;
         outtime.tv_nsec = now.tv_usec * 1000;
-        int ret = pthread_cond_timedwait(&q->cond, &q->lock, &outtime);
-#elif defined (OS_WINDOWS)
-        int ret = pthread_cond_timedwait(&q->cond, &q->lock, 1000);
-#endif
+        ret = pthread_cond_timedwait(&q->cond, &q->lock, &outtime);
         if (ret == 0) {
             break;
         }

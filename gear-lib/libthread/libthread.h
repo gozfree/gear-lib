@@ -31,6 +31,8 @@
 #include <pthread.h>
 #include <semaphore.h>
 #define _POSIX_RW_LOCKS
+#elif defined (OS_WINDOWS)
+#define _POSIX_RW_LOCKS
 #elif defined (OS_RTTHREAD)
 #include <pthread.h>
 #include <semaphore.h>
@@ -101,7 +103,7 @@ void rwlock_deinit(rw_lock_t *lock);
 #if defined (FREERTOS)
 typedef void* sem_t;
 #endif
-typedef sem_t sem_lock_t;
+#define sem_lock_t sem_t
 int sem_lock_init(sem_lock_t *lock);
 int sem_lock_wait(sem_lock_t *lock, int64_t ms);
 int sem_lock_trywait(sem_lock_t *lock);
