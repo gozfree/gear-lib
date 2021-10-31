@@ -13,7 +13,7 @@
 *    2017-03-18 JFL Created this module, with 3 versions unlink[AUM]().       *
 *    2017-10-03 JFL Fixed support for pathnames >= 260 characters. 	      *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

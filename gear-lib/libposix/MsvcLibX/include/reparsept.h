@@ -14,7 +14,7 @@
 *    2020-12-11 JFL Added read structure for tag IO_REPARSE_TAG_APPEXECLINK.  *
 *    2020-12-14 JFL Added lots of definitions from newer MS docs and others.  *
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

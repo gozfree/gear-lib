@@ -10,7 +10,7 @@
 *    2017-02-28 JFL Created this file.					      *
 *    2019-02-17 JFL Actually there's no MS equivalent to include.	      *
 *									      *
-*         © Copyright 2017 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2017 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

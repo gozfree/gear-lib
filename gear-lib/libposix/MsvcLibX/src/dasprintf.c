@@ -9,7 +9,7 @@
 *   History								      *
 *    2020-07-24 JFL Moved internal routines from asprintf.c to this new file. *
 *                                                                             *
-*         © Copyright 2020 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2020 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

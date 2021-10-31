@@ -175,31 +175,6 @@ static void get_base_time(LARGE_INTEGER *base_time)
     base_time->QuadPart /= SECS_TO_FT_MULT;
 }
 
-int gettimeofday(struct timeval *tv, struct timezone *tz)
-{
-    SYSTEMTIME st;
-    FILETIME ft;
-    LARGE_INTEGER li;
-    static char get_base_time_flag = 0;
-
-    if (get_base_time_flag == 0) {
-        get_base_time(&base_time);
-    }
-
-    GetLocalTime(&st);
-    SystemTimeToFileTime(&st, &ft);
-
-    li.LowPart = ft.dwLowDateTime;
-    li.HighPart = ft.dwHighDateTime;
-    li.QuadPart /= SECS_TO_FT_MULT;
-    li.QuadPart -= base_time.QuadPart;
-
-    tv->tv_sec = li.LowPart;
-    tv->tv_usec = st.wMilliseconds*1000;
-
-    return 0;
-}
-
 void usleep(unsigned long usec)
 {
     HANDLE timer;
@@ -341,4 +316,3 @@ void align_free(void *ptr)
     if (ptr)
         free((char *)ptr - ((char *)ptr)[-1]);
 }
-

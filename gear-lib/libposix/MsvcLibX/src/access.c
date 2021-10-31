@@ -12,7 +12,7 @@
 *    2017-10-03 JFL Fixed support for pathnames >= 260 characters. 	      *
 *    2018-03-22 JFL Added support for access mode X_OK.			      *
 *                                                                             *
-*       © Copyright 2016-2018 Hewlett Packard Enterprise Development LP       *
+*       ?Copyright 2016-2018 Hewlett Packard Enterprise Development LP       *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

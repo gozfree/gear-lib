@@ -22,13 +22,15 @@
 #ifndef LIBPOSIX4WIN_H
 #define LIBPOSIX4WIN_H
 
+#include "msvclibx.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
+#include <winsock2.h>
 #include <time.h>
 #include <direct.h>
-#include <winsock2.h>
-#include <windows.h>
 #include <ws2tcpip.h>
 #include <process.h>
 #include <tlhelp32.h>
@@ -39,7 +41,6 @@
 
 #include "pthreads4w/pthread.h"
 #include "pthreads4w/semaphore.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,9 +56,11 @@ extern "C" {
 #define inline                    __inline
 #define __func__                  __FUNCTION__
 
+#if 0
 typedef SSIZE_T                   ssize_t;
 #ifndef _FILE_OFFSET_BITS_SET_OFFT
 typedef SSIZE_T                   off_t;
+#endif
 #endif
 
 
@@ -72,6 +75,7 @@ typedef SSIZE_T                   off_t;
 
 
 #define PATH_SPLIT                '\\'
+#if 0
 #define PRId8                     "d"
 #define PRId16                    "d"
 #define PRId32                    "d"
@@ -80,6 +84,7 @@ typedef SSIZE_T                   off_t;
 #define PRIu16                    "u"
 #define PRIu32                    "u"
 #define PRIu64                    "I64u"
+#endif
 
 #define iovec                     _WSABUF
 #define iov_len                   len
@@ -109,7 +114,6 @@ typedef int                       mode_t;
 #define W_OK                      2
 #define X_OK                      1
 
-#define mkdir(path,mode)          _mkdir(path)
 #define getcwd(buf, size)         GetModuleFileName(NULL, buf, size)
 
 
@@ -153,8 +157,6 @@ struct timezone
     int tz_dsttime;
 };
 #endif
-
-GEAR_API int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 #define timeradd(tvp, uvp, vvp) \
         do { \
@@ -240,6 +242,8 @@ GEAR_API int pipe_read(int fd, void *buf, size_t len);
 GEAR_API int pipe_write(int fd, const void *buf, size_t len);
 //#define write pipe_write
 //#define read pipe_read
+#define write   _write
+#define read    _read
 
 GEAR_API int eventfd(unsigned int initval, int flags);
 
@@ -249,7 +253,6 @@ GEAR_API int get_nprocs();
  * memory APIs
  ******************************************************************************/
 #define memalign(align, size)     _aligned_malloc(size, align)
-
 
 
 #ifdef __cplusplus

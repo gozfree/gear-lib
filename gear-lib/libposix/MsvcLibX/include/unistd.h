@@ -24,7 +24,7 @@
 *    2018-04-26 JFL Added getcwdW() and ConcatPathW() prototypes.             *
 *    2020-12-11 JFL Added ReadAppExecLink*() prototypes.                      *
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

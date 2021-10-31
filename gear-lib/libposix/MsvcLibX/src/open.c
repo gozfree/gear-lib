@@ -12,7 +12,7 @@
 *    2017-03-18 JFL Bug fix: Only change Xlation when writing to a valid file.*
 *    2017-10-03 JFL Fixed support for pathnames >= 260 characters. 	      *
 *                                                                             *
-*         © Copyright 2017 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2017 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

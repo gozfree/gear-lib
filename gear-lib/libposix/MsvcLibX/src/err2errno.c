@@ -13,7 +13,7 @@
 *                   Make sure the global errno is _not_ changed by this funct.*
 *    2020-08-28 JFL Remove the CR characters in the error message.            *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

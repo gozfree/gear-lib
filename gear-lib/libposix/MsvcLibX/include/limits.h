@@ -10,7 +10,7 @@
 *    2014-06-30 JFL Created this file.					      *
 *    2018-04-24 JFL Define PATH_MAX and NAME_MAX for all OSs.		      *
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

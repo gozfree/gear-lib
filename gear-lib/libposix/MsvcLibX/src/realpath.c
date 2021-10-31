@@ -28,7 +28,7 @@
 *    2018-04-24 JFL Use less memory in ResolveLinksU().			      *
 *    2018-04-26 JFL Added routine ConcatPathW().       			      *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

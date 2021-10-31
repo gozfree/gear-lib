@@ -27,7 +27,7 @@
 *		    Renamed it as struct _DIR.				      *
 *    2018-04-24 JFL Use PATH_MAX and NAME_MAX from limits.h.		      *
 *		    							      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

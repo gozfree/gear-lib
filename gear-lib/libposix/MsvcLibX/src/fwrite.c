@@ -11,7 +11,7 @@
 *    2017-03-05 JFL Rewrote fwriteU() to write UTF16 to the console.	      *
 *    2017-03-12 JFL Restructured the UTF16 writing mechanism.		      *
 *                                                                             *
-*         © Copyright 2017 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2017 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

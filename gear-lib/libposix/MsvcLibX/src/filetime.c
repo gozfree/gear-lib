@@ -9,10 +9,10 @@
 *   History:								      *
 *    2014-02-26 JFL Created this module.				      *
 *    2014-03-24 JFL Renamed "statx.h" as the standard <sys/stat.h>.	      *
-*    2014-07-03 JFL Filetime2String: Output time with µs precision if possib. *
+*    2014-07-03 JFL Filetime2String: Output time with ç¥ precision if possib. *
 *    2016-09-13 JFL Fixed a warning.					      *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 
@@ -230,7 +230,7 @@ struct tm *LocalFileTime(const time_t *pt) {
 }  
 
 /* Generate a string with the local file time, in the ISO 8601 date/time format */
-/* 2014-07-03 Output time with µs precision if possible */
+/* 2014-07-03 Output time with ç¥ precision if possible */
 char *Filetime2String(const FILETIME *pFT, char *pBuf, size_t nBufSize) {
   FILETIME lft;
   SYSTEMTIME sTime;
@@ -246,7 +246,7 @@ char *Filetime2String(const FILETIME *pFT, char *pBuf, size_t nBufSize) {
       uli.LowPart = lft.dwLowDateTime;
       uli.HighPart = lft.dwHighDateTime;
       iFraction = (int)(uli.QuadPart % 10000000); /* FILETIME has 100ns resolution */
-      iFraction /= 10; /* Convert 100ns resolution to 1µs resolution */
+      iFraction /= 10; /* Convert 100ns resolution to 1ç¥ resolution */
       wsprintf(pBuf+19, ".%06d", iFraction);
     } else if (nBufSize >= 24) {
       wsprintf(pBuf+19, ".%03d", sTime.wMilliseconds);

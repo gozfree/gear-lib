@@ -14,7 +14,7 @@
 *    2017-03-12 JFL Restructured the UTF16 writing mechanism.		      *
 *    2018-01-31 JFL Added a main() routine for Visual Studio 14 and later.    *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

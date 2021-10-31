@@ -12,7 +12,7 @@
 *    2017-05-31 JFL Added the prototype for strerror().			      *
 *    2018-04-25 JFL Added macro strncmpW().            			      *
 *									      *
-*         © Copyright 2017 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2017 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

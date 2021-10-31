@@ -23,7 +23,7 @@
 *		    macros S_ISSOCK and S_ISFIFO.			      *
 *    2018-05-31 JFL Changed dirent2stat() first arg to (const _dirent *).     *
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

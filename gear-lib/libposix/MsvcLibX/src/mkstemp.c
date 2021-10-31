@@ -10,7 +10,7 @@
 *    2014-03-03 JFL Created this module.				      *
 *    2020-03-29 JFL Added mkstmpA/U/M() definitions for Windows.	      *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

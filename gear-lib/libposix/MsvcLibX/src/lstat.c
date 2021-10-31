@@ -20,7 +20,7 @@
 *    2018-05-31 JFL Changed dirent2stat() first arg to (const _dirent *).     *
 *    2020-12-15 JFL Added support for IO_REPARSE_TAG_APPEXECLINK.             *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

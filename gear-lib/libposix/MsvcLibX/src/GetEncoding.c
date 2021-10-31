@@ -15,7 +15,7 @@
 *    2021-05-18 JFL Created this module, based on code in conv.c.	      *
 *    2021-06-01 JFL Improved the heuristic, making it more rigorous.	      *
 *                                                                             *
-*         © Copyright 2021 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2021 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

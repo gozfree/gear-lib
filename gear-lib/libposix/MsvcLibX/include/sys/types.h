@@ -12,7 +12,7 @@
 *    2015-11-15 JFL Visual Studio 2015 moved this file to the Windows Kit UCRT.
 *    2017-02-28 JFL Redefine pid_t as an int in all cases: It's more standard.*
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

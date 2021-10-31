@@ -23,7 +23,7 @@
 *    2016-07-06 JFL Avoid error if winsocks2.h has been previously included.  *
 *    2017-02-26 JFL Updated the 2015-12-04 fix if _CRT_NO_TIME_T is defined.  *
 *		    							      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

@@ -15,7 +15,7 @@
 *    2018-04-29 JFL Make sure chdirW always enters the deepest possible dir.  *
 *                   Improved the error handling.                              *
 *                                                                             *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

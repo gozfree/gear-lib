@@ -21,7 +21,7 @@
 *    2018-04-28 JFL Added CorrectWidePath() and CorrectNewWidePath().	      *
 *    2019-02-10 JFL Added support for ARM and ARM64 libraries.		      *
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 

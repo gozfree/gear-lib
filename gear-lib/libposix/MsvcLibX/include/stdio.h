@@ -21,7 +21,7 @@
 *    2020-06-26 JFL Added asprintf() family of routines.		      *
 *    2020-07-28 JFL Added standard implementations of snprintf(), vnsprintf().*
 *									      *
-*         © Copyright 2016 Hewlett Packard Enterprise Development LP          *
+*         ?Copyright 2016 Hewlett Packard Enterprise Development LP          *
 * Licensed under the Apache 2.0 license - www.apache.org/licenses/LICENSE-2.0 *
 \*****************************************************************************/
 
