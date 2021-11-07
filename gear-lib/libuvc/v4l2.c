@@ -32,6 +32,7 @@
 #include <sys/uio.h>
 #include <sys/mman.h>
 #include <sys/epoll.h>
+#include <sys/eventfd.h>
 #include <linux/videodev2.h>
 
 /*
@@ -78,6 +79,7 @@ static const uint32_t v4l2_cid_supported[] = {
 
 struct v4l2_ctx {
     int fd;
+    int cancel_fd;
     int channel; /*one video node may contain several input channel */
     int standard;
     uint32_t pixfmt;
@@ -206,6 +208,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_conf
         goto failed;
     }
     c->fd = fd;
+    c->cancel_fd = eventfd(0, 0);
 
     c->channel = -1;
     c->standard = -1;
@@ -501,6 +504,10 @@ static int uvc_v4l2_poll_init(struct v4l2_ctx *c)
         printf("epoll_ctl EPOLL_CTL_ADD failed %d!\n", errno);
         return -1;
     }
+    if (-1 == epoll_ctl(c->epfd, EPOLL_CTL_ADD, c->cancel_fd, &epev)) {
+        printf("epoll_ctl EPOLL_CTL_ADD failed %d!\n", errno);
+        return -1;
+    }
     return 0;
 }
 
@@ -603,6 +610,7 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc)
 static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
 {
     int i;
+    uint64_t notify = '1';
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
 
@@ -613,6 +621,9 @@ static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
 
     if (uvc->on_video_frame) {
         c->is_streaming = false;
+        if (sizeof(uint64_t) != write(c->cancel_fd, &notify, sizeof(uint64_t))) {
+            perror("write error");
+        }
         thread_join(c->thread);
         thread_destroy(c->thread);
     }

@@ -111,7 +111,7 @@ void print_session(struct rpc_session *ss)
     printf("session.msg_id      = 0x%08x\n", ss->msg_id);
     printf("session.timestamp   = %" PRIu64 "(%s)\n", ss->timestamp,
             time_str_format_by_msec(ss->timestamp, ts, sizeof(ts)));
-    printf("session.checksum    = 0x%08lx\n", ss->cseq);
+    printf("session.checksum    = 0x%" PRIx64 "\n", ss->cseq);
     printf("================\n");
 }
 

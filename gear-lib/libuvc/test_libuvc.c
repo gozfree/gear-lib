@@ -38,7 +38,11 @@ static struct file *fp;
 
 static int on_frame(struct uvc_ctx *c, struct video_frame *frm)
 {
-    printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms\n", frm->frame_id, frm->total_size, frm->timestamp/1000000);
+    static uint64_t last_ms = 0;
+
+    printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms, gap=%" PRIu64 " ms\n",
+          frm->frame_id, frm->total_size, frm->timestamp/1000000, frm->timestamp/1000000 - last_ms);
+    last_ms = frm->timestamp/1000000;
     file_write(fp, frm->data[0], frm->total_size);
     return 0;
 }
@@ -82,7 +86,7 @@ int dummy_test()
     struct uvc_config conf = {
         .width  = 320,
         .height = 240,
-        .fps    = {5, 1},
+        .fps    = {30, 1},
         .format = PIXEL_FORMAT_YUY2,
     };
     struct uvc_ctx *uvc = uvc_open(UVC_TYPE_DUMMY, "sample_yuv422p.yuv", &conf);
