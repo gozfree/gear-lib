@@ -29,12 +29,14 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/epoll.h>
+#include <sys/stat.h>
 #include <sys/eventfd.h>
 
 struct dummy_ctx {
     int fd;
     int ev_fd;
     uint64_t seek_offset;
+    uint64_t file_size_total;
     uint64_t first_ts;
     uint64_t frame_id;
     struct uvc_ctx *parent;
@@ -46,6 +48,21 @@ struct dummy_ctx {
 
 #define timespec2ns(ts) \
     (((uint64_t)ts.tv_sec * 1000000000) + ((uint64_t)ts.tv_nsec))
+
+static ssize_t get_file_size(const char *path)
+{
+    struct stat st;
+    off_t size = 0;
+    if (!path) {
+        return -1;
+    }
+    if (stat(path, &st) < 0) {
+        printf("%s stat error: %s\n", path, strerror(errno));
+    } else {
+        size = st.st_size;
+    }
+    return size;
+}
 
 static void *uvc_dummy_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf)
 {
@@ -67,7 +84,7 @@ static void *uvc_dummy_open(struct uvc_ctx *uvc, const char *dev, struct uvc_con
         printf("eventfd failed %d\n", errno);
         goto failed;
     }
-    printf("eventfd fd=%d\n", c->ev_fd);
+    c->file_size_total = get_file_size(dev);
 
     memcpy(&uvc->conf, conf, sizeof(struct uvc_config));
     c->parent = uvc;
@@ -129,6 +146,10 @@ static int uvc_dummy_dequeue(struct uvc_ctx *uvc, struct video_frame *frame)
             return -1;
         }
         c->seek_offset += len;
+        if (c->seek_offset > c->file_size_total) {
+            printf("read file exceed total file size\n");
+            return -1;
+        }
         lseek(c->fd, c->seek_offset, SEEK_SET);
     }
     if (-1 == clock_gettime(CLOCK_REALTIME, &ts)) {
@@ -224,6 +245,7 @@ static void *dummy_thread(struct thread *t, void *arg)
 
         if (uvc_dummy_dequeue(uvc, frame) == -1) {
             printf("uvc_dummy_dequeue failed\n");
+            break;
         }
         uvc->on_video_frame(uvc, frame);
     }

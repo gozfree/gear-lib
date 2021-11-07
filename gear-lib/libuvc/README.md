@@ -2,6 +2,10 @@
 This is a simple libuvc library.
 if you want to enable HAVE_LIBV4L2, please install libv4l2-dev
 
+* v4l2: video for linux
+* dummy: file of frame sequence, as virtual device
+* dshow: windows video api
+
 # pi
 sudo modprobe bcm2835_v4l2
 
