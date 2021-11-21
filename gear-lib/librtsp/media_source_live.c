@@ -64,6 +64,7 @@ struct live_source_ctx {
     bool uvc_opened;
     struct x264_ctx *x264;
     struct iovec extradata;
+    struct video_frame *frm;
     void *priv;
 };
 
@@ -126,7 +127,7 @@ static int init_header(struct x264_ctx *c)
     return 0;
 }
 
-static struct x264_ctx *x264_open(struct codec_ctx *cc, struct media_encoder *ma)
+static struct x264_ctx *x264_open(struct live_source_ctx *cc)
 {
     struct media_encoder *ma = calloc(1, sizeof(struct media_encoder));
     if (!ma) {
@@ -138,9 +139,9 @@ static struct x264_ctx *x264_open(struct codec_ctx *cc, struct media_encoder *ma
         loge("malloc x264_ctx failed!\n");
         return NULL;
     }
-    ma->video.format = PIXEL_FORMAT_NV12;
-    ma->video.width = 640;
-    ma->video.height = 480;
+    ma->video.format = cc->uvc->conf.format;
+    ma->video.width = cc->uvc->conf.width;
+    ma->video.height = cc->uvc->conf.height;
 
     x264_param_default_preset(&c->param, "ultrafast" , "zerolatency");
     c->input_format = ma->video.format;
@@ -231,7 +232,8 @@ static int init_pic_data(struct x264_ctx *c, x264_picture_t *pic,
         break;
     }
     if (pic->img.i_plane != frame->planes) {
-        loge("video frame planes mismatch\n");
+        loge("video frame planes mismatch: pic->img.i_plane=%d, frame->planes=%d\n",
+pic->img.i_plane, frame->planes);
         return -1;
     }
 
@@ -275,6 +277,7 @@ static int fill_packet(struct x264_ctx *c, struct video_packet *pkt,
     logd("pkt->encoder.extra_size = %d\n", pkt->encoder.extra_size);
     return pkt->size;
 }
+
 static int x264_encode(struct x264_ctx *c, struct iovec *in, struct iovec *out)
 {
     x264_picture_t pic_in, pic_out;
@@ -346,9 +349,14 @@ static int live_open(struct media_source *ms, const char *name)
     }
     c->conf.width = 640;
     c->conf.height = 480;
-    c->uvc = uvc_open("/dev/video0", &c->conf);
+    c->uvc = uvc_open(UVC_TYPE_V4L2, "/dev/video0", &c->conf);
     if (!c->uvc) {
         loge("uvc open failed!\n");
+        return -1;
+    }
+    c->frm = video_frame_create(c->uvc->conf.format, c->uvc->conf.width, c->uvc->conf.height, MEDIA_MEM_SHALLOW);
+    if (!c->frm) {
+        loge("video_frame_create failed!\n");
         return -1;
     }
     if (uvc_start_stream(c->uvc, NULL)) {
@@ -407,11 +415,13 @@ static int sdp_generate(struct media_source *ms)
 static int live_read(struct media_source *ms, void **data, size_t *len)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    struct video_frame frame;
     memset(c->data.iov_base, 0, c->data.iov_len);
-    int size = uvc_query_frame(c->uvc, &frame);
-    c->data.iov_base = frame.data[0];
-    c->data.iov_len = frame.total_size;
+    int size = uvc_query_frame(c->uvc, c->frm);
+    if (size < 0) {
+        loge("uvc_query_frame failed!\n");
+    }
+    c->data.iov_base = c->frm;
+    c->data.iov_len = c->frm->total_size;
     struct iovec in, out;
     in.iov_base = c->data.iov_base;
     in.iov_len = size;

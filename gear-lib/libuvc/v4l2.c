@@ -643,11 +643,7 @@ static int uvc_v4l2_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
         printf("uvc_v4l2_enqueue failed\n");
         return -1;
     }
-    if (uvc_v4l2_dequeue(uvc, frame) == -1) {
-        printf("uvc_v4l2_dequeue failed\n");
-        return -1;
-    }
-    return 0;
+    return uvc_v4l2_dequeue(uvc, frame);
 }
 
 static int uvc_v4l2_create_mmap(struct v4l2_ctx *c)
