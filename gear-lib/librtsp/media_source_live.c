@@ -59,33 +59,38 @@ struct x264_ctx {
 struct live_source_ctx {
     const char name[32];
     struct uvc_config conf;
-    struct iovec data;
     struct uvc_ctx *uvc;
     bool uvc_opened;
     struct x264_ctx *x264;
     struct iovec extradata;
     struct video_frame *frm;
+    struct media_packet *pkt;
     void *priv;
 };
 
 static struct live_source_ctx g_live = {.uvc_opened = false};
 
-#define AV_INPUT_BUFFER_PADDING_SIZE 32
-
 static int pixel_format_to_x264_csp(enum pixel_format fmt)
 {
     switch (fmt) {
+#if X264_BUILD >= 149
     case PIXEL_FORMAT_UYVY:
         return X264_CSP_UYVY;
+#endif
+#if X264_BUILD >= 152
     case PIXEL_FORMAT_YUY2:
         return X264_CSP_YUYV;
+#endif
     case PIXEL_FORMAT_NV12:
         return X264_CSP_NV12;
     case PIXEL_FORMAT_I420:
         return X264_CSP_I420;
     case PIXEL_FORMAT_I444:
         return X264_CSP_I444;
+    case PIXEL_FORMAT_I422:
+        return X264_CSP_I422;
     default:
+        loge("invalid pixel_format %d\n", fmt);
         return X264_CSP_NONE;
     }
 }
@@ -129,22 +134,13 @@ static int init_header(struct x264_ctx *c)
 
 static struct x264_ctx *x264_open(struct live_source_ctx *cc)
 {
-    struct media_encoder *ma = calloc(1, sizeof(struct media_encoder));
-    if (!ma) {
-        loge("malloc media_encoder failed!\n");
-        return NULL;
-    }
     struct x264_ctx *c = calloc(1, sizeof(struct x264_ctx));
     if (!c) {
         loge("malloc x264_ctx failed!\n");
         return NULL;
     }
-    ma->video.format = cc->uvc->conf.format;
-    ma->video.width = cc->uvc->conf.width;
-    ma->video.height = cc->uvc->conf.height;
-
     x264_param_default_preset(&c->param, "ultrafast" , "zerolatency");
-    c->input_format = ma->video.format;
+    c->input_format = cc->uvc->conf.format;
 
     c->param.rc.i_vbv_max_bitrate = 2500;
     c->param.rc.i_vbv_buffer_size = 2500;
@@ -157,10 +153,10 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
     c->param.i_log_level = X264_LOG_INFO;
     c->param.i_csp = pixel_format_to_x264_csp(c->input_format);
 
-    c->param.i_width = ma->video.width;
-    c->param.i_height = ma->video.height;
-    c->param.i_fps_num = ma->video.framerate.num;
-    c->param.i_fps_den = ma->video.framerate.den;
+    c->param.i_width = cc->uvc->conf.width;
+    c->param.i_height = cc->uvc->conf.height;
+    c->param.i_fps_num = cc->uvc->conf.fps.num;
+    c->param.i_fps_den = cc->uvc->conf.fps.den;
 
     x264_param_apply_profile(&c->param, NULL);
 
@@ -182,17 +178,14 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
     }
 
     c->encoder.format = VIDEO_CODEC_H264;
-    c->encoder.width = ma->video.width;
-    c->encoder.height = ma->video.height;
+    c->encoder.width = cc->uvc->conf.width;
+    c->encoder.height = cc->uvc->conf.height;
     c->encoder.bitrate = 2500;
-    c->encoder.framerate.num = ma->video.framerate.num;
-    c->encoder.framerate.den = ma->video.framerate.den;
+    c->encoder.framerate.num = cc->uvc->conf.fps.num;
+    c->encoder.framerate.den = cc->uvc->conf.fps.den;
     c->encoder.timebase.num = c->param.i_fps_den;
     c->encoder.timebase.den = c->param.i_fps_num;
-    logi("width=%d, height=%d\n", c->encoder.width, c->encoder.height);
-
-    ma->video.extra_data = c->encoder.extra_data;
-    ma->video.extra_size = c->encoder.extra_size;
+    logi("width=%d, height=%d, timebase=%d/%d\n", c->encoder.width, c->encoder.height, c->encoder.timebase.num, c->encoder.timebase.den);
 
     c->parent = cc;
     cc->priv = c;
@@ -217,18 +210,21 @@ static int init_pic_data(struct x264_ctx *c, x264_picture_t *pic,
     pic->img.i_csp = c->param.i_csp;
 
     switch (c->param.i_csp) {
+#if X264_BUILD >= 149
     case X264_CSP_YUYV:
         pic->img.i_plane = 1;
         break;
+#endif
     case X264_CSP_NV12:
         pic->img.i_plane = 2;
         break;
     case X264_CSP_I420:
     case X264_CSP_I444:
+    case X264_CSP_I422:
         pic->img.i_plane = 3;
         break;
     default:
-        loge("unsupport colorspace type\n");
+        loge("unsupport colorspace type %d\n", c->param.i_csp);
         break;
     }
     if (pic->img.i_plane != frame->planes) {
@@ -250,7 +246,7 @@ static int fill_packet(struct x264_ctx *c, struct video_packet *pkt,
     if (!nal_cnt)
         return -1;
 
-    da_resize(c->packet_data, 0);
+    da_free(c->packet_data);
 
     if (!c->append_extra) {
         pkt->encoder.extra_data = c->encoder.extra_data;
@@ -272,6 +268,7 @@ static int fill_packet(struct x264_ctx *c, struct video_packet *pkt,
           pkt->dts, pkt->encoder.timebase.num, pkt->encoder.timebase.den);
 
     pkt->key_frame = pic_out->b_keyframe != 0;
+    pkt->type = pkt->key_frame ? H26X_FRAME_I : H26X_FRAME_P;
 
     memcpy(&pkt->encoder, &c->encoder, sizeof(struct video_encoder));
     logd("pkt->encoder.extra_size = %d\n", pkt->encoder.extra_size);
@@ -286,7 +283,8 @@ static int x264_encode(struct x264_ctx *c, struct iovec *in, struct iovec *out)
     int ret = 0;
     int nal_bytes = 0;
     struct video_frame *frm = in->iov_base;
-    struct video_packet *pkt = out->iov_base;
+    struct media_packet *mpkt = out->iov_base;
+    struct video_packet *pkt = mpkt->video;
     if (c->first_frame) {
         c->cur_pts = 0;
         c->first_frame = false;
@@ -359,6 +357,7 @@ static int live_open(struct media_source *ms, const char *name)
         loge("video_frame_create failed!\n");
         return -1;
     }
+    c->pkt = media_packet_create(MEDIA_TYPE_VIDEO, MEDIA_MEM_SHALLOW, NULL, 0);
     if (uvc_start_stream(c->uvc, NULL)) {
         loge("uvc start stream failed!\n");
         return -1;
@@ -370,15 +369,12 @@ static int live_open(struct media_source *ms, const char *name)
         loge("x264_open failed!\n");
         return -1;
     }
-    c->data.iov_len = 2*c->conf.width*c->conf.height;
-    c->data.iov_base = calloc(1, c->data.iov_len);
     return 0;
 }
 
 static void live_close(struct media_source *ms)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    free(c->data.iov_base);
     x264_close(c->x264);
     uvc_close(c->uvc);
     c->uvc_opened = false;
@@ -414,21 +410,23 @@ static int sdp_generate(struct media_source *ms)
 
 static int live_read(struct media_source *ms, void **data, size_t *len)
 {
+    int ret;
+    struct iovec in, out;
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    memset(c->data.iov_base, 0, c->data.iov_len);
     int size = uvc_query_frame(c->uvc, c->frm);
     if (size < 0) {
         loge("uvc_query_frame failed!\n");
     }
-    c->data.iov_base = c->frm;
-    c->data.iov_len = c->frm->total_size;
-    struct iovec in, out;
-    in.iov_base = c->data.iov_base;
+    in.iov_base = c->frm;
     in.iov_len = size;
-    x264_encode(c->x264, &in, &out);
+    out.iov_base = c->pkt;
+    ret = x264_encode(c->x264, &in, &out);
+    if (ret < 0) {
+        loge("x264_encode failed\n");
+    }
     *data = out.iov_base;
     *len = out.iov_len;
-    loge("x264_encode len=%d\n", *len);
+    logi("x264_encode len=%d\n", *len);
     return 0;
 }
 
