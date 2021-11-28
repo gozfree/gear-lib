@@ -91,7 +91,6 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
 
 static int on_teardown(struct rtsp_request *req, char *url)
 {
-    //transport_session_pool_destroy(NULL);
     //int len = sock_send(req->fd, resp, strlen(resp));
     if (-1 == parse_range(&req->range, (char *)req->raw->iov_base, req->raw->iov_len)) {
         loge("parse_range failed!\n");
@@ -99,8 +98,12 @@ static int on_teardown(struct rtsp_request *req, char *url)
     }
     struct rtsp_server *rc = req->rtsp_server;
     struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    if (!ts) {
+        loge("transport_session is NULL\n");
+        return handle_rtsp_response(req, 454, NULL);
+    }
     transport_session_stop(ts);
-    return 0;
+    return handle_rtsp_response(req, 200, NULL);
 }
 
 static int on_get_parameter(struct rtsp_request *req, char *url)

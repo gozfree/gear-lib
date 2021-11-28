@@ -62,6 +62,8 @@ static void on_recv(int fd, void *arg)
         }
     } else if (rlen == 0) {
         loge("peer connect shutdown\n");
+        strcpy(req->cmd, "teardown");
+        handle_rtsp_request(req);
         rtsp_connect_destroy(req->rtsp_server, fd);
     } else {
         loge("something error\n");

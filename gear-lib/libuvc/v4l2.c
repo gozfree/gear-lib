@@ -552,7 +552,6 @@ static void *v4l2_thread(struct thread *t, void *arg)
         printf("uvc_v4l2_poll_init failed!\n");
     }
     video_frame_init(&frame, uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
-    c->is_streaming = true;
     while (c->is_streaming) {
         if (uvc_v4l2_enqueue(uvc, NULL, 0) != 0) {
             printf("uvc_v4l2_enqueue failed\n");
@@ -600,8 +599,13 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc)
         return -1;
     }
 
+    c->is_streaming = true;
     if (uvc->on_video_frame) {
         c->thread = thread_create(v4l2_thread, uvc);
+        if (!c->thread) {
+            printf("thread_create v4l2_thread failed!\n");
+            return -1;
+        }
     }
 
     return 0;

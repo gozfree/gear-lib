@@ -22,6 +22,7 @@
 #include <libuvc.h>
 #include <liblog.h>
 #include <libdarray.h>
+#include <libtime.h>
 #include "sdp.h"
 #include "media_source.h"
 #include <stdio.h>
@@ -347,6 +348,8 @@ static int live_open(struct media_source *ms, const char *name)
     }
     c->conf.width = 640;
     c->conf.height = 480;
+    c->conf.fps.num = 30;
+    c->conf.fps.den = 1;
     c->uvc = uvc_open(UVC_TYPE_V4L2, "/dev/video0", &c->conf);
     if (!c->uvc) {
         loge("uvc open failed!\n");
@@ -375,6 +378,7 @@ static int live_open(struct media_source *ms, const char *name)
 static void live_close(struct media_source *ms)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
+    uvc_stop_stream(c->uvc);
     x264_close(c->x264);
     uvc_close(c->uvc);
     c->uvc_opened = false;
@@ -411,22 +415,29 @@ static int sdp_generate(struct media_source *ms)
 static int live_read(struct media_source *ms, void **data, size_t *len)
 {
     int ret;
+    uint64_t ms_pre, ms_post;
     struct iovec in, out;
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    int size = uvc_query_frame(c->uvc, c->frm);
+    int size;
+    ms_pre = time_now_msec();
+    size = uvc_query_frame(c->uvc, c->frm);
     if (size < 0) {
         loge("uvc_query_frame failed!\n");
     }
+    ms_post = time_now_msec();
+    logd("uvc_query_frame cost %" PRIu64 "ms\n", ms_post - ms_pre);
     in.iov_base = c->frm;
     in.iov_len = size;
     out.iov_base = c->pkt;
+    ms_pre = time_now_msec();
     ret = x264_encode(c->x264, &in, &out);
     if (ret < 0) {
         loge("x264_encode failed\n");
     }
+    ms_post = time_now_msec();
     *data = out.iov_base;
     *len = out.iov_len;
-    logi("x264_encode len=%d\n", *len);
+    logd("x264_encode len=%d, cost %" PRIu64 "ms\n", *len, ms_post - ms_pre);
     return 0;
 }
 

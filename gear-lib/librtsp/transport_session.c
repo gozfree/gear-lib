@@ -96,6 +96,7 @@ static int32_t get_ms_time_v(struct video_packet *packet, int64_t val)
 {
     return (int32_t)(val * MILLISECOND_DEN / packet->encoder.timebase.den);
 }
+
 static void *send_thread(struct thread *t, void *ptr)
 {
     struct transport_session *ts = (struct transport_session *)ptr;
@@ -197,7 +198,9 @@ void transport_session_stop(struct transport_session *ts)
 {
     gevent_del(ts->evbase, &ts->ev_recv);
     gevent_base_loop_break(ts->evbase);
+    ts->thread->run = false;
     thread_join(ts->thread);
     thread_destroy(ts->thread);
     gevent_base_destroy(ts->evbase);
+    thread_destroy(ts->ev_thread);
 }
