@@ -97,7 +97,7 @@ static const uint8_t* h264_nalu_find(const uint8_t* p, const uint8_t* end)
 
 static int rtp_h264_pack_nalu(struct rtp_socket *sock, struct rtp_packet *pkt, const uint8_t* nalu, int bytes)
 {
-    int n;
+    int n, ret;
     uint8_t *rtp;
 
     pkt->payload = nalu;
@@ -113,16 +113,18 @@ static int rtp_h264_pack_nalu(struct rtp_socket *sock, struct rtp_packet *pkt, c
     }
 
     ++pkt->header.seq;
-    //logi("rtp_sendto %s:%d len=%d\n", sock->dst_ip, sock->rtp_dst_port, n);
     //DUMP_BUFFER(rtp, n);
-    rtp_sendto(sock, sock->dst_ip, sock->rtp_dst_port, rtp, n);
+    ret = rtp_sendto(sock, sock->dst_ip, sock->rtp_dst_port, rtp, n);
     free(rtp);
+    logd("rtp_sendto %s:%d len=%d, ret=%d\n", sock->dst_ip, sock->rtp_dst_port, n, ret);
+    if (ret == -1)
+        return -1;
     return 0;
 }
 
 static int rtp_h264_pack_fu_a(struct rtp_socket *sock, struct rtp_packet *pkt, const uint8_t* nalu, int bytes)
 {
-    int n;
+    int n, ret;
     unsigned char *rtp;
 
     uint8_t fu_indicator = (*nalu & 0xE0) | 28; // FU-A
@@ -157,9 +159,11 @@ static int rtp_h264_pack_fu_a(struct rtp_socket *sock, struct rtp_packet *pkt, c
         rtp[n + 0] = fu_indicator;
         rtp[n + 1] = fu_header;
         memcpy(rtp + n + N_FU_HEADER, pkt->payload, pkt->payloadlen);
-    //logi("rtp_sendto %s:%d len=%d\n", sock->dst_ip, sock->rtp_dst_port, n + N_FU_HEADER + pkt->payloadlen);
-        rtp_sendto(sock, sock->dst_ip, sock->rtp_dst_port, rtp, n + N_FU_HEADER + pkt->payloadlen);
+        ret = rtp_sendto(sock, sock->dst_ip, sock->rtp_dst_port, rtp, n + N_FU_HEADER + pkt->payloadlen);
         free(rtp);
+        logd("rtp_sendto %s:%d len=%d, ret=%d\n", sock->dst_ip, sock->rtp_dst_port, n + N_FU_HEADER + pkt->payloadlen, ret);
+        if (ret == -1)
+            return -1;
 
         bytes -= pkt->payloadlen;
         nalu += pkt->payloadlen;
@@ -193,5 +197,5 @@ int rtp_payload_h264_encode(struct rtp_socket *sock, struct rtp_packet *pkt, con
             r = rtp_h264_pack_fu_a(sock, pkt, p1, nalu_size);
         }
     }
-    return 0;
+    return r;
 }

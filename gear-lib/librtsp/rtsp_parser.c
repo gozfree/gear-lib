@@ -67,7 +67,7 @@ int parse_rtsp_request(struct rtsp_request *req)
     const char *rtsp_prefix = "rtsp://";
     int rtsp_prefix_len = sizeof(rtsp_prefix);
 
-    logd("rtsp request[%d]:\n>>>>>>>>\n%s\n", len, str);
+    logi("rtsp request[%d]:\n==== C >>>> S ====\n%s==== C >>>> S ====\n", len, str);
 
     // "Be liberal in what you accept": Skip over any whitespace at the start of the request:
     for (cur = 0; cur < len; ++cur) {

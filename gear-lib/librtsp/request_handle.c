@@ -84,7 +84,7 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
                     req->cseq,
                     get_date_string(),
                     msg?msg:"\r\n");
-    logi("rtsp response[%d]:\n==== c <<<< S ====\n%s\n==== c <<<< S ====\n",
+    logi("rtsp response[%d]:\n==== C <<<< S ====\n%s\n==== C <<<< S ====\n",
           len, buf);
     return sock_send(req->fd, buf, len);
 }

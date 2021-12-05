@@ -89,6 +89,7 @@ static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, u
     if (-1 == gevent_add(rtsp->evbase, &req->event)) {
         loge("event_add failed!\n");
     }
+    req->transport.fd = fd;
     snprintf(key, sizeof(key), "%d", fd);
     dict_add(rtsp->connect_pool, key, (char *)req);
     logi("fd = %d, req=%p\n", fd, req);

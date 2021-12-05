@@ -33,6 +33,7 @@ extern "C" {
 
 typedef struct transport_header {
     int mode;
+    int fd;
     int multicast; // 0-unicast/1-multicast, default multicast
     char destination[65];
     char source[65];

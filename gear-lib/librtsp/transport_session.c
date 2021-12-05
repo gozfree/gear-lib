@@ -68,7 +68,7 @@ struct transport_session *transport_session_create(void *pool, struct transport_
     s->session_id = get_random_number();
     snprintf(key, sizeof(key), "%08X", s->session_id);
     s->rtp = rtp_create(90000, 0);
-    s->rtp->sock = rtp_socket_create(t->mode, 0, t->source, t->destination);
+    s->rtp->sock = rtp_socket_create(t->mode, t->fd, t->source, t->destination);
     s->rtp->sock->rtp_dst_port = t->rtp.u.client_port1;
     s->rtp->sock->rtcp_dst_port = t->rtp.u.client_port2;
     dict_add((dict *)pool, key, (char *)s);
@@ -103,6 +103,7 @@ static void *send_thread(struct thread *t, void *ptr)
     struct media_source *ms = ts->media_source;
     void *data = NULL;
     size_t len = 0;
+    int ret;
     if (-1 == ms->open(ms, "sample.264")) {
         loge("open failed!\n");
         return NULL;
@@ -133,9 +134,13 @@ static void *send_thread(struct thread *t, void *ptr)
             }
             pts = get_ms_time_v(vpkt, vpkt->dts);
             logd("rtp_packet_create video size=%d, pts=%d\n", vpkt->size, pts);
-            rtp_payload_h264_encode(ts->rtp->sock, pkt, vpkt->data, vpkt->size, pts);
+            ret = rtp_payload_h264_encode(ts->rtp->sock, pkt, vpkt->data, vpkt->size, pts);
             seq = pkt->header.seq;
             rtp_packet_destroy(pkt);
+            if (ret == -1) {
+                loge("rtp_payload_h264_encode failed!\n");
+                t->run = false;
+            }
         } break;
         default:
             loge("unsupport media type!\n");

@@ -161,7 +161,6 @@ struct rtp_socket {
     char dst_ip[INET_ADDRSTRLEN];
     int rtp_fd;
     int rtcp_fd;
-    int tcp_fd;
 };
 
 int rtp_ssrc(void);

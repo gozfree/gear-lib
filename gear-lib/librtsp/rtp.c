@@ -253,7 +253,7 @@ int rtp_packet_get_info(struct rtp_packet *pkt, uint16_t* seq, uint32_t* timesta
 
 int rtp_packet_pack(struct rtp_socket *sock, struct rtp_packet *pkt, const void* data, int bytes, uint32_t timestamp)
 {
-    int n;
+    int n, ret;
     uint8_t *rtp;
     const uint8_t *ptr;
     if (!pkt || pkt->header.timestamp == timestamp || pkt->payload == NULL) {
@@ -279,8 +279,11 @@ int rtp_packet_pack(struct rtp_socket *sock, struct rtp_packet *pkt, const void*
         }
 
         loge("send len=%d\n", n);
-        rtp_sendto(sock, NULL, 0, rtp, n);//XXX
+        ret = rtp_sendto(sock, NULL, 0, rtp, n);//XXX
         free(rtp);
+        if (ret < 0) {
+            loge("rtp_sendto ret=%d\n", ret);
+        }
     }
 
     return 0;
@@ -303,9 +306,10 @@ struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char*
         return NULL;
     }
     unsigned short i;
+    s->mode = mode;
     switch (mode) {
     case RTP_TCP:
-        s->tcp_fd = tcp_fd;
+        s->rtp_fd = tcp_fd;
         break;
     case RTP_UDP:
         srand((unsigned int)time(NULL));
@@ -351,8 +355,31 @@ void rtp_socket_destroy(struct rtp_socket *s)
 
 ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len)
 {
-    logd("sock_sendto %s:%d len=%d\n", ip, port, len);
-    return sock_sendto(s->rtp_fd, ip, port, buf, len);
+    uint8_t m_packet[4 + (1 << 16)];
+    int ret;
+
+    switch (s->mode) {
+    case RTP_TCP:
+        if (len >= (1 << 16))
+            return E2BIG;
+
+        m_packet[0] = '$';
+        m_packet[1] = 0;//rtcp ? m_rtcp : m_rtp;
+        m_packet[2] = (len >> 8) & 0xFF;
+        m_packet[3] = len & 0xff;
+        memcpy(m_packet + 4, buf, len);
+        ret = sock_sendto(s->rtp_fd, ip, port, m_packet, len+4);
+        break;
+    case RTP_UDP:
+        ret = sock_sendto(s->rtp_fd, ip, port, buf, len);
+        break;
+    case RAW_UDP:
+        break;
+    default:
+        break;
+    }
+    logd("sock_sendto[%d] %s:%d ret=%d\n", s->rtp_fd, ip, port, ret);
+    return ret;
 }
 
 ssize_t rtp_recvfrom(struct rtp_socket *s, uint32_t *ip, uint16_t *port, void *buf, size_t len)
