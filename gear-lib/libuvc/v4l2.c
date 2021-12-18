@@ -124,9 +124,9 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
 static enum pixel_format pixel_format_from_fourcc(uint32_t fourcc)
 {
     switch (fourcc) {
-    case v4l2_fourcc('Y', '4', '4', '4'):
+    case V4L2_PIX_FMT_YUV444:
         return PIXEL_FORMAT_I444;
-    case v4l2_fourcc('U', 'Y', 'V', 'Y'):
+    case V4L2_PIX_FMT_UYVY:
     case v4l2_fourcc('H', 'D', 'Y', 'C'):
     case v4l2_fourcc('U', 'Y', 'N', 'V'):
     case v4l2_fourcc('U', 'Y', 'N', 'Y'):
@@ -134,37 +134,39 @@ static enum pixel_format pixel_format_from_fourcc(uint32_t fourcc)
     case v4l2_fourcc('2', 'v', 'u', 'y'):
     case v4l2_fourcc('2', 'V', 'u', 'y'):
         return PIXEL_FORMAT_UYVY;
-    case v4l2_fourcc('Y', 'U', 'Y', 'V'):
+    case V4L2_PIX_FMT_YUYV:
+    case V4L2_PIX_FMT_VYUY:
     case v4l2_fourcc('Y', 'U', 'Y', '2'):
     case v4l2_fourcc('Y', '4', '2', '2'):
     case v4l2_fourcc('V', '4', '2', '2'):
-    case v4l2_fourcc('V', 'Y', 'U', 'Y'):
     case v4l2_fourcc('Y', 'U', 'N', 'V'):
     case v4l2_fourcc('y', 'u', 'v', '2'):
     case v4l2_fourcc('y', 'u', 'v', 's'):
         return PIXEL_FORMAT_YUY2;
-    case v4l2_fourcc('Y', 'V', 'Y', 'U'):
+    case V4L2_PIX_FMT_YVYU:
         return PIXEL_FORMAT_YVYU;
-    case v4l2_fourcc('Y', 'V', '1', '2'):
+    case V4L2_PIX_FMT_YVU420:
+    case V4L2_PIX_FMT_YUV420:
         return PIXEL_FORMAT_I420;
-    case v4l2_fourcc('Y', 'U', '1', '2'):
-        return PIXEL_FORMAT_I420;
-    case v4l2_fourcc('N', 'V', '1', '2'):
+    case V4L2_PIX_FMT_NV12:
         return PIXEL_FORMAT_NV12;
-    case v4l2_fourcc('X', 'R', '2', '4'):
+    case V4L2_PIX_FMT_XBGR32:
         return PIXEL_FORMAT_BGRX;
-    case v4l2_fourcc('B', 'G', 'R', '3'):
+    case V4L2_PIX_FMT_BGR24:
         return PIXEL_FORMAT_BGR3;
-    case v4l2_fourcc('A', 'R', '2', '4'):
+    case V4L2_PIX_FMT_ABGR32:
         return PIXEL_FORMAT_BGRA;
     case v4l2_fourcc('Y', '8', '0', '0'):
         return PIXEL_FORMAT_Y800;
-    case v4l2_fourcc('J', 'P', 'E', 'G'):
+    case V4L2_PIX_FMT_JPEG:
         return PIXEL_FORMAT_JPEG;
-    case v4l2_fourcc('M', 'J', 'P', 'G'):
+    case V4L2_PIX_FMT_MJPEG:
+    case V4L2_PIX_FMT_SBGGR10P:
+        return PIXEL_FORMAT_MJPG;
         return PIXEL_FORMAT_MJPG;
     }
-    printf("pixel_format_from_fourcc failed!\n");
+    printf("pixel_format_from_fourcc 0x%x: %s failed!\n",
+                    fourcc, V4L2_FOURCC_STR(fourcc));
     return PIXEL_FORMAT_NONE;
 }
 
@@ -231,7 +233,6 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_conf
 
     if (uvc_v4l2_set_framerate(c->fd, &c->fps_num, &c->fps_den) < 0) {
         printf("uvc_v4l2_set_framerate failed\n");
-        goto failed;
     }
 
     if (uvc_v4l2_create_mmap(c) < 0) {
@@ -381,14 +382,18 @@ static int uvc_v4l2_set_framerate(int fd, uint32_t *fps_num, uint32_t *fps_den)
 
     par.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (v4l2_ioctl(fd, VIDIOC_G_PARM, &par) < 0)
+    if (v4l2_ioctl(fd, VIDIOC_G_PARM, &par) < 0) {
+        printf("%s VIDIOC_G_PARM failed:%d\n", __func__, errno);
         return -1;
+    }
 
     par.parm.capture.timeperframe.numerator = *fps_den;
     par.parm.capture.timeperframe.denominator = *fps_num;
 
-    if (v4l2_ioctl(fd, VIDIOC_S_PARM, &par) < 0)
+    if (v4l2_ioctl(fd, VIDIOC_S_PARM, &par) < 0) {
+        printf("%s VIDIOC_S_PARM failed:%d\n", __func__, errno);
         return -1;
+    }
 
     if (par.parm.capture.timeperframe.numerator != *fps_den ||
         par.parm.capture.timeperframe.denominator != *fps_num) {
@@ -748,7 +753,7 @@ static int v4l2_get_cap(struct v4l2_ctx *c)
     printf("\tcap.card: \t\"%s\"\n", c->cap.card);
     printf("\tcap.bus_info: \t\"%s\"\n", c->cap.bus_info);
     printf("\tcap.version: \t\"%d\"\n", c->cap.version);
-    printf("\tcap.capabilities:\n");
+    printf("\tcap.capabilities: 0x%x\n", c->cap.capabilities);
     if (c->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
         printf("\t\t\t VIDEO_CAPTURE\n");
     if (c->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)
@@ -761,6 +766,8 @@ static int v4l2_get_cap(struct v4l2_ctx *c)
         printf("\t\t\t VBI_OUTPUT\n");
     if (c->cap.capabilities & V4L2_CAP_RDS_CAPTURE)
         printf("\t\t\t RDS_CAPTURE\n");
+    if (c->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT_OVERLAY)
+        printf("\t\t\t VIDEO_OUTPUT_OVERLAY\n");
     if (c->cap.capabilities & V4L2_CAP_TUNER)
         printf("\t\t\t TUNER\n");
     if (c->cap.capabilities & V4L2_CAP_AUDIO)
@@ -773,6 +780,11 @@ static int v4l2_get_cap(struct v4l2_ctx *c)
         printf("\t\t\t STREAMING\n");
     if (c->cap.capabilities & V4L2_CAP_TIMEPERFRAME)
         printf("\t\t\t TIMEPERFRAME\n");
+    if (c->cap.capabilities & V4L2_CAP_DEVICE_CAPS)
+        printf("\t\t\t DEVICE_CAPS\n");
+    if (c->cap.capabilities & V4L2_CAP_EXT_PIX_FORMAT)
+        printf("\t\t\t EXT_PIX_FORMAT\n");
+
     if (!(c->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
         printf("Device does not support capturing.\n");
         return -1;

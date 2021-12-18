@@ -60,6 +60,7 @@ int v4l2_test()
         printf("uvc_open failed!\n");
         return -1;
     }
+    uvc_ioctl(uvc, UVC_GET_CAP, NULL);
     frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
     if (!frm) {
         printf("video_frame_create failed!\n");
