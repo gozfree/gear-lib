@@ -233,6 +233,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_conf
 
     if (uvc_v4l2_set_framerate(c->fd, &c->fps_num, &c->fps_den) < 0) {
         printf("uvc_v4l2_set_framerate failed\n");
+        //goto failed;
     }
 
     if (uvc_v4l2_create_mmap(c) < 0) {

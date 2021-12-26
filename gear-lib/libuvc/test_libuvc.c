@@ -54,6 +54,7 @@ int v4l2_test()
         .width  = VIDEO_WIDTH,
         .height = VIDEO_HEIGHT,
         .fps    = {30, 1},
+        .format = PIXEL_FORMAT_YUY2,
     };
     struct uvc_ctx *uvc = uvc_open(UVC_TYPE_V4L2, VIDEO_DEV, &conf);
     if (!uvc) {
@@ -67,7 +68,7 @@ int v4l2_test()
         uvc_close(uvc);
         return -1;
     }
-    printf("%s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->conf.width, uvc->conf.height,
+    printf("uvc info: %s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->conf.width, uvc->conf.height,
         uvc->conf.fps.num, uvc->conf.fps.den, pixel_format_to_string(uvc->conf.format));
     //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open(OUTPUT_V4L2, F_CREATE);

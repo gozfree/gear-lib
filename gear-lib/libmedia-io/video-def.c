@@ -343,6 +343,16 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         frame->linesize[3] = width;
         frame->planes = 4;
         break;
+    case PIXEL_FORMAT_MJPG:
+        size = width * height;
+        size = ALIGN_SIZE(size, ALIGNMENT);
+        frame->total_size = size;
+        if (mem_type == MEDIA_MEM_DEEP) {
+            frame->data[0] = aligned_alloc(ALIGNMENT, size);
+        }
+        frame->linesize[0] = width;
+        frame->planes = 1;
+        break;
     default:
         printf("unsupport video format %d\n", format);
         break;
