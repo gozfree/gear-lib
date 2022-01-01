@@ -121,53 +121,57 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc);
 #define timeval2ns(tv) \
     (((uint64_t)tv.tv_sec * 1000000000) + ((uint64_t)tv.tv_usec * 1000))
 
-static enum pixel_format pixel_format_from_fourcc(uint32_t fourcc)
+static const struct v4l2_fourcc_pixel_format {
+    enum pixel_format pxl_fmt;
+    uint32_t v4l2_fmt;
+} v4l2_fourcc_pixel_format_map [] = {
+    //pixel_format          v4l2_format
+    {PIXEL_FORMAT_I420,     V4L2_PIX_FMT_YVU420},
+    {PIXEL_FORMAT_I420,     V4L2_PIX_FMT_YUV420},
+    {PIXEL_FORMAT_NV12,     V4L2_PIX_FMT_NV12},
+    {PIXEL_FORMAT_YVYU,     V4L2_PIX_FMT_YVYU},
+    {PIXEL_FORMAT_YUY2,     V4L2_PIX_FMT_YUYV},
+    {PIXEL_FORMAT_YUY2,     V4L2_PIX_FMT_VYUY},
+    {PIXEL_FORMAT_UYVY,     V4L2_PIX_FMT_UYVY},
+    {PIXEL_FORMAT_RGBA,     0},
+    {PIXEL_FORMAT_BGRA,     V4L2_PIX_FMT_ABGR32},
+    {PIXEL_FORMAT_BGRX,     V4L2_PIX_FMT_XBGR32},
+    {PIXEL_FORMAT_Y800,     0},
+    {PIXEL_FORMAT_I444,     V4L2_PIX_FMT_YUV444},
+    {PIXEL_FORMAT_BGR3,     V4L2_PIX_FMT_BGR24},
+    {PIXEL_FORMAT_I422,     0},
+    {PIXEL_FORMAT_I40A,     0},
+    {PIXEL_FORMAT_I42A,     0},
+    {PIXEL_FORMAT_YUVA,     0},
+    {PIXEL_FORMAT_AYUV,     0},
+    {PIXEL_FORMAT_JPEG,     V4L2_PIX_FMT_JPEG},
+    {PIXEL_FORMAT_MJPG,     V4L2_PIX_FMT_MJPEG},
+    {PIXEL_FORMAT_MJPG,     V4L2_PIX_FMT_SBGGR10P},
+    {PIXEL_FORMAT_MAX,      0},
+};
+
+static enum pixel_format v4l2fmt_to_pxlfmt(uint32_t v4l2_fmt)
 {
-    switch (fourcc) {
-    case V4L2_PIX_FMT_YUV444:
-        return PIXEL_FORMAT_I444;
-    case V4L2_PIX_FMT_UYVY:
-    case v4l2_fourcc('H', 'D', 'Y', 'C'):
-    case v4l2_fourcc('U', 'Y', 'N', 'V'):
-    case v4l2_fourcc('U', 'Y', 'N', 'Y'):
-    case v4l2_fourcc('u', 'y', 'v', '1'):
-    case v4l2_fourcc('2', 'v', 'u', 'y'):
-    case v4l2_fourcc('2', 'V', 'u', 'y'):
-        return PIXEL_FORMAT_UYVY;
-    case V4L2_PIX_FMT_YUYV:
-    case V4L2_PIX_FMT_VYUY:
-    case v4l2_fourcc('Y', 'U', 'Y', '2'):
-    case v4l2_fourcc('Y', '4', '2', '2'):
-    case v4l2_fourcc('V', '4', '2', '2'):
-    case v4l2_fourcc('Y', 'U', 'N', 'V'):
-    case v4l2_fourcc('y', 'u', 'v', '2'):
-    case v4l2_fourcc('y', 'u', 'v', 's'):
-        return PIXEL_FORMAT_YUY2;
-    case V4L2_PIX_FMT_YVYU:
-        return PIXEL_FORMAT_YVYU;
-    case V4L2_PIX_FMT_YVU420:
-    case V4L2_PIX_FMT_YUV420:
-        return PIXEL_FORMAT_I420;
-    case V4L2_PIX_FMT_NV12:
-        return PIXEL_FORMAT_NV12;
-    case V4L2_PIX_FMT_XBGR32:
-        return PIXEL_FORMAT_BGRX;
-    case V4L2_PIX_FMT_BGR24:
-        return PIXEL_FORMAT_BGR3;
-    case V4L2_PIX_FMT_ABGR32:
-        return PIXEL_FORMAT_BGRA;
-    case v4l2_fourcc('Y', '8', '0', '0'):
-        return PIXEL_FORMAT_Y800;
-    case V4L2_PIX_FMT_JPEG:
-        return PIXEL_FORMAT_JPEG;
-    case V4L2_PIX_FMT_MJPEG:
-    case V4L2_PIX_FMT_SBGGR10P:
-        return PIXEL_FORMAT_MJPG;
-        return PIXEL_FORMAT_MJPG;
+    int i;
+
+    for (i = 0; i < ARRAY_SIZE(v4l2_fourcc_pixel_format_map); i++) {
+        if (v4l2_fourcc_pixel_format_map[i].v4l2_fmt == v4l2_fmt)
+            return v4l2_fourcc_pixel_format_map[i].pxl_fmt;
     }
-    printf("pixel_format_from_fourcc 0x%x: %s failed!\n",
-                    fourcc, V4L2_FOURCC_STR(fourcc));
+    printf("v4l2fmt_to_pxlfmt %s failed!\n", V4L2_FOURCC_STR(v4l2_fmt));
     return PIXEL_FORMAT_NONE;
+}
+
+static uint32_t pxlfmt_to_v4l2fmt(enum pixel_format pxl_fmt)
+{
+    int i;
+
+    for (i = 0; i < ARRAY_SIZE(v4l2_fourcc_pixel_format_map); i++) {
+        if (v4l2_fourcc_pixel_format_map[i].pxl_fmt == pxl_fmt)
+            return v4l2_fourcc_pixel_format_map[i].v4l2_fmt;
+    }
+    printf("pxlfmt_to_v4l2fmt %s failed!\n", pixel_format_to_string(pxl_fmt));
+    return 0;
 }
 
 static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf)
@@ -217,7 +221,8 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_conf
     c->dv_timing = -1;
     c->width = conf->width;
     c->height = conf->height;
-    c->fps_num = conf->fps.num;//unlimit fps
+    c->pixfmt = pxlfmt_to_v4l2fmt(conf->format);
+    c->fps_num = conf->fps.num;
     c->fps_den = conf->fps.den;
     c->frame_id = 0;
 
@@ -227,7 +232,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_conf
     }
 
     if (uvc_v4l2_set_format(c->fd, &c->width, &c->height, &c->pixfmt, &c->linesize) < 0) {
-        printf("uvc_v4l2_set_format failed\n");
+        printf("%s:%d uvc_v4l2_set_format failed %d\n", __func__, __LINE__, errno);
         goto failed;
     }
 
@@ -245,7 +250,7 @@ static void *uvc_v4l2_open(struct uvc_ctx *uvc, const char *dev, struct uvc_conf
     uvc->conf.height = c->height;
     uvc->conf.fps.num = c->fps_num;
     uvc->conf.fps.den = c->fps_den;
-    uvc->conf.format = pixel_format_from_fourcc(c->pixfmt);
+    uvc->conf.format = v4l2fmt_to_pxlfmt(c->pixfmt);
     uvc->fd = fd;
     c->parent = uvc;
     return c;
@@ -258,6 +263,34 @@ failed:
         free(c);
     }
     return NULL;
+}
+
+static int uvc_v4l2_set_config(struct uvc_ctx *uvc, struct uvc_config *conf)
+{
+    struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
+
+    c->width   = conf->width;
+    c->height  = conf->height;
+    c->fps_num = conf->fps.num;
+    c->fps_den = conf->fps.den;
+    c->pixfmt  = pxlfmt_to_v4l2fmt(conf->format);
+
+    if (uvc_v4l2_set_format(c->fd, &c->width, &c->height, &c->pixfmt, &c->linesize) < 0) {
+        printf("%s:%d uvc_v4l2_set_format failed %d\n", __func__, __LINE__, errno);
+        return -1;
+    }
+
+    if (uvc_v4l2_set_framerate(c->fd, &c->fps_num, &c->fps_den) < 0) {
+        printf("uvc_v4l2_set_framerate failed\n");
+        return -1;
+    }
+
+    uvc->conf.width = c->width;
+    uvc->conf.height = c->height;
+    uvc->conf.fps.num = c->fps_num;
+    uvc->conf.fps.den = c->fps_den;
+    uvc->conf.format = v4l2fmt_to_pxlfmt(c->pixfmt);
+    return 0;
 }
 
 static int v4l2_set_standard(int fd, int *standard)
@@ -348,26 +381,40 @@ static int uvc_v4l2_init(struct v4l2_ctx *c)
 static int uvc_v4l2_set_format(int fd, uint32_t *width, uint32_t *height,
                 uint32_t *pixelformat, uint32_t *bytesperline)
 {
+    bool update;
     struct v4l2_format fmt;
 
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     if (v4l2_ioctl(fd, VIDIOC_G_FMT, &fmt) < 0) {
-        printf("%s ioctl(VIDIOC_G_FMT) failed: %d\n", __func__, errno);
+        printf("%s VIDIOC_G_FMT failed: %d\n", __func__, errno);
         return -1;
     }
 
-    fmt.fmt.pix.width = *width;
-    fmt.fmt.pix.height = *height;
-    fmt.fmt.pix.pixelformat = *pixelformat;
+    if (fmt.fmt.pix.width == *width && fmt.fmt.pix.height == *height &&
+        fmt.fmt.pix.pixelformat == *pixelformat) {
+        update = false;
+    } else {
+        update = true;
+        fmt.fmt.pix.width       = *width;
+        fmt.fmt.pix.height      = *height;
+        fmt.fmt.pix.pixelformat = *pixelformat;
+    }
 
-    if (v4l2_ioctl(fd, VIDIOC_S_FMT, &fmt) < 0)
+    if (update && v4l2_ioctl(fd, VIDIOC_S_FMT, &fmt) < 0) {
+        printf("%s VIDIOC_S_FMT failed: %d\n", __func__, errno);
         return -1;
+    }
 
-    if (fmt.fmt.pix.width != *width ||
-        fmt.fmt.pix.height != *height) {
-        printf("v4l2 format force from %d*%d to %d*%d\n",
+    if (fmt.fmt.pix.width != *width || fmt.fmt.pix.height != *height) {
+        printf("v4l2 resolution force from %d*%d to %d*%d\n",
                 *width, *height, fmt.fmt.pix.width,fmt.fmt.pix.height);
+    }
+
+    if (fmt.fmt.pix.pixelformat != *pixelformat) {
+        printf("v4l2 format force from %s to %s\n",
+                V4L2_FOURCC_STR(*pixelformat),
+                V4L2_FOURCC_STR(fmt.fmt.pix.pixelformat));
     }
 
     *width = fmt.fmt.pix.width;
@@ -379,6 +426,7 @@ static int uvc_v4l2_set_format(int fd, uint32_t *width, uint32_t *height,
 
 static int uvc_v4l2_set_framerate(int fd, uint32_t *fps_num, uint32_t *fps_den)
 {
+    bool update;
     struct v4l2_streamparm par;
 
     par.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -388,10 +436,16 @@ static int uvc_v4l2_set_framerate(int fd, uint32_t *fps_num, uint32_t *fps_den)
         return -1;
     }
 
-    par.parm.capture.timeperframe.numerator = *fps_den;
-    par.parm.capture.timeperframe.denominator = *fps_num;
+    if (par.parm.capture.timeperframe.numerator == *fps_den &&
+        par.parm.capture.timeperframe.denominator == *fps_num) {
+        update = false;
+    } else {
+        update = true;
+        par.parm.capture.timeperframe.numerator = *fps_den;
+        par.parm.capture.timeperframe.denominator = *fps_num;
+    }
 
-    if (v4l2_ioctl(fd, VIDIOC_S_PARM, &par) < 0) {
+    if (update && v4l2_ioctl(fd, VIDIOC_S_PARM, &par) < 0) {
         printf("%s VIDIOC_S_PARM failed:%d\n", __func__, errno);
         return -1;
     }
@@ -617,9 +671,20 @@ static int uvc_v4l2_start_stream(struct uvc_ctx *uvc)
     return 0;
 }
 
+static void uvc_v4l2_destroy_mmap(struct v4l2_ctx *c)
+{
+    for (int i = 0; i < c->req_count; ++i) {
+        if (c->buf[i].iov_base != MAP_FAILED && c->buf[i].iov_base != 0)
+            v4l2_munmap(c->buf[i].iov_base, c->buf[i].iov_len);
+    }
+
+    if (c->req_count) {
+        c->req_count = 0;
+    }
+}
+
 static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
 {
-    int i;
     uint64_t notify = '1';
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
@@ -641,9 +706,7 @@ static int uvc_v4l2_stop_stream(struct uvc_ctx *uvc)
     if (v4l2_ioctl(c->fd, VIDIOC_STREAMOFF, &type) < 0) {
         printf("%s ioctl(VIDIOC_STREAMOFF) failed: %d\n", __func__, errno);
     }
-    for (i = 0; i < c->req_count; i++) {
-        v4l2_munmap(c->buf[i].iov_base, c->buf[i].iov_len);
-    }
+
     return 0;
 }
 
@@ -701,7 +764,8 @@ static int uvc_v4l2_create_mmap(struct v4l2_ctx *c)
 static void uvc_v4l2_close(struct uvc_ctx *uvc)
 {
     struct v4l2_ctx *c = (struct v4l2_ctx *)uvc->opaque;
-    uvc_v4l2_stop_stream(uvc);
+    //uvc_v4l2_stop_stream(uvc);
+    uvc_v4l2_destroy_mmap(c);
     v4l2_close(c->fd);
     close(c->epfd);
     free(c);
@@ -855,6 +919,9 @@ static int uvc_v4l2_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
     switch (cmd) {
     case UVC_GET_CAP:
         uvc_v4l2_print_info(c);
+        break;
+    case UVC_SET_CONF:
+        uvc_v4l2_set_config(uvc, (struct uvc_config *)arg);
         break;
     default:
         ret = v4l2_ioctl(c->fd, cmd, arg);

@@ -49,7 +49,7 @@ struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config 
 {
     struct uvc_ctx *uvc;
     if (!dev || !conf) {
-        printf("invalid paraments!\n");
+        printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return NULL;
     }
     uvc = (struct uvc_ctx *)calloc(1, sizeof(struct uvc_ctx));
@@ -76,7 +76,7 @@ failed:
 int uvc_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
 {
     if (!uvc || !frame) {
-        printf("invalid paraments!\n");
+        printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return -1;
     }
     return uvc->ops->query_frame(uvc, frame);
@@ -85,7 +85,7 @@ int uvc_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
 int uvc_start_stream(struct uvc_ctx *uvc, video_frame_cb *cb)
 {
     if (!uvc) {
-        printf("invalid paraments!\n");
+        printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return -1;
     }
     uvc->on_video_frame = cb;
@@ -95,7 +95,7 @@ int uvc_start_stream(struct uvc_ctx *uvc, video_frame_cb *cb)
 int uvc_stop_stream(struct uvc_ctx *uvc)
 {
     if (!uvc) {
-        printf("invalid paraments!\n");
+        printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return -1;
     }
     return uvc->ops->stop_stream(uvc);
@@ -118,6 +118,9 @@ int uvc_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
         vctrl = (struct video_ctrl *)arg;
         uvc->ops->ioctl(uvc, vctrl->cmd, vctrl->val);
     } break;
+    case UVC_SET_CONF: {
+        uvc->ops->ioctl(uvc, cmd, (struct uvc_config *)arg);
+    } break;
     default:
         printf("cmd %lu not supported yet!\n", cmd);
         break;
@@ -128,7 +131,7 @@ int uvc_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 void uvc_close(struct uvc_ctx *uvc)
 {
     if (!uvc) {
-        printf("invalid paraments!\n");
+        printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return;
     }
     uvc->ops->close(uvc);

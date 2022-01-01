@@ -73,8 +73,9 @@ struct video_ctrl {
     uint32_t val;
 };
 
-#define UVC_GET_CAP  _IOWR('V',  0, struct video_cap)
-#define UVC_SET_CTRL _IOWR('V',  1, struct video_ctrl)
+#define UVC_GET_CAP     _IOWR('V', 0, struct video_cap)
+#define UVC_SET_CTRL    _IOWR('V', 1, struct video_ctrl)
+#define UVC_SET_CONF    _IOWR('V', 2, struct uvc_config)
 
 struct uvc_ops {
     void *(*open)(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf);

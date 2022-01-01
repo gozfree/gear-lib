@@ -61,6 +61,7 @@ int v4l2_test()
         printf("uvc_open failed!\n");
         return -1;
     }
+    //uvc_ioctl(uvc, UVC_SET_CONF, &conf);
     uvc_ioctl(uvc, UVC_GET_CAP, NULL);
     frm = video_frame_create(uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
     if (!frm) {
@@ -70,7 +71,6 @@ int v4l2_test()
     }
     printf("uvc info: %s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, uvc->conf.width, uvc->conf.height,
         uvc->conf.fps.num, uvc->conf.fps.den, pixel_format_to_string(uvc->conf.format));
-    //uvc_ioctl(uvc, UVC_GET_CAP, NULL, 0);
     fp = file_open(OUTPUT_V4L2, F_CREATE);
     uvc_start_stream(uvc, on_frame);
     sleep(5);
@@ -119,6 +119,6 @@ int dummy_test()
 int main(int argc, char **argv)
 {
     v4l2_test();
-    dummy_test();
+    //dummy_test();
     return 0;
 }
