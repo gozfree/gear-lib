@@ -252,6 +252,8 @@ static void *rpc_client_thread(struct thread *t, void *arg)
             printf("get connect cnt=%d\n", connect_cnt);
             break;
         case 'a':
+            rpc_get_connect_cnt(r, &connect_cnt);
+            printf("get connect cnt=%d\n", connect_cnt);
             rpc_get_connect_list(r, connect_cnt);
             break;
         case 'i':

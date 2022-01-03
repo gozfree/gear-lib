@@ -104,7 +104,7 @@ int dummy_test()
         {30, 1},
         PIXEL_FORMAT_YUY2,
     };
-    struct uvc_ctx *uvc = uvc_open(UVC_TYPE_DUMMY, "sample_yuv422p.yuv", &conf);
+    struct uvc_ctx *uvc = uvc_open(UVC_TYPE_DUMMY, "sample_320x240_yuv422p.yuv", &conf);
     if (!uvc) {
         printf("uvc_open failed!\n");
         return -1;
@@ -132,6 +132,6 @@ int dummy_test()
 int main(int argc, char **argv)
 {
     v4l2_test();
-    //dummy_test();
+    dummy_test();
     return 0;
 }

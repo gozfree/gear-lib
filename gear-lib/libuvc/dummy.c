@@ -313,6 +313,12 @@ static int uvc_dummy_query_frame(struct uvc_ctx *uvc, struct video_frame *frame)
     return 0;
 }
 
+static int uvc_dummy_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
+{
+    printf("uvc_dummy_ioctl unsupport cmd!\n");
+    return -1;
+}
+
 static void uvc_dummy_close(struct uvc_ctx *uvc)
 {
     struct dummy_ctx *c = (struct dummy_ctx *)uvc->opaque;
@@ -326,7 +332,7 @@ static void uvc_dummy_close(struct uvc_ctx *uvc)
 struct uvc_ops dummy_ops = {
     .open         = uvc_dummy_open,
     .close        = uvc_dummy_close,
-    .ioctl        = NULL,
+    .ioctl        = uvc_dummy_ioctl,
     .start_stream = uvc_dummy_start_stream,
     .stop_stream  = uvc_dummy_stop_stream,
     .query_frame  = uvc_dummy_query_frame,

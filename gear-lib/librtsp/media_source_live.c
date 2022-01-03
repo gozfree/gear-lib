@@ -31,7 +31,6 @@
 #include <string.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#include <sys/uio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -350,6 +349,7 @@ static int live_open(struct media_source *ms, const char *name)
     c->conf.height = 480;
     c->conf.fps.num = 30;
     c->conf.fps.den = 1;
+    c->conf.format = PIXEL_FORMAT_YUY2,
     c->uvc = uvc_open(UVC_TYPE_V4L2, "/dev/video0", &c->conf);
     if (!c->uvc) {
         loge("uvc open failed!\n");

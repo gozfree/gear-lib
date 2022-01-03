@@ -378,7 +378,7 @@ ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const vo
     default:
         break;
     }
-    logd("sock_sendto[%d] %s:%d ret=%d\n", s->rtp_fd, ip, port, ret);
+    logi("sock_sendto[%d] %s:%d ret=%d\n", s->rtp_fd, ip, port, ret);
     return ret;
 }
 

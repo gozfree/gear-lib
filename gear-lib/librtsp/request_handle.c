@@ -247,7 +247,7 @@ int handle_rtsp_request(struct rtsp_request *req)
     char url[2*RTSP_PARAM_STRING_MAX];
     strcat_url(url, req->url_prefix, req->url_suffix);
 
-    logi("rtsp request[%d]:\n==== c >>>> S ====\n%s\n==== c >>>> S ====\n",
+    logi("rtsp request[%d]:\n==== C >>>> S ====\n%s\n==== C >>>> S ====\n",
           req->raw->iov_len, req->raw->iov_base);
     switch (req->cmd[0]) {
     case 'o':

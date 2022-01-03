@@ -111,12 +111,12 @@ struct video_frame {
 const char *pixel_format_to_string(enum pixel_format fmt);
 enum pixel_format pixel_string_to_format(const char *name);
 
-int video_frame_init(struct video_frame *frame, enum pixel_format format,
+GEAR_API int video_frame_init(struct video_frame *frame, enum pixel_format format,
                 uint32_t width, uint32_t height, media_mem_type_t type);
-struct video_frame *video_frame_create(enum pixel_format format,
+GEAR_API struct video_frame *video_frame_create(enum pixel_format format,
                 uint32_t width, uint32_t height, media_mem_type_t type);
-void video_frame_destroy(struct video_frame *frame);
-struct video_frame *video_frame_copy(struct video_frame *dst,
+GEAR_API void video_frame_destroy(struct video_frame *frame);
+GEAR_API struct video_frame *video_frame_copy(struct video_frame *dst,
                 const struct video_frame *src);
 
 void video_producer_dump(struct video_producer *vp);
