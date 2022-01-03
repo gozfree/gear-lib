@@ -103,6 +103,7 @@ int uvc_stop_stream(struct uvc_ctx *uvc)
 
 int uvc_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 {
+    int ret;
     void *arg;
     va_list ap;
     va_start(ap, cmd);
@@ -111,21 +112,21 @@ int uvc_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 
     switch (cmd) {
     case UVC_GET_CAP:
-        uvc->ops->ioctl(uvc, cmd, NULL);
+        ret = uvc->ops->ioctl(uvc, cmd, NULL);
         break;
     case UVC_SET_CTRL: {
         struct video_ctrl *vctrl;
         vctrl = (struct video_ctrl *)arg;
-        uvc->ops->ioctl(uvc, vctrl->cmd, vctrl->val);
+        ret = uvc->ops->ioctl(uvc, vctrl->cmd, vctrl->val);
     } break;
     case UVC_SET_CONF: {
-        uvc->ops->ioctl(uvc, cmd, (struct uvc_config *)arg);
+        ret = uvc->ops->ioctl(uvc, cmd, (struct uvc_config *)arg);
     } break;
     default:
-        printf("cmd %lu not supported yet!\n", cmd);
+        ret = uvc->ops->ioctl(uvc, cmd, arg);
         break;
     }
-    return 0;
+    return ret;
 }
 
 void uvc_close(struct uvc_ctx *uvc)

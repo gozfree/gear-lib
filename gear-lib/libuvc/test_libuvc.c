@@ -39,10 +39,15 @@ static struct file *fp;
 static int on_frame(struct uvc_ctx *c, struct video_frame *frm)
 {
     static uint64_t last_ms = 0;
+    static int luma = 0;
+    static int i = 0;
 
     printf("frm[%" PRIu64 "] size=%" PRIu64 ", ts=%" PRIu64 " ms, gap=%" PRIu64 " ms\n",
           frm->frame_id, frm->total_size, frm->timestamp/1000000, frm->timestamp/1000000 - last_ms);
     last_ms = frm->timestamp/1000000;
+    luma = 2 * i++;
+    luma *= i%2 ? 1: -1;
+    uvc_ioctl(c, UVC_SET_LUMA, luma);
     file_write(fp, frm->data[0], frm->total_size);
     return 0;
 }
@@ -73,6 +78,7 @@ int v4l2_test()
         uvc->conf.fps.num, uvc->conf.fps.den, pixel_format_to_string(uvc->conf.format));
     fp = file_open(OUTPUT_V4L2, F_CREATE);
     uvc_start_stream(uvc, on_frame);
+
     sleep(5);
     uvc_stop_stream(uvc);
     file_close(fp);

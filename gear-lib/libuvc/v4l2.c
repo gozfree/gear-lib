@@ -65,10 +65,7 @@ static const uint32_t v4l2_cid_supported[] = {
     V4L2_CID_HUE,
     V4L2_CID_AUTO_WHITE_BALANCE,
     V4L2_CID_GAMMA,
-    V4L2_CID_POWER_LINE_FREQUENCY,
-    V4L2_CID_WHITE_BALANCE_TEMPERATURE,
     V4L2_CID_SHARPNESS,
-    V4L2_CID_BACKLIGHT_COMPENSATION,
     V4L2_CID_LASTP1
 };
 
@@ -95,8 +92,6 @@ struct v4l2_ctx {
     bool qbuf_done;
     uint64_t first_ts;
     uint64_t frame_id;
-    struct v4l2_capability cap;
-    uint32_t ctrl_flags;
     struct v4l2_queryctrl controls[MAX_V4L2_CID];
     struct uvc_ctx *parent;
     struct thread *thread;
@@ -296,11 +291,15 @@ static int uvc_v4l2_set_config(struct uvc_ctx *uvc, struct uvc_config *conf)
 static int v4l2_set_standard(int fd, int *standard)
 {
     if (*standard == -1) {
-        if (v4l2_ioctl(fd, VIDIOC_G_STD, standard) < 0)
+        if (v4l2_ioctl(fd, VIDIOC_G_STD, standard) < 0) {
+            printf("%s VIDIOC_G_STD failed: %d\n", __func__, errno);
             return -1;
+        }
     } else {
-        if (v4l2_ioctl(fd, VIDIOC_S_STD, standard) < 0)
+        if (v4l2_ioctl(fd, VIDIOC_S_STD, standard) < 0) {
+            printf("%s VIDIOC_S_STD failed: %d\n", __func__, errno);
             return -1;
+        }
     }
 
     return 0;
@@ -322,8 +321,10 @@ static int v4l2_enum_dv_timing(int dev, struct v4l2_dv_timings *dvt,
     memset(&iter, 0, sizeof(iter));
     iter.index = index;
 
-    if (v4l2_ioctl(dev, VIDIOC_ENUM_DV_TIMINGS, &iter) < 0)
+    if (v4l2_ioctl(dev, VIDIOC_ENUM_DV_TIMINGS, &iter) < 0) {
+        printf("%s VIDIOC_ENUM_DV_TIMINGS failed: %d\n", __func__, errno);
         return -1;
+    }
 
     memcpy(dvt, &iter.timings, sizeof(struct v4l2_dv_timings));
 
@@ -341,9 +342,37 @@ static int v4l2_set_dv_timing(int fd, int *timing)
     if (v4l2_enum_dv_timing(fd, &dvt, *timing) < 0)
         return -1;
 
-    if (v4l2_ioctl(fd, VIDIOC_S_DV_TIMINGS, &dvt) < 0)
+    if (v4l2_ioctl(fd, VIDIOC_S_DV_TIMINGS, &dvt) < 0) {
+        printf("%s VIDIOC_S_DV_TIMINGS failed: %d\n", __func__, errno);
         return -1;
+    }
 
+    return 0;
+}
+
+static int v4l2_get_control(int fd, uint32_t id, int *val)
+{
+    struct v4l2_control vctrl;
+
+    vctrl.id = id;
+    if (v4l2_ioctl(fd, VIDIOC_G_CTRL, &vctrl) < 0) {
+        printf("%s VIDIOC_G_CTRL failed: %d\n", __func__, errno);
+        return -1;
+    }
+    *val = vctrl.value;
+    return 0;
+}
+
+static int v4l2_set_control(int fd, uint32_t id, int val)
+{
+    struct v4l2_control vctrl;
+
+    vctrl.id = id;
+    vctrl.value = val;
+    if (v4l2_ioctl(fd, VIDIOC_S_CTRL, &vctrl) < 0) {
+        printf("%s VIDIOC_S_CTRL failed: %d\n", __func__, errno);
+        return -1;
+    }
     return 0;
 }
 
@@ -353,7 +382,7 @@ static int uvc_v4l2_init(struct v4l2_ctx *c)
     memset(&in, 0, sizeof(in));
 
     if (v4l2_ioctl(c->fd, VIDIOC_G_INPUT, &in.index) < 0) {
-        printf("ioctl VIDIOC_G_INPUT failed\n");
+        printf("ioctl VIDIOC_G_INPUT failed:%d\n", errno);
         return -1;
     }
 
@@ -808,49 +837,51 @@ static int v4l2_get_input(struct v4l2_ctx *c)
 
 static int v4l2_get_cap(struct v4l2_ctx *c)
 {
-    if (v4l2_ioctl(c->fd, VIDIOC_QUERYCAP, &c->cap) < 0) {
+    struct v4l2_capability cap;
+
+    if (v4l2_ioctl(c->fd, VIDIOC_QUERYCAP, &cap) < 0) {
         printf("failed to VIDIOC_QUERYCAP\n");
         return -1;
     }
 
     printf("[V4L2 Capability Information]:\n");
-    printf("\tcap.driver: \t\"%s\"\n", c->cap.driver);
-    printf("\tcap.card: \t\"%s\"\n", c->cap.card);
-    printf("\tcap.bus_info: \t\"%s\"\n", c->cap.bus_info);
-    printf("\tcap.version: \t\"%d\"\n", c->cap.version);
-    printf("\tcap.capabilities: 0x%x\n", c->cap.capabilities);
-    if (c->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
+    printf("\tcap.driver: \t\"%s\"\n", cap.driver);
+    printf("\tcap.card: \t\"%s\"\n", cap.card);
+    printf("\tcap.bus_info: \t\"%s\"\n", cap.bus_info);
+    printf("\tcap.version: \t\"%d\"\n", cap.version);
+    printf("\tcap.capabilities: 0x%x\n", cap.capabilities);
+    if (cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)
         printf("\t\t\t VIDEO_CAPTURE\n");
-    if (c->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)
+    if (cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)
         printf("\t\t\t VIDEO_OUTPUT\n");
-    if (c->cap.capabilities & V4L2_CAP_VIDEO_OVERLAY)
+    if (cap.capabilities & V4L2_CAP_VIDEO_OVERLAY)
         printf("\t\t\t VIDEO_OVERLAY\n");
-    if (c->cap.capabilities & V4L2_CAP_VBI_CAPTURE)
+    if (cap.capabilities & V4L2_CAP_VBI_CAPTURE)
         printf("\t\t\t VBI_CAPTURE\n");
-    if (c->cap.capabilities & V4L2_CAP_VBI_OUTPUT)
+    if (cap.capabilities & V4L2_CAP_VBI_OUTPUT)
         printf("\t\t\t VBI_OUTPUT\n");
-    if (c->cap.capabilities & V4L2_CAP_RDS_CAPTURE)
+    if (cap.capabilities & V4L2_CAP_RDS_CAPTURE)
         printf("\t\t\t RDS_CAPTURE\n");
-    if (c->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT_OVERLAY)
+    if (cap.capabilities & V4L2_CAP_VIDEO_OUTPUT_OVERLAY)
         printf("\t\t\t VIDEO_OUTPUT_OVERLAY\n");
-    if (c->cap.capabilities & V4L2_CAP_TUNER)
+    if (cap.capabilities & V4L2_CAP_TUNER)
         printf("\t\t\t TUNER\n");
-    if (c->cap.capabilities & V4L2_CAP_AUDIO)
+    if (cap.capabilities & V4L2_CAP_AUDIO)
         printf("\t\t\t AUDIO\n");
-    if (c->cap.capabilities & V4L2_CAP_READWRITE)
+    if (cap.capabilities & V4L2_CAP_READWRITE)
         printf("\t\t\t READWRITE\n");
-    if (c->cap.capabilities & V4L2_CAP_ASYNCIO)
+    if (cap.capabilities & V4L2_CAP_ASYNCIO)
         printf("\t\t\t ASYNCIO\n");
-    if (c->cap.capabilities & V4L2_CAP_STREAMING)
+    if (cap.capabilities & V4L2_CAP_STREAMING)
         printf("\t\t\t STREAMING\n");
-    if (c->cap.capabilities & V4L2_CAP_TIMEPERFRAME)
+    if (cap.capabilities & V4L2_CAP_TIMEPERFRAME)
         printf("\t\t\t TIMEPERFRAME\n");
-    if (c->cap.capabilities & V4L2_CAP_DEVICE_CAPS)
+    if (cap.capabilities & V4L2_CAP_DEVICE_CAPS)
         printf("\t\t\t DEVICE_CAPS\n");
-    if (c->cap.capabilities & V4L2_CAP_EXT_PIX_FORMAT)
+    if (cap.capabilities & V4L2_CAP_EXT_PIX_FORMAT)
         printf("\t\t\t EXT_PIX_FORMAT\n");
 
-    if (!(c->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
         printf("Device does not support capturing.\n");
         return -1;
     }
@@ -877,13 +908,12 @@ static void v4l2_get_cid(struct v4l2_ctx *c)
     struct v4l2_queryctrl *qctrl;
     struct v4l2_control control;
     printf("[V4L2 Supported Control]:\n");
-    for (i = 0; v4l2_cid_supported[i] != V4L2_CID_LASTP1; i++) {
+    for (i = 0; i < MAX_V4L2_CID; i++) {
         qctrl = &c->controls[i];
         qctrl->id = v4l2_cid_supported[i];
         if (v4l2_ioctl(c->fd, VIDIOC_QUERYCTRL, qctrl) < 0) {
             continue;
         }
-        c->ctrl_flags |= 1 << i;
         memset(&control, 0, sizeof (control));
         control.id = v4l2_cid_supported[i];
         if (v4l2_ioctl(c->fd, VIDIOC_G_CTRL, &control) < 0) {
@@ -918,13 +948,56 @@ static int uvc_v4l2_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 
     switch (cmd) {
     case UVC_GET_CAP:
-        uvc_v4l2_print_info(c);
+        ret = uvc_v4l2_print_info(c);
         break;
     case UVC_SET_CONF:
-        uvc_v4l2_set_config(uvc, (struct uvc_config *)arg);
+        ret = uvc_v4l2_set_config(uvc, (struct uvc_config *)arg);
+        break;
+    case UVC_SET_LUMA:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_BRIGHTNESS, *(int *)&arg);
+        break;
+    case UVC_GET_LUMA:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_BRIGHTNESS, (int *)arg);
+        break;
+    case UVC_SET_CTRST:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_CONTRAST, *(int *)&arg);
+        break;
+    case UVC_GET_CTRST:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_CONTRAST, (int *)arg);
+        break;
+    case UVC_SET_SAT:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_SATURATION, *(int *)&arg);
+        break;
+    case UVC_GET_SAT:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_SATURATION, (int *)arg);
+        break;
+    case UVC_SET_HUE:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_HUE, *(int *)&arg);
+        break;
+    case UVC_GET_HUE:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_HUE, (int *)arg);
+        break;
+    case UVC_SET_AWB:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_AUTO_WHITE_BALANCE, *(int *)&arg);
+        break;
+    case UVC_GET_AWB:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_AUTO_WHITE_BALANCE, (int *)arg);
+        break;
+    case UVC_SET_GAMMA:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_GAMMA, *(int *)&arg);
+        break;
+    case UVC_GET_GAMMA:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_GAMMA, (int *)arg);
+        break;
+    case UVC_SET_SHARP:
+        ret = v4l2_set_control(uvc->fd, V4L2_CID_SHARPNESS, *(int *)&arg);
+        break;
+    case UVC_GET_SHARP:
+        ret = v4l2_get_control(uvc->fd, V4L2_CID_SHARPNESS, (int *)arg);
         break;
     default:
-        ret = v4l2_ioctl(c->fd, cmd, arg);
+        printf("unsupport UVC cmd 0x%lx\n", cmd);
+        ret = -1;
         break;
     }
 

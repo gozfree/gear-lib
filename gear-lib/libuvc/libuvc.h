@@ -55,6 +55,16 @@ struct uvc_config {
     enum pixel_format format;
 };
 
+struct uvc_image_quality {
+    int brightness;
+    int contrast;
+    int saturation;
+    int hue;
+    int awb;
+    int gamma;
+    int sharpness;
+};
+
 struct uvc_ctx {
     int fd;
     struct uvc_config conf;
@@ -73,9 +83,25 @@ struct video_ctrl {
     uint32_t val;
 };
 
-#define UVC_GET_CAP     _IOWR('V', 0, struct video_cap)
-#define UVC_SET_CTRL    _IOWR('V', 1, struct video_ctrl)
-#define UVC_SET_CONF    _IOWR('V', 2, struct uvc_config)
+#define UVC_GET_CAP         _IOWR('V',  0, struct video_cap)
+#define UVC_SET_CTRL        _IOWR('V',  1, struct video_ctrl)
+#define UVC_SET_CONF        _IOWR('V',  2, struct uvc_config)
+#define UVC_GET_LUMA        _IOWR('V',  3, int *)
+#define UVC_SET_LUMA        _IOWR('V',  4, int)
+#define UVC_GET_CTRST       _IOWR('V',  5, int *)
+#define UVC_SET_CTRST       _IOWR('V',  6, int)
+#define UVC_GET_SAT         _IOWR('V',  7, int *)
+#define UVC_SET_SAT         _IOWR('V',  8, int)
+#define UVC_GET_HUE         _IOWR('V',  9, int *)
+#define UVC_SET_HUE         _IOWR('V', 10, int)
+#define UVC_GET_AWB         _IOWR('V', 11, int *)
+#define UVC_SET_AWB         _IOWR('V', 12, int)
+#define UVC_GET_GAMMA       _IOWR('V', 13, int *)
+#define UVC_SET_GAMMA       _IOWR('V', 14, int)
+#define UVC_GET_SHARP       _IOWR('V', 15, int *)
+#define UVC_SET_SHARP       _IOWR('V', 16, int)
+
+
 
 struct uvc_ops {
     void *(*open)(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf);
