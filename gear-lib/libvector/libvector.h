@@ -24,10 +24,7 @@
 
 #include <libposix.h>
 #include <stdint.h>
-#if defined (OS_LINUX)
 #include <unistd.h>
-#include <sys/uio.h>
-#endif
 
 #define LIBVECTOR_VERSION "0.1.0"
 

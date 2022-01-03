@@ -29,7 +29,10 @@
 static int ini_test(void)
 {
     struct config *conf = conf_load("ini/example.ini");
-    printf("ini_test %s\n", file_path_pwd());
+    if (!conf) {
+        printf("conf_load failed!\n");
+        return -1;
+    }
     conf_set_string(conf, "wine:year", "1122");
     conf_set_string(conf, "wine:aaaa", "ddd");
     conf_set_string(conf, "wine:eeee", "1.234");
@@ -47,6 +50,10 @@ static int ini_test(void)
 static int json_test(void)
 {
     struct config *conf = conf_load("json/all.json");
+    if (!conf) {
+        printf("conf_load failed!\n");
+        return -1;
+    }
     printf("json_test\n");
     printf("id = %s\n", conf_get_string(conf, "test", "rgn", 1, "id"));
     printf("port= %d\n", conf_get_int(conf, "test", "rgn", 1, "port"));
@@ -62,6 +69,10 @@ static int lua_test(void)
 {
 #ifdef ENABLE_LUA
     struct config *conf = conf_load("lua/config.lua");
+    if (!conf) {
+        printf("conf_load failed!\n");
+        return -1;
+    }
     printf("lua_test\n");
 
     printf("[type_3][sub_type_1][my]= %s\n", conf_get_string(conf, "type_3", "sub_type_1", "my"));

@@ -37,7 +37,6 @@
 
 #include <inttypes.h>
 #include <syslog.h>
-#include <sys/uio.h>
 #ifndef __CYGWIN__
 #include <sys/syscall.h>
 #endif

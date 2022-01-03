@@ -164,7 +164,7 @@ void file_close(struct file *file)
     if (!file || !file->ops) {
         return;
     }
-    file->ops->close(file->fd);
+    file->ops->_close(file->fd);
     free(file);
 }
 
@@ -173,7 +173,7 @@ ssize_t file_read(struct file *file, void *data, size_t size)
     if (!file || !data || size == 0) {
         return -1;
     }
-    return file->ops->read(file->fd, data, size);
+    return file->ops->_read(file->fd, data, size);
 }
 
 ssize_t file_read_path(const char *path, void *data, size_t size)
@@ -193,7 +193,7 @@ ssize_t file_write(struct file *file, const void *data, size_t size)
     if (!file || !data || size == 0) {
         return -1;
     }
-    return file->ops->write(file->fd, data, size);
+    return file->ops->_write(file->fd, data, size);
 }
 
 ssize_t file_write_path(const char *path, const void *data, size_t size)

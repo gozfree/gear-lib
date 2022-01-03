@@ -28,10 +28,7 @@
 #include <libmedia-io.h>
 #include <stdio.h>
 #include <stdint.h>
-#if defined (OS_LINUX)
 #include <stdbool.h>
-#include <sys/uio.h>
-#endif
 
 #include "flv_mux.h"
 

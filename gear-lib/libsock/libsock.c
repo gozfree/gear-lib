@@ -879,7 +879,7 @@ int sock_sendto(int fd, const char *ip, uint16_t port,
             left -= n;
             continue;
         } else if (n == 0) {
-            perror("sendto");
+            printf("%s peer connect shutdown\n", __func__);
             return -1;
         }
         if (errno == EINTR || errno == EAGAIN) {
@@ -887,7 +887,7 @@ int sock_sendto(int fd, const char *ip, uint16_t port,
                 break;
             continue;
         }
-        perror("sendto");
+        printf("%s: sendto failed: %d\n", __func__, errno);
         return -1;
     }
     return (len - left);

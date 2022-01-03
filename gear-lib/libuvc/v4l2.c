@@ -29,7 +29,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdarg.h>
-#include <sys/uio.h>
 #include <sys/mman.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>

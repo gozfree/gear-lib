@@ -38,6 +38,13 @@ extern "C" {
 #define UNLIKELY(x)         (x)
 #endif
 
+#define BUG_ON(condition) \
+    do { \
+        if (UNLIKELY(condition)) { \
+            printf("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __func__); \
+            exit(); \
+        } \
+    } while (0)
 
 #define MAX_ERRNO           (4095)
 #define IS_ERR_VALUE(x)     UNLIKELY((unsigned long)(intptr_t)(void *)(intptr_t)(x) >= (unsigned long)-MAX_ERRNO)
