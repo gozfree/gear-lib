@@ -99,9 +99,9 @@ void addr_test()
 
 void domain_test()
 {
+#if defined (OS_LINUX)
     void *p;
     char str[SOCK_ADDR_LEN];
-#if defined (OS_LINUX)
     sock_addr_list_t *tmp;
     if (0 == sock_get_local_list(&tmp, 0)) {
         for (; tmp; tmp = tmp->next) {

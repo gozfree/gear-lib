@@ -39,8 +39,11 @@ extern "C" {
 
 enum uvc_type {
     UVC_TYPE_DUMMY = 0,
+#if defined (OS_LINUX)
     UVC_TYPE_V4L2,
+#elif defined (OS_WINDOWS)
     UVC_TYPE_DSHOW,
+#endif
     UVC_TYPE_MAX,
 };
 

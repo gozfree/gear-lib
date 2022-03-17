@@ -24,9 +24,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
+
 #include <sys/types.h>
 #include <sys/stat.h>
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #if defined (OS_LINUX)
 #include <sys/statfs.h>
 #include <sys/vfs.h>
@@ -34,15 +35,18 @@
 #include <sys/param.h>
 #include <sys/mount.h>
 #endif
-#include <dirent.h>
-#include <fcntl.h>
-#include <unistd.h>
+
+
 #include <string.h>
-#include <libgen.h>
+
 #include <limits.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #endif
+#include <unistd.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <libgen.h>
 
 
 /*
@@ -151,7 +155,7 @@ struct file *file_open(const char *path, file_open_mode_t mode)
         return NULL;
     }
     file->ops = file_ops[backend];
-    file->fd = file->ops->open(path, mode);
+    file->fd = file->ops->_open(path, mode);
     return file;
 }
 
@@ -209,7 +213,7 @@ ssize_t file_size(struct file *file)
     if (!file) {
         return -1;
     }
-    return file->ops->size(file->fd);
+    return file->ops->_size(file->fd);
 }
 
 int file_sync(struct file *file)
@@ -217,7 +221,7 @@ int file_sync(struct file *file)
     if (!file) {
         return -1;
     }
-    return file->ops->sync(file->fd);
+    return file->ops->_sync(file->fd);
 }
 
 off_t file_seek(struct file *file, off_t offset, int whence)
@@ -225,7 +229,7 @@ off_t file_seek(struct file *file, off_t offset, int whence)
     if (!file) {
         return -1;
     }
-    return file->ops->seek(file->fd, offset, whence);
+    return file->ops->_seek(file->fd, offset, whence);
 }
 
 int file_rename(const char *old_file, const char *new_file)
@@ -333,20 +337,12 @@ char *file_path_pwd()
 
 char *file_path_suffix(char *path)
 {
-#if defined (OS_LINUX)
     return basename(path);
-#else
-    return NULL;
-#endif
 }
 
 char *file_path_prefix(char *path)
 {
-#if defined (OS_LINUX)
     return dirname(path);
-#else
-    return NULL;
-#endif
 }
 
 bool file_exist(const char *path)

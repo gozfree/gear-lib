@@ -16,7 +16,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -41,7 +41,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libdarray;..\..\..\..\gear-lib\libthread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libdarray;..\..\..\..\gear-lib\libthread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>"/DUCRTINCLUDE=$(VCInstallDir)include"   "/DMSVCINCLUDE=$(VCInstallDir)include" "/DWSDKINCLUDE=$(WindowsSdkDir)Include" %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

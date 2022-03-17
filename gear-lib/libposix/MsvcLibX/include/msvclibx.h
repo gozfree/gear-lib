@@ -82,8 +82,10 @@
 
 /* Generate the OS-and-debug-mode-specific library name */
 #define _MSVCLIBX_LIB "MsvcLibX" _MSVCLIBX_LIB_OS_SUFFIX _MSVCLIBX_LIB_DBG_SUFFIX ".lib"
+#if 0 /* disabled by gozfree */
 #pragma message("Adding pragma comment(lib, \"" _MSVCLIBX_LIB "\")")
 #pragma comment(lib, _MSVCLIBX_LIB)
+#endif
 
 /* Library-specific routine used internally by many standard routines */
 #if defined(_WIN32)

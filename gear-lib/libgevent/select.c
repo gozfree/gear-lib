@@ -26,7 +26,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#if defined (OS_LINUX)
 #include <sys/select.h>
+#endif
 
 #define SELECT_MAX_FD	1024
 
@@ -121,9 +123,24 @@ static int select_dispatch(struct gevent_base *eb, struct timeval *tv)
 }
 
 struct gevent_ops selectops = {
-    .init     = select_init,
-    .deinit   = select_deinit,
-    .add      = select_add,
-    .del      = select_del,
-    .dispatch = select_dispatch,
+#if defined (OS_LINUX)
+    .init     =
+#endif
+                select_init,
+#if defined (OS_LINUX)
+    .deinit   =
+#endif
+                select_deinit,
+#if defined (OS_LINUX)
+    .add      =
+#endif
+                select_add,
+#if defined (OS_LINUX)
+    .del      =
+#endif
+                select_del,
+#if defined (OS_LINUX)
+    .dispatch =
+#endif
+                select_dispatch,
 };

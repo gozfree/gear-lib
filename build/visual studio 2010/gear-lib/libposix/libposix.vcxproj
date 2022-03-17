@@ -10,6 +10,113 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\banned.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\kernel_list.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\kernel_list_win32.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix4win.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix_ext.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\debugm.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\direct.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\dirent.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\error.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\fadvise.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\fcntl.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\fnmatch.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\getopt.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\iconv.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\inttypes.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\io.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\libgen.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\limits.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\msvclibx.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\msvclibx_version.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\netdb.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\process.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\regex.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\reparsept.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdarg.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdbool.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdint.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdio--.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdio.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdlib.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\string.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\strings.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\system.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\sys\param.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\sys\stat.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\sys\time.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\sys\types.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\sys\utsname.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\time.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\unistd.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\utime.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\windows.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\xfreopen.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix4win.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\access.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\asprintf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\aswprintf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\basename.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\chdir.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\clock_gettime.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\dasprintf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\daswprintf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\debugv.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\dirent.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\dirname.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\err2errno.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\filetime.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fnmatch.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fopen.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fstat.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fstat64.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fullpath.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fwrite.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getcwd.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetEncoding.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetFileAttributes.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetFileAttributesEx.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetFullPathName.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetLongPathName.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getopt.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getpagesize.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getppid.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\gettimeofday.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\iconv.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat32.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat32i64.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat64.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\main.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mb2wpath.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mkdir.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mkdtemp.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mkstemp.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\open.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\readlink.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\realpath.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\rmdir.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\snprintf.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\spawn.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\strerror.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\strndup.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\strptime.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\symlink.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\uname.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\unlink.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\utime.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\utimes.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\xfreopen.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix4win.c" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E965CCF-A6DE-4D7D-84A6-ED3F79659914}</ProjectGuid>
     <RootNamespace>libposix</RootNamespace>
@@ -41,13 +148,15 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libposix\MsvcLibX\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix\;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>"/DUCRTINCLUDE=$(VCInstallDir)include"   "/DMSVCINCLUDE=$(VCInstallDir)include" "/DWSDKINCLUDE=$(WindowsSdkDir)Include" %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Kernel32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Kernel32.lib;Mpr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ProjectReference />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -62,107 +171,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\kernel_list_win32.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix4win.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\debugm.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\direct.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\dirent.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\error.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\fadvise.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\fcntl.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\fnmatch.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\getopt.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\iconv.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\inttypes.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\io.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\libgen.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\limits.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\msvclibx.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\msvclibx_version.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\netdb.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\process.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\regex.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\reparsept.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdarg.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdbool.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdint.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdio--.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdio.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\stdlib.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\string.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\strings.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\system.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\time.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\unistd.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\utime.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\windows.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\MsvcLibX\include\xfreopen.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix4win.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\access.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\asprintf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\aswprintf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\basename.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\chdir.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\clock_gettime.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\dasprintf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\daswprintf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\debugv.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\dirent.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\dirname.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\err2errno.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\filetime.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fnmatch.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fopen.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fstat.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fstat64.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fstat64i32.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fullpath.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\fwrite.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getcwd.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetEncoding.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetFileAttributes.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetFileAttributesEx.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetFullPathName.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\GetLongPathName.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getopt.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getpagesize.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\getppid.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\gettimeofday.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\iconv.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat32.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat32i64.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat64.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\lstat64i32.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\main.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mb2wpath.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mkdir.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mkdtemp.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\mkstemp.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\open.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\readlink.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\realpath.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\rmdir.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\snprintf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\spawn.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\strerror.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\strndup.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\strptime.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\symlink.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\uname.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\unlink.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\utime.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\utimes.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\MsvcLibX\src\xfreopen.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix4win.c" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

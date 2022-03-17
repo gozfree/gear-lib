@@ -29,7 +29,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #else
-#define INET_ADDRSTRLEN 16
+//#define INET_ADDRSTRLEN 16
 #endif
 
 #ifdef ENABLE_PTCP

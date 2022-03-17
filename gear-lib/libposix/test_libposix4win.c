@@ -29,15 +29,17 @@ void foo()
 
     pthread_create(&tid, NULL, thread_func, NULL);
     sleep(1);
-    pthread_join(tid, NULL);
+
 
     memset(buf, 0, sizeof(buf));
-    pipe(fds);
+    ret = pipe(fds);
+	printf("pipe ret=%d\n", ret);
     printf("fds[0]=%d, fds[1]=%d\n", fds[0], fds[1]);
-    ret = write(fds[1], "aaa", 3);
-    printf("write ret = %d\n", ret);
-    read(fds[0], buf, 5);
-    printf("buf = %s\n", buf);
+    ret = pipe_write(fds[1], "aaa", 3);
+    printf("write %d ret = %d, errno=%d\n", fds[1], ret, errno);
+    pipe_read(fds[0], buf, 5);
+    printf("read pipe buf = %s\n", buf);
+    pthread_join(tid, NULL);
 }
 
 int main(int argc, char **argv)

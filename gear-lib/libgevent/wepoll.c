@@ -1212,7 +1212,7 @@ static inline int port__poll(port_state_t* port_state,
                              DWORD maxevents,
                              DWORD timeout) {
   DWORD completion_count;
-
+  BOOL r;
   if (port__update_events(port_state) < 0)
     return -1;
 
@@ -1220,7 +1220,7 @@ static inline int port__poll(port_state_t* port_state,
 
   LeaveCriticalSection(&port_state->lock);
 
-  BOOL r = GetQueuedCompletionStatusEx(port_state->iocp_handle,
+  r = GetQueuedCompletionStatusEx(port_state->iocp_handle,
                                        iocp_events,
                                        maxevents,
                                        &completion_count,
@@ -1552,7 +1552,7 @@ static void reflock__await_event(void* address) {
 }
 
 void reflock_ref(reflock_t* reflock) {
-  long state = InterlockedAdd(&reflock->state, REFLOCK__REF);
+  long state = InterlockedExchangeAdd(&reflock->state, REFLOCK__REF);
 
   /* Verify that the counter didn't overflow and the lock isn't destroyed. */
   assert((state & REFLOCK__DESTROY_MASK) == 0);
@@ -1560,7 +1560,7 @@ void reflock_ref(reflock_t* reflock) {
 }
 
 void reflock_unref(reflock_t* reflock) {
-  long state = InterlockedAdd(&reflock->state, -REFLOCK__REF);
+  long state = InterlockedExchangeAdd(&reflock->state, -REFLOCK__REF);
 
   /* Verify that the lock was referenced and not already destroyed. */
   assert((state & REFLOCK__DESTROY_MASK & ~REFLOCK__DESTROY) == 0);
@@ -1571,7 +1571,7 @@ void reflock_unref(reflock_t* reflock) {
 
 void reflock_unref_and_destroy(reflock_t* reflock) {
   long state =
-      InterlockedAdd(&reflock->state, REFLOCK__DESTROY - REFLOCK__REF);
+      InterlockedExchangeAdd(&reflock->state, REFLOCK__DESTROY - REFLOCK__REF);
   long ref_count = state & REFLOCK__REF_MASK;
 
   /* Verify that the lock was referenced and not already destroyed. */

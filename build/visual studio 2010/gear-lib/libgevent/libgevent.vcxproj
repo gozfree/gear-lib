@@ -16,7 +16,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -41,12 +41,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libdarray;..\..\..\..\gear-lib\libthread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libdarray;..\..\..\..\gear-lib\libthread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>"/DUCRTINCLUDE=$(VCInstallDir)include"   "/DMSVCINCLUDE=$(VCInstallDir)include" "/DWSDKINCLUDE=$(WindowsSdkDir)Include" %(AdditionalOptions)</AdditionalOptions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libposix.lib;libdarray.lib;libthread.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libposix.lib;libdarray.lib;libthread.lib;Ws2_32.lib;IPHLPAPI.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -64,11 +66,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\gear-lib\libgevent\libgevent.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libgevent\wepoll.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\libgevent.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\iocp.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libgevent\select.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\test_libgevent.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libgevent\wepoll.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

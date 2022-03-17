@@ -194,7 +194,7 @@ void thread_get_info(struct thread *t)
     if (0 == pthread_attr_getschedparam(&t->attr, &sp)) {
         printf("scheduling priority = %d\n", sp.sched_priority);
     }
-
+#if !defined (OS_WINDOWS)
     if (0 == pthread_attr_getguardsize(&t->attr, &v)) {
         printf("guard size = %zu bytes\n", v);
     }
@@ -202,6 +202,7 @@ void thread_get_info(struct thread *t)
     if (0 == pthread_attr_getstack(&t->attr, &stkaddr, &v)) {
         printf("stack address = %p, size = %zu\n", stkaddr, v);
     }
+#endif
 
     if (0 == pthread_getname_np(t->tid, t->name, sizeof(t->name))) {
         printf("thread name = %s\n", t->name);

@@ -81,13 +81,13 @@ typedef struct file_systat {
 } file_systat;
 
 typedef struct file_ops {
-    struct file_desc * (*open)(const char *path, file_open_mode_t mode);
-    ssize_t (*write)(struct file_desc *fd, const void *buf, size_t count);
-    ssize_t (*read)(struct file_desc *fd, void *buf, size_t count);
-    off_t (*seek)(struct file_desc *fd, off_t offset, int whence);
-    int (*sync)(struct file_desc *fd);
-    size_t (*size)(struct file_desc *fd);
-    void (*close)(struct file_desc *fd);
+    struct file_desc * (*_open)(const char *path, file_open_mode_t mode);
+    ssize_t (*_write)(struct file_desc *fd, const void *buf, size_t count);
+    ssize_t (*_read)(struct file_desc *fd, void *buf, size_t count);
+    off_t (*_seek)(struct file_desc *fd, off_t offset, int whence);
+    int (*_sync)(struct file_desc *fd);
+    size_t (*_size)(struct file_desc *fd);
+    void (*_close)(struct file_desc *fd);
 } file_ops_t;
 
 typedef enum file_backend_type {

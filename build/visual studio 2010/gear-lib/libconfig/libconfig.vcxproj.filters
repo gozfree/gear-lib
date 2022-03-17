@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ini">
+      <UniqueIdentifier>{75e800a2-7752-4c8e-a8f4-a6e5bf5cb8c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="json">
+      <UniqueIdentifier>{dd5948a1-0f1f-4611-b8a8-bfb29e052dab}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libconfig\Android.mk" />
+    <None Include="..\..\..\..\gear-lib\libconfig\Makefile" />
+    <None Include="..\..\..\..\gear-lib\libconfig\Makefile.nmake" />
+    <None Include="..\..\..\..\gear-lib\libconfig\README.md" />
+    <None Include="..\..\..\..\gear-lib\libconfig\ini\example.ini">
+      <Filter>ini</Filter>
+    </None>
+    <None Include="..\..\..\..\gear-lib\libconfig\json\all.json">
+      <Filter>json</Filter>
+    </None>
+    <None Include="..\..\..\..\gear-lib\libconfig\json\test.json">
+      <Filter>json</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\gear-lib\libconfig\config_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\gear-lib\libconfig\libconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\gear-lib\libconfig\ini\dictionary.h">
+      <Filter>ini</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\gear-lib\libconfig\ini\iniparser.h">
+      <Filter>ini</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\gear-lib\libconfig\json\cJSON.h">
+      <Filter>json</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\libconfig.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\test_libconfig.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\ini\dictionary.c">
+      <Filter>ini</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\ini\ini_config.c">
+      <Filter>ini</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\ini\iniparser.c">
+      <Filter>ini</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\json\cJSON.c">
+      <Filter>json</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\gear-lib\libconfig\json\json_config.c">
+      <Filter>json</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

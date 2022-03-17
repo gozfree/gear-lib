@@ -193,13 +193,12 @@ static int uri_check(const char* str, int len, struct uri_component_t* items)
 
 int uri_parse(struct uri_t *uri, char* str, size_t len)
 {
-    if (NULL == str || 0 == *str || len < 1) {
-        return -1;
-    }
     char *p;
     const char* pend;
     struct uri_component_t items;
-
+    if (NULL == str || 0 == *str || len < 1) {
+        return -1;
+    }
 	if (0 != uri_check(str, len, &items))
 		return -1; // invalid uri
 

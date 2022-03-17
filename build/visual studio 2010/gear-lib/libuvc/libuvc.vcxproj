@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{592CA352-77A6-4930-B24D-207C4110D0B0}</ProjectGuid>
-    <RootNamespace>librtmpc</RootNamespace>
+    <ProjectGuid>{E98FC40C-984D-4889-AFF4-5CD7CB03FEAB}</ProjectGuid>
+    <RootNamespace>libuvc</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -41,15 +41,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libqueue;..\..\..\..\gear-lib\libthread;..\..\..\..\gear-lib\libmedia-io;..\..\..\..\gear-lib\libdarray;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/DNO_CRYPTO %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libmedia-io;..\..\..\..\gear-lib\libfile;..\..\..\..\gear-lib\libthread;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>"/DUCRTINCLUDE=$(VCInstallDir)include"   "/DMSVCINCLUDE=$(VCInstallDir)include" "/DWSDKINCLUDE=$(WindowsSdkDir)Include" %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libposix.lib;libmedia-io.lib;libqueue.lib;libthread.lib;libdarray.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -66,31 +63,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\amf.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\bytes.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\cencode.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\dh.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\dhgroups.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\flv_mux.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\handshake.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\http.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\librtmpc.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\log.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\md5.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\rtmp.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtmpc\rtmp_sys.h" />
+    <None Include="..\..\..\..\gear-lib\libuvc\Android.mk" />
+    <None Include="..\..\..\..\gear-lib\libuvc\Makefile" />
+    <None Include="..\..\..\..\gear-lib\libuvc\Makefile.nmake" />
+    <None Include="..\..\..\..\gear-lib\libuvc\README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\amf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\cencode.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\flv_mux.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\hashswf.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\librtmpc.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\log.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\md5.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\parseurl.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\rtmp.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtmpc\test_librtmpc.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libuvc\dshow.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libuvc\dummy.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libuvc\libuvc.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libuvc\test_libuvc.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\gear-lib\libuvc\dshow.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libuvc\libuvc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <limits.h>
-#include <time.h>
+
 #include <stdint.h>
 
 #ifdef _WIN32
@@ -39,7 +39,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <Mstcpip.h>
-
+#include <time.h>
 
 #ifdef _MSC_VER	/* MSVC */
 #define snprintf _snprintf

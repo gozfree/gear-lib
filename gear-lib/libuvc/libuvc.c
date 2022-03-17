@@ -36,13 +36,13 @@ extern struct uvc_ops dshow_ops;
 #endif
 
 static struct uvc_ops *uvc_ops[] = {
-    [UVC_TYPE_DUMMY] = &dummy_ops,
+    &dummy_ops,
 #if defined (OS_LINUX)
-    [UVC_TYPE_V4L2]  = &v4l2_ops,
+    &v4l2_ops,
 #elif defined (OS_WINDOWS)
-    [UVC_TYPE_DSHOW] = &dshow_ops,
+    &dshow_ops,
 #endif
-    [UVC_TYPE_MAX] = NULL,
+    NULL,
 };
 
 struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf)

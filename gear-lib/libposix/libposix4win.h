@@ -38,7 +38,6 @@
 #include <io.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
 #include "pthreads4w/pthread.h"
 #include "pthreads4w/semaphore.h"
 
@@ -56,35 +55,15 @@ extern "C" {
 #define inline                    __inline
 #define __func__                  __FUNCTION__
 
-#if 0
-typedef SSIZE_T                   ssize_t;
-#ifndef _FILE_OFFSET_BITS_SET_OFFT
-typedef SSIZE_T                   off_t;
-#endif
-#endif
-
-
 /******************************************************************************
  * I/O string APIs
  ******************************************************************************/
-#define snprintf                  _snprintf
 #define sprintf                   _sprintf
 #define strcasecmp                _stricmp
 #define strncasecmp               _strnicmp
 #define strdup                    _strdup
 
-
 #define PATH_SPLIT                '\\'
-#if 0
-#define PRId8                     "d"
-#define PRId16                    "d"
-#define PRId32                    "d"
-#define PRId64                    "I64d"
-#define PRIu8                     "u"
-#define PRIu16                    "u"
-#define PRIu32                    "u"
-#define PRIu64                    "I64u"
-#endif
 
 #define iovec                     _WSABUF
 #define iov_len                   len
@@ -109,19 +88,10 @@ GEAR_API char *dup_wchar_to_utf8(wchar_t *w);
 typedef int                       mode_t;
 #endif
 
-#define F_OK                      0
-#define R_OK                      4
-#define W_OK                      2
-#define X_OK                      1
-
-#define getcwd(buf, size)         GetModuleFileName(NULL, buf, size)
-
-
 /******************************************************************************
  * pthread APIs
  ******************************************************************************/
 
-#define getpid                    GetCurrentProcessId
 #define gettid                    GetCurrentThreadId
 
 
@@ -240,10 +210,6 @@ typedef int clockid_t;
 GEAR_API int pipe(int fds[2]);
 GEAR_API int pipe_read(int fd, void *buf, size_t len);
 GEAR_API int pipe_write(int fd, const void *buf, size_t len);
-//#define write pipe_write
-//#define read pipe_read
-#define write   _write
-#define read    _read
 
 GEAR_API int eventfd(unsigned int initval, int flags);
 

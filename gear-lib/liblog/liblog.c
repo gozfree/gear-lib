@@ -31,9 +31,10 @@
 #include <errno.h>
 #include <time.h>
 #include <fcntl.h>
+#include <unistd.h>
 #if defined (OS_LINUX) || defined (OS_APPLE)
 #include <pthread.h>
-#include <unistd.h>
+
 #include <inttypes.h>
 #include <syslog.h>
 #include <sys/uio.h>

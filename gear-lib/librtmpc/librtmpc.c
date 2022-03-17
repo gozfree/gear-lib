@@ -24,9 +24,7 @@
 #include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined (OS_LINUX)
 #include <unistd.h>
-#endif
 #include <string.h>
 
 void rtmpc_destroy(struct rtmpc *rtmpc)

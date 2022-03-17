@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libconfig.h"
+#include <libfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -28,7 +29,7 @@
 static int ini_test(void)
 {
     struct config *conf = conf_load("ini/example.ini");
-    printf("ini_test\n");
+    printf("ini_test %s\n", file_path_pwd());
     conf_set_string(conf, "wine:year", "1122");
     conf_set_string(conf, "wine:aaaa", "ddd");
     conf_set_string(conf, "wine:eeee", "1.234");

@@ -26,22 +26,9 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <windows.h>
+#include <unistd.h>
+#include <sys/types.h>
 #define HAVE_WINRT 1
-
-int access(const char *file, int mode)
-{
-    int ret = 0;
-    WIN32_FIND_DATA info;
-    HANDLE hd;
-    hd = FindFirstFile(file, &info);
-    if (hd != INVALID_HANDLE_VALUE) {
-        ret = 0;
-    } else {
-        ret = -1;
-    }
-    FindClose(hd);
-    return ret;
-}
 
 int utf8towchar(const char *filename_utf8, wchar_t **filename_w)
 {
@@ -141,7 +128,7 @@ int get_proc_name(char *name, size_t len)
         do {
             if (pe32.th32ProcessID == GetCurrentProcessId()) {
                 got = 1;
-                strncpy(name, pe32.szExeFile, len);
+                strncpy_s(name, len, pe32.szExeFile, len);
                 break;
             }
         } while(Process32Next(hd, &pe32));
@@ -179,7 +166,7 @@ void usleep(unsigned long usec)
 {
     HANDLE timer;
     LARGE_INTEGER interval;
-    interval.QuadPart = -(10 * usec);
+    interval.QuadPart = -(10 * (long)usec);
 
     timer = CreateWaitableTimer(NULL, TRUE, NULL);
     SetWaitableTimer(timer, &interval, 0, NULL, NULL, 0);
@@ -236,8 +223,8 @@ char *dup_wchar_to_utf8(wchar_t *w)
 
 int pipe(int fds[2])
 {
-    PHANDLE rd;
-    PHANDLE wr;
+    HANDLE rd;
+    HANDLE wr;
 
     SECURITY_ATTRIBUTES sa;
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -247,16 +234,17 @@ int pipe(int fds[2])
     if (!CreatePipe(&rd, &wr, &sa, 0)) {
         return -1;
     }
-    fds[0] = rd;
-    fds[1] = wr;
+	printf("%s rd=%p, wr=%p\n", __func__, rd, wr);
+    fds[0] = (int)rd;
+    fds[1] = (int)wr;
     return 0;
 }
 
 int eventfd(unsigned int initval, int flags)
 {
     int fds[2];
-    PHANDLE rd;
-    PHANDLE wr;
+    HANDLE rd;
+    HANDLE wr;
 
     SECURITY_ATTRIBUTES sa;
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -266,8 +254,8 @@ int eventfd(unsigned int initval, int flags)
     if (!CreatePipe(&rd, &wr, &sa, 0)) {
         return -1;
     }
-    fds[0] = rd;
-    fds[1] = wr;
+    fds[0] = (int)rd;
+    fds[1] = (int)wr;
     return 0;
 }
 
@@ -275,8 +263,7 @@ int eventfd(unsigned int initval, int flags)
 int pipe_write(int fd, const void *buf, size_t len)
 {
     int written;
-    int ret;
-    if (WriteFile(fd, buf, len, &written, NULL)) {
+    if (WriteFile((HANDLE)fd, buf, len, &written, NULL)) {
         return written;
     }
     return -1;
@@ -285,8 +272,7 @@ int pipe_write(int fd, const void *buf, size_t len)
 int pipe_read(int fd, void *buf, size_t len)
 {
     int readen;
-    int ret;
-    if (ReadFile(fd, buf, len, &readen, NULL)) {
+    if (ReadFile((HANDLE)fd, buf, len, &readen, NULL)) {
         return readen;
     }
     return -1;

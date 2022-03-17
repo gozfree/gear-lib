@@ -23,9 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
-#endif
 
 void thread_print_info(struct thread *t)
 {
@@ -51,6 +49,9 @@ void foo()
     struct thread *t3 = thread_create(thread, NULL);
     printf("%s: t1->tid = %ld\n", __func__, *(long *)&t1->tid);
     printf("%s: t2->tid = %ld\n", __func__, *(long *)&t2->tid);
+    thread_set_name(t1, "first thread");
+    thread_set_name(t2, "second thread");
+    thread_set_name(t3, "third thread");
     thread_print_info(t1);
     thread_print_info(t2);
     thread_print_info(t3);
@@ -63,6 +64,7 @@ void foo()
 void foo2()
 {
     struct thread *t1 = thread_create(thread, NULL);
+    thread_set_name(t1, "first thread");
     thread_get_info(t1);
     thread_destroy(t1);
 }

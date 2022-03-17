@@ -54,14 +54,21 @@ static int on_frame(struct uvc_ctx *c, struct video_frame *frm)
 
 int v4l2_test()
 {
+	struct uvc_ctx *uvc;
     struct video_frame *frm;
     struct uvc_config conf = {
-        .width  = VIDEO_WIDTH,
-        .height = VIDEO_HEIGHT,
-        .fps    = {30, 1},
-        .format = PIXEL_FORMAT_YUY2,
+         VIDEO_WIDTH,
+        VIDEO_HEIGHT,
+        {30, 1},
+        PIXEL_FORMAT_YUY2,
     };
-    struct uvc_ctx *uvc = uvc_open(UVC_TYPE_V4L2, VIDEO_DEV, &conf);
+	enum uvc_type type;
+#if defined (OS_LINUX)
+	type = UVC_TYPE_V4L2;
+#elif defined (OS_WINDOWS)
+	type = UVC_TYPE_DSHOW;
+#endif
+    uvc = uvc_open(type, VIDEO_DEV, &conf);
     if (!uvc) {
         printf("uvc_open failed!\n");
         return -1;
@@ -92,10 +99,10 @@ int dummy_test()
 {
     struct video_frame *frm;
     struct uvc_config conf = {
-        .width  = 320,
-        .height = 240,
-        .fps    = {30, 1},
-        .format = PIXEL_FORMAT_YUY2,
+        320,
+        240,
+        {30, 1},
+        PIXEL_FORMAT_YUY2,
     };
     struct uvc_ctx *uvc = uvc_open(UVC_TYPE_DUMMY, "sample_yuv422p.yuv", &conf);
     if (!uvc) {
