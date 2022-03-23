@@ -87,6 +87,7 @@ LDFLAGS	:= $($(ARCH)_LDFLAGS)
 ifeq ($(ENABLE_LUA), 1)
 LDFLAGS	+= `pkg-config --libs lua5.2`
 endif
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile
 
 ###############################################################################
 # target
