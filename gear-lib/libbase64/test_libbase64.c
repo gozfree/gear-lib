@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     memset(target2, 0, sizeof(target2));
     ret_bytes = base64_encode(target, source, strlen(source));
 
-    printf("src size: %Iu , return byte: %d , target:%s\n", strlen(source), ret_bytes, target);
+    printf("src size: %zu , return byte: %d , target:%s\n", strlen(source), ret_bytes, target);
 
     ret_bytes = base64_decode(target2, target, ret_bytes);
     target[ret_bytes]='\0';
