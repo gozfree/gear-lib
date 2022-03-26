@@ -401,7 +401,6 @@ int file_dir_create(const char *path)
 
 int dfs_remove_dir(const char *path)
 {
-#if defined (OS_LINUX)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -420,7 +419,7 @@ int dfs_remove_dir(const char *path)
             continue;
         }
         memset(full_path, 0, sizeof(full_path));
-        sprintf(full_path, "%s/%s", path, ent->d_name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, ent->d_name);
         if (ent->d_type == DT_DIR) {
             ret = dfs_remove_dir(full_path);
             if (ret != 0) {
@@ -431,9 +430,6 @@ int dfs_remove_dir(const char *path)
     }
     closedir(pdir);
     return ret;
-#else
-    return 0;
-#endif
 }
 
 int file_dir_remove(const char *path)
@@ -444,7 +440,6 @@ int file_dir_remove(const char *path)
 
 int file_dir_tree(const char *path)
 {
-#if defined (OS_LINUX)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -461,7 +456,7 @@ int file_dir_tree(const char *path)
     }
     while (NULL != (ent = readdir(pdir))) {
         memset(full_path, 0, sizeof(full_path));
-        sprintf(full_path, "%s/%s", path, ent->d_name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, ent->d_name);
         if (ent->d_type == DT_DIR) {
             if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..")) {
                 continue;
@@ -476,13 +471,11 @@ int file_dir_tree(const char *path)
         }
     }
     closedir(pdir);
-#endif
     return 0;
 }
 
 int dfs_dir_size(const char *path, uint64_t *size)
 {
-#if defined (OS_LINUX)
     DIR *pdir = NULL;
     struct dirent *ent = NULL;
     char full_path[PATH_MAX];
@@ -498,7 +491,7 @@ int dfs_dir_size(const char *path, uint64_t *size)
     }
     while (NULL != (ent = readdir(pdir))) {
         memset(full_path, 0, sizeof(full_path));
-        sprintf(full_path, "%s/%s", path, ent->d_name);
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, ent->d_name);
         if (ent->d_type == DT_DIR) {
             if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, "..")) {
                 continue;
@@ -513,7 +506,6 @@ int dfs_dir_size(const char *path, uint64_t *size)
         }
     }
     closedir(pdir);
-#endif
     return 0;
 }
 
@@ -525,7 +517,6 @@ int file_dir_size(const char *path, uint64_t *size)
 
 int file_num_in_dir(const char *path)
 {
-#if defined (OS_LINUX)
     if (!path) {
         return -1;
     }
@@ -544,14 +535,10 @@ int file_num_in_dir(const char *path)
     }
     closedir(dir);
     return num;
-#else
-    return 0;
-#endif
 }
 
 int file_get_info(const char *path, struct file_info *info)
 {
-#if defined (OS_LINUX)
     struct stat st;
     if (-1 == stat(path, &st)) {
         printf("stat %s failed!\n", path);
@@ -580,6 +567,5 @@ int file_get_info(const char *path, struct file_info *info)
     info->size = st.st_size;
     info->access_sec = st.st_atim.tv_sec;
     info->modify_sec = st.st_ctim.tv_sec;//using change, not modify
-#endif
     return 0;
 }

@@ -22,7 +22,7 @@ RM_V		?= $(RM)
 # target and object
 ###############################################################################
 LIBNAME		= libmedia-io
-VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
+VER_TAG		= LIBMEDIA_IO
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h audio-def.h video-def.h
 TGT_LIB_A	= $(LIBNAME).a

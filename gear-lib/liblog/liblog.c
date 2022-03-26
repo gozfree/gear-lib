@@ -32,18 +32,18 @@
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <pthread.h>
-
 #include <inttypes.h>
-#include <syslog.h>
-#ifndef __CYGWIN__
-#include <sys/syscall.h>
-#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/param.h>
+
+#if defined (OS_LINUX) || defined (OS_APPLE)
+#include <syslog.h>
+#ifndef __CYGWIN__
+#include <sys/syscall.h>
+#endif
 
 #define USE_SYSLOG
 

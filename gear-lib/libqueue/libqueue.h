@@ -23,9 +23,7 @@
 #define LIBQUEUE_H
 
 #include <libposix.h>
-#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
 #include <pthread.h>
-#endif
 
 #define LIBQUEUE_VERSION "0.2.2"
 

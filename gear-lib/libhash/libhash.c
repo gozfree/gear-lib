@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 /*
  * [opaque_list]
  * [bucket0] -> item[1] -> item[2] -> ... -> item[m0]
