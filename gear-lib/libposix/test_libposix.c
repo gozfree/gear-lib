@@ -21,16 +21,12 @@
  ******************************************************************************/
 #include "libposix.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <sys/types.h>
+#include <errno.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <sys/stat.h>
-#endif
 
 static void *thread_func(void *arg)
 {
@@ -40,6 +36,9 @@ static void *thread_func(void *arg)
 
 void foo()
 {
+    int ret;
+    char buf[10];
+    int fds[2];
     pthread_t tid;
     char proc[128] = {0};
     const char *file = "version.sh";
@@ -56,6 +55,15 @@ void foo()
     sleep(1);
     pthread_join(tid, NULL);
 
+
+    memset(buf, 0, sizeof(buf));
+    ret = pipe(fds);
+	printf("pipe ret=%d\n", ret);
+    printf("fds[0]=%d, fds[1]=%d\n", fds[0], fds[1]);
+    ret = pipe_write(fds[1], "aaa", 3);
+    printf("write %d ret = %d, errno=%d\n", fds[1], ret, errno);
+    pipe_read(fds[0], buf, 5);
+    printf("read pipe buf = %s\n", buf);
 }
 
 int main(int argc, char **argv)

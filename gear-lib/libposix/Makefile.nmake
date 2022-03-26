@@ -14,7 +14,7 @@ TGT_LIB_SO	= $(LIBNAME).dll
 TGT_UNIT_TEST	= test_$(LIBNAME).exe
 
 OBJS_LIB	= $(LIBNAME).obj libposix4win.obj
-OBJS_UNIT_TEST	= test_libposix4win.obj
+OBJS_UNIT_TEST	= test_$(LIBNAME).obj
 
 ###############################################################################
 # cflags and ldflags

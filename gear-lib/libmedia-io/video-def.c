@@ -24,10 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#if defined (OS_LINUX)
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#endif
 
 #define ALIGNMENT 32
 #define ALIGN_SIZE(size, align) (((size) + (align - 1)) & (~(align - 1)))

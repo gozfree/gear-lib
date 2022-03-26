@@ -135,11 +135,8 @@
     <ClInclude Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.h">
       <Filter>pthreads4w</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\banned.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\kernel_list.h" />
     <ClInclude Include="..\..\..\..\gear-lib\libposix\kernel_list_win32.h" />
     <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix_ext.h" />
     <ClInclude Include="..\..\..\..\gear-lib\libposix\libposix4win.h" />
   </ItemGroup>
   <ItemGroup>
@@ -310,6 +307,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix4win.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix4win.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix.c" />
   </ItemGroup>
 </Project>
