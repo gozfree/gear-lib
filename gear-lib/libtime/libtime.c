@@ -25,8 +25,8 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <sys/time.h>
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <sys/timeb.h>
 #endif
 
@@ -112,16 +112,12 @@ uint64_t time_now_usec(struct timeval *val)
 
 static uint64_t _time_clock_gettime(clockid_t clk_id)
 {
-#if defined (OS_LINUX) || defined (OS_APPLE)
     struct timespec ts;
     if (-1 == clock_gettime(clk_id, &ts)) {
         printf("clock_gettime failed %d:%s\n", errno, strerror(errno));
         return -1;
     }
     return (uint64_t)(((uint64_t)ts.tv_sec*1000*1000*1000) + (uint64_t)ts.tv_nsec);
-#elif defined (OS_WINDOWS)
-    return 0;
-#endif
 }
 
 uint64_t time_now_msec()

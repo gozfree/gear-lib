@@ -23,7 +23,7 @@
 #include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 
 #define PALIGN   "%15s: %6.4f sec\n"
 //#define NKEYS   1024*1024

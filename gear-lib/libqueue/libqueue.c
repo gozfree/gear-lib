@@ -19,15 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include "libqueue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
-#include "libqueue.h"
-#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <sys/time.h>
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <sys/eventfd.h>
 #endif
 

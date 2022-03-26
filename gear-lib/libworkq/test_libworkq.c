@@ -21,9 +21,7 @@
  ******************************************************************************/
 #include "libworkq.h"
 #include <stdio.h>
-#ifdef OS_LINUX
 #include <unistd.h>
-#endif
 
 void test(void *arg)
 {

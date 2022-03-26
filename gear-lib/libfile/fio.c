@@ -24,9 +24,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#if defined (OS_LINUX)
 #include <unistd.h>
-#endif
 
 #define MAX_RETRY_CNT   (3)
 
