@@ -21,11 +21,9 @@
  ******************************************************************************/
 #include "libgevent.h"
 #include <stdio.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #if defined (OS_LINUX)
 #include <sys/sysinfo.h>
-#endif
 #endif
 #include <signal.h>
 

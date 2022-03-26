@@ -27,19 +27,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <windows.h>
 #include <winsock2.h>
-#include <time.h>
-#include <direct.h>
 #include <ws2tcpip.h>
-#include <process.h>
 #include <tlhelp32.h>
-#include <fcntl.h>
-#include <io.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "pthreads4w/pthread.h"
 #include "pthreads4w/semaphore.h"
+#include "kernel_list_win32.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,10 +43,6 @@ extern "C" {
 /******************************************************************************
  * basic types
  ******************************************************************************/
-#define false                     0
-#define true                      1
-#define bool                      int
-
 #define inline                    __inline
 #define __func__                  __FUNCTION__
 
@@ -76,22 +67,11 @@ GEAR_API char *dup_wchar_to_utf8(wchar_t *w);
 /******************************************************************************
  * sys file APIs
  ******************************************************************************/
-#define STDIN_FILENO              0       /* standard input file descriptor */
-#define STDOUT_FILENO             1       /* standard output file descriptor */
-#define STDERR_FILENO             2       /* standard error file descriptor */
 #define MAXPATHLEN                1024
-#ifndef PATH_MAX
-#define PATH_MAX                  4096
-#endif
-
-#ifndef _MODE_T_
-typedef int                       mode_t;
-#endif
 
 /******************************************************************************
  * pthread APIs
  ******************************************************************************/
-
 #define gettid                    GetCurrentThreadId
 
 

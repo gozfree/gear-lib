@@ -31,6 +31,7 @@
 #include "freertos/semphr.h"
 #include "freertos/event_groups.h"
 #endif
+#include "kernel_list.h"
 
 
 #ifdef __cplusplus

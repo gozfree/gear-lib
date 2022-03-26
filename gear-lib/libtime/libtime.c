@@ -170,15 +170,11 @@ char *time_now_msec_str(char *str, int len)
 
 int time_sleep_ms(uint64_t ms)
 {
-#if defined (OS_LINUX)
     struct timeval tv;
     tv.tv_sec = 0;
     tv.tv_usec = ms*1000;
     return select(0, NULL, NULL, NULL, &tv);
-#elif defined (OS_WINDOWS)
-    usleep(ms*1000);
     return 0;
-#endif
 }
 
 int time_info_by_utc(uint32_t utc, struct time_info *ti)
