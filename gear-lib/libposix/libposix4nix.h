@@ -19,8 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#ifndef LIBPOSIX4LINUX_H
-#define LIBPOSIX4LINUX_H
+#ifndef LIBPOSIX4NIX_H
+#define LIBPOSIX4NIX_H
 
 #include <stdint.h>
 #include <string.h>

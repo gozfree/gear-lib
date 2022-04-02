@@ -34,7 +34,7 @@ extern "C" {
 #if defined (__linux__) || defined (__CYGWIN__)
 #define OS_LINUX
 #define GEAR_API __attribute__((visibility("default")))
-#include "libposix4linux.h"
+#include "libposix4nix.h"
 
 /******************************************************************************
  * OS_WINDOWS
@@ -154,6 +154,7 @@ typedef struct rational {
  * Variable-argument unused annotation
  */
 #define UNUSED(e, ...)      (void) ((void) (e), ##__VA_ARGS__)
+#define UNUSED_PARAMETER(param) (void)param
 
 #define SWAP(a, b)          \
     do { typeof(a) __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
@@ -226,6 +227,25 @@ GEAR_API bool is_little_endian(void);
 
 GEAR_API int get_proc_name(char *name, size_t len);
 
+/*
+ *       mbs
+ *      /  \
+ *     /    \
+ *  wcs ---- utf8
+ */
+GEAR_API size_t utf8_to_wchar(const char *in, size_t insize, wchar_t *out, size_t outsize, int flags);
+GEAR_API size_t wchar_to_utf8(const wchar_t *in, size_t insize, char *out, size_t outsize, int flags);
+GEAR_API size_t mbs_to_wcs(const char *str, size_t len, wchar_t *dst, size_t dst_size);
+GEAR_API size_t wcs_to_mbs(const wchar_t *str, size_t len, char *dst, size_t dst_size);
+GEAR_API size_t utf8_to_wcs(const char *str, size_t len, wchar_t *dst, size_t dst_size);
+GEAR_API size_t wcs_to_utf8(const wchar_t *str, size_t len, char *dst, size_t dst_size);
+
+GEAR_API size_t mbs_to_wcs_ptr(const char *str, size_t len, wchar_t **pstr);
+GEAR_API size_t wcs_to_mbs_ptr(const wchar_t *str, size_t len, char **pstr);
+GEAR_API size_t utf8_to_wcs_ptr(const char *str, size_t len, wchar_t **pstr);
+GEAR_API size_t wcs_to_utf8_ptr(const wchar_t *str, size_t len, char **pstr);
+GEAR_API size_t utf8_to_mbs_ptr(const char *str, size_t len, char **pstr);
+GEAR_API size_t mbs_to_utf8_ptr(const char *str, size_t len, char **pstr);
 
 #ifdef __cplusplus
 }
