@@ -24,13 +24,13 @@ RM_V		?= $(RM)
 LIBNAME		= libdarray
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
-TGT_LIB_H	= $(LIBNAME).h libserializer.h
+TGT_LIB_H	= $(LIBNAME).h libserializer.h libdstring.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o libserializer.o
+OBJS_LIB	= $(LIBNAME).o libserializer.o libdstring.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -54,6 +54,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix
 LDFLAGS	+= -pthread
 
 ###############################################################################
@@ -76,7 +77,7 @@ $(TGT_LIB_A): $(OBJS_LIB)
 	$(AR_V) rcs $@ $^
 
 $(TGT_LIB_SO): $(OBJS_LIB)
-	$(CC_V) -o $@ $^ $(SHARED)
+	$(CC_V) -o $@ $^ $(SHARED) $(LDFLAGS)
 	@mv $(TGT_LIB_SO) $(TGT_LIB_SO_VER)
 	@ln -sf $(TGT_LIB_SO_VER) $(TGT_LIB_SO)
 
