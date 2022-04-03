@@ -22,6 +22,8 @@
 #include "libhal.h"
 #include <stdio.h>
 #include <stdlib.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 void foo2()
 {
@@ -35,14 +37,24 @@ int main(int argc, char **argv)
     struct network_ports ports;
     struct network_info ni;
     struct cpu_info ci;
+    struct memory_info mi;
+    struct os_info oi;
     int i;
     foo2();
     network_get_info("lo", &ni);
     cpu_get_info(&ci);
     printf("%s\n", ni.ipaddr);
-    printf("cores = %d, cores_available = %d\n", ci.cores, ci.cores_available);
-    printf("features = %s\n", ci.features);
-    printf("name = %s\n", ci.name);
+    printf("CPU name: %s\n", ci.name);
+    printf("CPU speed: %s\n", ci.name);
+    printf("Physical cores: %d, Logical cores: %d\n", ci.cores_physical, ci.cores_logical);
+
+    memory_get_info(&mi);
+    printf("Physical Memory: %" PRIu64 "MB Total, %" PRIu64 "MB Free",
+                    mi.total/1024/1024, mi.free/1024/1024);
+
+    os_get_info(&oi);
+
+	printf("Kernel Version: %s %s", oi.sysname, oi.release);
     network_get_port_occupied(&ports);
     for (i = 0; i < ports.tcp_cnt; i++) {
         printf("tcp_ports = %d\n", ports.tcp[i]);

@@ -22,12 +22,10 @@
 #ifndef LIBHAL_H
 #define LIBHAL_H
 
+#include <libposix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <arpa/inet.h>
-#include <linux/if.h>
-#include <linux/wireless.h>
 
 #define LIBHAL_VERSION "0.1.0"
 
@@ -36,11 +34,24 @@ extern "C" {
 #endif
 
 struct cpu_info {
-    int cores;
-    int cores_available;
+    int cores_logical;
+    int cores_physical;
     char name[128];
+    char speed[16];
     char features[1024];
 };
+
+struct memory_info {
+    uint64_t total;
+    uint64_t free;
+};
+
+struct os_info {
+    char sysname[128];
+    char release[128];
+};
+
+
 
 struct sdcard_info {
     bool is_insert;
@@ -59,6 +70,9 @@ struct network_info {
     bool is_running;
     char ipaddr[16];
     char macaddr[32];
+#ifndef IW_ESSID_MAX_SIZE
+#define IW_ESSID_MAX_SIZE   32
+#endif
     char ssid[IW_ESSID_MAX_SIZE+1];
     char pswd[64];
 };
@@ -75,6 +89,7 @@ int network_get_info(const char *interface, struct network_info *info);
 int network_get_port_occupied(struct network_ports *ports);
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
 int cpu_get_info(struct cpu_info *info);
+int memory_get_info(struct memory_info *info);
 
 int system_noblock(char **argv);
 ssize_t system_with_result(const char *cmd, void *buf, size_t count);

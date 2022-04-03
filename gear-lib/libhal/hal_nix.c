@@ -20,6 +20,7 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libhal.h"
+#include <libdstring.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -36,8 +37,8 @@
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <linux/if.h>
-#include <linux/wireless.h>
+//#include <linux/if.h>
+//#include <linux/wireless.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define is_str_equal(a,b) \
@@ -117,6 +118,7 @@ static ssize_t file_read_path(const char *path, void *data, size_t len)
 
 int network_get_info(const char *interface, struct network_info *info)
 {
+#if 0
     int ret = -1;
     int fd = 0;
     do {
@@ -209,6 +211,8 @@ int network_get_info(const char *interface, struct network_info *info)
         close(fd);
     }
     return ret;
+#endif
+    return 0;
 }
 
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info)
@@ -273,31 +277,81 @@ int sdcard_get_info(const char *mount_point, struct sdcard_info *info)
 int cpu_get_info(struct cpu_info *info)
 {
     FILE *fp;
-    char *p;
-    char buf[512];
+    char *line = NULL;
+    size_t linecap = 0;
+    struct dstr proc_name;
+    struct dstr proc_speed;
+    int physical_id = -1;
+    int last_physical_id = -1;
 
-    info->cores = get_nprocs_conf();
-    info->cores_available = get_nprocs();
+    info->cores_physical = get_nprocs_conf();
+    info->cores_logical = get_nprocs();
 
     if (NULL == (fp = fopen("/proc/cpuinfo", "r"))) {
         printf("read cpuinfo failed!\n");
         return -1;
     }
-    while (fgets(buf, 511, fp) != NULL) {
-        if (memcmp(buf, "flags", 5) == 0 ||//x86
-            memcmp(buf, "Features", 8) == 0) {//arm
-            if (NULL != (p = strstr(buf, ": "))) {
-                strcpy(info->features, p+2);
-            }
+
+    dstr_init(&proc_name);
+    dstr_init(&proc_speed);
+
+    while (getline(&line, &linecap, fp) != -1) {
+        if (!strncmp(line, "model name", 10)) {
+            char *start = strchr(line, ':');
+            if (!start || *(++start) == '\0')
+                continue;
+            dstr_copy(&proc_name, start);
+            dstr_resize(&proc_name, proc_name.len - 1);
+            dstr_depad(&proc_name);
         }
-        if (memcmp(buf, "model name", 10) == 0) {
-            if (NULL != (p = strstr(buf, ": "))) {
-                strcpy(info->name, p+2);
-            }
+        if (!strncmp(line, "physical id", 11)) {
+            char *start = strchr(line, ':');
+            if (!start || *(++start) == '\0')
+                continue;
+            physical_id = atoi(start);
         }
-        memset(buf, 0, sizeof(buf));
+        if (!strncmp(line, "cpu MHz", 7)) {
+            char *start = strchr(line, ':');
+            if (!start || *(++start) == '\0')
+                continue;
+            dstr_copy(&proc_speed, start);
+            dstr_resize(&proc_speed, proc_speed.len - 1);
+            dstr_depad(&proc_speed);
+        }
+
+        if (*line == '\n' && physical_id != last_physical_id) {
+            last_physical_id = physical_id;
+            strncpy(info->name, proc_name.array, sizeof(info->name));
+            strncpy(info->speed, proc_speed.array, sizeof(info->speed));
+        }
     }
+
     fclose(fp);
+    dstr_free(&proc_name);
+    dstr_free(&proc_speed);
+    free(line);
+    return 0;
+}
+
+int memory_get_info(struct memory_info *mem)
+{
+	struct sysinfo info;
+	if (sysinfo(&info) < 0)
+		return -1;
+
+    mem->total = (uint64_t)info.totalram * info.mem_unit;
+    mem->free = ((uint64_t)info.freeram + (uint64_t)info.bufferram) * info.mem_unit;
+    return 0;
+}
+
+int os_get_version(struct os_info *os)
+{
+	struct utsname info;
+	if (uname(&info) < 0)
+		return -1;
+
+    strncpy(os->sysname, info.sysname, sizeof(os->sysname));
+    strncpy(os->release, info.release, sizeof(os->release));
     return 0;
 }
 
