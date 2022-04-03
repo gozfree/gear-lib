@@ -30,7 +30,7 @@ TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o
+OBJS_LIB	= hal_nix.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -54,6 +54,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -ldarray -lposix
 LDFLAGS	+= -pthread
 
 ###############################################################################
