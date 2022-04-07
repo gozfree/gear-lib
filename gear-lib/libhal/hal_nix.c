@@ -35,10 +35,9 @@
 #include <sys/vfs.h>
 #include <sys/socket.h>
 #include <sys/sysinfo.h>
+#include <sys/utsname.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-//#include <linux/if.h>
-//#include <linux/wireless.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define is_str_equal(a,b) \
@@ -335,9 +334,9 @@ int cpu_get_info(struct cpu_info *info)
 
 int memory_get_info(struct memory_info *mem)
 {
-	struct sysinfo info;
-	if (sysinfo(&info) < 0)
-		return -1;
+    struct sysinfo info;
+    if (sysinfo(&info) < 0)
+        return -1;
 
     mem->total = (uint64_t)info.totalram * info.mem_unit;
     mem->free = ((uint64_t)info.freeram + (uint64_t)info.bufferram) * info.mem_unit;
@@ -346,12 +345,13 @@ int memory_get_info(struct memory_info *mem)
 
 int os_get_version(struct os_info *os)
 {
-	struct utsname info;
-	if (uname(&info) < 0)
-		return -1;
+    struct utsname info;
+    if (uname(&info) < 0)
+        return -1;
 
     strncpy(os->sysname, info.sysname, sizeof(os->sysname));
     strncpy(os->release, info.release, sizeof(os->release));
+	printf("Kernel Version: %s %s\n", os->sysname, os->release);
     return 0;
 }
 

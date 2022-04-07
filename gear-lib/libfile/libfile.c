@@ -517,12 +517,12 @@ int file_dir_size(const char *path, uint64_t *size)
 
 int file_num_in_dir(const char *path)
 {
-    if (!path) {
-        return -1;
-    }
     DIR *dir = NULL;
     struct dirent *ent = NULL;
     int num = 0;
+    if (!path) {
+        return -1;
+    }
     dir = opendir(path);
     if (dir == NULL) {
         return -1;
