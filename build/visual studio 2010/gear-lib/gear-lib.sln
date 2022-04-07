@@ -96,6 +96,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libuvc", "libuvc\libuvc.vcx
 		{1CA3BCD5-B8F1-4C37-A55E-C29E39CB7EB6} = {1CA3BCD5-B8F1-4C37-A55E-C29E39CB7EB6}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhal", "libhal\libhal.vcxproj", "{496D075D-50CA-465D-9D0A-D9229257FC48}"
+	ProjectSection(ProjectDependencies) = postProject
+		{88F2DE94-0375-40CF-92C0-70B98C56B508} = {88F2DE94-0375-40CF-92C0-70B98C56B508}
+		{2E965CCF-A6DE-4D7D-84A6-ED3F79659914} = {2E965CCF-A6DE-4D7D-84A6-ED3F79659914}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -166,6 +172,10 @@ Global
 		{E98FC40C-984D-4889-AFF4-5CD7CB03FEAB}.Debug|Win32.Build.0 = Debug|Win32
 		{E98FC40C-984D-4889-AFF4-5CD7CB03FEAB}.Release|Win32.ActiveCfg = Release|Win32
 		{E98FC40C-984D-4889-AFF4-5CD7CB03FEAB}.Release|Win32.Build.0 = Release|Win32
+		{496D075D-50CA-465D-9D0A-D9229257FC48}.Debug|Win32.ActiveCfg = Debug|Win32
+		{496D075D-50CA-465D-9D0A-D9229257FC48}.Debug|Win32.Build.0 = Debug|Win32
+		{496D075D-50CA-465D-9D0A-D9229257FC48}.Release|Win32.ActiveCfg = Release|Win32
+		{496D075D-50CA-465D-9D0A-D9229257FC48}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

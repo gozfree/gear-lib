@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{88F2DE94-0375-40CF-92C0-70B98C56B508}</ProjectGuid>
-    <RootNamespace>libdarray</RootNamespace>
+    <ProjectGuid>{496D075D-50CA-465D-9D0A-D9229257FC48}</ProjectGuid>
+    <RootNamespace>libhal</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -41,12 +41,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\libdarray;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>"/DUCRTINCLUDE=$(VCInstallDir)include"   "/DMSVCINCLUDE=$(VCInstallDir)include" "/DWSDKINCLUDE=$(WindowsSdkDir)Include" %(AdditionalOptions)</AdditionalOptions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libposix.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -63,14 +65,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\gear-lib\libdarray\libdarray.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libdarray\libdstring.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\libdarray\libserializer.h" />
+    <ClCompile Include="..\..\..\..\gear-lib\libhal\hal_win.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libhal\test_libhal.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\gear-lib\libdarray\libdarray.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libdarray\libdstring.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\libdarray\libserializer.c" />
+    <ClInclude Include="..\..\..\..\gear-lib\libhal\libhal.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

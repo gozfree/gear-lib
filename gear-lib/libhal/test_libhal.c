@@ -49,12 +49,11 @@ int main(int argc, char **argv)
     printf("Physical cores: %d, Logical cores: %d\n", ci.cores_physical, ci.cores_logical);
 
     memory_get_info(&mi);
-    printf("Physical Memory: %" PRIu64 "MB Total, %" PRIu64 "MB Free",
+    printf("Physical Memory: %" PRIu64 "MB Total, %" PRIu64 "MB Free\n",
                     mi.total/1024/1024, mi.free/1024/1024);
 
-    os_get_info(&oi);
+    os_get_version(&oi);
 
-	printf("Kernel Version: %s %s", oi.sysname, oi.release);
     network_get_port_occupied(&ports);
     for (i = 0; i < ports.tcp_cnt; i++) {
         printf("tcp_ports = %d\n", ports.tcp[i]);

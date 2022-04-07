@@ -49,9 +49,12 @@ struct memory_info {
 struct os_info {
     char sysname[128];
     char release[128];
+    int major;
+    int minor;
+    int build;
+    int revis;
+    int bit;
 };
-
-
 
 struct sdcard_info {
     bool is_insert;
@@ -85,11 +88,12 @@ struct network_ports {
 };
 
 
-int network_get_info(const char *interface, struct network_info *info);
+int network_get_info(const char *inf, struct network_info *info);
 int network_get_port_occupied(struct network_ports *ports);
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
 int cpu_get_info(struct cpu_info *info);
 int memory_get_info(struct memory_info *info);
+int os_get_version(struct os_info *os);
 
 int system_noblock(char **argv);
 ssize_t system_with_result(const char *cmd, void *buf, size_t count);

@@ -553,10 +553,11 @@ void dstr_catf(struct dstr *dst, const char *format, ...)
 
 void dstr_vprintf(struct dstr *dst, const char *format, va_list args)
 {
+	int len;
 	va_list args_cp;
 	va_copy(args_cp, args);
 
-	int len = vsnprintf(NULL, 0, format, args_cp);
+	len = vsnprintf(NULL, 0, format, args_cp);
 	va_end(args_cp);
 
 	if (len < 0)
@@ -575,10 +576,11 @@ void dstr_vprintf(struct dstr *dst, const char *format, va_list args)
 
 void dstr_vcatf(struct dstr *dst, const char *format, va_list args)
 {
+	int len;
 	va_list args_cp;
 	va_copy(args_cp, args);
 
-	int len = vsnprintf(NULL, 0, format, args_cp);
+	len = vsnprintf(NULL, 0, format, args_cp);
 	va_end(args_cp);
 
 	if (len < 0)
