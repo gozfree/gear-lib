@@ -20,9 +20,6 @@
     <ClCompile Include="..\..\..\..\gear-lib\libuvc\dshow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\gear-lib\libuvc\dummy.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\gear-lib\libuvc\libuvc.c">
       <Filter>Source Files</Filter>
     </ClCompile>

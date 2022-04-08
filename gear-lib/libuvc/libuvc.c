@@ -28,16 +28,17 @@
 #include <errno.h>
 #include <stdarg.h>
 
-extern struct uvc_ops dummy_ops;
 #if defined (OS_LINUX)
+extern struct uvc_ops dummy_ops;
 extern struct uvc_ops v4l2_ops;
 #elif defined (OS_WINDOWS)
 extern struct uvc_ops dshow_ops;
 #endif
 
 static struct uvc_ops *uvc_ops[] = {
-    &dummy_ops,
+
 #if defined (OS_LINUX)
+	&dummy_ops,
     &v4l2_ops,
 #elif defined (OS_WINDOWS)
     &dshow_ops,
@@ -62,7 +63,7 @@ struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config 
         printf("uvc->ops %d is NULL!\n", type);
         return NULL;
     }
-    uvc->opaque = uvc->ops->open(uvc, dev, conf);
+    uvc->opaque = uvc->ops->_open(uvc, dev, conf);
     if (!uvc->opaque) {
         printf("open %s failed!\n", dev);
         goto failed;
@@ -135,6 +136,6 @@ void uvc_close(struct uvc_ctx *uvc)
         printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return;
     }
-    uvc->ops->close(uvc);
+    uvc->ops->_close(uvc);
     free(uvc);
 }
