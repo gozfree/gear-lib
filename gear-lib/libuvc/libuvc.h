@@ -38,8 +38,8 @@ extern "C" {
 #endif
 
 enum uvc_type {
-    UVC_TYPE_DUMMY = 0,
 #if defined (OS_LINUX)
+    UVC_TYPE_DUMMY = 0,
     UVC_TYPE_V4L2,
 #elif defined (OS_WINDOWS)
     UVC_TYPE_DSHOW,
@@ -107,8 +107,8 @@ struct video_ctrl {
 
 
 struct uvc_ops {
-    void *(*open)(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf);
-    void (*close)(struct uvc_ctx *c);
+    void *(*_open)(struct uvc_ctx *uvc, const char *dev, struct uvc_config *conf);
+    void (*_close)(struct uvc_ctx *c);
     int (*ioctl)(struct uvc_ctx *c, unsigned long int cmd, ...);
     int (*start_stream)(struct uvc_ctx *c);
     int (*stop_stream)(struct uvc_ctx *c);

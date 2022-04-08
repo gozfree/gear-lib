@@ -97,6 +97,7 @@ int v4l2_test()
 
 int dummy_test()
 {
+#if defined (OS_LINUX)
     struct video_frame *frm;
     struct uvc_config conf = {
         320,
@@ -126,6 +127,7 @@ int dummy_test()
     video_frame_destroy(frm);
     uvc_close(uvc);
     printf("write %s fininshed!\n", OUTPUT_DUMMY);
+#endif
     return 0;
 }
 

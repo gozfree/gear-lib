@@ -19,13 +19,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#define _CRT_SECURE_NO_WARNINGS /* Disable safety warning for wcscpy() */
+#include "dshow.h"
 #include "libuvc.h"
 #include <stddef.h>
-#include "dshow.h"
 #include "libuvc.h"
 #include <libfile.h>
 
-struct file *fp;
 
 struct dshow_ctx {
     int                    fd;
@@ -35,6 +35,8 @@ struct dshow_ctx {
     int                    height;
     uint32_t               fps_num;
     uint32_t               fps_den;
+    uint64_t               first_ts;
+    uint64_t               frame_id;
     IGraphBuilder         *graph;
     ICaptureGraphBuilder2 *capgraph;
     IMediaControl         *mctrl;
@@ -46,6 +48,8 @@ struct dshow_ctx {
     HANDLE mutex;
     HANDLE event[2]; /* event[0] is set by DirectShow
                       * event[1] is set by callback() */
+    struct uvc_ctx        *uvc;
+    struct video_frame     frame;
 };
 
 
@@ -954,11 +958,32 @@ static void dshow_callback(void *priv_data, int index, uint8_t *buf, int buf_siz
                            int64_t time, int devtype)
 {
     struct dshow_ctx *c = priv_data;
+    struct uvc_ctx *uvc = c->uvc;
+    struct video_frame *frame = &c->frame;
+    uint8_t *start;
+    int i;
 
-    //printf("%s index=%d, buf=%p, buf_size=%d, time=%d, devtype=%d\n", __func__,
-    //       index, buf, buf_size, time, devtype);
+    printf("%s index=%d, buf=%p, buf_size=%d, time=%lld, devtype=%d\n", __func__,
+           index, buf, buf_size, time, devtype);
+    frame->timestamp = time;
+    if (c->frame_id == 0) {
+        c->first_ts = frame->timestamp;
+    }
+    frame->timestamp -= c->first_ts;
+    frame->frame_id = c->frame_id;
+    if (frame->total_size != buf_size) {
+        printf("%s:%d warn: buf_size=%d, frame_size=%d, not matched!\n", __func__, __LINE__,
+            buf_size, frame->total_size);
+    }
+    c->frame_id++;
 
-    file_write(fp, buf, buf_size);
+    start = buf;
+    if (uvc->on_video_frame) {
+        for (i = 0; i < frame->planes; ++i) {
+            frame->data[i] = start + frame->plane_offsets[i];
+        }
+        uvc->on_video_frame(uvc, frame);
+    }
 #if 0
     SetEvent(c->event[1]);
 #endif
@@ -1055,10 +1080,11 @@ static void *dshow_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config 
     c->height = conf->height;
     c->fps_num = conf->fps.num;//unlimit fps
     c->fps_den = conf->fps.den;
+    c->uvc = uvc;
+    c->frame_id = 0;
 
     CoInitialize(0);
 
-    fp = file_open("uvc.yuv", F_CREATE);
     if (create_dshow_graph(c)) {
         printf("create_dshow_graph failed!\n");
         goto exit;
@@ -1080,9 +1106,10 @@ static void *dshow_open(struct uvc_ctx *uvc, const char *dev, struct uvc_config 
     uvc->conf.height = c->height;
     uvc->conf.fps.num = c->fps_num;
     uvc->conf.fps.den = c->fps_den;
-    uvc->conf.format = PIXEL_FORMAT_I420;
+    uvc->conf.format = conf->format;
     uvc->fd = -1;
 
+    video_frame_init(&c->frame, uvc->conf.format, uvc->conf.width, uvc->conf.height, MEDIA_MEM_SHALLOW);
     return c;
 exit:
     if (c)

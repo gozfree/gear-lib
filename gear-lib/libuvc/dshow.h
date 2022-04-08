@@ -2,6 +2,7 @@
 #define DSHOW_H
 
 #define COBJMACROS
+#define CINTERFACE
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <dshow.h>
@@ -13,6 +14,7 @@
 #include <shlwapi.h>
 #include <vfwmsgs.h>
 #include <stdint.h>
+#include <wchar.h>
 
 enum dshowDeviceType {
     VideoDevice = 0,
