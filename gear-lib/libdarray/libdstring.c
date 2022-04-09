@@ -31,16 +31,6 @@
 #include <limits.h>
 #include <stdarg.h>
 
-#if 0
-#include "c99defs.h"
-#include "dstr.h"
-#include "darray.h"
-#include "bmem.h"
-#include "utf8.h"
-#include "lexer.h"
-#include "platform.h"
-#endif
-
 static const char *astrblank = "";
 static const wchar_t *wstrblank = L"";
 

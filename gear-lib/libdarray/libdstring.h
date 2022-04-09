@@ -28,13 +28,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#if 0
-#include <string.h>
-#include <stdarg.h>
-#include "c99defs.h"
-#include "bmem.h"
-#endif
-
 /*
  * Dynamic string
  *
