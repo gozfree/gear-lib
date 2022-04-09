@@ -330,8 +330,8 @@ static void uvc_dummy_close(struct uvc_ctx *uvc)
 }
 
 struct uvc_ops dummy_ops = {
-    .open         = uvc_dummy_open,
-    .close        = uvc_dummy_close,
+    ._open         = uvc_dummy_open,
+    ._close        = uvc_dummy_close,
     .ioctl        = uvc_dummy_ioctl,
     .start_stream = uvc_dummy_start_stream,
     .stop_stream  = uvc_dummy_stop_stream,

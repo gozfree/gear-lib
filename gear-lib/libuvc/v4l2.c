@@ -1004,8 +1004,8 @@ static int uvc_v4l2_ioctl(struct uvc_ctx *uvc, unsigned long int cmd, ...)
 }
 
 struct uvc_ops v4l2_ops = {
-    .open         = uvc_v4l2_open,
-    .close        = uvc_v4l2_close,
+    ._open         = uvc_v4l2_open,
+    ._close        = uvc_v4l2_close,
     .ioctl        = uvc_v4l2_ioctl,
     .start_stream = uvc_v4l2_start_stream,
     .stop_stream  = uvc_v4l2_stop_stream,

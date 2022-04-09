@@ -72,7 +72,7 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 ifeq ($(ENABLE_SOCK_EXT), 1)
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lgevent -lthread
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix -lgevent -lthread
 endif
 ifeq ($(ENABLE_PTCP), 1)
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lptcp
