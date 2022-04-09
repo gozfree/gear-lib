@@ -22,20 +22,20 @@
 #include "libgevent.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined (OS_LINUX) || defined (OS_APPLE)
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
+#if defined (OS_LINUX) || defined (OS_APPLE)
 #ifndef __CYGWIN__
 #include <sys/eventfd.h>
 #endif
 #endif
-#include <errno.h>
 
 #if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
 #endif
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
 #ifndef __CYGWIN__
 extern const struct gevent_ops epollops;
 #endif
@@ -45,10 +45,16 @@ extern const struct gevent_ops iocpops;
 #endif
 
 enum gevent_backend_type {
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
     GEVENT_SELECT,
     GEVENT_POLL,
+#endif
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
     GEVENT_EPOLL,
+#endif
+#if defined (OS_WINDOWS)
     GEVENT_IOCP,
+#endif
 };
 
 struct gevent_backend {
@@ -61,7 +67,7 @@ static struct gevent_backend gevent_backend_list[] = {
     {GEVENT_SELECT, &selectops},
     {GEVENT_POLL,   &pollops},
 #endif
-#if defined (OS_LINUX)
+#if defined (OS_LINUX) || defined (OS_WINDOWS)
 #ifndef __CYGWIN__
     {GEVENT_EPOLL,  &epollops},
 #endif
@@ -76,7 +82,8 @@ static struct gevent_backend gevent_backend_list[] = {
 #elif defined (OS_APPLE)
 #define GEVENT_BACKEND GEVENT_POLL
 #elif defined (OS_WINDOWS)
-#define GEVENT_BACKEND GEVENT_IOCP
+//#define GEVENT_BACKEND GEVENT_IOCP
+#define GEVENT_BACKEND GEVENT_EPOLL
 #endif
 
 static void event_in(int fd, void *arg)
@@ -201,7 +208,7 @@ void gevent_base_loop_break(struct gevent_base *eb)
 
 void gevent_base_signal(struct gevent_base *eb)
 {
-    uint64_t notify;
+    uint64_t notify = '1';
     if (sizeof(uint64_t) != write(eb->inner_fd, &notify, sizeof(uint64_t))) {
         perror("write error");
     }
