@@ -19,6 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include <libposix.h>
+#include <liblog.h>
+#include <libdict.h>
+#include "librtsp.h"
+#include <libsock.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,10 +31,7 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/time.h>
-#include <liblog.h>
-#include <libdict.h>
-#include "librtsp.h"
-#include <libsock.h>
+
 #include "media_source.h"
 #include "transport_session.h"
 #include "rtsp_parser.h"
@@ -98,8 +100,9 @@ static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, u
 static void rtsp_connect_destroy(struct rtsp_server *rtsp, int fd)
 {
     char key[9];
+    struct rtsp_request *req;
     snprintf(key, sizeof(key), "%d", fd);
-    struct rtsp_request *req = (struct rtsp_request *)dict_get(rtsp->connect_pool, key, NULL);
+    req = (struct rtsp_request *)dict_get(rtsp->connect_pool, key, NULL);
     logi("fd = %d, req=%p\n", fd, req);
     dict_del(rtsp->connect_pool, key);
     gevent_del(rtsp->evbase, &req->event);

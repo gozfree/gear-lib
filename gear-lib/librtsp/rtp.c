@@ -301,11 +301,12 @@ int rtp_ssrc(void)
 
 struct rtp_socket *rtp_socket_create(enum rtp_mode mode, int tcp_fd, const char* src_ip, const char *dst_ip)
 {
+    unsigned short i;
     struct rtp_socket *s = calloc(1, sizeof(struct rtp_socket));
     if (!s) {
         return NULL;
     }
-    unsigned short i;
+
     s->mode = mode;
     switch (mode) {
     case RTP_TCP:

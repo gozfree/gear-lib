@@ -91,13 +91,15 @@ int handle_rtsp_response(struct rtsp_request *req, int code, const char *msg)
 
 static int on_teardown(struct rtsp_request *req, char *url)
 {
+    struct rtsp_server *rc;
+    struct transport_session *ts;
     //int len = sock_send(req->fd, resp, strlen(resp));
     if (-1 == parse_range(&req->range, (char *)req->raw->iov_base, req->raw->iov_len)) {
         loge("parse_range failed!\n");
         return -1;
     }
-    struct rtsp_server *rc = req->rtsp_server;
-    struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    rc = req->rtsp_server;
+    ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
     if (!ts) {
         loge("transport_session is NULL\n");
         return handle_rtsp_response(req, 454, NULL);
@@ -153,6 +155,7 @@ static int on_setup(struct rtsp_request *req, char *url)
 {
     char buf[RTSP_RESPONSE_LEN_MAX];
     char transport[128];
+    struct transport_session *ts;
     struct rtsp_server *rc = req->rtsp_server;
 
     if (-1 == parse_transport(&req->transport, (char *)req->raw->iov_base, req->raw->iov_len)) {
@@ -171,7 +174,7 @@ static int on_setup(struct rtsp_request *req, char *url)
         sock_addr_ntop(req->transport.destination, req->client.ip);
     }
 
-    struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
     if (!ts) {
         ts = transport_session_create(rc->transport_session_pool, &req->transport);
         if (!ts) {
@@ -210,18 +213,21 @@ static int on_play(struct rtsp_request *req, char *url)
 {
     int n = 0;
     char buf[RTSP_RESPONSE_LEN_MAX];
+    struct rtsp_server *rc;
+    struct transport_session *ts;
+    struct media_source *ms;
 
     if (-1 == parse_range(&req->range, (char *)req->raw->iov_base, req->raw->iov_len)) {
         loge("parse_range failed!\n");
         return -1;
     }
-    struct rtsp_server *rc = req->rtsp_server;
-    struct transport_session *ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
+    rc = req->rtsp_server;
+    ts = transport_session_lookup(rc->transport_session_pool, req->session.id);
     if (!ts) {
         handle_rtsp_response(req, 454, NULL);
         return -1;
     }
-    struct media_source *ms = rtsp_media_source_lookup(url);
+    ms = rtsp_media_source_lookup(url);
 
     if (req->range.to > 0) {
         n += snprintf(buf+n, sizeof(buf)-n, "Range: npt=%.3f-%.3f\r\n", (float)(req->range.from / 1000.0f), (float)(req->range.to / 1000.0f));

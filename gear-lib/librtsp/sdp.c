@@ -19,11 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include "sdp.h"
+#include <libposix.h>
 #include <liblog.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "sdp.h"
 
 #define SDP_TOOL_NAME		((const char *)"ipcam rtsp")
 #define SDP_TOOL_VERSION	((const char *)"version 2016.05.22")
@@ -267,21 +268,6 @@ const char* SDP_LIVE_FMT =
 
 int get_sdp(struct media_source *ms, char *sdp, size_t len)
 {
-    int sdp_len = 0;
-    char sdp_filter[128];
-    char sdp_range[128];
-    const char *sdp_media = "m=video 0 RTP/AVP 33\r\nc=IN IP4 0.0.0.0\r\nb=AS:5000\r\na=control:track1";
-
-    float dur = duration();
-    if (dur == 0.0) {
-      snprintf(sdp_range, sizeof(sdp_range), "%s", "a=range:npt=0-\r\n");
-    } else if (dur > 0.0) {
-      snprintf(sdp_range, sizeof(sdp_range), "%s", "a=range:npt=0-%.3f\r\n");
-    } else { // subsessions have differing durations, so "a=range:" lines go there
-      snprintf(sdp_range, sizeof(sdp_range), "%s", "");
-    }
-    snprintf(sdp_filter, sizeof(sdp_filter), SDP_FILTER_FMT, RTSP_SERVER_IP);
-
     char const* const sdp_prefix_fmt =
       "v=0\r\n"
       "o=- %ld%06ld %d IN IP4 %s\r\n"
@@ -296,6 +282,20 @@ int get_sdp(struct media_source *ms, char *sdp, size_t len)
       "a=x-qt-text-nam:%s\r\n"
       "a=x-qt-text-inf:%s\r\n"
       "%s";
+    int sdp_len = 0;
+    char sdp_filter[128];
+    char sdp_range[128];
+    const char *sdp_media = "m=video 0 RTP/AVP 33\r\nc=IN IP4 0.0.0.0\r\nb=AS:5000\r\na=control:track1";
+
+    float dur = duration();
+    if (dur == 0.0) {
+      snprintf(sdp_range, sizeof(sdp_range), "%s", "a=range:npt=0-\r\n");
+    } else if (dur > 0.0) {
+      snprintf(sdp_range, sizeof(sdp_range), "%s", "a=range:npt=0-%.3f\r\n");
+    } else { // subsessions have differing durations, so "a=range:" lines go there
+      snprintf(sdp_range, sizeof(sdp_range), "%s", "");
+    }
+    snprintf(sdp_filter, sizeof(sdp_filter), SDP_FILTER_FMT, RTSP_SERVER_IP);
 
     sdp_len = strlen(sdp_prefix_fmt)
       + 20 + 6 + 20 + strlen("127.0.0.1")

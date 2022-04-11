@@ -23,7 +23,9 @@
 #define LIBRTP_H
 
 #include <stdint.h>
+#if defined (OS_LINUX)
 #include <netinet/in.h>
+#endif
 #include <libmedia-io.h>
 
 #ifdef __cplusplus

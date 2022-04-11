@@ -20,6 +20,7 @@
     <None Include="..\..\..\..\gear-lib\librtsp\README.md" />
     <None Include="..\..\..\..\gear-lib\librtsp\sample.264" />
     <None Include="..\..\..\..\gear-lib\librtsp\TODO" />
+    <None Include="..\..\..\..\gear-lib\librtsp\libx264.a" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\gear-lib\librtsp\librtsp.h">
@@ -49,18 +50,18 @@
     <ClInclude Include="..\..\..\..\gear-lib\librtsp\uri_parse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\gear-lib\librtsp\x264.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\gear-lib\librtsp\x264_config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\gear-lib\librtsp\librtsp_server.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\gear-lib\librtsp\media_source.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\media_source_h264.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\media_source_live.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\gear-lib\librtsp\request_handle.c">

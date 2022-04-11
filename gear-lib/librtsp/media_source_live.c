@@ -68,7 +68,7 @@ struct live_source_ctx {
     void *priv;
 };
 
-static struct live_source_ctx g_live = {.uvc_opened = false};
+static struct live_source_ctx g_live;
 
 static int pixel_format_to_x264_csp(enum pixel_format fmt)
 {
@@ -205,6 +205,7 @@ failed:
 static int init_pic_data(struct x264_ctx *c, x264_picture_t *pic,
                 struct video_frame *frame)
 {
+    int i;
     x264_picture_init(pic);
     pic->i_pts = frame->timestamp;
     pic->img.i_csp = c->param.i_csp;
@@ -233,7 +234,7 @@ pic->img.i_plane, frame->planes);
         return -1;
     }
 
-    for (int i = 0; i < pic->img.i_plane; i++) {
+    for (i = 0; i < pic->img.i_plane; i++) {
         pic->img.i_stride[i] = (int)frame->linesize[i];
         pic->img.plane[i] = frame->data[i];
     }
@@ -243,6 +244,7 @@ pic->img.i_plane, frame->planes);
 static int fill_packet(struct x264_ctx *c, struct video_packet *pkt,
                        x264_nal_t *nals, int nal_cnt, x264_picture_t *pic_out)
 {
+    int i;
     if (!nal_cnt)
         return -1;
 
@@ -253,7 +255,7 @@ static int fill_packet(struct x264_ctx *c, struct video_packet *pkt,
         pkt->encoder.extra_size = c->encoder.extra_size;
         c->append_extra = true;
     }
-    for (int i = 0; i < nal_cnt; i++) {
+    for (i = 0; i < nal_cnt; i++) {
         x264_nal_t *nal = nals + i;
         da_push_back_array(c->packet_data, nal->p_payload, nal->i_payload);
     }
@@ -341,6 +343,7 @@ static uint32_t get_random_number()
 static int live_open(struct media_source *ms, const char *name)
 {
     struct live_source_ctx *c = &g_live;
+    g_live.uvc_opened = false;
     if (c->uvc_opened) {
         logi("uvc already opened!\n");
         return 0;
@@ -350,7 +353,7 @@ static int live_open(struct media_source *ms, const char *name)
     c->conf.fps.num = 30;
     c->conf.fps.den = 1;
     c->conf.format = PIXEL_FORMAT_YUY2,
-    c->uvc = uvc_open(UVC_TYPE_V4L2, "/dev/video0", &c->conf);
+    c->uvc = uvc_open("/dev/video0", &c->conf);
     if (!c->uvc) {
         loge("uvc open failed!\n");
         return -1;

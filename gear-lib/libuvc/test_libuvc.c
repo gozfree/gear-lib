@@ -62,13 +62,7 @@ int v4l2_test()
         {30, 1},
         PIXEL_FORMAT_YUY2,
     };
-	enum uvc_type type;
-#if defined (OS_LINUX)
-	type = UVC_TYPE_V4L2;
-#elif defined (OS_WINDOWS)
-	type = UVC_TYPE_DSHOW;
-#endif
-    uvc = uvc_open(type, VIDEO_DEV, &conf);
+    uvc = uvc_open(VIDEO_DEV, &conf);
     if (!uvc) {
         printf("uvc_open failed!\n");
         return -1;
@@ -104,8 +98,9 @@ int dummy_test()
         240,
         {30, 1},
         PIXEL_FORMAT_YUY2,
+        "sample_320x240_yuv422p.yuv",
     };
-    struct uvc_ctx *uvc = uvc_open(UVC_TYPE_DUMMY, "sample_320x240_yuv422p.yuv", &conf);
+    struct uvc_ctx *uvc = uvc_open(NULL, &conf);
     if (!uvc) {
         printf("uvc_open failed!\n");
         return -1;

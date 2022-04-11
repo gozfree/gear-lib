@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{968FA321-4230-4DD4-A554-2619A7D5D080}</ProjectGuid>
-    <RootNamespace>librtsp</RootNamespace>
+    <ProjectGuid>{8CAD541B-A89A-48B0-B7EC-AF9E527EA8CE}</ProjectGuid>
+    <RootNamespace>libvector</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -42,7 +42,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;..\..\..\..\gear-lib\liblog;..\..\..\..\gear-lib\libsock;..\..\..\..\gear-lib\libtime;..\..\..\..\gear-lib\libdict;..\..\..\..\gear-lib\libgevent;..\..\..\..\gear-lib\libdarray;..\..\..\..\gear-lib\libthread;..\..\..\..\gear-lib\libmedia-io;..\..\..\..\gear-lib\libfile;..\..\..\..\gear-lib\libuvc;..\..\..\..\gear-lib\libqueue;..\..\..\..\gear-lib\librtsp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\gear-lib\libposix;..\..\..\..\gear-lib\libposix\MsvcLibX\include;..\..\..\..\gear-lib\libposix\pthreads4w;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>"/DUCRTINCLUDE=$(VCInstallDir)include"   "/DMSVCINCLUDE=$(VCInstallDir)include" "/DWSDKINCLUDE=$(WindowsSdkDir)Include" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -63,37 +63,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\librtsp\Android.mk" />
-    <None Include="..\..\..\..\gear-lib\librtsp\libx264.a" />
-    <None Include="..\..\..\..\gear-lib\librtsp\Makefile" />
-    <None Include="..\..\..\..\gear-lib\librtsp\README.md" />
-    <None Include="..\..\..\..\gear-lib\librtsp\sample.264" />
-    <None Include="..\..\..\..\gear-lib\librtsp\TODO" />
+    <ClCompile Include="..\..\..\..\gear-lib\libvector\libvector.c" />
+    <ClCompile Include="..\..\..\..\gear-lib\libvector\test_libvector.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\librtsp.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\librtsp_server.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\media_source.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\request_handle.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\rtp.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\rtsp_parser.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\sdp.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\transport_session.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\uri_parse.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\x264.h" />
-    <ClInclude Include="..\..\..\..\gear-lib\librtsp\x264_config.h" />
+    <ClInclude Include="..\..\..\..\gear-lib\libvector\libvector.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\librtsp_server.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\media_source.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\request_handle.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\rtp.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\rtp_h264.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\rtsp_parser.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\sdp.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\test_librtsp.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\transport_session.c" />
-    <ClCompile Include="..\..\..\..\gear-lib\librtsp\uri_parse.c" />
+    <None Include="..\..\..\..\gear-lib\libvector\Makefile" />
+    <None Include="..\..\..\..\gear-lib\libvector\Makefile.nmake" />
+    <None Include="..\..\..\..\gear-lib\libvector\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

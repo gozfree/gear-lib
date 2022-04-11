@@ -19,14 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include "transport_session.h"
-#include "media_source.h"
-#include "rtp.h"
+#include <libposix.h>
 #include <liblog.h>
 #include <libtime.h>
 #include <libdict.h>
 #include <libgevent.h>
 #include <libmedia-io.h>
+#include "transport_session.h"
+#include "media_source.h"
+#include "rtp.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -103,40 +105,45 @@ static void *send_thread(struct thread *t, void *ptr)
     struct media_source *ms = ts->media_source;
     void *data = NULL;
     size_t len = 0;
+    unsigned int ssrc, seq;
+    uint64_t pts;
     int ret;
-    if (-1 == ms->open(ms, "sample.264")) {
+    struct media_packet *mpkt;
+    struct video_packet *vpkt;
+    struct rtp_packet *rpkt;
+    if (-1 == ms->_open(ms, "sample.264")) {
         loge("open failed!\n");
         return NULL;
     }
     ms->is_active = true;
-    unsigned int ssrc = (unsigned int)rtp_ssrc();
-    uint64_t pts = time_now_msec();
-    unsigned int seq = ssrc;
+    ssrc = (unsigned int)rtp_ssrc();
+    pts = time_now_msec();
+    seq = ssrc;
     logd("rtp send thread %s created\n", t->name);
     while (t->run) {
-        if (-1 == ms->read(ms, &data, &len) || data == NULL) {
+        if (-1 == ms->_read(ms, &data, &len) || data == NULL) {
             loge("read failed!\n");
             sleep(1);
             continue;
         }
-        struct media_packet *pkt = data;
-        switch (pkt->type) {
+        mpkt = data;
+        switch (mpkt->type) {
         case MEDIA_TYPE_AUDIO:
             logd("MEDIA_TYPE_AUDIO\n");
             break;
         case MEDIA_TYPE_VIDEO: {
             logd("MEDIA_TYPE_VIDEO\n");
-            struct video_packet *vpkt = pkt->video;
-            struct rtp_packet *pkt = rtp_packet_create(RTP_PT_H264, vpkt->size, seq, ssrc);
-            if (!pkt) {
+            vpkt = mpkt->video;
+            rpkt = rtp_packet_create(RTP_PT_H264, vpkt->size, seq, ssrc);
+            if (!rpkt) {
                 loge("rtp_packet_create failed!\n");
                 break;
             }
             pts = get_ms_time_v(vpkt, vpkt->dts);
             logd("rtp_packet_create video size=%d, pts=%d\n", vpkt->size, pts);
-            ret = rtp_payload_h264_encode(ts->rtp->sock, pkt, vpkt->data, vpkt->size, pts);
-            seq = pkt->header.seq;
-            rtp_packet_destroy(pkt);
+            ret = rtp_payload_h264_encode(ts->rtp->sock, rpkt, vpkt->data, vpkt->size, pts);
+            seq = rpkt->header.seq;
+            rtp_packet_destroy(rpkt);
             if (ret == -1) {
                 loge("rtp_payload_h264_encode failed!\n");
                 t->run = false;
@@ -154,9 +161,10 @@ static void *send_thread(struct thread *t, void *ptr)
 
 static void on_recv(int fd, void *arg)
 {
+    int ret;
     char buf[2048];
     memset(buf, 0, sizeof(buf));
-    int ret = sock_recv(fd, buf, 2048);
+    ret = sock_recv(fd, buf, 2048);
     if (ret > 0) {
         rtcp_parse(buf, ret);
     } else if (ret == 0) {
