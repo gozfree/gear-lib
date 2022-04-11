@@ -236,7 +236,6 @@ int parse_transport(struct transport_header *t, char *buf, int len)
 {
     char const* fields;
     char* field;
-    size_t n = 0;
     // First, find "Transport:"
     while (1) {
         if (*buf == '\0')

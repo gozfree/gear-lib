@@ -22,6 +22,7 @@
 #ifndef LIBRTP_H
 #define LIBRTP_H
 
+#include <libposix.h>
 #include <stdint.h>
 #if defined (OS_LINUX)
 #include <netinet/in.h>

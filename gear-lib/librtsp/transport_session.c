@@ -155,7 +155,7 @@ static void *send_thread(struct thread *t, void *ptr)
         }
     }
     ms->is_active = false;
-    ms->close(ms);
+    ms->_close(ms);
     return NULL;
 }
 
