@@ -24,8 +24,6 @@
 #include "libuvc.h"
 #include <stddef.h>
 #include "libuvc.h"
-#include <libfile.h>
-
 
 struct dshow_ctx {
     int                    fd;

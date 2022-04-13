@@ -22,8 +22,8 @@
 #ifndef LIBBITMAP_H
 #define LIBBITMAP_H
 
-#include <string.h>
 #include "bitops.h"
+#include <string.h>
 #include <stdlib.h>
 //#include <linux/kernel.h>
 
