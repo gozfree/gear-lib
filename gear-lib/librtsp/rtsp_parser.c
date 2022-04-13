@@ -64,8 +64,12 @@ int parse_rtsp_request(struct rtsp_request *req)
     int session_id_len = sizeof(req->session.id);
     int cur;
     char c;
+    char *p;
     const char *rtsp_prefix = "rtsp://";
     int rtsp_prefix_len = sizeof(rtsp_prefix);
+    int parse_succeed = 0;
+    int i, j, k, k1, k2, n;
+    int num, org = 0;
 
     logi("rtsp request[%d]:\n==== C >>>> S ====\n%s==== C >>>> S ====\n", len, str);
 
@@ -82,8 +86,7 @@ int parse_rtsp_request(struct rtsp_request *req)
     }
 
     // Then read everything up to the next space (or tab) as the command name:
-    int parse_succeed = 0;
-    int i;
+
     for (i = 0; i < cmd_len - 1 && i < len; ++cur, ++i) {
         c = str[cur];
         if (c == ' ' || c == '\t') {
@@ -99,7 +102,7 @@ int parse_rtsp_request(struct rtsp_request *req)
     }
 
     // Skip over the prefix of any "rtsp://" or "rtsp:/" URL that follows:
-    int j = cur+1;
+    j = cur+1;
     while (j < len && (str[j] == ' ' || str[j] == '\t')) {
         ++j; // skip over any additional white space
     }
@@ -125,12 +128,11 @@ int parse_rtsp_request(struct rtsp_request *req)
 
     // Look for the URL suffix (before the following "RTSP/"):
     parse_succeed = 0;
-    int k;
     for (k = cur+1; k < (len-5); ++k) {
         if (str[k] == 'R' && str[k+1] == 'T' &&
             str[k+2] == 'S' && str[k+3] == 'P' && str[k+4] == '/') {
             while (--k >= cur && str[k] == ' ') {} // go back over all spaces before "RTSP/"
-            int k1 = k;
+            k1 = k;
             while (k1 > cur && str[k1] != '/') --k1;
             // ASSERT: At this point
             //   cur: first space or slash after "host" or "host:port"
@@ -138,7 +140,8 @@ int parse_rtsp_request(struct rtsp_request *req)
             //   k1: last slash in the range [cur,k]
             // The URL suffix comes from [k1+1,k]
             // Copy "url_suffix":
-            int n = 0, k2 = k1+1;
+            n = 0;
+            k2 = k1+1;
             if (k2 <= k) {
                 if (k - k1 + 1 > url_suffix_len) return -1; // there's no room
                 while (k2 <= k) req->url_suffix[n++] = str[k2++];
@@ -161,7 +164,7 @@ int parse_rtsp_request(struct rtsp_request *req)
     if (!parse_succeed) {
         return -1;
     }
-    int org = 0;
+    org = 0;
     for (org = 0; org < k-7; org++) {
         req->url_origin[org] = str[i+org+1];
     }
@@ -169,7 +172,7 @@ int parse_rtsp_request(struct rtsp_request *req)
     // Look for "CSeq:" (mandatory, case insensitive), skip whitespace,
     // then read everything up to the next \r or \n as 'CSeq':
     parse_succeed = 0;
-    int n;
+
     for (j = cur; j < (len-5); ++j) {
         if (strncasecmp("CSeq:", &str[j], 5) == 0) {
             j += 5;
@@ -206,7 +209,7 @@ int parse_rtsp_request(struct rtsp_request *req)
             }
             req->session.id[n] = '\0';
             req->session.timeout = 60000;
-            char *p = strchr(&str[j], ';');
+            p = strchr(&str[j], ';');
             if (p && 0 == strncmp("timeout=", p+1, 8)) {
                 req->session.timeout = (int)(atof(p+9) * 1000);
             }
@@ -220,7 +223,7 @@ int parse_rtsp_request(struct rtsp_request *req)
         if (strncasecmp("Content-Length:", &(str[j]), 15) == 0) {
             j += 15;
             while (j < len && (str[j] ==  ' ' || str[j] == '\t')) ++j;
-            int num;
+
             if (sscanf(&str[j], "%u", &num) == 1) {
                 req->content_len = num;
             }
@@ -231,6 +234,8 @@ int parse_rtsp_request(struct rtsp_request *req)
 
 int parse_transport(struct transport_header *t, char *buf, int len)
 {
+    char const* fields;
+    char* field;
     // First, find "Transport:"
     while (1) {
         if (*buf == '\0')
@@ -243,9 +248,9 @@ int parse_transport(struct transport_header *t, char *buf, int len)
     }
 
     // Then, run through each of the fields, looking for ones we handle:
-    char const* fields = buf + 10;
+    fields = buf + 10;
     while (*fields == ' ') ++fields;
-    char* field = (char *)calloc(1, strlen(fields)+1);
+    field = (char *)calloc(1, strlen(fields)+1);
     while (sscanf(fields, "%[^;\r\n]", field) == 1) {
         switch (*field) {
         case 'r':
@@ -376,7 +381,9 @@ int parse_transport(struct transport_header *t, char *buf, int len)
 
 int parse_session(struct session_header *s, char *buf, int len)
 {
+    const char* p;
     int found = 0;
+    size_t n;
     while (1) {
         if (*buf == '\0') {
             break;
@@ -394,10 +401,10 @@ int parse_session(struct session_header *s, char *buf, int len)
         return 0;
     }
     s->timeout = 60000;
-    const char* p;
+
     p = strchr(buf, ';');
     if (p) {
-        size_t n = (size_t)(p - buf);
+        n = (size_t)(p - buf);
         if (n >= sizeof(s->id))
             return -1;
 
@@ -407,7 +414,7 @@ int parse_session(struct session_header *s, char *buf, int len)
         if (0 == strncmp("timeout=", p+1, 8))
             s->timeout = (int)(atof(p+9) * 1000);
     } else {
-        size_t n = strlen(buf);
+        n = strlen(buf);
         if (n >= sizeof(s->id))
             return -1;
         memcpy(s->id, buf, n);
@@ -533,17 +540,17 @@ struct time_smpte_t
 
 struct time_npt_t
 {
-	int64_t second;	// [0,---)
-	int fraction;	// [0,999]
+    int64_t second;	// [0,---)
+    int fraction;	// [0,999]
 };
 
 struct time_clock_t
 {
-	int second;		// [0,24*60*60)
-	int fraction;	// [0,999]
-	int day;		// [0,30]
-	int month;		// [0,11]
-	int year;		// [xxxx]
+    int second;		// [0,24*60*60)
+    int fraction;	// [0,999]
+    int day;		// [0,30]
+    int month;		// [0,11]
+    int year;		// [xxxx]
 };
 
 #define RANGE_SPECIAL ",;\r\n"
@@ -557,7 +564,7 @@ static uint64_t utc_mktime(const struct tm *t)
         mon += 12;  /* Puts Feb last since it has leap day */
         year -= 1;
     }
-    
+
     return ((((uint64_t)
               (year/4 - year/100 + year/400 + 367*mon/12 + t->tm_mday) +
               year*365 - 719499
@@ -568,56 +575,52 @@ static uint64_t utc_mktime(const struct tm *t)
 
 static inline const char* string_token_int(const char* str, int *value)
 {
-	*value = 0;
-	while ('0' <= *str && *str <= '9')
-	{
-		*value = (*value * 10) + (*str - '0');
-		++str;
-	}
-	return str;
+    *value = 0;
+    while ('0' <= *str && *str <= '9') {
+        *value = (*value * 10) + (*str - '0');
+        ++str;
+    }
+    return str;
 }
 
 static inline const char* string_token_int64(const char* str, int64_t *value)
 {
-	*value = 0;
-	while ('0' <= *str && *str <= '9')
-	{
-		*value = (*value * 10) + (*str - '0');
-		++str;
-	}
-	return str;
+    *value = 0;
+    while ('0' <= *str && *str <= '9') {
+        *value = (*value * 10) + (*str - '0');
+        ++str;
+    }
+    return str;
 }
 
 // smpte-time = 1*2DIGIT ":" 1*2DIGIT ":" 1*2DIGIT [ ":" 1*2DIGIT ][ "." 1*2DIGIT ]
 // hours:minutes:seconds:frames.subframes
 static const char* rtsp_header_range_smpte_time(const char* str, int *hours, int *minutes, int *seconds, int *frames, int *subframes)
 {
-	const char* p;
+    const char* p;
 
-	assert(str);
-	p = string_token_int(str, hours);
-	if(*p != ':')
-		return NULL;
+    assert(str);
+    p = string_token_int(str, hours);
+    if(*p != ':')
+        return NULL;
 
-	p = string_token_int(p+1, minutes);
-	if(*p != ':')
-		return NULL;
+    p = string_token_int(p+1, minutes);
+    if(*p != ':')
+        return NULL;
 
-	p = string_token_int(p+1, seconds);
+    p = string_token_int(p+1, seconds);
 
-	*frames = 0;
-	*subframes = 0;
-	if(*p == ':')
-	{
-		p = string_token_int(p+1, frames);
-	}
+    *frames = 0;
+    *subframes = 0;
+    if(*p == ':') {
+        p = string_token_int(p+1, frames);
+    }
 
-	if(*p == '.')
-	{
-		p = string_token_int(p+1, subframes);
-	}
+    if(*p == '.') {
+        p = string_token_int(p+1, subframes);
+    }
 
-	return p;
+    return p;
 }
 
 // 3.5 SMPTE Relative Timestamps (p16)
@@ -630,36 +633,33 @@ static const char* rtsp_header_range_smpte_time(const char* str, int *hours, int
 //	smpte-25=10:07:00-10:07:33:05.01
 static int rtsp_header_range_smpte(const char* fields, struct range_header* range)
 {
-	const char *p;
-	int hours, minutes, seconds, frames, subframes;
+    const char *p;
+    int hours, minutes, seconds, frames, subframes;
 
-	assert(fields);
-	p = rtsp_header_range_smpte_time(fields, &hours, &minutes, &seconds, &frames, &subframes);
-	if(!p || '-' != *p)
-		return -1;
+    assert(fields);
+    p = rtsp_header_range_smpte_time(fields, &hours, &minutes, &seconds, &frames, &subframes);
+    if(!p || '-' != *p)
+        return -1;
 
-	range->from_value = RTSP_RANGE_TIME_NORMAL;
-	range->from = (hours%24)*3600 + (minutes%60)*60 + seconds;
-	range->from = range->from * 1000 + frames % 1000;
+    range->from_value = RTSP_RANGE_TIME_NORMAL;
+    range->from = (hours%24)*3600 + (minutes%60)*60 + seconds;
+    range->from = range->from * 1000 + frames % 1000;
 
-	assert('-' == *p);
-	if('\0' == p[1] || strchr(RANGE_SPECIAL, p[1]))
-	{
-		range->to_value = RTSP_RANGE_TIME_NOVALUE;
-		range->to = 0;
-	}
-	else
-	{
-		p = rtsp_header_range_smpte_time(p+1, &hours, &minutes, &seconds, &frames, &subframes);
-		if(!p ) return -1;
-		assert('\0' == p[0] || strchr(RANGE_SPECIAL, p[0]));
+    assert('-' == *p);
+    if('\0' == p[1] || strchr(RANGE_SPECIAL, p[1])) {
+        range->to_value = RTSP_RANGE_TIME_NOVALUE;
+        range->to = 0;
+    } else {
+        p = rtsp_header_range_smpte_time(p+1, &hours, &minutes, &seconds, &frames, &subframes);
+        if(!p ) return -1;
+        assert('\0' == p[0] || strchr(RANGE_SPECIAL, p[0]));
 
-		range->to_value = RTSP_RANGE_TIME_NORMAL;
-		range->to = (hours%24)*3600 + (minutes%60)*60 + seconds;
-		range->to = range->to * 1000 + frames % 1000;
-	}
+        range->to_value = RTSP_RANGE_TIME_NORMAL;
+        range->to = (hours%24)*3600 + (minutes%60)*60 + seconds;
+        range->to = range->to * 1000 + frames % 1000;
+    }
 
-	return 0;
+    return 0;
 }
 
 // npt-time = "now" | npt-sec | npt-hhmmss
@@ -670,45 +670,45 @@ static int rtsp_header_range_smpte(const char* fields, struct range_header* rang
 // npt-ss = 1*2DIGIT ; 0-59
 static const char* rtsp_header_range_npt_time(const char* str, uint64_t *seconds, int *fraction)
 {
-	const char* p;
-	int v1, v2;
+    const char* p;
+    int v1, v2;
 
-	assert(str);
-	p = strpbrk(str, "-\r\n");
-	if(!str || (p-str==3 && 0==strncasecmp(str, "now", 3)))
-	{
-		*seconds = 0; // now
-		*fraction = -1;
-	}
-	else
-	{
-		p = string_token_int64(str, (int64_t*)seconds);
-		if(*p == ':')
-		{
-			// npt-hhmmss
-			p = string_token_int(p+1, &v1);
-			if(*p != ':')
-				return NULL;
+    assert(str);
+    p = strpbrk(str, "-\r\n");
+    if(!str || (p-str==3 && 0==strncasecmp(str, "now", 3)))
+    {
+        *seconds = 0; // now
+        *fraction = -1;
+    }
+    else
+    {
+        p = string_token_int64(str, (int64_t*)seconds);
+        if(*p == ':')
+        {
+            // npt-hhmmss
+            p = string_token_int(p+1, &v1);
+            if(*p != ':')
+                return NULL;
 
-			p = string_token_int(p+1, &v2);
+            p = string_token_int(p+1, &v2);
 
-			assert(0 <= v1 && v1 < 60);
-			assert(0 <= v2 && v2 < 60);
-			*seconds = *seconds * 3600 + (v1%60)*60 + v2%60;
-		}
-		else
-		{
-			// npt-sec
-			//*seconds = hours;
-		}
+            assert(0 <= v1 && v1 < 60);
+            assert(0 <= v2 && v2 < 60);
+            *seconds = *seconds * 3600 + (v1%60)*60 + v2%60;
+        }
+        else
+        {
+                // npt-sec
+                //*seconds = hours;
+        }
 
-		if(*p == '.')
-			p = string_token_int(p+1, fraction);
-		else
-			*fraction = 0;
-	}
+        if(*p == '.')
+                p = string_token_int(p+1, fraction);
+        else
+                *fraction = 0;
+    }
 
-	return p;
+    return p;
 }
 
 // 3.6 Normal Play Time (p17)
@@ -719,54 +719,54 @@ static const char* rtsp_header_range_npt_time(const char* str, uint64_t *seconds
 //	npt=now-
 static int rtsp_header_range_npt(const char* fields, struct range_header* range)
 {
-	const char* p;
-	uint64_t seconds;
-	int fraction;
+    const char* p;
+    uint64_t seconds;
+    int fraction;
 
-	p = fields;
-	if('-' != *p)
-	{
-		p = rtsp_header_range_npt_time(p, &seconds, &fraction);
-		if(!p || '-' != *p)
-			return -1;
+    p = fields;
+    if('-' != *p)
+    {
+        p = rtsp_header_range_npt_time(p, &seconds, &fraction);
+        if(!p || '-' != *p)
+            return -1;
 
-		if(0 == seconds && -1 == fraction)
-		{
-			range->from_value = RTSP_RANGE_TIME_NOW;
-			range->from = 0L;
-		}
-		else
-		{
-			range->from_value = RTSP_RANGE_TIME_NORMAL;
-			range->from = seconds;
-			range->from = range->from * 1000 + fraction % 1000;
-		}
-	}
-	else
-	{
-		range->from_value = RTSP_RANGE_TIME_NOVALUE;
-		range->from = 0;
-	}
+        if(0 == seconds && -1 == fraction)
+        {
+            range->from_value = RTSP_RANGE_TIME_NOW;
+            range->from = 0L;
+        }
+        else
+        {
+            range->from_value = RTSP_RANGE_TIME_NORMAL;
+            range->from = seconds;
+            range->from = range->from * 1000 + fraction % 1000;
+        }
+    }
+    else
+    {
+        range->from_value = RTSP_RANGE_TIME_NOVALUE;
+        range->from = 0;
+    }
 
-	assert('-' == *p);
-	if('\0' == p[1] || strchr(RANGE_SPECIAL, p[1]))
-	{
-		assert('-' != *fields);
-		range->to_value = RTSP_RANGE_TIME_NOVALUE;
-		range->to = 0;
-	}
-	else
-	{
-		p = rtsp_header_range_npt_time(p+1, &seconds, &fraction);
-		if( !p ) return -1;
-		assert('\0' == p[0] || strchr(RANGE_SPECIAL, p[0]));
+    assert('-' == *p);
+    if('\0' == p[1] || strchr(RANGE_SPECIAL, p[1]))
+    {
+        assert('-' != *fields);
+        range->to_value = RTSP_RANGE_TIME_NOVALUE;
+        range->to = 0;
+    }
+    else
+    {
+        p = rtsp_header_range_npt_time(p+1, &seconds, &fraction);
+        if( !p ) return -1;
+        assert('\0' == p[0] || strchr(RANGE_SPECIAL, p[0]));
 
-		range->to_value = RTSP_RANGE_TIME_NORMAL;
-		range->to = seconds;
-		range->to = range->to * 1000 + fraction % 1000;
-	}
+        range->to_value = RTSP_RANGE_TIME_NORMAL;
+        range->to = seconds;
+        range->to = range->to * 1000 + fraction % 1000;
+    }
 
-	return 0;
+    return 0;
 }
 
 // utc-time = utc-date "T" utc-time "Z"
@@ -774,36 +774,36 @@ static int rtsp_header_range_npt(const char* fields, struct range_header* range)
 // utc-time = 6DIGIT [ "." fraction ] ; < HHMMSS.fraction >
 static const char* rtsp_header_range_clock_time(const char* str, uint64_t *second, int *fraction)
 {
-	struct tm t;
-	const char* p;
-	int year, month, day;
-	int hour, minute;
+    struct tm t;
+    const char* p;
+    int year, month, day;
+    int hour, minute;
 
-	assert(str);
-	if(!str || 5 != sscanf(str, "%4d%2d%2dT%2d%2d", &year, &month, &day, &hour, &minute))
-		return NULL;
+    assert(str);
+    if(!str || 5 != sscanf(str, "%4d%2d%2dT%2d%2d", &year, &month, &day, &hour, &minute))
+        return NULL;
 
-	*second = 0;
-	*fraction = 0;
-	p = string_token_int64(str + 13, (int64_t*)second);
+    *second = 0;
+    *fraction = 0;
+    p = string_token_int64(str + 13, (int64_t*)second);
     assert(p);
-	if(*p == '.')
-	{
-		p = string_token_int(p+1, fraction);
-	}
+    if(*p == '.')
+    {
+            p = string_token_int(p+1, fraction);
+    }
 
-	memset(&t, 0, sizeof(t));
-	t.tm_year = year - 1900;
-	t.tm_mon = month - 1;
-	t.tm_mday = day;
-	t.tm_hour = hour;
-	t.tm_min = minute;
-//	*second += mktime(&t);
+    memset(&t, 0, sizeof(t));
+    t.tm_year = year - 1900;
+    t.tm_mon = month - 1;
+    t.tm_mday = day;
+    t.tm_hour = hour;
+    t.tm_min = minute;
+    //	*second += mktime(&t);
     *second += utc_mktime(&t);
 
-//	assert('Z' == *p);
-//	assert('\0' == p[1] || strchr(RANGE_SPECIAL"-", p[1]));
-	return 'Z'==*p ? p+1 : p;
+    //	assert('Z' == *p);
+    //	assert('\0' == p[1] || strchr(RANGE_SPECIAL"-", p[1]));
+    return 'Z'==*p ? p+1 : p;
 }
 
 // 3.7 Absolute Time (p18)
@@ -812,41 +812,42 @@ static const char* rtsp_header_range_clock_time(const char* str, uint64_t *secon
 // Range: clock=19961110T1925-19961110T2015 (p72)
 static int rtsp_header_range_clock(const char* fields, struct range_header* range)
 {
-	const char* p;
-	uint64_t second;
-	int fraction;
+    const char* p;
+    uint64_t second;
+    int fraction;
 
-	p = rtsp_header_range_clock_time(fields, &second, &fraction);
-	if(!p || '-' != *p)
-		return -1;
+    p = rtsp_header_range_clock_time(fields, &second, &fraction);
+    if(!p || '-' != *p)
+            return -1;
 
-	range->from_value = RTSP_RANGE_TIME_NORMAL;
-	range->from = second * 1000;
-	range->from += fraction % 1000;
+    range->from_value = RTSP_RANGE_TIME_NORMAL;
+    range->from = second * 1000;
+    range->from += fraction % 1000;
 
-	assert('-' == *p);
-	if('\0'==p[1] || strchr(RANGE_SPECIAL, p[1]))
-	{
-		range->to_value = RTSP_RANGE_TIME_NOVALUE;
-		range->to = 0;
-	}
-	else
-	{
-		p = rtsp_header_range_clock_time(p+1, &second, &fraction);
-		if( !p ) return -1;
+    assert('-' == *p);
+    if('\0'==p[1] || strchr(RANGE_SPECIAL, p[1]))
+    {
+        range->to_value = RTSP_RANGE_TIME_NOVALUE;
+        range->to = 0;
+    }
+    else
+    {
+        p = rtsp_header_range_clock_time(p+1, &second, &fraction);
+        if( !p ) return -1;
 
-		range->to_value = RTSP_RANGE_TIME_NORMAL;
-		range->to = second * 1000;
-		range->to += (unsigned int)fraction % 1000;
-	}
+        range->to_value = RTSP_RANGE_TIME_NORMAL;
+        range->to = second * 1000;
+        range->to += (unsigned int)fraction % 1000;
+    }
 
-	return 0;
+    return 0;
 }
 
 int parse_range(struct range_header *range, char* buf, int len)
 {
     int r = 0;
     int found = 0;
+    char *field;
     while (1) {
         if (*buf == '\0') {
             break;
@@ -863,57 +864,45 @@ int parse_range(struct range_header *range, char* buf, int len)
     if (!found) {
         return 0;
     }
-    char *field = buf;
-	range->time = 0L;
-	while(field && 0 == r)
-	{
-		if(0 == strncasecmp("clock=", field, 6))
-		{
-			range->type = RTSP_RANGE_CLOCK;
-			r = rtsp_header_range_clock(field+6, range);
-		}
-		else if(0 == strncasecmp("npt=", field, 4))
-		{
-			range->type = RTSP_RANGE_NPT;
-			r = rtsp_header_range_npt(field+4, range);
-		}
-		else if(0 == strncasecmp("smpte=", field, 6))
-		{
-			range->type = RTSP_RANGE_SMPTE;
-			r = rtsp_header_range_smpte(field+6, range);
-			if(RTSP_RANGE_TIME_NORMAL == range->from_value)
-				range->from = (range->from/1000 * 1000) + (1000/30 * (range->from%1000)); // frame to ms
-			if(RTSP_RANGE_TIME_NORMAL == range->to_value)
-				range->to = (range->to/1000 * 1000) + (1000/30 * (range->to%1000)); // frame to ms
-		}
-		else if(0 == strncasecmp("smpte-30-drop=", field, 15))
-		{
-			range->type = RTSP_RANGE_SMPTE_30;
-			r = rtsp_header_range_smpte(field+15, range);
-			if(RTSP_RANGE_TIME_NORMAL == range->from_value)
-				range->from = (range->from/1000 * 1000) + (1000/30 * (range->from%1000)); // frame to ms
-			if(RTSP_RANGE_TIME_NORMAL == range->to_value)
-				range->to = (range->to/1000 * 1000) + (1000/30 * (range->to%1000)); // frame to ms
-		}
-		else if(0 == strncasecmp("smpte-25=", field, 9))
-		{
-			range->type = RTSP_RANGE_SMPTE_25;
-			r = rtsp_header_range_smpte(field+9, range);
-			if(RTSP_RANGE_TIME_NORMAL == range->from_value)
-				range->from = (range->from/1000 * 1000) + (1000/25 * (range->from%1000)); // frame to ms
-			if(RTSP_RANGE_TIME_NORMAL == range->to_value)
-				range->to = (range->to/1000 * 1000) + (1000/25 * (range->to%1000)); // frame to ms
-		}
-		else if(0 == strncasecmp("time=", field, 5))
-		{
-			if (rtsp_header_range_clock_time(field + 5, &range->time, &r))
-				range->time = range->time * 1000 + r % 1000;
-		}
-		
-		field = strchr(field, ';');
-		if(field)
-			++field;
-	}
+    field = buf;
+    range->time = 0L;
+    while (field && 0 == r) {
+        if (0 == strncasecmp("clock=", field, 6)) {
+            range->type = RTSP_RANGE_CLOCK;
+            r = rtsp_header_range_clock(field+6, range);
+        } else if (0 == strncasecmp("npt=", field, 4)) {
+            range->type = RTSP_RANGE_NPT;
+            r = rtsp_header_range_npt(field+4, range);
+        } else if (0 == strncasecmp("smpte=", field, 6)) {
+            range->type = RTSP_RANGE_SMPTE;
+            r = rtsp_header_range_smpte(field+6, range);
+            if (RTSP_RANGE_TIME_NORMAL == range->from_value)
+                range->from = (range->from/1000 * 1000) + (1000/30 * (range->from%1000)); // frame to ms
+            if (RTSP_RANGE_TIME_NORMAL == range->to_value)
+                range->to = (range->to/1000 * 1000) + (1000/30 * (range->to%1000)); // frame to ms
+        } else if(0 == strncasecmp("smpte-30-drop=", field, 15)) {
+            range->type = RTSP_RANGE_SMPTE_30;
+            r = rtsp_header_range_smpte(field+15, range);
+            if (RTSP_RANGE_TIME_NORMAL == range->from_value)
+                range->from = (range->from/1000 * 1000) + (1000/30 * (range->from%1000)); // frame to ms
+            if (RTSP_RANGE_TIME_NORMAL == range->to_value)
+                range->to = (range->to/1000 * 1000) + (1000/30 * (range->to%1000)); // frame to ms
+        } else if(0 == strncasecmp("smpte-25=", field, 9)) {
+            range->type = RTSP_RANGE_SMPTE_25;
+            r = rtsp_header_range_smpte(field+9, range);
+            if(RTSP_RANGE_TIME_NORMAL == range->from_value)
+                range->from = (range->from/1000 * 1000) + (1000/25 * (range->from%1000)); // frame to ms
+            if(RTSP_RANGE_TIME_NORMAL == range->to_value)
+                range->to = (range->to/1000 * 1000) + (1000/25 * (range->to%1000)); // frame to ms
+        } else if(0 == strncasecmp("time=", field, 5)) {
+            if (rtsp_header_range_clock_time(field + 5, &range->time, &r))
+                range->time = range->time * 1000 + r % 1000;
+        }
 
-	return r;
+        field = strchr(field, ';');
+        if (field)
+            ++field;
+    }
+
+    return r;
 }

@@ -21,7 +21,6 @@
  ******************************************************************************/
 #include "libdict.h"
 #include <string.h>
-#include <time.h>
 #include <sys/time.h>
 
 #define ALIGN   "%15s: %6.4f sec\n"

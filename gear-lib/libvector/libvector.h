@@ -78,6 +78,8 @@ void *_vector_at(struct vector *v, int pos);
 #if defined (__linux__) || defined (__CYGWIN__)
 #define vector_create(type_t) \
     ({type_t t;struct vector *v = _vector_create(sizeof(t)); v;})
+#else
+#define vector_create(type_t) _vector_create(sizeof(type_t))
 #endif
 void vector_destroy(struct vector *v);
 int vector_empty(struct vector *v);
@@ -90,6 +92,8 @@ void vector_pop_back(struct vector *v);
         memcpy(&__tmp, vector_last(v), v->type_size); \
         &__tmp; \
     })
+#else
+#define vector_back(v, type_t) (type_t *)vector_last(v)
 #endif
 
 #define vector_iter_valuep(vector, iter, type_t) \

@@ -69,6 +69,7 @@
     <ClInclude Include="..\..\..\..\gear-lib\libgevent\wepoll.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\gear-lib\libgevent\epoll.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\libgevent.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\iocp.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\select.c" />

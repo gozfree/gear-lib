@@ -19,10 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
+#include "librtsp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "librtsp.h"
 
 int main(int argc, char **argv)
 {

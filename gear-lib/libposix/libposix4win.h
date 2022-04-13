@@ -134,7 +134,10 @@ GEAR_API void usleep(unsigned long usec);
 
 typedef int clockid_t;
 #ifndef CLOCK_REALTIME
-#define CLOCK_REALTIME           ((clockid_t)1)
+#define CLOCK_REALTIME           ((clockid_t)0)
+#endif
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC          ((clockid_t)1)
 #endif
 #ifndef CLOCK_PROCESS_CPUTIME_ID
 #define CLOCK_PROCESS_CPUTIME_ID ((clockid_t)2)
@@ -142,9 +145,7 @@ typedef int clockid_t;
 #ifndef CLOCK_THREAD_CPUTIME_ID
 #define CLOCK_THREAD_CPUTIME_ID  ((clockid_t)3)
 #endif
-#ifndef CLOCK_MONOTONIC
-#define CLOCK_MONOTONIC          ((clockid_t)4)
-#endif
+
 
 
 /******************************************************************************

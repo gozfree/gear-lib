@@ -20,18 +20,28 @@
  * SOFTWARE.
  ******************************************************************************/
 #include "libgevent.h"
-#if defined (OS_LINUX)
-#ifndef __CYGWIN__
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#if defined (OS_LINUX)
 #include <sys/epoll.h>
+#elif defined (OS_WINDOWS)
+#include "wepoll.h"
+#endif
+
+#if defined (OS_LINUX)
+#define epoll_fd_t int
+#define is_epoll_fd_invalid(fd) (fd == -1)
+#elif defined (OS_WINDOWS)
+#define epoll_fd_t HANDLE
+#define is_epoll_fd_invalid(fd) (fd == NULL)
+#endif
 
 #ifdef __ANDROID__
-#define EPOLLRDHUP      (0x2000)
+#define EPOLLRDHUP      (1U << 13)
 #endif
 
 #define EPOLL_MAX_NEVENT    (4096)
@@ -39,17 +49,17 @@
         (((LONG_MAX) - 999) / 1000)
 
 struct epoll_ctx {
-    int epfd;
+    epoll_fd_t epfd;
     int nevents;
     struct epoll_event *events;
 };
 
 static void *epoll_init(void)
 {
-    int fd;
+    epoll_fd_t fd;
     struct epoll_ctx *ec;
     fd = epoll_create(1);
-    if (-1 == fd) {
+    if (is_epoll_fd_invalid(fd)) {
         printf("epoll_create errno=%d %s\n", errno, strerror(errno));
         return NULL;
     }
@@ -93,7 +103,6 @@ static int epoll_add(struct gevent_base *eb, struct gevent *e)
         epev.events |= EPOLLONESHOT;
     else
         epev.events &= ~EPOLLONESHOT;
-
     epev.events |= EPOLLET;
     epev.data.ptr = (void *)e;
 
@@ -129,7 +138,6 @@ static int epoll_mod(struct gevent_base *eb, struct gevent *e)
         epev.events |= EPOLLONESHOT;
     else
         epev.events &= ~EPOLLONESHOT;
-
     epev.events |= EPOLLET;
     epev.data.ptr = (void *)e;
 
@@ -201,12 +209,28 @@ static int epoll_dispatch(struct gevent_base *eb, struct timeval *tv)
 }
 
 struct gevent_ops epollops = {
-    .init     = epoll_init,
-    .deinit   = epoll_deinit,
-    .add      = epoll_add,
-    .del      = epoll_del,
-    .mod      = epoll_mod,
-    .dispatch = epoll_dispatch,
+#if defined (OS_LINUX)
+    .init     =
+#endif
+				epoll_init,
+#if defined (OS_LINUX)
+    .deinit   =
+#endif
+				epoll_deinit,
+#if defined (OS_LINUX)
+    .add      =
+#endif
+				epoll_add,
+#if defined (OS_LINUX)
+    .del      =
+#endif
+				epoll_del,
+#if defined (OS_LINUX)
+    .mod      = 
+#endif
+				epoll_mod,
+#if defined (OS_LINUX)
+    .dispatch = 
+#endif
+				epoll_dispatch,
 };
-#endif
-#endif

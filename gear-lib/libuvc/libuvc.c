@@ -35,8 +35,17 @@ extern struct uvc_ops v4l2_ops;
 extern struct uvc_ops dshow_ops;
 #endif
 
-static struct uvc_ops *uvc_ops[] = {
+enum uvc_type {
+#if defined (OS_LINUX)
+    UVC_TYPE_V4L2,
+#elif defined (OS_WINDOWS)
+    UVC_TYPE_DSHOW,
+#endif
+    UVC_TYPE_DUMMY,
+    UVC_TYPE_MAX,
+};
 
+static struct uvc_ops *uvc_ops[] = {
 #if defined (OS_LINUX)
 	&dummy_ops,
     &v4l2_ops,
@@ -46,10 +55,21 @@ static struct uvc_ops *uvc_ops[] = {
     NULL,
 };
 
-struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf)
+struct uvc_ctx *uvc_open(const char *dev, struct uvc_config *conf)
 {
+    enum uvc_type type;
     struct uvc_ctx *uvc;
-    if (!dev || !conf) {
+#if defined (OS_LINUX)
+    type = UVC_TYPE_V4L2;
+#elif defined (OS_WINDOWS)
+    type = UVC_TYPE_DSHOW;
+#endif
+    if (!dev) {
+        type = UVC_TYPE_DUMMY;
+		dev = conf->dev_name;
+		printf("%s:%d open dummy device\n", __func__, __LINE__);
+	}
+    if (!conf) {
         printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return NULL;
     }

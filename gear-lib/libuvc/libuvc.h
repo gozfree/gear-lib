@@ -37,16 +37,6 @@
 extern "C" {
 #endif
 
-enum uvc_type {
-#if defined (OS_LINUX)
-    UVC_TYPE_DUMMY = 0,
-    UVC_TYPE_V4L2,
-#elif defined (OS_WINDOWS)
-    UVC_TYPE_DSHOW,
-#endif
-    UVC_TYPE_MAX,
-};
-
 struct uvc_ctx;
 struct uvc_ops;
 typedef int (video_frame_cb)(struct uvc_ctx *c, struct video_frame *frame);
@@ -56,6 +46,7 @@ struct uvc_config {
     uint32_t height;
     rational_t fps;
     enum pixel_format format;
+	char *dev_name;
 };
 
 struct uvc_image_quality {
@@ -115,7 +106,7 @@ struct uvc_ops {
     int (*query_frame)(struct uvc_ctx *c, struct video_frame *frame);
 };
 
-GEAR_API struct uvc_ctx *uvc_open(enum uvc_type type, const char *dev, struct uvc_config *conf);
+GEAR_API struct uvc_ctx *uvc_open(const char *dev, struct uvc_config *conf);
 GEAR_API int uvc_ioctl(struct uvc_ctx *c, unsigned long int cmd, ...);
 GEAR_API void uvc_close(struct uvc_ctx *c);
 
