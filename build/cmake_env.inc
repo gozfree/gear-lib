@@ -1,0 +1,24 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8...3.20)
+PROJECT(gear-lib)
+
+#set output directory
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build/lib)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build/bin)
+SET(TD_TESTS_OUTPUT_DIR ${PROJECT_BINARY_DIR}/test)
+
+MESSAGE(STATUS "============= Compile Env ============= ")
+MESSAGE(STATUS " CPU Info: " ${CMAKE_SYSTEM_PROCESSOR})
+MESSAGE(STATUS "  OS Info: " ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_VERSION})
+MESSAGE(STATUS "Host Info: " ${CMAKE_HOST_SYSTEM_NAME})
+MESSAGE(STATUS "============= Compile Env ============= ")
+
+MESSAGE(STATUS "Project source directory: " ${PROJECT_SOURCE_DIR})
+MESSAGE(STATUS "Project binary files output path: " ${PROJECT_BINARY_DIR})
+MESSAGE(STATUS "Project executable files output path: " ${EXECUTABLE_OUTPUT_PATH})
+MESSAGE(STATUS "Project library files output path: " ${LIBRARY_OUTPUT_PATH})
+
+IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  SET(OS_LINUX TRUE)
+ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  SET(OS_WINDOWS TRUE)
+ENDIF ()
