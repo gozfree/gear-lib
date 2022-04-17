@@ -31,17 +31,19 @@
 #if defined (OS_LINUX)
 extern struct uvc_ops dummy_ops;
 extern struct uvc_ops v4l2_ops;
+extern struct uvc_ops ucam_ops;
 #elif defined (OS_WINDOWS)
 extern struct uvc_ops dshow_ops;
 #endif
 
 enum uvc_type {
 #if defined (OS_LINUX)
+    UVC_TYPE_DUMMY,
     UVC_TYPE_V4L2,
+    UVC_TYPE_UCAM,
 #elif defined (OS_WINDOWS)
     UVC_TYPE_DSHOW,
 #endif
-    UVC_TYPE_DUMMY,
     UVC_TYPE_MAX,
 };
 
@@ -49,6 +51,7 @@ static struct uvc_ops *uvc_ops[] = {
 #if defined (OS_LINUX)
 	&dummy_ops,
     &v4l2_ops,
+    &ucam_ops,
 #elif defined (OS_WINDOWS)
     &dshow_ops,
 #endif
@@ -61,6 +64,7 @@ struct uvc_ctx *uvc_open(const char *dev, struct uvc_config *conf)
     struct uvc_ctx *uvc;
 #if defined (OS_LINUX)
     type = UVC_TYPE_V4L2;
+    //type = UVC_TYPE_UCAM;
 #elif defined (OS_WINDOWS)
     type = UVC_TYPE_DSHOW;
 #endif
