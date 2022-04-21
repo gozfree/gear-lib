@@ -12,10 +12,10 @@ MESSAGE(STATUS "  OS Info: " ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_VERSION})
 MESSAGE(STATUS "Host Info: " ${CMAKE_HOST_SYSTEM_NAME})
 MESSAGE(STATUS "============= Compile Env ============= ")
 
-MESSAGE(STATUS "Project source directory: " ${PROJECT_SOURCE_DIR})
-MESSAGE(STATUS "Project binary files output path: " ${PROJECT_BINARY_DIR})
+MESSAGE(STATUS "Project source directory:             " ${PROJECT_SOURCE_DIR})
+MESSAGE(STATUS "Project binary files output path:     " ${PROJECT_BINARY_DIR})
 MESSAGE(STATUS "Project executable files output path: " ${EXECUTABLE_OUTPUT_PATH})
-MESSAGE(STATUS "Project library files output path: " ${LIBRARY_OUTPUT_PATH})
+MESSAGE(STATUS "Project library files output path:    " ${LIBRARY_OUTPUT_PATH})
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   SET(OS_LINUX TRUE)

@@ -28,21 +28,10 @@
 extern struct avcap_ops dummy_ops;
 extern struct avcap_ops v4l2_ops;
 extern struct avcap_ops uvc_ops;
+extern struct avcap_ops pulseaudio_ops;
 #elif defined (OS_WINDOWS)
 extern struct avcap_ops dshow_ops;
 #endif
-
-
-enum avcap_backend_type {
-#if defined (OS_LINUX)
-    AVCAP_TYPE_DUMMY,
-    AVCAP_TYPE_V4L2,
-    AVCAP_TYPE_UVC,
-#elif defined (OS_WINDOWS)
-    AVCAP_TYPE_DSHOW,
-#endif
-    AVCAP_TYPE_MAX,
-};
 
 struct avcap_backend {
     enum avcap_backend_type type;
@@ -51,26 +40,22 @@ struct avcap_backend {
 
 static struct avcap_backend avcap_list[] = {
 #if defined (OS_LINUX)
-    {AVCAP_TYPE_DUMMY, &dummy_ops},
-    {AVCAP_TYPE_V4L2,  &v4l2_ops},
-    {AVCAP_TYPE_UVC,   &uvc_ops},
+    {AVCAP_BACKEND_DUMMY,      &dummy_ops},
+    {AVCAP_BACKEND_V4L2,       &v4l2_ops},
+    {AVCAP_BACKEND_UVC,        &uvc_ops},
+    {AVCAP_BACKEND_PULSEAUDIO, &pulseaudio_ops},
 #elif defined (OS_WINDOWS)
-    {AVCAP_TYPE_DSHOW, &dshow_ops},
+    {AVCAP_BACKEND_DSHOW,      &dshow_ops},
 #endif
 };
 
 struct avcap_ctx *avcap_open(const char *dev, struct avcap_config *conf)
 {
-    enum avcap_backend_type type;
+    enum avcap_backend_type backend;
     struct avcap_ctx *avcap;
-#if defined (OS_LINUX)
-    //type = AVCAP_TYPE_V4L2;
-    type = AVCAP_TYPE_UVC;
-#elif defined (OS_WINDOWS)
-    type = AVCAP_TYPE_DSHOW;
-#endif
+    backend = conf->backend;
     if (!dev) {
-        type = AVCAP_TYPE_DUMMY;
+        backend = AVCAP_BACKEND_DUMMY;
         dev = conf->video.dev;
         printf("%s:%d open video dummy device\n", __func__, __LINE__);
     }
@@ -83,9 +68,9 @@ struct avcap_ctx *avcap_open(const char *dev, struct avcap_config *conf)
         printf("malloc failed!\n");
         return NULL;
     }
-    avcap->ops = avcap_list[type].ops;
+    avcap->ops = avcap_list[backend].ops;
     if (!avcap->ops) {
-        printf("avcap->ops %d is NULL!\n", type);
+        printf("avcap->ops %d is NULL!\n", backend);
         return NULL;
     }
     avcap->opaque = avcap->ops->_open(avcap, dev, conf);
@@ -137,7 +122,7 @@ int avcap_ioctl(struct avcap_ctx *avcap, unsigned long int cmd, ...)
     return ret;
 }
 
-int avcap_query_frame(struct avcap_ctx *avcap, struct video_frame *frame)
+int avcap_query_frame(struct avcap_ctx *avcap, struct media_frame *frame)
 {
     if (!avcap || !frame) {
         printf("%s:%d invalid paraments!\n", __func__, __LINE__);

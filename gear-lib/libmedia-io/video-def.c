@@ -358,6 +358,15 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
     return 0;
 }
 
+void video_frame_deinit(struct video_frame *frame)
+{
+    if (frame) {
+        if (frame->mem_type == MEDIA_MEM_DEEP) {
+            aligned_free(frame->data[0]);
+        }
+    }
+}
+
 struct video_frame *video_frame_create(enum pixel_format format,
                 uint32_t width, uint32_t height, media_mem_type_t type)
 {
@@ -385,9 +394,7 @@ struct video_frame *video_frame_create(enum pixel_format format,
 void video_frame_destroy(struct video_frame *frame)
 {
     if (frame) {
-        if (frame->mem_type == MEDIA_MEM_DEEP) {
-            aligned_free(frame->data[0]);
-        }
+        video_frame_deinit(frame);
         free(frame);
     }
 }

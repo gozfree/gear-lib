@@ -13,5 +13,5 @@ The supported hardware contain Webcam, RaspberryPi, Laptop Camera which based on
 * pulseaudio: capture audio sample via PulseAudio API
 
 #### Test
-ffplay -f rawvideo -pixel_format yuyv422 -video_size 640x480 v4l2.yuv
-
+* ffplay -f rawvideo -pixel_format yuyv422 -video_size 640x480 v4l2.yuv
+* ffplay -ar 48000 -channels 2 -f s16le -i pulseaudio.pcm

@@ -31,7 +31,7 @@ TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o v4l2.o dummy.o uvc.o
+OBJS_LIB	= $(LIBNAME).o v4l2.o dummy.o uvc.o pulseaudio.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################
@@ -56,7 +56,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lmedia-io -lthread -luvc
+LDFLAGS	+= -pthread -lmedia-io -lthread -luvc -lpulse
 
 ###############################################################################
 # target

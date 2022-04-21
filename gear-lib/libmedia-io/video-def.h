@@ -113,6 +113,8 @@ enum pixel_format pixel_string_to_format(const char *name);
 
 GEAR_API int video_frame_init(struct video_frame *frame, enum pixel_format format,
                 uint32_t width, uint32_t height, media_mem_type_t type);
+
+GEAR_API void video_frame_deinit(struct video_frame *frame);
 GEAR_API struct video_frame *video_frame_create(enum pixel_format format,
                 uint32_t width, uint32_t height, media_mem_type_t type);
 GEAR_API void video_frame_destroy(struct video_frame *frame);

@@ -224,15 +224,12 @@ static void *dummy_thread(struct thread *t, void *arg)
     struct dummy_ctx *c = (struct dummy_ctx *)avcap->opaque;
     struct media_frame media;
     struct video_frame *frame = &media.video;
+    media.type = MEDIA_TYPE_VIDEO;
 
     if (dummy_poll_init(c) == -1) {
         printf("avcap_dummy_poll_init failed!\n");
     }
-    frame = video_frame_create(avcap->conf.video.format, avcap->conf.video.width, avcap->conf.video.height, MEDIA_MEM_DEEP);
-    if (!frame) {
-        printf("video_frame_create failed!\n");
-        return NULL;
-    }
+    video_frame_init(frame, avcap->conf.video.format, avcap->conf.video.width, avcap->conf.video.height, MEDIA_MEM_DEEP);
     c->is_streaming = true;
     while (c->is_streaming) {
         if (dummy_enqueue(avcap, NULL, 0) != 0) {
@@ -250,7 +247,7 @@ static void *dummy_thread(struct thread *t, void *arg)
         }
         avcap->on_media_frame(avcap, &media);
     }
-    video_frame_destroy(frame);
+    video_frame_deinit(frame);
     dummy_poll_deinit(c);
     return NULL;
 }
@@ -301,13 +298,13 @@ static int dummy_stop_stream(struct avcap_ctx *avcap)
     return 0;
 }
 
-static int dummy_query_frame(struct avcap_ctx *avcap, struct video_frame *frame)
+static int dummy_query_frame(struct avcap_ctx *avcap, struct media_frame *frame)
 {
     if (dummy_enqueue(avcap, NULL, 0) != 0) {
         printf("dummy_enqueue failed\n");
         return -1;
     }
-    if (dummy_dequeue(avcap, frame) == -1) {
+    if (dummy_dequeue(avcap, &frame->video) == -1) {
         printf("dummy_dequeue failed\n");
         return -1;
     }

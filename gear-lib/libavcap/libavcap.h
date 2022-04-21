@@ -43,6 +43,19 @@ enum avcap_type {
     AVCAP__TYPE_MAX
 };
 
+enum avcap_backend_type {
+#if defined (OS_LINUX)
+    AVCAP_BACKEND_DUMMY,
+    AVCAP_BACKEND_V4L2,
+    AVCAP_BACKEND_UVC,
+    AVCAP_BACKEND_PULSEAUDIO,
+#elif defined (OS_WINDOWS)
+    AVCAP_BACKEND_DSHOW,
+#endif
+    AVCAP_BACKEND_MAX,
+};
+
+
 #include "audiocap.h"
 #include "videocap.h"
 
@@ -51,6 +64,7 @@ typedef int (media_frame_cb)(struct avcap_ctx *c, struct media_frame *frame);
 
 struct avcap_config {
     enum avcap_type type;
+    enum avcap_backend_type backend;
     union {
         struct audiocap_config audio;
         struct videocap_config video;
@@ -71,7 +85,7 @@ struct avcap_ops {
     int (*ioctl)(struct avcap_ctx *c, unsigned long int cmd, ...);
     int (*start_stream)(struct avcap_ctx *c);
     int (*stop_stream)(struct avcap_ctx *c);
-    int (*query_frame)(struct avcap_ctx *c, struct video_frame *frame);
+    int (*query_frame)(struct avcap_ctx *c, struct media_frame *frame);
 };
 
 #define avcap_call(ctx, fn, args...)               \
@@ -91,7 +105,7 @@ GEAR_API void avcap_close(struct avcap_ctx *c);
 /*
  * active query frame one by one
  */
-GEAR_API int avcap_query_frame(struct avcap_ctx *c, struct video_frame *frame);
+GEAR_API int avcap_query_frame(struct avcap_ctx *c, struct media_frame *frame);
 
 /*
  * passive get frame when cb is set, otherwise need query frame one by one

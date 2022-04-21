@@ -56,7 +56,8 @@ static void *_uvc_open(struct avcap_ctx *avcap, const char *dev, struct avcap_co
     }
     res = uvc_open(c->dev, &c->devh);
     if (res < 0) {
-      uvc_perror(res, "uvc_open"); /* unable to open device */
+        uvc_perror(res, "uvc_open"); /* unable to open device */
+        return NULL;
     }
     //uvc_print_diag(c->devh, stderr);
 
@@ -85,7 +86,7 @@ static void *_uvc_open(struct avcap_ctx *avcap, const char *dev, struct avcap_co
 static void _uvc_close(struct avcap_ctx *avcap)
 {
     struct uvc_ctx *c = (struct uvc_ctx *)avcap->opaque;
-    
+
     uvc_close(c->devh);
     uvc_exit(c->uvc);
     free(c);

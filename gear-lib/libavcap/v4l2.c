@@ -103,7 +103,7 @@ static int avcap_v4l2_init(struct v4l2_ctx *c);
 static int avcap_v4l2_create_mmap(struct v4l2_ctx *c);
 static int avcap_v4l2_set_format(int fd, uint32_t *w, uint32_t *h, uint32_t *pixelformat, uint32_t *bytesperline);
 static int avcap_v4l2_set_framerate(int fd, uint32_t *fps_num, uint32_t *fps_den);
-static int avcap_v4l2_start_stream(struct avcap_ctx *avcap);
+//static int _v4l2_start_stream(struct avcap_ctx *avcap);
 
 
 #define V4L2_FOURCC_STR(code)                                               \
@@ -663,7 +663,7 @@ static void *v4l2_thread(struct thread *t, void *arg)
     return NULL;
 }
 
-static int avcap_v4l2_start_stream(struct avcap_ctx *avcap)
+static int _v4l2_start_stream(struct avcap_ctx *avcap)
 {
     enum v4l2_buf_type type;
     struct v4l2_buffer enq;
@@ -715,7 +715,7 @@ static void avcap_v4l2_destroy_mmap(struct v4l2_ctx *c)
     }
 }
 
-static int avcap_v4l2_stop_stream(struct avcap_ctx *avcap)
+static int _v4l2_stop_stream(struct avcap_ctx *avcap)
 {
     uint64_t notify = '1';
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -742,13 +742,13 @@ static int avcap_v4l2_stop_stream(struct avcap_ctx *avcap)
     return 0;
 }
 
-static int avcap_v4l2_query_frame(struct avcap_ctx *avcap, struct video_frame *frame)
+static int _v4l2_query_frame(struct avcap_ctx *avcap, struct media_frame *frame)
 {
     if (avcap_v4l2_enqueue(avcap, NULL, 0) != 0) {
         printf("avcap_v4l2_enqueue failed\n");
         return -1;
     }
-    return avcap_v4l2_dequeue(avcap, frame);
+    return avcap_v4l2_dequeue(avcap, &frame->video);
 }
 
 static int avcap_v4l2_create_mmap(struct v4l2_ctx *c)
@@ -796,7 +796,7 @@ static int avcap_v4l2_create_mmap(struct v4l2_ctx *c)
 static void _v4l2_close(struct avcap_ctx *avcap)
 {
     struct v4l2_ctx *c = (struct v4l2_ctx *)avcap->opaque;
-    //avcap_v4l2_stop_stream(avcap);
+    //_v4l2_stop_stream(avcap);
     avcap_v4l2_destroy_mmap(c);
     v4l2_close(c->fd);
     close(c->epfd);
@@ -938,7 +938,7 @@ static int avcap_v4l2_print_info(struct v4l2_ctx *c)
     return 0;
 }
 
-static int avcap_v4l2_ioctl(struct avcap_ctx *avcap, unsigned long int cmd, ...)
+static int _v4l2_ioctl(struct avcap_ctx *avcap, unsigned long int cmd, ...)
 {
     void *arg;
     va_list ap;
@@ -1009,8 +1009,8 @@ static int avcap_v4l2_ioctl(struct avcap_ctx *avcap, unsigned long int cmd, ...)
 struct avcap_ops v4l2_ops = {
     ._open        = _v4l2_open,
     ._close       = _v4l2_close,
-    .ioctl        = avcap_v4l2_ioctl,
-    .start_stream = avcap_v4l2_start_stream,
-    .stop_stream  = avcap_v4l2_stop_stream,
-    .query_frame  = avcap_v4l2_query_frame,
+    .ioctl        = _v4l2_ioctl,
+    .start_stream = _v4l2_start_stream,
+    .stop_stream  = _v4l2_stop_stream,
+    .query_frame  = _v4l2_query_frame,
 };
