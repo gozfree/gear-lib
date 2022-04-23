@@ -97,8 +97,6 @@ static void event_in(int fd, void *arg)
 struct gevent_base *gevent_base_create(void)
 {
     struct gevent_base *eb = NULL;
-#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
-#endif
     eb = (struct gevent_base *)calloc(1, sizeof(struct gevent_base));
     if (!eb) {
         printf("malloc gevent_base failed!\n");
@@ -113,13 +111,11 @@ struct gevent_base *gevent_base_create(void)
     eb->ctx = eb->ops->init();
 
     eb->loop = 1;
-#ifndef __CYGWIN__
     eb->inner_fd = eventfd(0, 0);
     if (eb->inner_fd == -1) {
         printf("eventfd failed %d\n", errno);
         goto failed;
     }
-#endif
     da_init(eb->ev_array);
     eb->inner_event = gevent_create(eb->inner_fd, event_in, NULL, NULL, NULL);
     if (!eb->inner_event) {

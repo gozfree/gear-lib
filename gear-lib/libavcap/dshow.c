@@ -23,7 +23,6 @@
 #include "dshow.h"
 #include "libavcap.h"
 #include <stddef.h>
-#include <libfile.h>
 
 struct dshow_ctx {
     int                    fd;
@@ -957,6 +956,7 @@ static void dshow_callback(void *priv_data, int index, uint8_t *buf, int buf_siz
 {
     struct dshow_ctx *c = priv_data;
     struct avcap_ctx *avcap = c->avcap;
+    struct media_frame *media = &c->frame;
     struct video_frame *frame = &c->frame.video;
     uint8_t *start;
     int i;
@@ -980,7 +980,7 @@ static void dshow_callback(void *priv_data, int index, uint8_t *buf, int buf_siz
         for (i = 0; i < frame->planes; ++i) {
             frame->data[i] = start + frame->plane_offsets[i];
         }
-        avcap->on_media_frame(avcap, frame);
+        avcap->on_media_frame(avcap, media);
     }
 #if 0
     SetEvent(c->event[1]);

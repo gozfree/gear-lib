@@ -6,6 +6,20 @@
 |windows | Visual Studio c1 | linux-mingw | cmake |
 |mac | gcc | cmake| |
 
+### cmake
+   * MSVC on Windows:
+     mkdir build_msvc  
+     '/c/Program Files/CMake/bin/cmake.exe' ../  
+     '/c/Program Files/CMake/bin/cmake.exe' --build .  
+   * MSYS2 on Windows (not portable for all gear-lib):
+     mkdir build_msys2  
+     cmake ../  
+     make && make install  
+   * Linux:
+     mkdir build_linux  
+     cmake ../  
+     make && make install  
+
 ### esp32
    * toolchain: xtensa-esp32-elf  
     copy or softlink gear-lib to esp32 components dir  

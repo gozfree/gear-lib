@@ -191,8 +191,12 @@ typedef int clockid_t;
 GEAR_API int pipe(int fds[2]);
 GEAR_API int pipe_read(int fd, void *buf, size_t len);
 GEAR_API int pipe_write(int fd, const void *buf, size_t len);
+GEAR_API void pipe_close(int fds[2]);
 
 GEAR_API int eventfd(unsigned int initval, int flags);
+#define eventfd_write   pipe_write
+#define eventfd_read    pipe_read
+GEAR_API void eventfd_close(int fd);
 
 GEAR_API int get_nprocs();
 

@@ -83,7 +83,7 @@ struct timespec {
 }
 #define	TIMESPEC_TO_TIMEVAL(ptv, pts) {					\
 	(ptv)->tv_sec = (pts)->tv_sec;					\
-	(ptv)->tv_usec = (pts)->tv_nsec / 1000;				\
+	(ptv)->tv_usec = (pts)->tv_nsec / 1000ULL;				\
 }
 
 /* Change the file access time to tvp[0] and its modification time to tvp[1]. */

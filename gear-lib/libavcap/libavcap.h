@@ -44,8 +44,8 @@ enum avcap_type {
 };
 
 enum avcap_backend_type {
-#if defined (OS_LINUX)
     AVCAP_BACKEND_DUMMY,
+#if defined (OS_LINUX)
     AVCAP_BACKEND_V4L2,
     AVCAP_BACKEND_UVC,
     AVCAP_BACKEND_PULSEAUDIO,
@@ -88,6 +88,7 @@ struct avcap_ops {
     int (*query_frame)(struct avcap_ctx *c, struct media_frame *frame);
 };
 
+#if 0
 #define avcap_call(ctx, fn, args...)               \
     ({                                             \
         int __res;                                 \
@@ -97,6 +98,7 @@ struct avcap_ops {
             __res = (ctx)->ops->fn((ctx), ##args); \
             __res;                                 \
     })
+#endif
 
 GEAR_API struct avcap_ctx *avcap_open(const char *dev, struct avcap_config *conf);
 GEAR_API int avcap_ioctl(struct avcap_ctx *c, unsigned long int cmd, ...);

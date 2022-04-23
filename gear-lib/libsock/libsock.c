@@ -38,7 +38,6 @@
 #include <netdb.h>
 #define SOMAXCONN	128
 #endif
-typedef int SOCKET;
 
 #if defined (OS_WINDOWS)
 #pragma warning(disable:4996)
@@ -64,6 +63,8 @@ static void sock_post_deinit_win()
 {
     WSACleanup();
 }
+#else
+typedef int SOCKET;
 #endif
 
 static int host_to_sockaddr(const char *host, struct in_addr *addr)

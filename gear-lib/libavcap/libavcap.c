@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#if defined (OS_LINUX)
 extern struct avcap_ops dummy_ops;
+#if defined (OS_LINUX)
 extern struct avcap_ops v4l2_ops;
 extern struct avcap_ops uvc_ops;
 extern struct avcap_ops pulseaudio_ops;
@@ -39,8 +39,8 @@ struct avcap_backend {
 };
 
 static struct avcap_backend avcap_list[] = {
-#if defined (OS_LINUX)
     {AVCAP_BACKEND_DUMMY,      &dummy_ops},
+#if defined (OS_LINUX)
     {AVCAP_BACKEND_V4L2,       &v4l2_ops},
     {AVCAP_BACKEND_UVC,        &uvc_ops},
     {AVCAP_BACKEND_PULSEAUDIO, &pulseaudio_ops},

@@ -125,5 +125,6 @@ struct gevent_ops iocpops = {
     iocp_deinit,
     iocp_add,
     iocp_del,
+    NULL,
     iocp_dispatch,
 };

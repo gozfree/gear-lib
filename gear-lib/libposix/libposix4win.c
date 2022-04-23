@@ -23,6 +23,7 @@
 #include "libposix.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <windows.h>
@@ -240,9 +241,17 @@ int pipe(int fds[2])
     return 0;
 }
 
+void pipe_close(int fds[2])
+{
+    HANDLE rd = (HANDLE)fds[0];
+    HANDLE wr = (HANDLE)fds[1];
+    CloseHandle(rd);
+    CloseHandle(wr);
+}
+
 int eventfd(unsigned int initval, int flags)
 {
-    int fds[2];
+    HANDLE *fds;
     HANDLE rd;
     HANDLE wr;
 
@@ -252,13 +261,27 @@ int eventfd(unsigned int initval, int flags)
     sa.lpSecurityDescriptor = NULL;
 
     if (!CreatePipe(&rd, &wr, &sa, 0)) {
+        printf("CreatePipe failed!\n");
         return -1;
     }
-    fds[0] = (int)rd;
-    fds[1] = (int)wr;
-    return 0;
+    fds = calloc(2, sizeof(HANDLE));
+	if (!fds) {
+        printf("malloc HANDLE failed!\n");
+        return -1;
+    }
+    fds[0] = rd;
+    fds[1] = wr;
+    return (int)fds;
 }
 
+void eventfd_close(int fd)
+{
+    HANDLE *fds = (HANDLE *)fd;
+    if (!fd)
+        return;
+    CloseHandle(fds[0]);
+    CloseHandle(fds[1]);
+}
 
 int pipe_write(int fd, const void *buf, size_t len)
 {
@@ -343,4 +366,58 @@ size_t wchar_to_utf8(const wchar_t *in, size_t insize, char *out, size_t outsize
 
     UNUSED_PARAMETER(flags);
     return (ret > 0) ? (size_t)ret : 0;
+}
+
+struct timerfd {
+    HANDLE event;
+    HANDLE timer;
+};
+
+int timerfd_create(int clockid, int flags)
+{
+    struct timerfd *tfd = NULL;
+    HANDLE event = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (event == NULL) {
+        printf("CreateEvent failed!\n");
+        return -1;
+    }
+    tfd = calloc(1, sizeof(struct timerfd));
+    if (!tfd) {
+        printf("malloc timerfd failed!\n");
+        return -1;
+    }
+    tfd->event = event;
+    return (int)tfd;
+}
+
+static void CALLBACK timer_cb(PVOID arg, BOOLEAN TimerOrWaitFired)
+{
+    struct timerfd *tfd;
+    if (!arg) {
+        printf("timer_cb arg is invalid!\n");
+        return;
+    }
+    tfd = (struct timerfd *)arg;
+    SetEvent(tfd->event);
+}
+
+int timerfd_settime(int fd, int flags,
+                    const struct itimerspec *new_value,
+                    struct itimerspec *old_value)
+{
+    struct timerfd *tfd = (struct timerfd *)fd;
+    HANDLE timer = NULL;
+    DWORD ms = 0;
+
+    if (!CreateTimerQueueTimer(&timer, NULL, timer_cb, tfd, ms, 0, WT_EXECUTEDEFAULT)) {
+        printf("CreateTimerQueueTimer failed!\n");
+        return -1;
+    }
+    tfd->timer = timer;
+    return 0;
+}
+
+int timerfd_gettime(int fd, struct itimerspec *curr_value)
+{
+    return 0;
 }
