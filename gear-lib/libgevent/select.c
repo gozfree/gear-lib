@@ -30,10 +30,10 @@
 #include <sys/select.h>
 #endif
 
-#define SELECT_MAX_FD	1024
+#define SELECT_MAX_FD   1024
 
 struct select_ctx {
-    int nfds;		/* Highest fd in fd set */
+    int nfds;   /* Highest fd in fd set */
     fd_set rfds;
     fd_set wfds;
     fd_set efds;
@@ -139,6 +139,8 @@ struct gevent_ops selectops = {
     .del      =
 #endif
                 select_del,
+    .mod      =
+                NULL,
 #if defined (OS_LINUX)
     .dispatch =
 #endif

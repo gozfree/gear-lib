@@ -31,6 +31,17 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
     }
     return len;
 }
+
+int eventfd(unsigned int initval, int flags)
+{
+    return 0;
+}
+
+void eventfd_close(int fd)
+{
+
+}
+
 #ifndef ESP32
 int usleep(useconds_t us)
 {

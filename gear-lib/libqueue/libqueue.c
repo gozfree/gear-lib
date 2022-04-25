@@ -262,7 +262,7 @@ struct queue_branch *queue_branch_new(struct queue *q, const char *name)
     if (!qb) {
         return NULL;
     }
-#if !defined (OS_WINDOWS)
+#if !(defined (OS_WINDOWS) || defined (OS_RTOS))
     if (-1 == (qb->evfd = eventfd(0, 0))) {
         printf("eventfd failed: %s\n", strerror(errno));
         return NULL;

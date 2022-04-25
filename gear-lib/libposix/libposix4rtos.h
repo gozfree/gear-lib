@@ -23,6 +23,8 @@
 #define LIBPOSIX4RTOS_H
 
 #include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 #ifdef ESP32
 #include <pthread.h>
 #else
@@ -33,6 +35,7 @@
 #endif
 #include "kernel_list.h"
 
+#define GEAR_API
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,6 +56,14 @@ struct iovec {
  */
 #define iovec iovec
 //ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+
+#ifdef ESP32
+#include <sys/uio.h>
+#endif
+
+GEAR_API int eventfd(unsigned int initval, int flags);
+GEAR_API void eventfd_close(int fd);
+
 
 /******************************************************************************
  * I/O string APIs

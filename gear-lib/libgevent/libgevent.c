@@ -31,7 +31,7 @@
 #endif
 #endif
 
-#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_RTOS) || defined (OS_APPLE)
 extern const struct gevent_ops selectops;
 extern const struct gevent_ops pollops;
 #endif
@@ -45,7 +45,7 @@ extern const struct gevent_ops iocpops;
 #endif
 
 enum gevent_backend_type {
-#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_RTOS) || defined (OS_APPLE)
     GEVENT_SELECT,
     GEVENT_POLL,
 #endif
@@ -63,7 +63,7 @@ struct gevent_backend {
 };
 
 static struct gevent_backend gevent_backend_list[] = {
-#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_APPLE)
+#if defined (OS_LINUX) || defined (OS_RTTHREAD) || defined (OS_RTOS) || defined (OS_APPLE)
     {GEVENT_SELECT, &selectops},
     {GEVENT_POLL,   &pollops},
 #endif
@@ -84,6 +84,8 @@ static struct gevent_backend gevent_backend_list[] = {
 #elif defined (OS_WINDOWS)
 //#define GEVENT_BACKEND GEVENT_IOCP
 #define GEVENT_BACKEND GEVENT_EPOLL
+#else
+#define GEVENT_BACKEND GEVENT_POLL
 #endif
 
 static void event_in(int fd, void *arg)

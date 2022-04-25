@@ -29,6 +29,8 @@
 #include <errno.h>
 #if defined (OS_RTTHREAD)
 #include <dfs_poll.h>
+#elif defined (OS_RTOS)
+#include <sys/poll.h>
 #else
 #include <poll.h>
 #endif
@@ -160,5 +162,6 @@ struct gevent_ops pollops = {
     .deinit   = poll_deinit,
     .add      = poll_add,
     .del      = poll_del,
+    .mod      = NULL,
     .dispatch = poll_dispatch,
 };
