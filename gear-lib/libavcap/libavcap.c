@@ -29,6 +29,7 @@ extern struct avcap_ops dummy_ops;
 extern struct avcap_ops v4l2_ops;
 extern struct avcap_ops uvc_ops;
 extern struct avcap_ops pulseaudio_ops;
+extern struct avcap_ops xcbgrab_ops;
 #elif defined (OS_WINDOWS)
 extern struct avcap_ops dshow_ops;
 #endif
@@ -44,6 +45,7 @@ static struct avcap_backend avcap_list[] = {
     {AVCAP_BACKEND_V4L2,       &v4l2_ops},
     {AVCAP_BACKEND_UVC,        &uvc_ops},
     {AVCAP_BACKEND_PULSEAUDIO, &pulseaudio_ops},
+    {AVCAP_BACKEND_XCB,        &xcbgrab_ops},
 #elif defined (OS_WINDOWS)
     {AVCAP_BACKEND_DSHOW,      &dshow_ops},
 #endif
@@ -54,11 +56,7 @@ struct avcap_ctx *avcap_open(const char *dev, struct avcap_config *conf)
     enum avcap_backend_type backend;
     struct avcap_ctx *avcap;
     backend = conf->backend;
-    if (!dev) {
-        backend = AVCAP_BACKEND_DUMMY;
-        dev = conf->video.dev;
-        printf("%s:%d open video dummy device\n", __func__, __LINE__);
-    }
+
     if (!conf) {
         printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return NULL;

@@ -24,13 +24,13 @@ RM_V		?= $(RM)
 LIBNAME		= libmedia-io
 VER_TAG		= LIBMEDIA_IO
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
-TGT_LIB_H	= $(LIBNAME).h audio-def.h video-def.h
+TGT_LIB_H	= $(LIBNAME).h audio-def.h video-def.h video-conv.h
 TGT_LIB_A	= $(LIBNAME).a
 TGT_LIB_SO	= $(LIBNAME).so
 TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
-OBJS_LIB	= $(LIBNAME).o audio-def.o video-def.o
+OBJS_LIB	= $(LIBNAME).o audio-def.o video-def.o video-conv.o
 OBJS_UNIT_TEST	= test_$(LIBNAME).o
 
 ###############################################################################

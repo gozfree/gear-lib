@@ -146,7 +146,7 @@ int dummy_test()
             }
     };
     printf("======== dummy_test enter\n");
-    avcap = avcap_open(NULL, &conf);
+    avcap = avcap_open(INPUT_DUMMY, &conf);
     if (!avcap) {
         printf("avcap_open dummy failed!\n");
         return -1;
@@ -247,11 +247,29 @@ static int pulseaudio_test()
     return 0;
 }
 
+
+static int xcb_test()
+{
+#if defined (OS_LINUX)
+    struct avcap_config conf = {
+            .type = AVCAP_TYPE_VIDEO,
+            .backend = AVCAP_BACKEND_XCB,
+    };
+    struct avcap_ctx *avcap = avcap_open(NULL, &conf);
+    if (!avcap) {
+        printf("avcap_open uvc failed!\n");
+        return -1;
+    }
+#endif
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     v4l2_test();
     dummy_test();
     uvc_test();
     pulseaudio_test();
+    xcb_test();
     return 0;
 }

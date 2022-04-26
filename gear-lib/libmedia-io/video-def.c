@@ -77,6 +77,7 @@ static struct pixel_format_name pxlfmt_tbl[] = {
     {PIXEL_FORMAT_BGRX, "BGRX"},
     {PIXEL_FORMAT_Y800, "Y800"},
     {PIXEL_FORMAT_I444, "I444"},
+    {PIXEL_FORMAT_RGB3, "RGB3"},
     {PIXEL_FORMAT_BGR3, "BGR3"},
     {PIXEL_FORMAT_I422, "I422"},
     {PIXEL_FORMAT_I40A, "I40A"},
@@ -236,6 +237,7 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         frame->linesize[2] = width;
         frame->planes = 3;
         break;
+    case PIXEL_FORMAT_RGB3:
     case PIXEL_FORMAT_BGR3:
         size = width * height * 3;
         size = ALIGN_SIZE(size, ALIGNMENT);
@@ -424,6 +426,7 @@ struct video_frame *video_frame_copy(struct video_frame *dst, const struct video
     case PIXEL_FORMAT_RGBA:
     case PIXEL_FORMAT_BGRA:
     case PIXEL_FORMAT_BGRX:
+    case PIXEL_FORMAT_RGB3:
     case PIXEL_FORMAT_BGR3:
     case PIXEL_FORMAT_AYUV:
         memcpy(dst->data[0], src->data[0], src->linesize[0] * src->height);

@@ -53,6 +53,7 @@ typedef enum media_mem_type {
 
 #include "audio-def.h"
 #include "video-def.h"
+#include "video-conv.h"
 
 /*
  * +--------------+

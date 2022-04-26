@@ -49,7 +49,14 @@ enum pixel_format {
     PIXEL_FORMAT_UYVY,
 
     /* packed uncompressed formats */
+    PIXEL_FORMAT_0RGB, /* packed RGB 8:8:8, 32bpp, XRGB... X=unused */
     PIXEL_FORMAT_RGBA,
+
+    PIXEL_FORMAT_RGB565BE, /* packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), big-endian */
+    PIXEL_FORMAT_RGB565LE, /* packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), little-endian */
+    PIXEL_FORMAT_RGB555BE,  ///< packed RGB 5:5:5, 16bpp, (msb)1X 5R 5G 5B(lsb), big-endian   , X=unused/undefined
+    PIXEL_FORMAT_RGB8,      ///< packed RGB 3:3:2,  8bpp, (msb)2R 3G 3B(lsb)
+    PIXEL_FORMAT_RGB24, /* packed RGB 8:8:8, 24bpp, RGBRGB... */
     PIXEL_FORMAT_BGRA,
     PIXEL_FORMAT_BGRX,
     PIXEL_FORMAT_Y800, /* grayscale */
@@ -57,7 +64,8 @@ enum pixel_format {
     /* planar 4:4:4 */
     PIXEL_FORMAT_I444,
 
-    /* more packed uncompressed formats */
+    /* 24-bit more packed uncompressed formats */
+    PIXEL_FORMAT_RGB3,
     PIXEL_FORMAT_BGR3,
 
     /* planar 4:2:2 */

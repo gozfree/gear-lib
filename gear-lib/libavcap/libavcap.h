@@ -49,6 +49,7 @@ enum avcap_backend_type {
     AVCAP_BACKEND_V4L2,
     AVCAP_BACKEND_UVC,
     AVCAP_BACKEND_PULSEAUDIO,
+    AVCAP_BACKEND_XCB,
 #elif defined (OS_WINDOWS)
     AVCAP_BACKEND_DSHOW,
 #endif
