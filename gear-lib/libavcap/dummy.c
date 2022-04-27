@@ -28,10 +28,13 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#if !defined (OS_RTOS)
 #include <sys/epoll.h>
-#include <sys/stat.h>
 #include <sys/eventfd.h>
+#endif
+#include <sys/stat.h>
 
+#if !defined (OS_RTOS)
 struct dummy_ctx {
     int fd;
     int ev_fd;
@@ -326,12 +329,15 @@ static void dummy_close(struct avcap_ctx *avcap)
     close(c->ev_fd);
     free(c);
 }
+#endif
 
 struct avcap_ops dummy_ops = {
+#if !defined (OS_RTOS)
     ._open        = dummy_open,
     ._close       = dummy_close,
     .ioctl        = dummy_ioctl,
     .start_stream = dummy_start_stream,
     .stop_stream  = dummy_stop_stream,
     .query_frame  = dummy_query_frame,
+#endif
 };

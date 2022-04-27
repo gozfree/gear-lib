@@ -81,6 +81,7 @@ typedef enum fs_type_supported {
     FS_TMPFS    = 0x01021994
 } fs_type_supported_t;
 
+#if defined (OS_LINUX) || defined (OS_APPLE)
 static struct {
     const char name[32];
     const int value;
@@ -111,6 +112,7 @@ static struct {
     {"SYSFS   ", FS_SYSFS   },
     {"TMPFS   ", FS_TMPFS   },
 };
+#endif
 
 extern const struct file_ops io_ops;
 extern const struct file_ops fio_ops;
@@ -565,7 +567,12 @@ int file_get_info(const char *path, struct file_info *info)
         break;
     }
     info->size = st.st_size;
+#if defined (OS_RTOS)
+    info->access_sec = st.st_atime;
+    info->modify_sec = st.st_ctime;//using change, not modify
+#else
     info->access_sec = st.st_atim.tv_sec;
     info->modify_sec = st.st_ctim.tv_sec;//using change, not modify
+#endif
     return 0;
 }

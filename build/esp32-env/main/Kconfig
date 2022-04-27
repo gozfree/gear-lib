@@ -1,0 +1,261 @@
+menu "ESP32 HomeKit Camera"
+
+config ESP_WIFI_SSID
+    string "WiFi SSID"
+    default "MyWifi"
+    help
+    SSID (network name) for the example to connect to.
+
+config ESP_WIFI_PASSWORD
+    string "WiFi Password"
+    default ""
+    help
+    WiFi password (WPA or WPA2) for the example to use.
+
+config XCLK_FREQ
+    int "XCLK Frequency"
+    default "20000000"
+    help
+        The XCLK Frequency in Herz.
+
+choice CAMERA_MODEL
+    bool "Select Camera Pinout"
+    default CAMERA_MODEL_WROVER_KIT
+    help
+        Select Camera Pinout.
+
+config CAMERA_MODEL_WROVER_KIT
+    bool "WROVER-KIT With OV2640 Module"
+config CAMERA_MODEL_ESP_EYE
+    bool "ESP_EYE DevKit"
+config CAMERA_MODEL_M5STACK_PSRAM
+    bool "M5Stack Camera With PSRAM"
+config CAMERA_MODEL_AI_THINKER
+    bool "ESP32-CAM by AI-Thinker"
+config CAMERA_MODEL_TTGO_V1_7
+    bool "TTGO CAM v1.7"
+config CAMERA_MODEL_DIYMORE
+    bool "ESP32-CAM by DIYMore"
+config CAMERA_MODEL_CUSTOM
+    bool "Custom Camera Pinout"
+endchoice
+
+menu "Custom Camera Pins"
+    depends on CAMERA_MODEL_CUSTOM
+
+config CAMERA_PIN_PWDN
+    depends on CAMERA_MODEL_CUSTOM
+    int "Power Down pin"
+    range -1 33
+    default -1
+    help
+        Select Power Down pin or -1 for unmanaged.
+
+config CAMERA_PIN_RESET
+    depends on CAMERA_MODEL_CUSTOM
+    int "Reset pin"
+    range -1 33
+    default -1
+    help
+        Select Camera Reset pin or -1 for software reset.
+
+config CAMERA_PIN_XCLK
+    depends on CAMERA_MODEL_CUSTOM
+    int "XCLK pin"
+    range 0 33
+    default 21
+    help
+        Select Camera XCLK pin.
+
+config CAMERA_PIN_SIOD
+    depends on CAMERA_MODEL_CUSTOM
+    int "SIOD pin"
+    range 0 33
+    default 26
+    help
+        Select Camera SIOD pin.
+
+config CAMERA_PIN_SIOC
+    depends on CAMERA_MODEL_CUSTOM
+    int "SIOC pin"
+    range 0 33
+    default 27
+    help
+        Select Camera SIOC pin.
+
+config CAMERA_PIN_VSYNC
+    depends on CAMERA_MODEL_CUSTOM
+    int "VSYNC pin"
+    range 0 39
+    default 25
+    help
+        Select Camera VSYNC pin.
+
+config CAMERA_PIN_HREF
+    depends on CAMERA_MODEL_CUSTOM
+    int "HREF pin"
+    range 0 39
+    default 23
+    help
+        Select Camera HREF pin.
+
+config CAMERA_PIN_PCLK
+    depends on CAMERA_MODEL_CUSTOM
+    int "PCLK pin"
+    range 0 39
+    default 25
+    help
+        Select Camera PCLK pin.
+
+config CAMERA_PIN_D0
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y2 pin"
+    range 0 39
+    default 4
+    help
+        Select Camera Y2 pin.
+
+config CAMERA_PIN_D1
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y3 pin"
+    range 0 39
+    default 5
+    help
+        Select Camera Y3 pin.
+
+config CAMERA_PIN_D2
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y4 pin"
+    range 0 39
+    default 18
+    help
+        Select Camera Y4 pin.
+
+config CAMERA_PIN_D3
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y5 pin"
+    range 0 39
+    default 19
+    help
+        Select Camera Y5 pin.
+
+config CAMERA_PIN_D4
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y6 pin"
+    range 0 39
+    default 36
+    help
+        Select Camera Y6 pin.
+
+config CAMERA_PIN_D5
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y7 pin"
+    range 0 39
+    default 39
+    help
+        Select Camera Y7 pin.
+
+config CAMERA_PIN_D6
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y8 pin"
+    range 0 39
+    default 34
+    help
+        Select Camera Y8 pin.
+
+config CAMERA_PIN_D7
+    depends on CAMERA_MODEL_CUSTOM
+    int "Y9 pin"
+    range 0 39
+    default 35
+    help
+        Select Camera Y9 pin.
+
+endmenu
+
+config LED_PIN
+    int "LED pin"
+    range -1 39
+    default "1"
+    help
+        Select LED pin. Set to -1 to disable.
+
+choice LED_ACTIVE_STATE
+    bool "LED active state"
+    default LED_ACTIVE_HIGH
+    help
+        On which GPIO pin level LED is lit
+
+config LED_ACTIVE_HIGH
+    bool "HIGH"
+    help
+        LED is lit when GPIO pin level is set to high
+
+config LED_ACTIVE_LOW
+    bool "LOW"
+    help
+        LED is lit when GPIO pin level is set to low
+
+endchoice
+
+
+# HomeKit setup options
+config ESP_HOMEKIT_DEVICE_SETUP_CODE
+    string "HomeKit Device Setup Code"
+    default "111-11-111"
+    help
+    HomeKit Setup code for the example to use.
+
+config ESP_HOMEKIT_DEVICE_MANUFACTURER
+    string "HomeKit Device Manufacturer"
+    default "HaPK"
+    help
+    HomeKit manufacturer name the example to use.
+
+config ESP_HOMEKIT_DEVICE_MODEL_NAME
+    string "HomeKit Device model name"
+    default "ESP Camera"
+    help
+    HomeKit device model name the example to use.
+
+config ESP_HOMEKIT_DEVICE_MODEL_NUMBER
+    string "HomeKit Device model number"
+    default "1"
+    help
+    HomeKit device model number the example to use.
+
+config ESP_HOMEKIT_DEVICE_SERIAL_NUMBER
+    string "HomeKit Device Serial number"
+    default "1"
+    help
+    HomeKit serial number the example to use.
+
+config ESP_HOMEKIT_DEVICE_FIRMWARE_VERSION
+    string "HomeKit Device Firmware version"
+    default "0.1"
+    help
+    HomeKit firmware version number the example to use.
+
+
+# Option to change vertical video orientation
+config ESP_SET_VFLIP
+    bool "Image sensor vertical flip"
+    default n
+    help
+        Enable image vertical flip
+
+# Option to change horizontal mirror video orientation
+config ESP_SET_HMIRROR
+    bool "Image sensor horizontal mirror"
+    default n
+    help
+        Enable image horizontal mirror
+
+# Option to enhance image
+config ESP_SET_ENHANCE_IMAGE
+    bool "Image sensor enhance settings"
+    default n
+    help
+        Enable image enhancement by adjusting settings such as contrast, saturation, etc
+
+endmenu

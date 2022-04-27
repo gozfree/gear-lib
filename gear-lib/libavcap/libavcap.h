@@ -52,6 +52,8 @@ enum avcap_backend_type {
     AVCAP_BACKEND_XCB,
 #elif defined (OS_WINDOWS)
     AVCAP_BACKEND_DSHOW,
+#elif defined (OS_RTOS)
+    AVCAP_BACKEND_ESP32CAM,
 #endif
     AVCAP_BACKEND_MAX,
 };

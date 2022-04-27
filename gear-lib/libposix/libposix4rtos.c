@@ -21,6 +21,7 @@
  ******************************************************************************/
 #include "libposix4rtos.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
 {
@@ -62,11 +63,6 @@ unsigned int sleep(unsigned int seconds)
     usleep(seconds*1000000UL);
     return 0;
 }
-
-#if 1
-
-#endif
-
 
 static void __thread_func(void *arg)
 {
@@ -193,7 +189,7 @@ int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, int ms)
     } while (!(xEventGroupGetBits(cond->event) & cond->evbits))
     return 0;
 }
-
+#endif
 
 void *rtos_aligned_alloc(size_t alignment, size_t size)
 {
@@ -212,4 +208,9 @@ void rtos_aligned_free(void *ptr)
 	if (ptr)
 		free((char *)ptr - ((char *)ptr)[-1]);
 }
-#endif
+
+int get_proc_name(char *name, size_t len)
+{
+    snprintf(name, len, "%s", "unsupport");
+    return 0;
+}

@@ -142,7 +142,7 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
     size_t size;
 
     if (format == PIXEL_FORMAT_NONE || width == 0 || height == 0) {
-        printf("invalid paramenters!\n");
+        printf("%s:%d invalid paramenters!\n", __func__, __LINE__);
         return -1;
     }
 
@@ -343,6 +343,7 @@ int video_frame_init(struct video_frame *frame, enum pixel_format format,
         frame->linesize[3] = width;
         frame->planes = 4;
         break;
+    case PIXEL_FORMAT_JPEG:
     case PIXEL_FORMAT_MJPG:
         size = width * height;
         size = ALIGN_SIZE(size, ALIGNMENT);

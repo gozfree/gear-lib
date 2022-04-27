@@ -32,6 +32,8 @@ extern struct avcap_ops pulseaudio_ops;
 extern struct avcap_ops xcbgrab_ops;
 #elif defined (OS_WINDOWS)
 extern struct avcap_ops dshow_ops;
+#elif defined (OS_RTOS)
+extern struct avcap_ops esp32cam_ops;
 #endif
 
 struct avcap_backend {
@@ -48,6 +50,8 @@ static struct avcap_backend avcap_list[] = {
     {AVCAP_BACKEND_XCB,        &xcbgrab_ops},
 #elif defined (OS_WINDOWS)
     {AVCAP_BACKEND_DSHOW,      &dshow_ops},
+#elif defined (OS_RTOS)
+    {AVCAP_BACKEND_ESP32CAM,   &esp32cam_ops},
 #endif
 };
 

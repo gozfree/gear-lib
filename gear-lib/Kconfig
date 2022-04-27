@@ -1,7 +1,26 @@
+menu "Gear Lib"
+
 config RT_USING_GEARLIB
     bool "Using Gear-Lib"
     select RT_USING_LIBC
+    select GEAR_LIB_POSIX
+    select GEAR_LIB_LOG
+    select GEAR_LIB_AVCAP
     default n
     help
         The Gear-Lib is a collection of basic libraries based on POSIX C, aim to
 	use for IOT, embedded and network service development
+
+config GEAR_LIB_POSIX
+    bool "Using libposix"
+    default n
+
+config GEAR_LIB_LOG
+    bool "Using liblog"
+    default n
+
+config GEAR_LIB_AVCAP
+    bool "Using libavcap"
+    default n
+
+endmenu

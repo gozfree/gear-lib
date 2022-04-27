@@ -99,6 +99,10 @@ int system_noblock(char **argv);
 ssize_t system_with_result(const char *cmd, void *buf, size_t count);
 ssize_t system_noblock_with_result(char **argv, void *buf, size_t count);
 
+int hal_open(const char *pathname, int flags);
+ssize_t hal_read(int fd, void *buf, size_t count);
+ssize_t hal_write(int fd, const void *buf, size_t count);
+int hal_close(int fd);
 
 
 

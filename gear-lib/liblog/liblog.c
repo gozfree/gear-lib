@@ -80,6 +80,9 @@
 	(LOG_TAG_BIT|LOG_TIMESTAMP_BIT|LOG_PID_BIT|LOG_TID_BIT|LOG_FUNCLINE_BIT)
 #define LOG_DEFAULT_BIT \
 	(LOG_TIMESTAMP_BIT|LOG_TID_BIT|LOG_FUNCLINE_BIT)
+#define LOG_MINIMAL_BIT \
+	(LOG_TIMESTAMP_BIT|LOG_TID_BIT)
+
 
 #define LOG_TAG_MASK        (0x0F)
 #define LOG_TIMESTAMP_MASK  (0x07)
@@ -864,7 +867,11 @@ static void log_init_once(void)
 #ifdef LOG_VERBOSE_ENABLE
     UPDATE_LOG_PREFIX(_log_prefix, LOG_VERBOSE_BIT);
 #endif
+#if defined (OS_RTOS)
+    UPDATE_LOG_PREFIX(_log_prefix, LOG_MINIMAL_BIT);
+#else
     UPDATE_LOG_PREFIX(_log_prefix, LOG_DEFAULT_BIT);
+#endif
 
 #ifdef LOG_IO_OPS
     _log_use_io = 1;

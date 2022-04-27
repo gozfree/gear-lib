@@ -1,10 +1,12 @@
 
 ## Supported
-|  |  |
-|--|--|
-|linux | gcc | x86_64-w64-mingw32-gcc | cmake |
-|windows | Visual Studio c1 | linux-mingw | cmake |
-|mac | gcc | cmake| |
+| Host OS    |       |       |                        |     |
+|------------|-------|-------|------------------------|-----|
+|PC linux    | cmake | gcc   | x86_64-w64-mingw32-gcc | ndk |
+|windows     | cmake | mingw | Visual Studio c1       |     |
+|mac         | cmake | gcc   | | |
+|raspberrypi | cmake |arm-gcc| | |
+|esp32       | cmake | xtensa-esp32-elf   | | |
 
 ### cmake
    * MSVC on Windows:
@@ -22,9 +24,11 @@
 
 ### esp32
    * toolchain: xtensa-esp32-elf  
-    copy or softlink gear-lib to esp32 components dir  
-    gear-lib/component.mk is makefile of esp32  
-    `$ make`
+     `git clone https://github.com/espressif/esp-idf.git`
+    add esp-idf/tools to $PATH 
+    `$ cd build/esp32-env` 
+    `$ make menuconfig` 
+    `$ make flash` 
 
 ### Windows
   * Windows7 install "Microsoft Visual Studio 10.0"  
