@@ -87,9 +87,17 @@ struct network_ports {
     uint16_t udp_cnt;
 };
 
+/******************************************************************************
+ * network
+ ******************************************************************************/
 
 int network_get_info(const char *inf, struct network_info *info);
 int network_get_port_occupied(struct network_ports *ports);
+
+typedef void (*wifi_event_cb_t)(void *ctx);
+void wifi_setup(const char *ssid, const char *pswd, wifi_event_cb_t event_cb);
+
+
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info);
 int cpu_get_info(struct cpu_info *info);
 int memory_get_info(struct memory_info *info);

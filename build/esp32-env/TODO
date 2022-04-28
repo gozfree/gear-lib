@@ -1,0 +1,8 @@
+1.add libcmd, support shell on eps32
+2.fix libhomekit on linux
+3.dump esp32 camera media file to host via uart or webserver
+
+supported:
+gpio button interrupt ok
+gpio led ok
+camera capture ok

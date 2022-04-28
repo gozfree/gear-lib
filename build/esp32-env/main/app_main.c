@@ -3,21 +3,30 @@
 #include <libmedia-io.h>
 #include <libavcap.h>
 #include <libfile.h>
+#include <libhal.h>
 //#include <libdarray.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <esp_err.h>
+#include <esp_log.h>
+#include <nvs_flash.h>
+#include <esp_event_legacy.h>
+#include <driver/gpio.h>
+#include "sdkconfig.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define OUTPUT_V4L2     "v4l2_640_480.jpg"
 
+#define GPIO_LED_RED    21
+#define GPIO_LED_WHITE  22
+#define GPIO_BUTTON     15
+#define GPIO_BOOT       0
+
+#define TAG "esp32"
 static struct file *fp;
-#if 0
-static void *thread(void *arg)
-{
-    logi("thread\n");
-    return NULL;
-}
-#endif
 
 static int on_video(struct avcap_ctx *c, struct video_frame *video)
 {
@@ -53,7 +62,7 @@ static int on_frame(struct avcap_ctx *c, struct media_frame *frm)
     }
     return ret;
 }
-#if 1
+
 static void cam_test()
 {
     struct avcap_config conf = {
@@ -80,10 +89,110 @@ static void cam_test()
     file_close(fp);
     avcap_close(avcap);
 }
-#endif
+
+static xQueueHandle gpio_evt_queue = NULL;
+static int g_wifi_state = SYSTEM_EVENT_WIFI_READY;
+
+static void IRAM_ATTR gpio_isr_handler(void* arg)
+{
+    uint32_t gpio_num = (uint32_t) arg;
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
+}
+
+static void button_task(void* arg)
+{
+    uint32_t io_num;
+    for(;;) {
+        if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
+            printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+        }
+    }
+}
+
+static void white_led_task(void *arg)
+{
+    while(1) {
+        switch (g_wifi_state) {
+        case SYSTEM_EVENT_STA_START:
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+            gpio_set_level(GPIO_LED_WHITE, 0);
+            usleep(300*1000);
+            gpio_set_level(GPIO_LED_WHITE, 1);
+            usleep(300*1000);
+            break;
+        case SYSTEM_EVENT_STA_CONNECTED:
+        case SYSTEM_EVENT_STA_GOT_IP:
+            gpio_set_level(GPIO_LED_WHITE, 1);
+            break;
+        default:
+            break;
+        }
+        usleep(10*1000);
+    }
+}
+
+void gpio_button_init()
+{
+    gpio_config_t gpio_conf = {0};
+
+    gpio_conf.pin_bit_mask = 1ULL << GPIO_BUTTON | 1ULL << GPIO_BOOT;
+    gpio_conf.mode = GPIO_MODE_INPUT;
+    gpio_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    gpio_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    gpio_conf.intr_type = GPIO_INTR_ANYEDGE;
+    ESP_ERROR_CHECK(gpio_config(&gpio_conf));
+
+    //ESP_ERROR_CHECK(gpio_set_intr_type(GPIO_BUTTON, GPIO_INTR_ANYEDGE));
+    //ESP_ERROR_CHECK(gpio_set_intr_type(GPIO_BOOT, GPIO_INTR_ANYEDGE));
+    ESP_ERROR_CHECK(gpio_install_isr_service(0));
+    gpio_isr_handler_add(GPIO_BUTTON, gpio_isr_handler, (void *)GPIO_BUTTON);
+    gpio_isr_handler_add(GPIO_BOOT, gpio_isr_handler, (void *)GPIO_BOOT);
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+    xTaskCreate(button_task, "button_task", 2048, NULL, 10, NULL);
+}
+
+void gpio_led_init()
+{
+    gpio_config_t gpio_conf;
+    gpio_conf.mode = GPIO_MODE_OUTPUT;
+    gpio_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    gpio_conf.intr_type = GPIO_INTR_DISABLE;
+    gpio_conf.pin_bit_mask = 1LL << GPIO_LED_RED;
+    gpio_config(&gpio_conf);
+    gpio_conf.pin_bit_mask = 1LL << GPIO_LED_WHITE;
+    gpio_config(&gpio_conf);
+    xTaskCreate(white_led_task, "white_led_task", 2048, NULL, 10, NULL);
+}
+
+static void wifi_event(void *ctx)
+{
+    system_event_t *event = (system_event_t *)ctx;
+    g_wifi_state = event->event_id;
+    switch(event->event_id) {
+    case SYSTEM_EVENT_STA_START:
+        ESP_LOGI(TAG, "STA start blink");
+        break;
+    case SYSTEM_EVENT_STA_GOT_IP:
+        ESP_LOGI(TAG, "STA GOT IP: %s",
+                        ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
+        break;
+    case SYSTEM_EVENT_STA_DISCONNECTED:
+        ESP_LOGI(TAG, "STA disconnected, retry...");
+        break;
+    case SYSTEM_EVENT_STA_CONNECTED:
+        ESP_LOGI(TAG, "STA connected");
+        break;
+    default:
+        ESP_LOGI(TAG, "unknown system event %d", event->event_id);
+        break;
+    }
+}
 
 void app_main(void)
 {
-    logi("%s:%d hello world!\n", __func__, __LINE__);
+    gpio_button_init();
+    gpio_led_init();
+    wifi_setup(CONFIG_ESP_WIFI_SSID, CONFIG_ESP_WIFI_PASSWORD, wifi_event);
+    if (0)
     cam_test();
 }

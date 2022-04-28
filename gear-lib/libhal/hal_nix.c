@@ -39,6 +39,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <linux/if.h>
+#include <linux/wireless.h>
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define is_str_equal(a,b) \
     ((strlen(a) == strlen(b)) && (0 == strcasecmp(a,b)))
@@ -117,7 +120,6 @@ static ssize_t file_read_path(const char *path, void *data, size_t len)
 
 int network_get_info(const char *interface, struct network_info *info)
 {
-#if 0
     int ret = -1;
     int fd = 0;
     do {
@@ -132,6 +134,7 @@ int network_get_info(const char *interface, struct network_info *info)
         char net_dev[128] = {0};
         snprintf(net_dev, sizeof(net_dev), "%s/%s", SYS_CLASS_NET, interface);
         if (-1 == access(net_dev, F_OK|W_OK|R_OK)) {
+            printf("access %s failed: %d\n", net_dev, errno);
             info->is_probed = false;
             break;
         } else {
@@ -166,6 +169,7 @@ int network_get_info(const char *interface, struct network_info *info)
         if (-1 == ioctl(fd, SIOCGIWESSID, &wreq)) {
             //printf("ioctl SIOCGIWESSID failed: %s\n", strerror(errno));
         }
+        printf("ssid = %s\n", (char *)wreq.u.essid.pointer);
 
         //ipaddr macaddr
         struct ifconf ifc;
@@ -210,8 +214,6 @@ int network_get_info(const char *interface, struct network_info *info)
         close(fd);
     }
     return ret;
-#endif
-    return 0;
 }
 
 int sdcard_get_info(const char *mount_point, struct sdcard_info *info)
