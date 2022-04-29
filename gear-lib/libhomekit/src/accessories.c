@@ -422,7 +422,6 @@ void homekit_accessories_init(homekit_accessory_t **accessories) {
             }
         }
     }
-    printf("homekit_accessories_init done\n");
 }
 
 homekit_accessory_t *homekit_accessory_by_id(homekit_accessory_t **accessories, int aid) {

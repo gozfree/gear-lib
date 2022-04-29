@@ -4,12 +4,11 @@
 #include "crypto.h"
 #include "pairing.h"
 #include "port.h"
-#include <stdbool.h>
 
 #pragma GCC diagnostic ignored "-Wunused-value"
 
 #ifndef SPIFLASH_BASE_ADDR
-#define SPIFLASH_BASE_ADDR 0x0
+#define SPIFLASH_BASE_ADDR 0x200000
 #endif
 
 #define MAGIC_OFFSET           0

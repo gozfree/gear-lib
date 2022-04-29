@@ -330,10 +330,8 @@ int crypto_chacha20poly1305_encrypt(
 
 ed25519_key *crypto_ed25519_new() {
     ed25519_key *key = malloc(sizeof(ed25519_key));
-    ERROR("before wc_ed25519_init");
     int r = wc_ed25519_init(key);
     if (r) {
-        ERROR("wc_ed25519_init failed");
         free(key);
         return NULL;
     }
@@ -351,8 +349,7 @@ ed25519_key *crypto_ed25519_generate() {
     WC_RNG rng;
     int r = wc_ed25519_make_key(&rng, ED25519_KEY_SIZE, key);
     if (r) {
-        ERROR("ED25519_KEY_SIZE=%d, key=%p", ED25519_KEY_SIZE, key);
-        ERROR("Failed to generate key (code %d)", r);
+        DEBUG("Failed to generate key (code %d)", r);
         crypto_ed25519_free(key);
         return NULL;
     }

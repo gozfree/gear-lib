@@ -4,26 +4,29 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <libqueue.h>
+#include <netinet/tcp.h>
 
 //#include <lwip/sockets.h>
 
 #include <unistd.h>
 
 #if defined(ESP_IDF)
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/queue.h>
+//#include <freertos/FreeRTOS.h>
+//#include <freertos/task.h>
+//#include <freertos/queue.h>
 #elif defined(ESP_OPEN_RTOS)
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
 #else
-//#error "Unknown target platform"
-#include <errno.h>
-#include <sys/types.h>          /* See NOTES */
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <libqueue.h>
+#error "Unknown target platform"
 #endif
 
 #include <http-parser/http_parser.h>
@@ -3123,7 +3126,6 @@ client_context_t *homekit_server_accept_client(homekit_server_t *server) {
 
     INFO("Got new client connection: %d", s);
 
-#if 0
     const struct timeval rcvtimeout = { 10, 0 }; /* 10 second timeout */
     setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &rcvtimeout, sizeof(rcvtimeout));
 
@@ -3138,7 +3140,6 @@ client_context_t *homekit_server_accept_client(homekit_server_t *server) {
 
     const int maxpkt = 4; /* Drop connection after 4 probes without response */
     setsockopt(s, IPPROTO_TCP, TCP_KEEPCNT, &maxpkt, sizeof(maxpkt));
-#endif
 
     client_context_t *context = client_context_new();
     context->server = server;

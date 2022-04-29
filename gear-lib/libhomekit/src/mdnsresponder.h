@@ -14,43 +14,12 @@
 #ifndef __MDNSRESPONDER_H__
 #define __MDNSRESPONDER_H__
 
-#include <stdint.h>
-#if 0
 #include <lwip/ip_addr.h>
-#endif
 
 /* The default maximum reply size, increase as necessary. */
 #ifndef MDNS_RESPONDER_REPLY_SIZE
 #define MDNS_RESPONDER_REPLY_SIZE      1460
 #endif
-
-#define u8_t    uint8_t
-#define u16_t   uint16_t
-#define u32_t   uint32_t
-
-struct ip4_addr {
-  u32_t addr;
-};
-typedef struct ip4_addr ip4_addr_t;
-
-struct ip6_addr {
-  u32_t addr[4];
-#if LWIP_IPV6_SCOPES
-  u8_t zone;
-#endif /* LWIP_IPV6_SCOPES */
-};
-
-/** IPv6 address */
-typedef struct ip6_addr ip6_addr_t;
-
-typedef struct ip_addr {
-  union {
-    ip6_addr_t ip6;
-    ip4_addr_t ip4;
-  } u_addr;
-  /** @ref lwip_ip_addr_type */
-  u8_t type;
-} ip_addr_t;
 
 // Starts the mDNS responder task, call first
 void mdns_init();

@@ -12,24 +12,18 @@
  */
 
 
-#if 0
 #include <espressif/esp_common.h>
 #include <espressif/esp_wifi.h>
-#endif
 
 #include <string.h>
 #include <stdio.h>
-#include <stdbool.h>
-#if 0
 #include <etstimer.h>
 #include <esplibs/libmain.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
 #include <semphr.h>
-#endif
 
-#if 0
 #include <lwip/err.h>
 #include <lwip/sockets.h>
 #include <lwip/sys.h>
@@ -40,14 +34,11 @@
 #include <lwip/udp.h>
 #include <lwip/igmp.h>
 #include <lwip/netif.h>
-#endif
 
 #include "mdnsresponder.h"
 
-#if 0
 #if !LWIP_IGMP
 #error "LWIP_IGMP needs to be defined in lwipopts.h"
-#endif
 #endif
 
 // #define qDebugLog             // Log activity generally
@@ -63,56 +54,6 @@
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/bpstruct.h"
 #endif
-
-/* DNS field TYPE used for "Resource Records" */
-#define DNS_RRTYPE_A              1     /* a host address */
-#define DNS_RRTYPE_NS             2     /* an authoritative name server */
-#define DNS_RRTYPE_MD             3     /* a mail destination (Obsolete - use MX) */
-#define DNS_RRTYPE_MF             4     /* a mail forwarder (Obsolete - use MX) */
-#define DNS_RRTYPE_CNAME          5     /* the canonical name for an alias */
-#define DNS_RRTYPE_SOA            6     /* marks the start of a zone of authority */
-#define DNS_RRTYPE_MB             7     /* a mailbox domain name (EXPERIMENTAL) */
-#define DNS_RRTYPE_MG             8     /* a mail group member (EXPERIMENTAL) */
-#define DNS_RRTYPE_MR             9     /* a mail rename domain name (EXPERIMENTAL) */
-#define DNS_RRTYPE_NULL           10    /* a null RR (EXPERIMENTAL) */
-#define DNS_RRTYPE_WKS            11    /* a well known service description */
-#define DNS_RRTYPE_PTR            12    /* a domain name pointer */
-#define DNS_RRTYPE_HINFO          13    /* host information */
-#define DNS_RRTYPE_MINFO          14    /* mailbox or mail list information */
-#define DNS_RRTYPE_MX             15    /* mail exchange */
-#define DNS_RRTYPE_TXT            16    /* text strings */
-#define DNS_RRTYPE_AAAA           28    /* IPv6 address */
-#define DNS_RRTYPE_SRV            33    /* service location */
-#define DNS_RRTYPE_ANY            255   /* any type */
-
-/* DNS field CLASS used for "Resource Records" */
-#define DNS_RRCLASS_IN            1     /* the Internet */
-#define DNS_RRCLASS_CS            2     /* the CSNET class (Obsolete - used only for examples in some obsolete RFCs) */
-#define DNS_RRCLASS_CH            3     /* the CHAOS class */
-#define DNS_RRCLASS_HS            4     /* Hesiod [Dyer 87] */
-#define DNS_RRCLASS_ANY           255   /* any class */
-#define DNS_RRCLASS_FLUSH         0x800 /* Flush bit */
-
-/* DNS protocol flags */
-#define DNS_FLAG1_RESPONSE        0x80
-#define DNS_FLAG1_OPCODE_STATUS   0x10
-#define DNS_FLAG1_OPCODE_INVERSE  0x08
-#define DNS_FLAG1_OPCODE_STANDARD 0x00
-#define DNS_FLAG1_AUTHORATIVE     0x04
-#define DNS_FLAG1_TRUNC           0x02
-#define DNS_FLAG1_RD              0x01
-#define DNS_FLAG2_RA              0x80
-#define DNS_FLAG2_ERR_MASK        0x0f
-#define DNS_FLAG2_ERR_NONE        0x00
-#define DNS_FLAG2_ERR_NAME        0x03
-
-#define DNS_HDR_GET_OPCODE(hdr) ((((hdr)->flags1) >> 3) & 0xF)
-
-
-#define PACK_STRUCT_BEGIN
-#define PACK_STRUCT_END
-#define PACK_STRUCT_FIELD(x) x
-#define PACK_STRUCT_STRUCT __attribute__((packed))
 
 PACK_STRUCT_BEGIN
 /** DNS message header */
@@ -185,31 +126,13 @@ typedef struct mdns_rsrc {
                                         // at rData[rKeySize]
 } mdns_rsrc;
 
-#define PP_HTONS(x) ((u16_t)((((x) & (u16_t)0x00ffU) << 8) | (((x) & (u16_t)0xff00U) >> 8)))
-#define PP_NTOHS(x) PP_HTONS(x)
-#define PP_HTONL(x) ((((x) & (u32_t)0x000000ffUL) << 24) | \
-                     (((x) & (u32_t)0x0000ff00UL) <<  8) | \
-                     (((x) & (u32_t)0x00ff0000UL) >>  8) | \
-                     (((x) & (u32_t)0xff000000UL) >> 24))
-#define PP_NTOHL(x) PP_HTONL(x)
-
-#define LWIP_MAKEU32(a,b,c,d) (((u32_t)((a) & 0xff) << 24) | \
-                               ((u32_t)((b) & 0xff) << 16) | \
-                               ((u32_t)((c) & 0xff) << 8)  | \
-                                (u32_t)((d) & 0xff))
-#define IPADDR4_INIT(u32val)                    { u32val }
-#define IPADDR4_INIT_BYTES(a,b,c,d)             IPADDR4_INIT(PP_HTONL(LWIP_MAKEU32(a,b,c,d)))
-#define DNS_MQUERY_IPV4_GROUP_INIT  IPADDR4_INIT_BYTES(224,0,0,251)
-
 static struct udp_pcb* gMDNS_pcb = NULL;
 static const ip_addr_t gMulticastV4Addr = DNS_MQUERY_IPV4_GROUP_INIT;
 #if LWIP_IPV6
 #include "lwip/mld6.h"
 static const ip_addr_t gMulticastV6Addr = DNS_MQUERY_IPV6_GROUP_INIT;
 #endif
-#if 0
 static SemaphoreHandle_t gDictMutex = NULL;
-#endif
 static mdns_rsrc*      gDictP = NULL;       // RR database, linked list
 
 //---------------------- Debug/logging utilities -------------------------
@@ -503,24 +426,18 @@ static u8_t* mdns_get_question(u8_t* hdrP, u8_t* qp, char* qStr, uint16_t* qClas
 //---------------------------------------------------------------------------
 static void mdns_announce_netif(struct netif *netif, const ip_addr_t *addr);
 
-#if 0
 static ETSTimer announce_timer;
-static ETSTimer network_monitor_timer;
-#endif
 
 static bool network_down = true;
+static ETSTimer network_monitor_timer;
 
 
 void mdns_clear() {
-#if 0
     sdk_os_timer_disarm(&announce_timer);
     sdk_os_timer_disarm(&network_monitor_timer);
-#endif
 
-#if 0
     if (!xSemaphoreTake(gDictMutex, portMAX_DELAY))
         return;
-#endif
 
     mdns_rsrc *rsrc = gDictP;
     gDictP = NULL;
@@ -531,9 +448,7 @@ void mdns_clear() {
         rsrc = next;
     }
 
-#if 0
     xSemaphoreGive(gDictMutex);
-#endif
 }
 
 
@@ -580,13 +495,11 @@ static void mdns_add_response(const char* vKey, u16_t vType, u32_t ttl, const vo
         memcpy(rsrcP->rData, vKey, keyLen);
         memcpy(&rsrcP->rData[keyLen], dataP, vDataSize);
 
-#if 0
         if (xSemaphoreTake(gDictMutex, portMAX_DELAY)) {
             rsrcP->rNext = gDictP;
             gDictP = rsrcP;
             xSemaphoreGive(gDictMutex);
         }
-#endif
 
 #ifdef qDebugLog
         printf("mDNS added RR '%s' %s, %d bytes\n", vKey, mdns_qrtype(vType), vDataSize);
@@ -642,9 +555,7 @@ void mdns_add_AAAA(const char* rKey, u32_t ttl, const ip6_addr_t *addr)
 #endif
 
 void mdns_announce() {
-#if 0
     struct netif *netif = sdk_system_get_netif(STATION_IF);
-#endif
 #if LWIP_IPV4
     mdns_announce_netif(netif, &gMulticastV4Addr);
 #endif
@@ -705,13 +616,12 @@ void mdns_add_facility( const char* instanceName,   // Friendly name, need not b
     free(fullName);
     free(devName);
 
+aaa
     if (sdk_wifi_station_get_connect_status() == STATION_GOT_IP)
         mdns_announce();
 
-#if 0
     sdk_os_timer_arm(&announce_timer, ttl * 1000, 1);
     sdk_os_timer_arm(&network_monitor_timer, HOMEKIT_MDNS_NETWORK_CHECK_PERIOD, 1);
-#endif
 }
 
 static mdns_rsrc* mdns_match(const char* qstr, u16_t qType)
@@ -833,7 +743,6 @@ static void mdns_reply(const ip_addr_t *addr, struct mdns_hdr* hdrP)
     qp = qBase + SIZEOF_DNS_HDR;
     nquestions = htons(hdrP->numquestions);
 
-#if 0
     if (xSemaphoreTake(gDictMutex, portMAX_DELAY)) {
 
         for (i = 0; i < nquestions; i++) {
@@ -901,7 +810,6 @@ static void mdns_reply(const ip_addr_t *addr, struct mdns_hdr* hdrP)
 
         xSemaphoreGive(gDictMutex);
     }
-#endif
 
     if (respLen > SIZEOF_DNS_HDR) {
         if (extra) {
@@ -942,7 +850,6 @@ static void mdns_announce_netif(struct netif *netif, const ip_addr_t *addr)
 
     int respLen = SIZEOF_DNS_HDR;
 
-#if 0
     if (xSemaphoreTake(gDictMutex, portMAX_DELAY)) {
         mdns_rsrc *rsrcP = gDictP;
         while (rsrcP) {
@@ -989,7 +896,6 @@ static void mdns_announce_netif(struct netif *netif, const ip_addr_t *addr)
 
         xSemaphoreGive(gDictMutex);
     }
-#endif
 
     if (respLen > SIZEOF_DNS_HDR) {
         mdns_send_mcast(addr, mdns_response, respLen);
@@ -1054,10 +960,8 @@ static void mdns_check_network() {
 // If we are in station mode and have an IP address, start a multicast UDP receive
 void mdns_init()
 {
-#if 0
     sdk_os_timer_setfn(&announce_timer, mdns_announce, NULL);
     sdk_os_timer_setfn(&network_monitor_timer, mdns_check_network, NULL);
-#endif
 
     err_t err;
 
@@ -1080,7 +984,6 @@ void mdns_init()
         }
     }
 
-#if 0
     gDictMutex = xSemaphoreCreateBinary();
     if (!gDictMutex) {
         printf(">>> mDNS_init: failed to initialize mutex\n");
@@ -1088,7 +991,6 @@ void mdns_init()
         return;
     }
     xSemaphoreGive(gDictMutex);
-#endif
 
     gMDNS_pcb = udp_new_ip_type(IPADDR_TYPE_ANY);
     if (!gMDNS_pcb) {

@@ -85,6 +85,7 @@ void homekit_mdns_configure_finalize() {
 
 #include <string.h>
 #include <mdns.h>
+#include "esp_port.h"
 
 uint32_t homekit_random() {
     return esp_random();
@@ -141,30 +142,6 @@ void homekit_mdns_configure_finalize() {
 
 #endif
 
-uint32_t homekit_random() {
-    return random();
-}
-
-void homekit_random_fill(uint8_t *data, size_t size) {
-    uint32_t x;
-    for (int i=0; i<size; i+=sizeof(x)) {
-        x = random();
-        memcpy(data+i, &x, (size-i >= sizeof(x)) ? sizeof(x) : size-i);
-    }
-}
-
-void homekit_system_restart() {
-}
-
-void homekit_mdns_configure_init(const char *instance_name, int port) {
-}
-
-void homekit_mdns_add_txt(const char *key, const char *format, ...) {
-}
-void homekit_mdns_configure_finalize() {
-}
-void homekit_mdns_init() {
-}
 
 #define SPIFLASH_FILE    "spiflash"
 

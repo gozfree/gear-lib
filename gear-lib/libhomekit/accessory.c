@@ -679,8 +679,8 @@ homekit_accessory_t *accessories[] = {
 homekit_server_config_t config = {
     .accessories = accessories,
 //    .password = "111-11-111",
-    .password = "123-45-678",
-    .setupId="1QJ8",
+    .password = "123-12-123",
+    .setupId="3QJ8",
     .on_event = camera_on_event,
     .on_resource = camera_on_resource,
 };

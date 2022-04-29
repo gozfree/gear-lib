@@ -37,6 +37,7 @@
 
 
 #define RTCP_SR 200
+#define RTCP_SR_INTERVAL 5000000U
 
 #define RTP_VERSION 2
 #define RTCP_VERSION 2
@@ -179,6 +180,8 @@ static int send_rtcp_sender_report(streaming_session_t *session) {
         free(buffer);
         return -1;
     }
+    
+    session->rtcp_sr_timestamp = get_time_millis() * 1000;
 
     free(buffer);
 
@@ -478,6 +481,7 @@ int streaming_init() {
     }
 #endif
 
+    ESP_LOGI(TAG, "Streaming initialized");
     return 0;
 }
 

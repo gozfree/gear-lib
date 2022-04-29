@@ -1,0 +1,7 @@
+#define esp_random()        random()
+#define esp_restart()               printf("esp_restart\n")
+#define mdns_init()                 printf("mdns_init\n")
+#define mdns_hostname_set(...)      printf("mdns_hostname_set\n")
+#define mdns_instance_name_set(...) printf("mdns_instance_name_set\n")
+#define mdns_service_add(...)       printf("mdns_service_add\n")
+#define mdns_service_txt_item_set(...) printf("mdns_service_txt_item_set\n")
