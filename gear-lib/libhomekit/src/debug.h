@@ -16,8 +16,8 @@ typedef unsigned char byte;
 
 #endif
 
-#define INFO(message, ...) printf(">>> HomeKit: %s:%d " message "\n", __func__, __LINE__,  ##__VA_ARGS__)
-#define ERROR(message, ...) printf("!!! HomeKit: %s:%d " message "\n", __func__, __LINE__,  ##__VA_ARGS__)
+#define INFO(message, ...) printf(">>> HomeKit: %s:%d " message "\n", __func__, __LINE__, ##__VA_ARGS__)
+#define ERROR(message, ...) printf("!!! HomeKit: %s:%d " message "\n", __func__, __LINE__, ##__VA_ARGS__)
 
 #ifdef ESP_IDF
 

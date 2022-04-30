@@ -93,7 +93,7 @@ CFLAGS	+= -I$(OUTPUT)/include/gear-lib -I./include/ -I./
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS) -lwolfssl -ljpeg -lx264
-LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix
+LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lqueue -lposix -ltime
 LDFLAGS	+= -pthread
 
 ###############################################################################

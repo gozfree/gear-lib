@@ -25,9 +25,5 @@ void camera_session_free(camera_session_t *session) {
     if (session->controller_ip_address)
         free(session->controller_ip_address);
 
-    if (session->video_socket) {
-        close(session->video_socket);
-    }
-
     free(session);
 }

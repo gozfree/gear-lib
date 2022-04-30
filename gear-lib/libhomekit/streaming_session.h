@@ -20,7 +20,6 @@ typedef struct _streaming_session {
 
     uint32_t timestamp;
     uint16_t sequence;
-    uint32_t rtcp_sr_timestamp;
 
     int sequence_largest;
     uint32_t rtcp_index;

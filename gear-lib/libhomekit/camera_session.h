@@ -54,9 +54,6 @@ typedef struct _camera_session_t {
     bool active;
     bool started;
 
-    int video_socket;
-    // int audio_socket;
-
     struct _camera_session_t *next;
 } camera_session_t;
 

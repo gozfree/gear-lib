@@ -62,8 +62,29 @@ typedef struct _client_context_t client_context_t;
   if ((server)->config->on_event) \
       (server)->config->on_event(event);
 
-#define portTICK_PERIOD_MS 1000
+#define portTICK_PERIOD_MS  1000
+#define QueueHandle_t       struct queue *
+#define xQueueCreate(...)   queue_create
+#define vQueueDelete(q)     queue_destroy(q);
+#define vTaskDelay          sleep
+#define vTaskDelete(...)
 
+void xQueueSendToBack(QueueHandle_t q, void **pvBuffer, int xTicksToWait)
+{
+    struct queue_item *item = queue_item_alloc(q, *pvBuffer, sizeof(void *), NULL);
+    queue_push(q, item);
+}
+
+int xQueueReceive(QueueHandle_t q, void **pvBuffer, int xTicksToWait)
+{
+    struct queue_item *item = queue_pop(q);
+    if (item) {
+        struct iovec *iov = queue_item_get_data(q, item);
+        *pvBuffer = iov->iov_base;
+        return 1;
+    } else
+        return 0;
+}
 
 typedef enum {
     HOMEKIT_ENDPOINT_UNKNOWN = 0,
@@ -146,11 +167,7 @@ struct _client_context_t {
     int count_reads;
     int count_writes;
 
-#if 0
     QueueHandle_t event_queue;
-#else
-    struct queue *event_queue;
-#endif
     pair_verify_context_t *verify_context;
 
     struct _client_context_t *next;
@@ -358,9 +375,7 @@ client_context_t *client_context_new() {
 
     c->disconnect = false;
 
-#if 0
     c->event_queue = xQueueCreate(20, sizeof(characteristic_event_t*));
-#endif
     c->verify_context = NULL;
 
     c->next = NULL;
@@ -379,10 +394,8 @@ void client_context_free(client_context_t *c) {
     if (c->verify_context)
         pair_verify_context_free(c->verify_context);
 
-#if 0
     if (c->event_queue)
         vQueueDelete(c->event_queue);
-#endif
 
     if (c->endpoint_params)
         query_params_free(c->endpoint_params);
@@ -743,12 +756,10 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 
     DEBUG("Got characteristic %d.%d change event", ch->service->accessory->id, ch->id);
 
-#if 0
     if (!client->event_queue) {
         ERROR("Client has no event queue. Skipping notification");
         return;
     }
-#endif
 
     characteristic_event_t *event = malloc(sizeof(characteristic_event_t));
     event->characteristic = ch;
@@ -756,9 +767,7 @@ void client_notify_characteristic(homekit_characteristic_t *ch, homekit_value_t 
 
     DEBUG("Sending event to client %d", client->socket);
 
-#if 0
     xQueueSendToBack(client->event_queue, &event, 10);
-#endif
 }
 
 
@@ -2860,7 +2869,7 @@ void homekit_server_on_reset(client_context_t *context) {
     homekit_server_reset();
     send_204_response(context);
 
-    sleep(3000 / portTICK_PERIOD_MS);
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
 
     homekit_system_restart();
 }
@@ -3175,7 +3184,6 @@ void homekit_server_process_notifications(homekit_server_t *server) {
     client_context_t *context = server->clients;
     while (context) {
         characteristic_event_t *event = NULL;
-#if 0
         if (xQueueReceive(context->event_queue, &event, 0)) {
             // Get and coalesce all client events
             client_event_t *events_head = malloc(sizeof(client_event_t));
@@ -3226,7 +3234,6 @@ void homekit_server_process_notifications(homekit_server_t *server) {
                 e = next;
             }
         }
-#endif
 
         context = context->next;
     }
@@ -3448,9 +3455,7 @@ void homekit_server_task(void *args) {
 
     homekit_run_server(server);
 
-#if 0
     vTaskDelete(NULL);
-#endif
 }
 
 #define ISDIGIT(x) isdigit((unsigned char)(x))
