@@ -21,13 +21,14 @@
  ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include "libstrex.h"
 
-char *strtrim(const char *src, char *dst)
+char *strtrim(char *s)
 {
-    char *p = (char *)src;
-    char *q = dst;
+    char *p = s;
+    char *q = s;
 
     while (*p != '\0') {
         if (!isspace(*p)) {
@@ -38,6 +39,49 @@ char *strtrim(const char *src, char *dst)
     }
     *(q++) = '\0';
 
-    return dst;
+    return s;
+}
+
+size_t strlncat(char *dst, size_t len, const char *src, size_t maxlen)
+{
+    size_t slen, dlen, rlen, ncpy;
+
+    slen = strnlen(src, maxlen);
+    dlen = strnlen(dst, len);
+
+    if (dlen < len) {
+          rlen = len - dlen;
+          ncpy = slen < rlen ? slen : (rlen - 1);
+          memcpy(dst + dlen, src, ncpy);
+          dst[dlen + ncpy] = '\0';
+    }
+
+    return (len > slen + dlen) ? (slen + dlen) : -1;
+}
+
+size_t strlcat(char *dst, const char *src, size_t maxlen)
+{
+    return strlncat(dst, maxlen, src, (size_t) -1);
+}
+
+size_t strlncpy(char *dst, size_t len, const char *src, size_t n)
+{
+    size_t slen;
+    size_t ncpy;
+
+    slen = strnlen(src, n);
+
+    if (len > 0) {
+        ncpy = slen < len ? slen : (len - 1);
+        memcpy(dst, src, ncpy);
+        dst[ncpy] = '\0';
+    }
+
+    return (len > slen) ? slen : -1;
+}
+
+size_t strlcpy(char *dst, const char *src, size_t len)
+{
+    return strlncpy(dst, len, src, (size_t) -1);
 }
 

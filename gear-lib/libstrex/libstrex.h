@@ -26,9 +26,29 @@
 extern "C" {
 #endif
 
-char *strtrim(const char *src, char *dst);
+/**
+ * @strtrim remove white-space characters of whole string.
+ *  In the "C" and "POSIX" locales, these are: space, form-feed ('\f'),
+ *  newline ('\n'), carriage return ('\r'),  horizontal tab ('\t'),
+ *  and vertical tab ('\v').
+ *
+ * @param  s: input string to be trimed
+ * @return trimed string
+ */
+char *strtrim(char *s);
 
 
+/**
+ * @externtion of strncat - concatenate two strings
+ */
+size_t strlcat(char *dst, const char *src, size_t maxlen);
+size_t strlncat(char *dst, size_t len, const char *src, size_t maxlen);
+
+/**
+ * @strlncat externtion of strncpy - copy a string
+ */
+size_t strlcpy(char *dst, const char *src, size_t len);
+size_t strlncpy(char *dst, size_t len, const char *src, size_t n);
 
 #ifdef __cplusplus
 }

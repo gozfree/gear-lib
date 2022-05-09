@@ -1,3 +1,3 @@
 ##libstrex
-This is a simple libstrex library.
+This is a simple STRing EXtension library.
 

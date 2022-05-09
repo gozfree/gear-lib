@@ -25,5 +25,8 @@
 
 int main(int argc, char **argv)
 {
+    char tmp[10] = "\n\t a\nb\t cd";
+    printf("tmp=%s\n", tmp);
+    printf("strtrim=%s\n", strtrim(tmp));
     return 0;
 }
