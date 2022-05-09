@@ -27,7 +27,8 @@ PLATFORM="[linux|pi|android|ios]"
 #basic libraries
 BASIC_LIBS="libposix libtime liblog libdarray libthread libgevent libworkq libdict libhash libsort \
 	    librbtree libringbuffer libvector libbase64 libmedia-io \
-            libdebug libfile libconfig libuac libuvc libqueue libplugin libhal libsubmask"
+            libdebug libfile libqueue libplugin libhal libsubmask"
+MEDIA_LIBS="libavcap"
 FRAMEWORK_LIBS="libipc"
 NETWORK_LIBS="libsock libptcp librpc librtsp librtmpc"
 
@@ -55,6 +56,11 @@ usage()
 	echo ""
 	echo "network libraries (optional):"
 	for item in $NETWORK_LIBS; do
+		echo "$CMD $item $PLATFORM [debug|release]";
+	done
+	echo ""
+	echo "media libraries (optional):"
+	for item in $MEDIA_LIBS; do
 		echo "$CMD $item $PLATFORM [debug|release]";
 	done
 	exit
@@ -168,6 +174,7 @@ build_module()
 		fi
 		;;
 	*)
+		echo "==== build ${ARCH} ${MODULE} start..."
 		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT} MODE=${MODE}"
 		if [[ ${ARCH} == "linux" || ${ARCH} == "pi" || ${ARCH} == "android" ]]; then
 			${MAKE}  > /dev/null

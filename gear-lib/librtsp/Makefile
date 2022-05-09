@@ -63,11 +63,11 @@ endif
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
-LDFLAGS	+= -pthread -lx264
+LDFLAGS	+= -pthread
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lsock -lgevent -llog -ldict \
 	   -lthread -ltime -lmedia-io -lqueue -ldarray -lposix
 ifeq ($(ENABLE_LIVEVIEW), 1)
-LDFLAGS	+= -lx264 -luvc
+LDFLAGS	+= -lx264 -lavcap
 endif
 
 ###############################################################################

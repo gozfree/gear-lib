@@ -25,7 +25,7 @@ LIBNAME		= libposix
 VER_TAG		= $(shell echo ${LIBNAME} | tr 'a-z' 'A-Z')
 VER		= $(shell awk '/'"${VER_TAG}_VERSION"'/{print $$3}' ${LIBNAME}.h)
 TGT_LIB_H	= $(LIBNAME).h
-ifeq ($(ARCH), linux)
+ifneq (,$(filter $(ARCH),linux pi))
 TGT_LIB_H	+= libposix4nix.h kernel_list.h
 else ifeq ($(ARCH), win)
 TGT_LIB_H	+= libposix4win.h kernel_list_win32.h
@@ -36,7 +36,7 @@ TGT_LIB_SO_VER	= $(TGT_LIB_SO).${VER}
 TGT_UNIT_TEST	= test_$(LIBNAME)
 
 OBJS_LIB	= $(LIBNAME).o
-ifeq ($(ARCH), linux)
+ifneq (,$(filter $(ARCH),linux pi))
 OBJS_LIB	+= libposix4nix.o
 endif
 ifeq ($(ARCH), win)

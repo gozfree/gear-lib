@@ -22,11 +22,11 @@
 #ifndef VIDEO_CONV_H
 #define VIDEO_CONV_H
 
+#if 0
 #include <stdint.h>
 #include <video-def.h>
 
 int video_yuyv2rgb(struct video_frame *in, struct video_frame *out);
-#if 0
 int uvc_uyvy2rgb(uvc_frame_t *in, uvc_frame_t *out);
 int uvc_any2rgb(uvc_frame_t *in, uvc_frame_t *out);
 

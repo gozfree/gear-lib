@@ -1,34 +1,37 @@
 
 ## Supported
-| Host OS    |       |       |                        |     |
-|------------|-------|-------|------------------------|-----|
-|PC linux    | cmake | gcc   | x86_64-w64-mingw32-gcc | ndk |
-|windows     | cmake | mingw | Visual Studio c1       |     |
-|mac         | cmake | gcc   | | |
-|raspberrypi | cmake |arm-gcc| | |
-|esp32       | cmake | xtensa-esp32-elf   | | |
+| Host OS    |      |                       |        |          |
+|------------|------|-----------------------|--------|----------|
+|PC linux    |cmake |x86_64-w64-mingw32-gcc |gcc     |ndk-build |
+|windows     |cmake |mingw                  |MSVC c1 |          |
+|mac         |cmake |gcc                    |        |          |
+|raspberrypi |cmake |arm-gcc                |        |          |
+|esp32       |cmake |xtensa-esp32-elf       |        |          |
 
 ### cmake
-   * MSVC on Windows:
-     mkdir build_msvc  
-     '/c/Program Files/CMake/bin/cmake.exe' ../  
-     '/c/Program Files/CMake/bin/cmake.exe' --build .  
-   * MSYS2 on Windows (not portable for all gear-lib):
-     mkdir build_msys2  
-     cmake ../  
-     make && make install  
-   * Linux:
-     mkdir build_linux  
-     cmake ../  
-     make && make install  
+   * MSVC on Windows:  
+     `> mkdir build_msvc`  
+     `> cd build_msvc`  
+     `> '/c/Program Files/CMake/bin/cmake.exe' ../`  
+     `> '/c/Program Files/CMake/bin/cmake.exe' --build .`  
+   * MSYS2 on Windows (not portable for all gear-lib):  
+     `$ mkdir build_msys2`  
+     `$ cd build_msys2`  
+     `$ cmake ../`  
+     `$ make && make install`  
+   * Linux:  
+     `$ mkdir build_linux`  
+     `$ cd build_linux`  
+     `$ cmake ../`  
+     `$ make && make install`  
 
 ### esp32
    * toolchain: xtensa-esp32-elf  
-     `git clone https://github.com/espressif/esp-idf.git`
-    add esp-idf/tools to $PATH 
-    `$ cd build/esp32-env` 
-    `$ make menuconfig` 
-    `$ make flash` 
+     `git clone https://github.com/espressif/esp-idf.git`  
+    add esp-idf/tools to $PATH  
+    `$ cd build/esp32-env`  
+    `$ make menuconfig`  
+    `$ make flash`  
 
 ### Windows
   * Windows7 install "Microsoft Visual Studio 10.0"  
@@ -42,11 +45,11 @@
    `> nmake /f Makefile.nmake MODE=release`
    
 ### Linux
-  * install third-party libraries
+  * install third-party libraries  
    `$ sudo apt install liblua5.2-dev libjansson-dev libpulse-dev libx264-dev libavcodec-dev libavformat-dev libavutil-dev protobuf-compiler`
 
   * linux platform (>= Ubuntu14.04 >= gcc-4.8.4 32/64 bit)  
-   `$ ./build.sh`     
+   `$ ./build.sh`  
    `$ sudo ./build.sh install`  
    default debug version，compiler release version  
    `$ ./build.sh {all|libxxx} linux release`   
@@ -91,5 +94,5 @@
   * "sudo make install" is needed when build libxxx alone.
 
 ## dependency
-  * plantuml -tsvg dependency.txt
+  * plantuml -tsvg dependency.txt  
   ![dependency](build/dependency.svg)  
