@@ -109,6 +109,22 @@ char *strtoupper(char *dst, char *src, size_t n)
     return p;
 }
 
+/**
+ * hex_to_bin - convert a hex digit to its real value
+ * @ch: ascii character represents hex digit
+ *
+ * hex_to_bin() converts one hex digit to its actual value or -1 in case of bad
+ * input.
+ */
+int strhex2bin(char ch)
+{
+	if ((ch >= '0') && (ch <= '9'))
+		return ch - '0';
+	ch = tolower(ch);
+	if ((ch >= 'a') && (ch <= 'f'))
+		return ch - 'a' + 10;
+	return -1;
+}
 
 static char s_base64_enc[64] = {
     'A','B','C','D','E','F','G','H','I','J','K','L','M',

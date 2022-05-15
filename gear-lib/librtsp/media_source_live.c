@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-#include <libuvc.h>
+#include <libavcap.h>
 #include <liblog.h>
 #include <libdarray.h>
 #include <libtime.h>
@@ -58,12 +58,12 @@ struct x264_ctx {
 
 struct live_source_ctx {
     const char name[32];
-    struct uvc_config conf;
-    struct uvc_ctx *uvc;
+    struct avcap_config conf;
+    struct avcap_ctx *uvc;
     bool uvc_opened;
     struct x264_ctx *x264;
     struct iovec extradata;
-    struct video_frame *frm;
+    struct media_frame frm;
     struct media_packet *pkt;
     void *priv;
 };
@@ -140,7 +140,7 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
         return NULL;
     }
     x264_param_default_preset(&c->param, "ultrafast" , "zerolatency");
-    c->input_format = cc->uvc->conf.format;
+    c->input_format = cc->uvc->conf.video.format;
 
     c->param.rc.i_vbv_max_bitrate = 2500;
     c->param.rc.i_vbv_buffer_size = 2500;
@@ -153,10 +153,10 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
     c->param.i_log_level = X264_LOG_INFO;
     c->param.i_csp = pixel_format_to_x264_csp(c->input_format);
 
-    c->param.i_width = cc->uvc->conf.width;
-    c->param.i_height = cc->uvc->conf.height;
-    c->param.i_fps_num = cc->uvc->conf.fps.num;
-    c->param.i_fps_den = cc->uvc->conf.fps.den;
+    c->param.i_width = cc->uvc->conf.video.width;
+    c->param.i_height = cc->uvc->conf.video.height;
+    c->param.i_fps_num = cc->uvc->conf.video.fps.num;
+    c->param.i_fps_den = cc->uvc->conf.video.fps.den;
 
     x264_param_apply_profile(&c->param, NULL);
 
@@ -178,11 +178,11 @@ static struct x264_ctx *x264_open(struct live_source_ctx *cc)
     }
 
     c->encoder.format = VIDEO_CODEC_H264;
-    c->encoder.width = cc->uvc->conf.width;
-    c->encoder.height = cc->uvc->conf.height;
+    c->encoder.width = cc->uvc->conf.video.width;
+    c->encoder.height = cc->uvc->conf.video.height;
     c->encoder.bitrate = 2500;
-    c->encoder.framerate.num = cc->uvc->conf.fps.num;
-    c->encoder.framerate.den = cc->uvc->conf.fps.den;
+    c->encoder.framerate.num = cc->uvc->conf.video.fps.num;
+    c->encoder.framerate.den = cc->uvc->conf.video.fps.den;
     c->encoder.timebase.num = c->param.i_fps_den;
     c->encoder.timebase.den = c->param.i_fps_num;
     logi("width=%d, height=%d, timebase=%d/%d\n", c->encoder.width, c->encoder.height, c->encoder.timebase.num, c->encoder.timebase.den);
@@ -348,23 +348,19 @@ static int live_open(struct media_source *ms, const char *name)
         logi("uvc already opened!\n");
         return 0;
     }
-    c->conf.width = 640;
-    c->conf.height = 480;
-    c->conf.fps.num = 30;
-    c->conf.fps.den = 1;
-    c->conf.format = PIXEL_FORMAT_YUY2,
-    c->uvc = uvc_open("/dev/video0", &c->conf);
+    c->conf.video.width = 640;
+    c->conf.video.height = 480;
+    c->conf.video.fps.num = 30;
+    c->conf.video.fps.den = 1;
+    c->conf.video.format = PIXEL_FORMAT_YUY2,
+    c->uvc = avcap_open("/dev/video0", &c->conf);
     if (!c->uvc) {
         loge("uvc open failed!\n");
         return -1;
     }
-    c->frm = video_frame_create(c->uvc->conf.format, c->uvc->conf.width, c->uvc->conf.height, MEDIA_MEM_SHALLOW);
-    if (!c->frm) {
-        loge("video_frame_create failed!\n");
-        return -1;
-    }
+    video_frame_init(&c->frm.video, c->uvc->conf.video.format, c->uvc->conf.video.width, c->uvc->conf.video.height, MEDIA_MEM_SHALLOW);
     c->pkt = media_packet_create(MEDIA_TYPE_VIDEO, MEDIA_MEM_SHALLOW, NULL, 0);
-    if (uvc_start_stream(c->uvc, NULL)) {
+    if (avcap_start_stream(c->uvc, NULL)) {
         loge("uvc start stream failed!\n");
         return -1;
     }
@@ -381,9 +377,9 @@ static int live_open(struct media_source *ms, const char *name)
 static void live_close(struct media_source *ms)
 {
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
-    uvc_stop_stream(c->uvc);
+    avcap_stop_stream(c->uvc);
     x264_close(c->x264);
-    uvc_close(c->uvc);
+    avcap_close(c->uvc);
     c->uvc_opened = false;
 }
 
@@ -423,13 +419,13 @@ static int live_read(struct media_source *ms, void **data, size_t *len)
     struct live_source_ctx *c = (struct live_source_ctx *)ms->opaque;
     int size;
     ms_pre = time_now_msec();
-    size = uvc_query_frame(c->uvc, c->frm);
+    size = avcap_query_frame(c->uvc, &c->frm);
     if (size < 0) {
-        loge("uvc_query_frame failed!\n");
+        loge("avcap_query_frame failed!\n");
     }
     ms_post = time_now_msec();
-    logd("uvc_query_frame cost %" PRIu64 "ms\n", ms_post - ms_pre);
-    in.iov_base = c->frm;
+    logd("avcap_query_frame cost %" PRIu64 "ms\n", ms_post - ms_pre);
+    in.iov_base = &c->frm.video;
     in.iov_len = size;
     out.iov_base = c->pkt;
     ms_pre = time_now_msec();

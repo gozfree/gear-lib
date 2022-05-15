@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-#ifndef __TOOLS_LINUX_KERNEL_H
-#define __TOOLS_LINUX_KERNEL_H
+#ifndef _LINUX_KERNEL_H
+#define _LINUX_KERNEL_H
+
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -9,8 +10,23 @@
 #include <endian.h>
 #include <byteswap.h>
 
+
+#define USHRT_MAX	((u16)(~0U))
+#define SHRT_MAX	((s16)(USHRT_MAX>>1))
+#define SHRT_MIN	((s16)(-SHRT_MAX - 1))
+#define INT_MAX		((int)(~0U>>1))
+#define INT_MIN		(-INT_MAX - 1)
 #ifndef UINT_MAX
 #define UINT_MAX	(~0U)
+#endif
+#define LONG_MAX	((long)(~0UL>>1))
+#define LONG_MIN	(-LONG_MAX - 1)
+#define ULONG_MAX	(~0UL)
+#define LLONG_MAX	((long long)(~0ULL>>1))
+#define LLONG_MIN	(-LLONG_MAX - 1)
+#define ULLONG_MAX	(~0ULL)
+#ifndef SIZE_MAX
+#define SIZE_MAX	(~(size_t)0)
 #endif
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
@@ -35,7 +51,9 @@
 	(type *)((char *)__mptr - offsetof(type, member)); })
 #endif
 
+#ifndef BUILD_BUG_ON
 #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+#endif
 #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
 
 #ifndef max
@@ -102,7 +120,21 @@
 int vscnprintf(char *buf, size_t size, const char *fmt, va_list args);
 int scnprintf(char * buf, size_t size, const char * fmt, ...);
 
+#define __ALIGN_KERNEL(x, a)		__ALIGN_KERNEL_MASK(x, (typeof(x))(a) - 1)
+#define __ALIGN_KERNEL_MASK(x, mask)	(((x) + (mask)) & ~(mask))
+
+#define PAGE_SHIFT      13
+#define PAGE_SIZE       (1 << PAGE_SHIFT)
+
+#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
+#define ALIGN_DOWN(x, a)	__ALIGN_KERNEL((x) - ((a) - 1), (a))
+#define __ALIGN_MASK(x, mask)	__ALIGN_KERNEL_MASK((x), (mask))
+#define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+#define IS_ALIGNED(x, a)		(((x) & ((typeof(x))(a) - 1)) == 0)
+
+#ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+#endif
 
 /*
  * This looks more complex than it should be. But we need to

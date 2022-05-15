@@ -26,7 +26,7 @@ PLATFORM="[linux|pi|android|ios]"
 
 #basic libraries
 BASIC_LIBS="libposix libtime liblog libdarray libthread libgevent libworkq libdict libhash libsort \
-	    librbtree libringbuffer libvector libbase64 libmedia-io \
+	    librbtree libringbuffer libvector libstrex libmedia-io \
             libdebug libfile libqueue libplugin libhal libsubmask"
 MEDIA_LIBS="libavcap"
 FRAMEWORK_LIBS="libipc"

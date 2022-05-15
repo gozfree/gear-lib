@@ -60,6 +60,7 @@ size_t strlncpy(char *dst, size_t len, const char *src, size_t n);
 char *strtoupper(char *dst, char *src, size_t n);
 char *strtolower(char *dst, char *src, size_t n);
 
+int strhex2bin(char ch);
 
 GEAR_API size_t base64_encode(char* target, const void *source, size_t bytes);
 GEAR_API size_t base64_encode_url(char* target, const void *source, size_t bytes);
