@@ -37,9 +37,9 @@ This is a collection of basic libraries.
 ## I/O
 |  |  |
 |--|--|
-| libbase64: Base64/32 encode/decode | libconfig: Support ini/json |
+| libstrex: string extension | libconfig: Support ini/json |
 | liblog: Support console/file/rsyslog | libfile: File operations |
-| libstrex: | libsubmask: ip addr transform |
+| libsubmask: ip addr transform | |
 
 ## Multi-Media
 |  |  |

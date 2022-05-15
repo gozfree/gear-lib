@@ -22,6 +22,9 @@
 #ifndef LIBSTREX_H
 #define LIBSTREX_H
 
+#include <libposix.h>
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,6 +52,21 @@ size_t strlncat(char *dst, size_t len, const char *src, size_t maxlen);
  */
 size_t strlcpy(char *dst, const char *src, size_t len);
 size_t strlncpy(char *dst, size_t len, const char *src, size_t n);
+
+
+/**
+ * @externtion of string convert uppercase or lowercase
+ */
+char *strtoupper(char *dst, char *src, size_t n);
+char *strtolower(char *dst, char *src, size_t n);
+
+
+GEAR_API size_t base64_encode(char* target, const void *source, size_t bytes);
+GEAR_API size_t base64_encode_url(char* target, const void *source, size_t bytes);
+GEAR_API size_t base64_decode(void* target, const char *source, size_t bytes);
+
+GEAR_API size_t base16_encode(char* target, const void *source, size_t bytes);
+GEAR_API size_t base16_decode(void* target, const char *source, size_t bytes);
 
 #ifdef __cplusplus
 }

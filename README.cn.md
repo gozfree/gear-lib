@@ -37,9 +37,9 @@
 ## I/O
 |  |  |
 |--|--|
-| libbase64: Base64/32 编解码 | libconfig: 配置文件库 |
+| libstrex: 字符扩展 | libconfig: 配置文件库 |
 | liblog: 日志库 | libfile: 文件操作库 |
-| libstrex: | libsubmask: 网络地址翻译 |
+| libsubmask: 网络地址翻译 | |
 
 ## 多媒体
 |  |  |
