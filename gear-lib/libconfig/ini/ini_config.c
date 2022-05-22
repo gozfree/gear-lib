@@ -104,6 +104,31 @@ static int ini_get_int(struct config *c, ...)
     return ret;
 }
 
+static int ini_set_int(struct config *c, ...)
+{
+    dictionary *ini = (dictionary *)c->priv;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    char cval[32];
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    snprintf(cval, sizeof(cval), "%d", type_list[cnt-1].ival);
+    iniparser_set(ini, type_list[cnt-2].cval, cval);
+    free(type_list);
+    return 0;
+}
+
 static double ini_get_double(struct config *c, ...)
 {
     dictionary *ini = (dictionary *)c->priv;
@@ -128,7 +153,32 @@ static double ini_get_double(struct config *c, ...)
     return ret;
 }
 
-static int ini_get_boolean(struct config *c, ...)
+static int ini_set_double(struct config *c, ...)
+{
+    dictionary *ini = (dictionary *)c->priv;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    char cval[32];
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    snprintf(cval, sizeof(cval), "%f", (double)type_list[cnt-1].ival);
+    iniparser_set(ini, type_list[cnt-2].cval, cval);
+    free(type_list);
+    return 0;
+}
+
+static bool ini_get_boolean(struct config *c, ...)
 {
     dictionary *ini = (dictionary *)c->priv;
     struct int_charp *type_list = NULL;
@@ -149,7 +199,32 @@ static int ini_get_boolean(struct config *c, ...)
 
     ret = iniparser_getboolean(ini, type_list[cnt-1].cval, -1);
     free(type_list);
-    return ret;
+    return ret ? true : false;
+}
+
+static int ini_set_boolean(struct config *c, ...)
+{
+    dictionary *ini = (dictionary *)c->priv;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    char cval[32];
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    snprintf(cval, sizeof(cval), "%s", type_list[cnt-1].ival? "Y": "N");
+    iniparser_set(ini, type_list[cnt-2].cval, cval);
+    free(type_list);
+    return 0;
 }
 
 static void ini_del(struct config *c, const char *key)
@@ -185,14 +260,21 @@ static int ini_save(struct config *c)
 
 struct config_ops ini_ops = {
     ini_load,
-    ini_set_string,
-    ini_get_string,
-    ini_get_int,
-    ini_get_double,
-    ini_get_boolean,
-    NULL,
-    ini_del,
+    ini_unload,
     ini_dump,
     ini_save,
-    ini_unload,
+
+    ini_get_string,
+    ini_set_string,
+
+    ini_get_int,
+    ini_set_int,
+
+    ini_get_double,
+    ini_set_double,
+
+    ini_get_boolean,
+    ini_set_boolean,
+
+    ini_del,
 };

@@ -26,6 +26,7 @@
 
 #include <libposix.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <limits.h>
 
 #ifdef __cplusplus
@@ -39,17 +40,21 @@ typedef struct config {
 } config_t;
 
 typedef struct config_ops {
-    int (*load)(struct config *c, const char *name);
-    int (*set_string)(struct config *c, ...);
-    char *(*get_string) (struct config *c, ...);
-    int (*get_int)      (struct config *c, ...);
-    double (*get_double)(struct config *c, ...);
-    int (*get_boolean)  (struct config *c, ...);
-    int (*get_length)   (struct config *c, ...);
-    void (*del)(struct config *c, const char *key);
-    void (*dump)(struct config *c, FILE *f);
-    int (*save)(struct config *c);
+    int  (*load)  (struct config *c, const char *name);
     void (*unload)(struct config *c);
+    void (*dump)  (struct config *c, FILE *f);
+    int  (*save)  (struct config *c);
+
+    char*  (*get_string) (struct config *c, ...);
+    int    (*set_string) (struct config *c, ...);
+    int    (*get_int)    (struct config *c, ...);
+    int    (*set_int)    (struct config *c, ...);
+    double (*get_double) (struct config *c, ...);
+    int    (*set_double) (struct config *c, ...);
+    bool   (*get_boolean)(struct config *c, ...);
+    int    (*set_boolean)(struct config *c, ...);
+
+    void   (*del)     (struct config *c, const char *key);
 } config_ops_t;
 
 
@@ -75,10 +80,13 @@ GEAR_API void conf_dump_to_file(FILE *f, struct config *c);
  */
 extern struct config *g_config;
 #define conf_get_int(c, ...) g_config->ops->get_int(c, __VA_ARGS__, NULL)
+#define conf_set_int(c, ...) g_config->ops->set_int(c, __VA_ARGS__, NULL)
 #define conf_get_string(c, ...) g_config->ops->get_string(c, __VA_ARGS__, NULL)
 #define conf_set_string(c, ...) g_config->ops->set_string(c, __VA_ARGS__, NULL)
 #define conf_get_double(c, ...) g_config->ops->get_double(c, __VA_ARGS__, NULL)
+#define conf_set_double(c, ...) g_config->ops->set_double(c, __VA_ARGS__, NULL)
 #define conf_get_boolean(c, ...) g_config->ops->get_boolean(c, __VA_ARGS__, NULL)
+#define conf_set_boolean(c, ...) g_config->ops->set_boolean(c, __VA_ARGS__, NULL)
 #define conf_get_length(c, ...) g_config->ops->get_length(c, __VA_ARGS__, NULL)
 
 

@@ -116,6 +116,36 @@ static int js_load(struct config *c, const char *name)
     return 0;
 }
 
+static void js_unload(struct config *c)
+{
+    cJSON *json = (cJSON *)c->priv;
+    if (json) {
+        cJSON_Delete(json);
+        json = NULL;
+    }
+}
+
+static void js_dump(struct config *c, FILE *f)
+{
+    cJSON *json = (cJSON *)c->priv;
+    char *tmp = cJSON_Print(json);
+    if (tmp) {
+        printf("%s\n", tmp);
+        free(tmp);
+    }
+}
+
+static int js_save(struct config *c)
+{
+    cJSON *json = (cJSON *)c->priv;
+    char *tmp = cJSON_Print(json);
+    if (tmp) {
+        write_file(c->path, tmp, strlen(tmp));
+        free(tmp);
+    }
+    return 0;
+}
+
 static int js_set_string(struct config *c, ...)
 {
     cJSON *json = (cJSON *)c->priv;
@@ -223,6 +253,43 @@ static int js_get_int(struct config *c, ...)
     return json->valueint;
 }
 
+static int js_set_int(struct config *c, ...)
+{
+    cJSON *json = (cJSON *)c->priv;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    int i;
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    for (i = 0; i < cnt-2; i++) {
+        switch (type_list[i].type) {
+        case TYPE_INT:
+            json = cJSON_GetArrayItem(json, type_list[i].ival-1);
+            break;
+        case TYPE_CHARP:
+            json = cJSON_GetObjectItem(json, type_list[i].cval);
+            break;
+        default:
+            break;
+        }
+    }
+    cJSON_ReplaceItemInObject(json, type_list[cnt-2].cval,
+                            cJSON_CreateNumber((double)type_list[cnt-1].ival));
+    free(type_list);
+    return 0;
+}
+
 static double js_get_double(struct config *c, ...)
 {
     cJSON *json = (cJSON *)c->priv;
@@ -258,7 +325,44 @@ static double js_get_double(struct config *c, ...)
     return json->valuedouble;
 }
 
-static int js_get_boolean(struct config *c, ...)
+static int js_set_double(struct config *c, ...)
+{
+    cJSON *json = (cJSON *)c->priv;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    int i;
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    for (i = 0; i < cnt-2; i++) {
+        switch (type_list[i].type) {
+        case TYPE_INT:
+            json = cJSON_GetArrayItem(json, type_list[i].ival-1);
+            break;
+        case TYPE_CHARP:
+            json = cJSON_GetObjectItem(json, type_list[i].cval);
+            break;
+        default:
+            break;
+        }
+    }
+    cJSON_ReplaceItemInObject(json, type_list[cnt-2].cval,
+                            cJSON_CreateNumber((double)type_list[cnt-1].ival));
+    free(type_list);
+    return 0;
+}
+
+static bool js_get_boolean(struct config *c, ...)
 {
     cJSON *json = (cJSON *)c->priv;
     struct int_charp *type_list = NULL;
@@ -292,52 +396,63 @@ static int js_get_boolean(struct config *c, ...)
     free(type_list);
 
     if(!strcasecmp(json->valuestring, "true")) {
-        return 1;
+        return true;
     } else {
-        return 0;
+        return false;
     }
 }
 
-static void js_dump(struct config *c, FILE *f)
+static int js_set_boolean(struct config *c, ...)
 {
     cJSON *json = (cJSON *)c->priv;
-    char *tmp = cJSON_Print(json);
-    if (tmp) {
-        printf("%s\n", tmp);
-        free(tmp);
-    }
-}
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    int i;
+    va_list ap;
 
-static int js_save(struct config *c)
-{
-    cJSON *json = (cJSON *)c->priv;
-    char *tmp = cJSON_Print(json);
-    if (tmp) {
-        write_file(c->path, tmp, strlen(tmp));
-        free(tmp);
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
     }
+    va_end(ap);
+
+    for (i = 0; i < cnt-2; i++) {
+        switch (type_list[i].type) {
+        case TYPE_INT:
+            json = cJSON_GetArrayItem(json, type_list[i].ival-1);
+            break;
+        case TYPE_CHARP:
+            json = cJSON_GetObjectItem(json, type_list[i].cval);
+            break;
+        default:
+            break;
+        }
+    }
+    cJSON_ReplaceItemInObject(json, type_list[cnt-2].cval,
+                            cJSON_CreateBool(type_list[cnt-1].ival));
+    free(type_list);
     return 0;
-}
-
-static void js_unload(struct config *c)
-{
-    cJSON *json = (cJSON *)c->priv;
-    if (json) {
-        cJSON_Delete(json);
-        json = NULL;
-    }
 }
 
 struct config_ops json_ops = {
     js_load,
-    js_set_string,
-    js_get_string,
-    js_get_int,
-    js_get_double,
-    js_get_boolean,
-    NULL,
-    NULL,
+    js_unload,
     js_dump,
     js_save,
-    js_unload,
+
+    js_get_string,
+    js_set_string,
+    js_get_int,
+    js_set_int,
+    js_get_double,
+    js_set_double,
+    js_get_boolean,
+    js_set_boolean,
+
+    NULL,
 };

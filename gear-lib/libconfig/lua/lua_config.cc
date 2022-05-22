@@ -157,6 +157,34 @@ static int lua_get_int(struct config *c, ...)
     return ret;
 }
 
+static int lua_set_int(struct config *c, ...)
+{
+    LuaTableNode *node;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    node = lua_get_node(c, type_list, cnt);
+
+    int ival = type_list[cnt-1].ival;
+    node[cnt-2].set<double>((double)ival);
+
+    free(type_list);
+    delete []node;
+    return 0;
+}
+
 static char *lua_get_string(struct config *c, ...)
 {
     LuaTableNode *node;
@@ -182,6 +210,34 @@ static char *lua_get_string(struct config *c, ...)
     free(type_list);
     delete []node;
     return ret;
+}
+
+static int lua_set_string(struct config *c, ...)
+{
+    LuaTableNode *node;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    node = lua_get_node(c, type_list, cnt);
+
+    std::string cval = type_list[cnt-1].cval;
+    node[cnt-2].set<string>(cval);
+
+    free(type_list);
+    delete []node;
+    return 0;
 }
 
 static double lua_get_double(struct config *c, ...)
@@ -211,10 +267,38 @@ static double lua_get_double(struct config *c, ...)
     return ret;
 }
 
-static int lua_get_boolean(struct config *c, ...)
+static int lua_set_double(struct config *c, ...)
 {
     LuaTableNode *node;
-    int ret;
+    struct int_charp *type_list = NULL;
+    struct int_charp mix;
+    int cnt = 0;
+    va_list ap;
+
+    va_start(ap, c);
+    va_arg_type(ap, mix);
+    while (mix.type != TYPE_EMPTY) {//last argument must be NULL
+        cnt++;
+        type_list = (struct int_charp *)realloc(type_list, cnt*sizeof(struct int_charp));
+        memcpy(&type_list[cnt-1], &mix, sizeof(mix));
+        va_arg_type(ap, mix);
+    }
+    va_end(ap);
+
+    node = lua_get_node(c, type_list, cnt);
+
+    double dval = type_list[cnt-1].ival;
+    node[cnt-2].set<double>(dval);
+
+    free(type_list);
+    delete []node;
+    return 0;
+}
+
+static bool lua_get_boolean(struct config *c, ...)
+{
+    LuaTableNode *node;
+    bool ret;
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
@@ -238,10 +322,9 @@ static int lua_get_boolean(struct config *c, ...)
     return ret;
 }
 
-static int lua_get_length(struct config *c, ...)
+static int lua_set_boolean(struct config *c, ...)
 {
     LuaTableNode *node;
-    int ret;
     struct int_charp *type_list = NULL;
     struct int_charp mix;
     int cnt = 0;
@@ -258,13 +341,14 @@ static int lua_get_length(struct config *c, ...)
     va_end(ap);
 
     node = lua_get_node(c, type_list, cnt);
-    ret = node[cnt-1].length();
+
+    bool bval = type_list[cnt-1].ival;
+    node[cnt-2].set<bool>(bval);
 
     free(type_list);
     delete []node;
-    return ret;
+    return 0;
 }
-
 static int lua_save(struct config *c)
 {
     LuaConfig *lt = (LuaConfig *)c->priv;
@@ -279,14 +363,21 @@ static void lua_unload(struct config *c)
 
 struct config_ops lua_ops = {
     .load        = lua_load,
-    .set_string  = NULL,
-    .get_string  = lua_get_string,
-    .get_int     = lua_get_int,
-    .get_double  = lua_get_double,
-    .get_boolean = lua_get_boolean,
-    .get_length  = lua_get_length,
-    .del         = NULL,
+    .unload      = lua_unload,
     .dump        = NULL,
     .save        = lua_save,
-    .unload      = lua_unload,
+
+    .get_string  = lua_get_string,
+    .set_string  = lua_set_string,
+
+    .get_int     = lua_get_int,
+    .set_int     = lua_set_int,
+
+    .get_double  = lua_get_double,
+    .set_double  = lua_set_double,
+
+    .get_boolean = lua_get_boolean,
+    .set_boolean = lua_set_boolean,
+
+    .del         = NULL,
 };

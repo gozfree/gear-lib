@@ -57,7 +57,9 @@ static int json_test(void)
     printf("json_test\n");
     printf("id = %s\n", conf_get_string(conf, "test", "rgn", 1, "id"));
     printf("port= %d\n", conf_get_int(conf, "test", "rgn", 1, "port"));
-    conf_set_string(conf, "test", "rgn", 1, "id", "update");
+    conf_set_int(conf, "test", "rgn", 1, "port", 12345);
+    printf("port= %d\n", conf_get_int(conf, "test", "rgn", 1, "port"));
+    conf_set_string(conf, "test", "rgn", 1, "id", "mymy");
     printf("id= %s\n", conf_get_string(conf, "test", "rgn", 1, "id"));
     conf_save(conf);
     conf_unload(conf);
@@ -86,6 +88,8 @@ static int lua_test(void)
     printf("[type_2][index] = %d\n", conf_get_int(conf, "type_2", "index"));
     printf("[type_2][my] = %s\n", conf_get_string(conf, "type_2", "my"));
 
+    printf("yuv_path= %s\n", conf_get_string(conf, "yuv_path"));
+    conf_set_string(conf, "yuv_path", "mymy");
     printf("yuv_path= %s\n", conf_get_string(conf, "yuv_path"));
 
     printf("md_source_type= %s\n", conf_get_string(conf, "md_source_type"));
