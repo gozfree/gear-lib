@@ -28,6 +28,9 @@
 #if defined (OS_LINUX)
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#elif defined (OS_RTOS)
+#include <lwip/inet.h>
+#include <lwip/netdb.h>
 #else
 //#define INET_ADDRSTRLEN 16
 #endif

@@ -33,6 +33,8 @@
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
+#elif defined (OS_RTOS)
+#include <net/if.h>
 #elif defined (OS_RTTHREAD)
 #include <sys/socket.h>
 #include <netdb.h>
@@ -85,7 +87,9 @@ static int host_to_sockaddr(const char *host, struct in_addr *addr)
 
     ret = getaddrinfo(host, NULL, &hints, &res);
     if (ret != 0) {
+#if !defined (OS_RTOS)
         printf("getaddrinfo: %s\n", gai_strerror(ret));
+#endif
         return -1;
     }
     for (ap = res; ap != NULL; ap = ap->ai_next) {

@@ -25,8 +25,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#if defined (OS_LINUX)
 #include <unistd.h>
+#if defined (OS_LINUX)
 #include <signal.h>
 #endif
 
@@ -39,11 +39,11 @@ static void on_connect_server(struct sock_server *s, struct sock_connection *con
 
 static void on_connect_client(struct sock_client *c, struct sock_connection *conn)
 {
-    int ret=0;
     printf("on_connect_client: fd=%d local=%s:%d, remote=%s:%d\n", c->conn->fd,
             conn->local.ip_str, conn->local.port,
             conn->remote.ip_str, conn->remote.port);
 #if defined (OS_LINUX)
+    int ret=0;
     struct tcp_info tcpi;
     if (conn->type == SOCK_STREAM) {
         memset(&tcpi, 0, sizeof(tcpi));
@@ -178,6 +178,9 @@ int main(int argc, char **argv)
         } else if (argc == 4) {
             ip = argv[2];
             port = atoi(argv[3]);
+        } else {
+            printf("ip:port need input\n");
+            return -1;
         }
         sc = sock_client_create(ip, port, SOCK_TYPE_TCP);
         sock_client_set_callback(sc, on_connect_client, on_recv_buf_cli, NULL);
@@ -200,6 +203,9 @@ int main(int argc, char **argv)
         } else if (argc == 4) {
             ip = argv[2];
             port = atoi(argv[3]);
+        } else {
+            printf("ip:port need input\n");
+            return -1;
         }
 #ifdef ENABLE_PTCP
         sc = sock_client_create(ip, port, SOCK_TYPE_PTCP);
