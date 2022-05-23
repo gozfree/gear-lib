@@ -309,4 +309,7 @@
     <ClCompile Include="..\..\..\..\gear-lib\libposix\libposix4win.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libposix\README.md" />
+  </ItemGroup>
 </Project>

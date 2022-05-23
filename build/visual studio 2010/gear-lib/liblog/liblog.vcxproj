@@ -72,6 +72,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\liblog\liblog.c" />
     <ClCompile Include="..\..\..\..\gear-lib\liblog\test_liblog.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\liblog\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

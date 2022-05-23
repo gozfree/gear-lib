@@ -75,6 +75,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libmedia-io\test_libmedia-io.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libmedia-io\video-def.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libmedia-io\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

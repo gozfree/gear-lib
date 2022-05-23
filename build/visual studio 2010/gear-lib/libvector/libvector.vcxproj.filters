@@ -28,8 +28,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\libvector\Makefile" />
-    <None Include="..\..\..\..\gear-lib\libvector\Makefile.nmake" />
     <None Include="..\..\..\..\gear-lib\libvector\README.md" />
   </ItemGroup>
 </Project>

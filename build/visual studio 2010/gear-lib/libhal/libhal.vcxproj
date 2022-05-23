@@ -71,6 +71,9 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\gear-lib\libhal\libhal.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libhal\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

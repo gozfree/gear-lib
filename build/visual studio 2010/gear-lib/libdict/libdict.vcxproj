@@ -70,7 +70,6 @@
     <ClInclude Include="..\..\..\..\gear-lib\libdict\libdict.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\libdict\Makefile" />
     <None Include="..\..\..\..\gear-lib\libdict\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

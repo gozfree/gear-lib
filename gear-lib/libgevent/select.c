@@ -139,7 +139,9 @@ struct gevent_ops selectops = {
     .del      =
 #endif
                 select_del,
+#if defined (OS_LINUX)
     .mod      =
+#endif
                 NULL,
 #if defined (OS_LINUX)
     .dispatch =

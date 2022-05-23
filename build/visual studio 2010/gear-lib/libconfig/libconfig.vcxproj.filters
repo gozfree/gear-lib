@@ -21,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\libconfig\Android.mk" />
-    <None Include="..\..\..\..\gear-lib\libconfig\Makefile" />
-    <None Include="..\..\..\..\gear-lib\libconfig\Makefile.nmake" />
     <None Include="..\..\..\..\gear-lib\libconfig\README.md" />
     <None Include="..\..\..\..\gear-lib\libconfig\ini\example.ini">
       <Filter>ini</Filter>

@@ -28,7 +28,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\libdict\Makefile" />
     <None Include="..\..\..\..\gear-lib\libdict\README.md" />
   </ItemGroup>
 </Project>

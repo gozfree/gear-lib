@@ -76,6 +76,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\test_libgevent.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libgevent\wepoll.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libgevent\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

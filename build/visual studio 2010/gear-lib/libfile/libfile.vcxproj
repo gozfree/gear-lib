@@ -73,6 +73,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libfile\fio.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libfile\test_libfile.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libfile\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

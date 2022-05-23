@@ -73,6 +73,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libsock\libsock_ext.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libsock\test_libsock.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libsock\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

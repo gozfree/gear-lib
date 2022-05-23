@@ -92,6 +92,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\librtmpc\rtmp.c" />
     <ClCompile Include="..\..\..\..\gear-lib\librtmpc\test_librtmpc.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\librtmpc\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -70,8 +70,6 @@
     <ClInclude Include="..\..\..\..\gear-lib\libvector\libvector.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\libvector\Makefile" />
-    <None Include="..\..\..\..\gear-lib\libvector\Makefile.nmake" />
     <None Include="..\..\..\..\gear-lib\libvector\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

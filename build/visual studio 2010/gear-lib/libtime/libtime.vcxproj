@@ -71,6 +71,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libtime\libtime.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libtime\test_libtime.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libtime\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

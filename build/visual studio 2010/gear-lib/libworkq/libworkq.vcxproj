@@ -71,6 +71,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libworkq\libworkq.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libworkq\test_libworkq.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libworkq\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

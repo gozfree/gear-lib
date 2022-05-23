@@ -72,6 +72,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libdarray\libdstring.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libdarray\libserializer.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libdarray\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

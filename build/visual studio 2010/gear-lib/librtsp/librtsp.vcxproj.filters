@@ -15,12 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\librtsp\Android.mk" />
-    <None Include="..\..\..\..\gear-lib\librtsp\Makefile" />
     <None Include="..\..\..\..\gear-lib\librtsp\README.md" />
-    <None Include="..\..\..\..\gear-lib\librtsp\sample.264" />
     <None Include="..\..\..\..\gear-lib\librtsp\TODO" />
-    <None Include="..\..\..\..\gear-lib\librtsp\libx264.a" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\gear-lib\librtsp\librtsp.h">

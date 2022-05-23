@@ -65,12 +65,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\gear-lib\libconfig\Android.mk" />
     <None Include="..\..\..\..\gear-lib\libconfig\ini\example.ini" />
     <None Include="..\..\..\..\gear-lib\libconfig\json\all.json" />
     <None Include="..\..\..\..\gear-lib\libconfig\json\test.json" />
-    <None Include="..\..\..\..\gear-lib\libconfig\Makefile" />
-    <None Include="..\..\..\..\gear-lib\libconfig\Makefile.nmake" />
     <None Include="..\..\..\..\gear-lib\libconfig\README.md" />
   </ItemGroup>
   <ItemGroup>

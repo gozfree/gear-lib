@@ -114,6 +114,9 @@
     <ClCompile Include="..\..\..\..\gear-lib\libposix\pthreads4w\pthread.c" />
     <ClCompile Include="..\..\..\..\gear-lib\libposix\test_libposix.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\gear-lib\libposix\README.md" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E965CCF-A6DE-4D7D-84A6-ED3F79659914}</ProjectGuid>
     <RootNamespace>libposix</RootNamespace>
