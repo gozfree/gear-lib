@@ -44,8 +44,8 @@ enum avcap_type {
 };
 
 enum avcap_backend_type {
-    AVCAP_BACKEND_DUMMY,
 #if defined (OS_LINUX)
+    AVCAP_BACKEND_DUMMY,
     AVCAP_BACKEND_V4L2,
     AVCAP_BACKEND_UVC,
     AVCAP_BACKEND_PULSEAUDIO,

@@ -33,6 +33,7 @@
 #define VIDEO_WIDTH     640
 #define VIDEO_HEIGHT    480
 #define OUTPUT_V4L2     "v4l2_640_480_yuv422p.yuv"
+#define OUTPUT_DSHOW    "dshow_640_480_yuv422p.yuv"
 #define INPUT_DUMMY     OUTPUT_V4L2
 #define OUTPUT_DUMMY    "dummy_640_480_yuv422p.yuv"
 #define OUTPUT_UVC      "uvc_640_480_yuv422p.yuv"
@@ -88,7 +89,8 @@ static int on_frame(struct avcap_ctx *c, struct media_frame *frm)
 
 int v4l2_test()
 {
-	struct avcap_ctx *avcap;
+#if defined (OS_LINUX)
+    struct avcap_ctx *avcap;
     struct video_frame *frm;
     struct avcap_config conf = {
             .type = AVCAP_TYPE_VIDEO,
@@ -126,6 +128,7 @@ int v4l2_test()
     avcap_close(avcap);
     printf("write %s fininshed!\n", OUTPUT_V4L2);
     printf("======== v4l2_test leave\n");
+#endif
     return 0;
 }
 
@@ -213,8 +216,51 @@ int uvc_test()
     return 0;
 }
 
+int dshow_test()
+{
+	struct avcap_ctx *avcap;
+    struct video_frame *frm;
+    struct avcap_config conf;
+    conf.type = AVCAP_TYPE_VIDEO;
+    conf.backend = AVCAP_BACKEND_DSHOW;
+    conf.video.format = PIXEL_FORMAT_YUY2;
+    conf.video.width = VIDEO_WIDTH;
+    conf.video.height = VIDEO_HEIGHT;
+    conf.video.fps.num = 30;
+    conf.video.fps.den = 1;
+
+    printf("======== dshow_test enter\n");
+    avcap = avcap_open(VIDEO_DEV, &conf);
+    if (!avcap) {
+        printf("avcap_open dshow failed!\n");
+        return -1;
+    }
+    //avcap_ioctl(avcap, VIDCAP_SET_CONF, &conf);
+    avcap_ioctl(avcap, VIDCAP_GET_CAP, NULL);
+    frm = video_frame_create(avcap->conf.video.format, avcap->conf.video.width, avcap->conf.video.height, MEDIA_MEM_SHALLOW);
+    if (!frm) {
+        printf("video_frame_create failed!\n");
+        avcap_close(avcap);
+        return -1;
+    }
+    printf("avcap info: %s %dx%d@%d/%d fps format:%s\n", VIDEO_DEV, avcap->conf.video.width, avcap->conf.video.height,
+        avcap->conf.video.fps.num, avcap->conf.video.fps.den, pixel_format_to_string(avcap->conf.video.format));
+    fp = file_open(OUTPUT_DSHOW, F_CREATE);
+    avcap_start_stream(avcap, on_frame);
+
+    sleep(5);
+    avcap_stop_stream(avcap);
+    file_close(fp);
+    video_frame_destroy(frm);
+    avcap_close(avcap);
+    printf("write %s fininshed!\n", OUTPUT_DSHOW);
+    printf("======== dshow_test leave\n");
+    return 0;
+}
+
 static int pulseaudio_test()
 {
+#if defined (OS_LINUX)
     struct avcap_ctx *avcap;
     struct avcap_config conf = {
             .type = AVCAP_TYPE_AUDIO,
@@ -243,7 +289,7 @@ static int pulseaudio_test()
     avcap_close(avcap);
     printf("write %s fininshed!\n", OUTPUT_PA);
     printf("======== pulseaudio_test leave\n");
-
+#endif
     return 0;
 }
 
@@ -269,6 +315,7 @@ int main(int argc, char **argv)
     v4l2_test();
     dummy_test();
     uvc_test();
+    dshow_test();
     pulseaudio_test();
     xcb_test();
     return 0;
