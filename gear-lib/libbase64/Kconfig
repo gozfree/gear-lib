@@ -1,0 +1,9 @@
+
+menuconfig LIBBASE64
+    bool "chose libbase64 or not"
+    default n
+    depends on LIBPOSIX
+    help
+        libbase64
+
+
