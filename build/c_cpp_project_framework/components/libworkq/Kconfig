@@ -1,0 +1,4 @@
+config LIBWORKQ_ENABLED
+    bool "Enable libworkq"
+    default n
+    depends on LIBTHREAD_ENABLED && LIBPOSIX_ENABLED && LIBDARRAY_ENABLED

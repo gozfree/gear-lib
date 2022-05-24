@@ -1,0 +1,8 @@
+
+menuconfig LIBUTF2GBK
+    bool "chose libutf2gbk or not"
+    default n
+    help
+        libutf2gbk
+
+

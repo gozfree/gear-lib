@@ -1,0 +1,11 @@
+config LIBFILE_ENABLED
+    bool "Enable libfile"
+    default n
+menu "libfile"
+	visible if LIBFILE_ENABLED
+        config ENABLE_FILEWATCHER
+            bool "Enable filewatcher"
+            default n
+            depends on LIBDICT_ENABLED && LIBGEVENT_ENABLED && LIBTHREAD_ENABLED && LIBDARRAY_ENABLED
+endmenu
+

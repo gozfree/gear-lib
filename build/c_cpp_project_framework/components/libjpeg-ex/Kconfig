@@ -1,0 +1,3 @@
+config LIBJPEG-EX_ENABLED
+    bool "Enable libjpeg-ex"
+    default n

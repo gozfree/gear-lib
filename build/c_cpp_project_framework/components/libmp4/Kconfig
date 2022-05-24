@@ -1,0 +1,3 @@
+config LIBMP4_ENABLED
+    bool "Enable libmp4"
+    default n

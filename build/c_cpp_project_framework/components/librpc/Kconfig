@@ -1,0 +1,3 @@
+config LIBRPC_ENABLED
+    bool "Enable librpc"
+    default n

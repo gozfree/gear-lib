@@ -1,0 +1,3 @@
+config LIBTIME_ENABLED
+    bool "Enable libtime"
+    default n

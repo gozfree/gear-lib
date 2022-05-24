@@ -1,0 +1,5 @@
+config LIBAVCAP_ENABLED
+    bool "Enable libavcap"
+    default n
+    depends on LIBTHREAD_ENABLED
+    depends on LIBMEDIA_IO_ENABLED

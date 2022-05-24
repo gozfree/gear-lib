@@ -1,0 +1,3 @@
+config LIBVECTOR_ENABLED
+    bool "Enable libvector"
+    default n

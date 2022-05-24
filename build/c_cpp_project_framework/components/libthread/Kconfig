@@ -1,0 +1,3 @@
+config LIBTHREAD_ENABLED
+    bool "Enable libthread"
+    default n

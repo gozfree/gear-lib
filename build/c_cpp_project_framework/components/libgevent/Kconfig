@@ -1,0 +1,6 @@
+config LIBGEVENT_ENABLED
+    bool "Enable libgevent"
+    default n
+    depends on LIBPOSIX_ENABLED
+    depends on LIBDARRAY_ENABLED
+    depends on LIBTHREAD_ENABLED

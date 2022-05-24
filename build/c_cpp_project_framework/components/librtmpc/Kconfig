@@ -1,0 +1,4 @@
+config LIBRTMPC_ENABLED
+    bool "Enable librtmpc"
+    default n
+    depends on LIBPOSIX_ENABLED && LIBQUEUE_ENABLED && LIBTHREAD_ENABLED
