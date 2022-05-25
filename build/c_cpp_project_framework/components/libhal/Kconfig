@@ -1,0 +1,5 @@
+config LIBHAL_ENABLED
+    bool "Enable libhal"
+    default n
+    depends on libposix
+    depends on libdarray

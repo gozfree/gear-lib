@@ -1,0 +1,4 @@
+config LIBLOG_ENABLED
+    bool "Enable liblog"
+    depends on libposix
+    default n

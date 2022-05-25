@@ -1,0 +1,3 @@
+config LIBSORT_ENABLED
+    bool "Enable libsort"
+    default n

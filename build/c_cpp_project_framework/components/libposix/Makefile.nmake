@@ -1,0 +1,70 @@
+###############################################################################
+# common
+###############################################################################
+#ARCH: linux/pi/android/ios/win
+#!include <win32.mak>
+!include <../../build/win.nmake>
+LD	= link
+AR	= lib
+RM	= del
+###############################################################################
+# target and object
+###############################################################################
+LIBNAME		= libposix
+TGT_LIB_A	= $(LIBNAME).lib
+TGT_LIB_SO	= $(LIBNAME).dll
+TGT_UNIT_TEST	= test_$(LIBNAME).exe
+
+OBJS_LIB	= $(LIBNAME).obj libposix4win.obj pthreads4w/pthread.obj
+OBJS_UNIT_TEST	= test_$(LIBNAME).obj
+
+###############################################################################
+# cflags and ldflags
+###############################################################################
+CFLAGS	= /I. /I./MsvcLibX/include /I./pthreads4w #"/DWSDKINCLUDE=$(WindowsSdkDir)\include" "/DMSVCINCLUDE=$(VCInstallDir)\include" "/DUCRTINCLUDE=$(VCInstallDir)\include"
+!IF "$(MODE)"=="release"
+CFLAGS  = $(CFLAGS) /O2 /GF
+!ELSE
+CFLAGS  = $(CFLAGS) /Od /W3 /Zi
+!ENDIF
+
+CFLAGS	= $(CFLAGS) "/DUCRTINCLUDE=$(VCInstallDir)\include"
+CFLAGS	= $(CFLAGS) "/DMSVCINCLUDE=$(VCInstallDir)\include"
+CFLAGS	= $(CFLAGS) "/DWSDKINCLUDE=$(WindowsSdkDir)\include"
+
+LIBS	= /NOLOGO  KERNEL32.LIB Mpr.lib user32.lib ws2_32.lib
+
+#kernel32.lib
+#gdi32.lib
+#winspool.lib
+#comdlg32.lib
+#advapi32.lib
+#shell32.lib
+#ole32.lib
+#oleaut32.lib
+#uuid.lib
+#odbc32.lib
+#odbccp32.lib
+
+###############################################################################
+# target
+###############################################################################
+TGT	= $(TGT_LIB_A)  $(TGT_LIB_SO) $(TGT_UNIT_TEST)
+
+OBJS	= $(OBJS_LIB) $(OBJS_UNIT_TEST)
+
+all: $(TGT)
+
+$(TGT_LIB_A): $(OBJS_LIB)
+	$(AR) $(OBJS_LIB) $(LIBS) /out:$(TGT_LIB_A)
+
+$(TGT_LIB_SO): $(OBJS_LIB)
+	$(LD) /Dll $(OBJS_LIB) $(LIBS)
+
+$(TGT_UNIT_TEST): $(OBJS_UNIT_TEST)
+	$(CC) $(TGT_LIB_A) $(OBJS_UNIT_TEST) /link $(LIBS)
+
+clean:
+	$(RM) $(OBJS)
+	$(RM) $(TGT)
+	$(RM) $(TGT_LIB_SO)*

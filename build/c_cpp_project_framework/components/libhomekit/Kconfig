@@ -1,0 +1,3 @@
+config LIBHOMEKIT_ENABLED
+    bool "Enable libhomekit"
+    default n

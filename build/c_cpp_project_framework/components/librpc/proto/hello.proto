@@ -1,0 +1,14 @@
+import "librpc.proto";
+package hello;
+
+message request {
+    required req_cmd id = 1;
+    required uint32 uint32_arg = 2;
+    optional string string_arg = 3;
+}
+
+message reply {
+    required rep_errno ret = 1;
+    optional uint32 uint32_arg = 2;
+    optional string string_arg = 3;
+}

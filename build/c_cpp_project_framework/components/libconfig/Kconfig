@@ -1,0 +1,3 @@
+config LIBCONFIG_ENABLED
+    bool "Enable libconfig"
+    default n

@@ -1,0 +1,3 @@
+config LIBP2P_ENABLED
+    bool "Enable libp2p"
+    default n

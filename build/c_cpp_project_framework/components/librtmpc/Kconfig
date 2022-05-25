@@ -1,0 +1,3 @@
+config LIBRTMPC_ENABLED
+    bool "Enable librtmpc"
+    default n

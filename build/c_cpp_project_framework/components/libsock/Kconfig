@@ -1,0 +1,21 @@
+config LIBSOCK_ENABLED
+    bool "Enable libsock"
+    default n
+
+menu LIBSOCK_ENABLED
+    bool "Enable libsock"
+    default n
+    if LIBSOCK_ENABLED
+        config ENABLE_SOCK_EXT
+            bool "Enable sock ext"
+            default y
+            depends on libposix
+            depends on libgevent
+            depends on libthread
+        config ENABLE_PTCP
+            bool "Enable ptcp"
+            default n
+            depends on libptcp
+    endif
+endmenu
+

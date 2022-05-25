@@ -1,0 +1,6 @@
+config LIBGEVENT_ENABLED
+    bool "Enable libgevent"
+    default n
+    depends on libposix
+    depends on libdarray
+    depends on libthread

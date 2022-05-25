@@ -1,0 +1,63 @@
+TOOLCHAINS_ROOT=$(ANDROID_NDK)/toolchains/arm-linux-androideabi-4.6/prebuilt/linux-x86_64
+TOOLCHAINS_PREFIX=$(TOOLCHAINS_ROOT)/bin/arm-linux-androideabi
+TOOLCHAINS_INCLUDE=$(TOOLCHAINS_ROOT)/lib/gcc/arm-linux-androideabi/4.6/include
+TOOLCHAINS_INCLUDE_FIXED=$(TOOLCHAINS_ROOT)/lib/gcc/arm-linux-androideabi/4.6/include-fixed
+
+STL_PATH=$(ANDROID_NDK)/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a
+
+PLATFORM_ROOT=$(ANDROID_NDK)/platforms/android-9/arch-arm
+PLATFORM_INCLUDE=$(PLATFORM_ROOT)/usr/include
+PLATFORM_LIB=$(PLATFORM_ROOT)/usr/lib
+
+LIBNAME	= libfoo
+
+CC	= $(TOOLCHAINS_PREFIX)-gcc
+LD	= $(TOOLCHAINS_PREFIX)-ld
+
+ifeq ($(MODE), release)
+LOCAL_CFLAGS += -O2
+else
+LOCAL_CFLAGS += -g
+endif
+
+INC_PATH = -I$(TOOLCHAINS_INCLUDE) \
+		   -I$(TOOLCHAINS_INCLUDE_FIXED) \
+		   -I$(PLATFORM_INCLUDE)
+CFLAGS	:= $(INC_PATH) $(LOCAL_CFLAGS) -Wall \
+	   -D__ANDROID_APP__ \
+	   -fno-exceptions \
+	   -fno-unwind-tables \
+	   -fno-asynchronous-unwind-tables
+
+LDFLAGS	:= -L$(PLATFORM_LIB) \
+	   -nostdlib \
+	   -Bdynamic \
+	   -lstdc++ \
+	   -llog \
+	   -lc \
+	   -L$(STL_PATH)/thumb/ -lgnustl_static \
+	   -L$(STL_PATH) -lsupc++ 
+
+#LDFLAGS	+= -lpthread -lrt
+
+.PHONY : all clean
+
+TGT	:= test_${LIBNAME}_android
+
+ANDROID_OBJ = $(PLATFORM_LIB)/crtbegin_dynamic.o \
+	      $(PLATFORM_LIB)/crtend_android.o
+
+
+OBJS	= ${LIBNAME}.o \
+          test_${LIBNAME}.o
+
+all: $(TGT)
+
+%.o:%.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+$(TGT): $(OBJS) $(ANDROID_OBJ)
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(OBJS) $(TGT)
