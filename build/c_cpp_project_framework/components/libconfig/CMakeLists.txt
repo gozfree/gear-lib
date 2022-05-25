@@ -1,21 +1,28 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libconfig_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libconfig_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libconfig_linux")
+endif()
 if(CONFIG_LIBCONFIG_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "ini/iniparser.c"
-                            "ini/dictionary.c"
-                            "ini/ini_config.c"
-                            "json/json_config.c"
-                            "json/cJSON.c"
-                            "lua/luatables.c"
-                            "lua/lua_config.c"
-                            "libconfig.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/ini/iniparser.c"
+                            "${MODULE_DIR_C}/ini/dictionary.c"
+                            "${MODULE_DIR_C}/ini/ini_config.c"
+                            "${MODULE_DIR_C}/json/json_config.c"
+                            "${MODULE_DIR_C}/json/cJSON.c"
+                            "${MODULE_DIR_C}/lua/luatables.c"
+                            "${MODULE_DIR_C}/lua/lua_config.c"
+                            "${MODULE_DIR_C}/libconfig.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS

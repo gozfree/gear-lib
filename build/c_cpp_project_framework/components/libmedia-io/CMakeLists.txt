@@ -1,17 +1,24 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libmedia-io_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libmedia-io_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libmedia-io_linux")
+endif()
 if(CONFIG_LIBMEDIA_IO_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "libmedia-io.c"
-                            "audio-def.c"
-                            "video-def.c"
-                            "video-conv.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libmedia-io.c"
+                            "${MODULE_DIR_C}/audio-def.c"
+                            "${MODULE_DIR_C}/video-def.c"
+                            "${MODULE_DIR_C}/video-conv.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS

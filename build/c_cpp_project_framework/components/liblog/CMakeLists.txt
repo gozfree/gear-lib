@@ -6,6 +6,13 @@ elseif(APPLE)
 elseif(UNIX)
     set(MODULE_DIR_C "liblog_linux")
 endif()
+if(WIN32)
+    set(MODULE_DIR_C "liblog_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "liblog_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "liblog_linux")
+endif()
 if(CONFIG_LIBLOG_ENABLED)
 
     ################# Add include #################

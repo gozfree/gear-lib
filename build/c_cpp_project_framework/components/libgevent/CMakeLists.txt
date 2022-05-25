@@ -1,26 +1,33 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libgevent_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libgevent_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libgevent_linux")
+endif()
 if(CONFIG_LIBGEVENT_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
 
     if(WIN32)
-        list(APPEND ADD_SRCS    "iocp.c"
-                                "libgevent.c"
-                                "wepoll.c"
+        list(APPEND ADD_SRCS    "${MODULE_DIR_C}/iocp.c"
+                                "${MODULE_DIR_C}/libgevent.c"
+                                "${MODULE_DIR_C}/wepoll.c"
         )
     elseif(APPLE)
 
     elseif(UNIX)
-        list(APPEND ADD_SRCS    "epoll.c"
-                                "libgevent.c"
-                                "poll.c"
-                                "select.c"
+        list(APPEND ADD_SRCS    "${MODULE_DIR_C}/epoll.c"
+                                "${MODULE_DIR_C}/libgevent.c"
+                                "${MODULE_DIR_C}/poll.c"
+                                "${MODULE_DIR_C}/select.c"
         )
     endif()
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS

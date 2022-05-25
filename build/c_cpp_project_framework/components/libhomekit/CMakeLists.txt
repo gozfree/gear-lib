@@ -1,32 +1,39 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libhomekit_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libhomekit_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libhomekit_linux")
+endif()
 if(CONFIG_LIBHOMEKIT_ENABLED)
 
     ################# Add include #################
-    list(APPEND ADD_INCLUDE "include")
-    list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}/include")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
     list(APPEND ADD_SRCS
-                            "src/accessories.c"
-                            "src/base64.c"
-                            "src/crypto.c"
-                            "src/debug.c"
-                            "src/json.c"
-                            "src/pairing.c"
-                            "src/port.c"
-                            "src/query_params.c"
-                            "src/storage.c"
-                            "src/server.c"
-                            "src/tlv.c"
-                            "mdns.c"
-                            "accessory.c"
-                            "camera_session.c"
-                            "streaming.c"
-                            "crypto.c"
-                            "cJSON.c"
-                            "http-parser/http_parser.c"
+                            "${MODULE_DIR_C}/src/accessories.c"
+                            "${MODULE_DIR_C}/src/base64.c"
+                            "${MODULE_DIR_C}/src/crypto.c"
+                            "${MODULE_DIR_C}/src/debug.c"
+                            "${MODULE_DIR_C}/src/json.c"
+                            "${MODULE_DIR_C}/src/pairing.c"
+                            "${MODULE_DIR_C}/src/port.c"
+                            "${MODULE_DIR_C}/src/query_params.c"
+                            "${MODULE_DIR_C}/src/storage.c"
+                            "${MODULE_DIR_C}/src/server.c"
+                            "${MODULE_DIR_C}/src/tlv.c"
+                            "${MODULE_DIR_C}/mdns.c"
+                            "${MODULE_DIR_C}/accessory.c"
+                            "${MODULE_DIR_C}/camera_session.c"
+                            "${MODULE_DIR_C}/streaming.c"
+                            "${MODULE_DIR_C}/crypto.c"
+                            "${MODULE_DIR_C}/cJSON.c"
+                            "${MODULE_DIR_C}/http-parser/http_parser.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS

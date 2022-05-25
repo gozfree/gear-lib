@@ -1,16 +1,23 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libsock_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libsock_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libsock_linux")
+endif()
 if(CONFIG_LIBSOCK_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "libsock.c")
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libsock.c")
     if(CONFIG_ENABLE_SOCK_EXT)
-        list(APPEND ADD_SRCS    "libsock_ext.c")
+        list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libsock_ext.c")
     endif()
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
     # append_srcs_dir(ADD_SRCS "src")     # append source file in src dir to var ADD_SRCS

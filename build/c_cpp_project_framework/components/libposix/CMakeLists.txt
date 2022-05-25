@@ -6,6 +6,13 @@ elseif(APPLE)
 elseif(UNIX)
     set(MODULE_DIR_C "libposix_linux")
 endif()
+if(WIN32)
+    set(MODULE_DIR_C "libposix_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libposix_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libposix_linux")
+endif()
 if(CONFIG_LIBPOSIX_ENABLED)
 
     ################# Add include #################

@@ -1,20 +1,27 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libp2p_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libp2p_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libp2p_linux")
+endif()
 if(CONFIG_LIBP2P_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "dshow.c"
-                            "dummy.c"
-                            "libavcap.c"
-                            "uvc.c"
-                            "v4l2.c"
-                            "xcbgrab.c"
-                            "pulseaudio.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/dshow.c"
+                            "${MODULE_DIR_C}/dummy.c"
+                            "${MODULE_DIR_C}/libavcap.c"
+                            "${MODULE_DIR_C}/uvc.c"
+                            "${MODULE_DIR_C}/v4l2.c"
+                            "${MODULE_DIR_C}/xcbgrab.c"
+                            "${MODULE_DIR_C}/pulseaudio.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS

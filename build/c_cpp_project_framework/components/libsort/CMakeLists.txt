@@ -1,20 +1,25 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libsort_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libsort_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libsort_linux")
+endif()
 if(CONFIG_LIBSORT_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "dshow.c"
-                            "dummy.c"
-                            "libavcap.c"
-                            "uvc.c"
-                            "v4l2.c"
-                            "xcbgrab.c"
-                            "pulseaudio.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libsort.c"
+                            "${MODULE_DIR_C}/bubble_sort.c"
+                            "${MODULE_DIR_C}/heap_sort.c"
+                            "${MODULE_DIR_C}/quick_sort.c"
+                            "${MODULE_DIR_C}/select_sort.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS

@@ -1,16 +1,23 @@
 # Config enable component3 or not in Kconfig
+if(WIN32)
+    set(MODULE_DIR_C "libthread_win")
+elseif(APPLE)
+    set(MODULE_DIR_C "libthread_apple")
+elseif(UNIX)
+    set(MODULE_DIR_C "libthread_linux")
+endif()
 if(CONFIG_LIBTHREAD_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "libthread.c"
-                            "liblock.c"
-                            "libatomic.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libthread.c"
+                            "${MODULE_DIR_C}/liblock.c"
+                            "${MODULE_DIR_C}/libatomic.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
