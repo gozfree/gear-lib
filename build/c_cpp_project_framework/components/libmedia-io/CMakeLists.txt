@@ -1,5 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(CONFIG_LIBMEDIA-IO_ENABLED)
+if(CONFIG_LIBMEDIA_IO_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")

@@ -2,7 +2,7 @@ config LIBSOCK_ENABLED
     bool "Enable libsock"
     default n
 
-menu LIBSOCK_ENABLED
+config LIBSOCK_ENABLED
     bool "Enable libsock"
     default n
     if LIBSOCK_ENABLED
@@ -17,5 +17,4 @@ menu LIBSOCK_ENABLED
             default n
             depends on libptcp
     endif
-endmenu
 
