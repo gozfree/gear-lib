@@ -4,7 +4,7 @@ mainmenu "C/CPP CMake project framework Kconfig configuration"
 menu "Toolchain configuration"
 	config TOOLCHAIN_PATH
 		string ""
-		default "/bin"
+		default ""
 	
 	config TOOLCHAIN_PREFIX
 		string ""
