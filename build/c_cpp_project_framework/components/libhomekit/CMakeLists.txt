@@ -2,19 +2,31 @@
 if(CONFIG_LIBHOMEKIT_ENABLED)
 
     ################# Add include #################
-    # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "include")
+    list(APPEND ADD_INCLUDE ".")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "dshow.c"
-                            "dummy.c"
-                            "libavcap.c"
-                            "uvc.c"
-                            "v4l2.c"
-                            "xcbgrab.c"
-                            "pulseaudio.c"
+    list(APPEND ADD_SRCS
+                            "src/accessories.c"
+                            "src/base64.c"
+                            "src/crypto.c"
+                            "src/debug.c"
+                            "src/json.c"
+                            "src/pairing.c"
+                            "src/port.c"
+                            "src/query_params.c"
+                            "src/storage.c"
+                            "src/server.c"
+                            "src/tlv.c"
+                            "mdns.c"
+                            "accessory.c"
+                            "camera_session.c"
+                            "streaming.c"
+                            "crypto.c"
+                            "cJSON.c"
+                            "http-parser/http_parser.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
@@ -28,13 +40,17 @@ if(CONFIG_LIBHOMEKIT_ENABLED)
 
 
     ###### Add required/dependent components ######
-    # list(APPEND ADD_REQUIREMENTS component1)
+    list(APPEND ADD_REQUIREMENTS libqueue)
+    list(APPEND ADD_REQUIREMENTS libposix)
+    list(APPEND ADD_REQUIREMENTS libtime)
+    
     ###############################################
 
     ###### Add link search path for requirements/libs ######
     # list(APPEND ADD_LINK_SEARCH_PATH "${CONFIG_TOOLCHAIN_PATH}/lib")
     # list(APPEND ADD_REQUIREMENTS pthread m)  # add system libs, pthread and math lib for example here
-    list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    # list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    list(APPEND ADD_REQUIREMENTS wolfssl jpeg x264)
     ###############################################
 
     ############ Add static libs ##################
@@ -57,6 +73,24 @@ if(CONFIG_LIBHOMEKIT_ENABLED)
     #### and components denpend on this component
     # list(APPEND ADD_DEFINITIONS -DAAAAA222=1
     #                             -DAAAAA333=1)
+    list(APPEND ADD_DEFINITIONS 
+    -DESP_IDF
+    -DWOLFCRYPT_HAVE_SRP
+    -DWOLFSSL_SHA512
+    -DWOLFSSL_BASE64_ENCODE
+    -DNO_MD5
+    -DNO_SHA
+    -DHAVE_HKDF
+    -DHAVE_CHACHA
+    -DHAVE_POLY1305
+    -DHAVE_ED25519
+    -DHAVE_CURVE25519
+    -DNO_SESSION_CACHE
+    -DRSA_LOW_MEM
+    -DGCM_SMALL
+    -DUSE_SLOW_SHA512
+    -DWOLFCRYPT_ONLY
+    )
     ###############################################
 
     ############ Add static libs ##################

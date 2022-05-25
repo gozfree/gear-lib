@@ -8,13 +8,7 @@ if(CONFIG_LIBJPEG-EX_ENABLED)
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "dshow.c"
-                            "dummy.c"
-                            "libavcap.c"
-                            "uvc.c"
-                            "v4l2.c"
-                            "xcbgrab.c"
-                            "pulseaudio.c"
+    list(APPEND ADD_SRCS    "libjpeg-ex.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
@@ -28,13 +22,15 @@ if(CONFIG_LIBJPEG-EX_ENABLED)
 
 
     ###### Add required/dependent components ######
-    # list(APPEND ADD_REQUIREMENTS component1)
+    list(APPEND ADD_REQUIREMENTS liblog)
+
     ###############################################
 
     ###### Add link search path for requirements/libs ######
     # list(APPEND ADD_LINK_SEARCH_PATH "${CONFIG_TOOLCHAIN_PATH}/lib")
     # list(APPEND ADD_REQUIREMENTS pthread m)  # add system libs, pthread and math lib for example here
-    list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    # list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    list(APPEND ADD_REQUIREMENTS pthread jpeg)
     ###############################################
 
     ############ Add static libs ##################

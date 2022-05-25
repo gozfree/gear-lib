@@ -3,7 +3,7 @@ if(CONFIG_LIBAVCAP_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE ".")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
@@ -28,7 +28,7 @@ if(CONFIG_LIBAVCAP_ENABLED)
 
 
     ###### Add required/dependent components ######
-    list(APPEND ADD_REQUIREMENTS libpthread)
+    list(APPEND ADD_REQUIREMENTS libthread)
     list(APPEND ADD_REQUIREMENTS libmedia-io)
     # list(APPEND ADD_REQUIREMENTS component1)
     # list(APPEND ADD_REQUIREMENTS component1)
@@ -39,7 +39,7 @@ if(CONFIG_LIBAVCAP_ENABLED)
     ###### Add link search path for requirements/libs ######
     # list(APPEND ADD_LINK_SEARCH_PATH "${CONFIG_TOOLCHAIN_PATH}/lib")
     # list(APPEND ADD_REQUIREMENTS pthread m)  # add system libs, pthread and math lib for example here
-    # list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    list(APPEND ADD_REQUIREMENTS pthread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
     ###############################################
 
     ############ Add static libs ##################

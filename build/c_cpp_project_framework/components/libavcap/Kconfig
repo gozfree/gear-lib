@@ -1,3 +1,5 @@
 config LIBAVCAP_ENABLED
     bool "Enable libavcap"
     default n
+    depends on libthread
+    depends on libmedia-io

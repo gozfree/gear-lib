@@ -1,3 +1,4 @@
 config LIBMEDIA-IO_ENABLED
     bool "Enable libmedia-io"
     default n
+    depends on libposix

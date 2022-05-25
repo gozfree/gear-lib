@@ -3,7 +3,7 @@ if(CONFIG_LIBFSM_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE ".")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
