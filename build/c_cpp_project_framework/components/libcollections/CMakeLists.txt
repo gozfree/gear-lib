@@ -10,12 +10,12 @@ if(CONFIG_LIBCOLLECTIONS_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    list(APPEND ADD_INCLUDE ".")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "libcollections.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libcollections.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
