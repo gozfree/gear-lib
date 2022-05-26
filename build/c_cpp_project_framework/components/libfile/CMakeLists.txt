@@ -4,6 +4,7 @@ if(CONFIG_LIBFILE_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}/../libposix")
     list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
@@ -29,10 +30,7 @@ if(CONFIG_LIBFILE_ENABLED)
 
     ###### Add required/dependent components ######
     if(CONFIG_ENABLE_FILEWATCHER)
-        list(APPEND ADD_REQUIREMENTS libdict)
-        list(APPEND ADD_REQUIREMENTS libgevent)
-        list(APPEND ADD_REQUIREMENTS libthread)
-        list(APPEND ADD_REQUIREMENTS libdarray)
+        list(APPEND ADD_REQUIREMENTS libdict libgevent libthread libdarray)
     endif()
     ###############################################
 

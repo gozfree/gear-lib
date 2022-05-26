@@ -4,18 +4,17 @@ if(CONFIG_LIBPTCP_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}/../libposix")
     list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/dshow.c"
-                            "${MODULE_DIR_C}/dummy.c"
-                            "${MODULE_DIR_C}/libavcap.c"
-                            "${MODULE_DIR_C}/uvc.c"
-                            "${MODULE_DIR_C}/v4l2.c"
-                            "${MODULE_DIR_C}/xcbgrab.c"
-                            "${MODULE_DIR_C}/pulseaudio.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/libptcp.c"
+                            "${MODULE_DIR_C}/glist.c"
+                            "${MODULE_DIR_C}/gqueue.c"
+                            "${MODULE_DIR_C}/pseudotcp.c"
+                            "${MODULE_DIR_C}/pseudotcp_wrap.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
@@ -29,13 +28,13 @@ if(CONFIG_LIBPTCP_ENABLED)
 
 
     ###### Add required/dependent components ######
-    # list(APPEND ADD_REQUIREMENTS component1)
+    # list(APPEND ADD_REQUIREMENTS libposix)
     ###############################################
 
     ###### Add link search path for requirements/libs ######
     # list(APPEND ADD_LINK_SEARCH_PATH "${CONFIG_TOOLCHAIN_PATH}/lib")
-    # list(APPEND ADD_REQUIREMENTS pthread m)  # add system libs, pthread and math lib for example here
-    list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    list(APPEND ADD_REQUIREMENTS pthread rt)  # add system libs, pthread and math lib for example here
+    # list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
     ###############################################
 
     ############ Add static libs ##################
@@ -71,5 +70,6 @@ if(CONFIG_LIBPTCP_ENABLED)
     # else()
     #     register_component()
     # endif()
+    # register_component(DYNAMIC)
     register_component()
 endif()

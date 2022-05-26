@@ -4,6 +4,7 @@ if(CONFIG_LIBCONFIG_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
+    list(APPEND ADD_INCLUDE "${MODULE_DIR_C}/../libposix")
     list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################

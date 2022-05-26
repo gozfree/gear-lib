@@ -22,9 +22,7 @@ if(CONFIG_LIBWORKQ_ENABLED)
 
 
     ###### Add required/dependent components ######
-    list(APPEND ADD_REQUIREMENTS libthread)
-    list(APPEND ADD_REQUIREMENTS libposix)
-    list(APPEND ADD_REQUIREMENTS libdarray)
+    list(APPEND ADD_REQUIREMENTS libthread libposix libdarray)
     ###############################################
 
     ###### Add link search path for requirements/libs ######
