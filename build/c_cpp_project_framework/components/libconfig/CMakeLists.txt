@@ -15,11 +15,12 @@ if(CONFIG_LIBCONFIG_ENABLED)
                             "${MODULE_DIR_C}/ini/ini_config.c"
                             "${MODULE_DIR_C}/json/json_config.c"
                             "${MODULE_DIR_C}/json/cJSON.c"
-                            "${MODULE_DIR_C}/lua/luatables.c"
-                            "${MODULE_DIR_C}/lua/lua_config.c"
                             "${MODULE_DIR_C}/libconfig.c"
     )
-
+    if(CONFIG_ENABLE_LUA)
+        list(APPEND ADD_SRCS    "${MODULE_DIR_C}/lua/lua_config.c"
+                                "${MODULE_DIR_C}/lua/luatables.c")
+    endif()
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
     # append_srcs_dir(ADD_SRCS "src")     # append source file in src dir to var ADD_SRCS
     # list(REMOVE_ITEM COMPONENT_SRCS "src/test.c")
@@ -31,7 +32,7 @@ if(CONFIG_LIBCONFIG_ENABLED)
 
 
     ###### Add required/dependent components ######
-    # list(APPEND ADD_REQUIREMENTS component1)
+    list(APPEND ADD_REQUIREMENTS libfile)
     ###############################################
 
     ###### Add link search path for requirements/libs ######
@@ -58,6 +59,9 @@ if(CONFIG_LIBCONFIG_ENABLED)
 
     #### Add compile option for this component
     #### and components denpend on this component
+    if(CONFIG_ENABLE_LUA)
+        list(APPEND ADD_DEFINITIONS -DENABLE_LUA)
+    endif()
     # list(APPEND ADD_DEFINITIONS -DAAAAA222=1
     #                             -DAAAAA333=1)
     ###############################################
