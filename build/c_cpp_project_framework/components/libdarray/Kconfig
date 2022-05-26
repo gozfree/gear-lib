@@ -1,4 +1,4 @@
 config LIBDARRAY_ENABLED
     bool "Enable libdarray"
-    depends on libposix
+    depends on LIBPOSIX_ENABLE
     default n

@@ -1,6 +1,6 @@
 config LIBWORKQ_ENABLED
     bool "Enable libworkq"
     default n
-    depends on libthread
-    depends on libposix
-    depends on libdarray
+    depends on LIBTHREAD_ENABLED
+    depends on LIBPOSIX_ENABLED
+    depends on LIBDARRAY_ENABLED

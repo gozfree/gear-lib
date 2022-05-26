@@ -9,12 +9,12 @@ config LIBSOCK_ENABLED
         config ENABLE_SOCK_EXT
             bool "Enable sock ext"
             default y
-            depends on libposix
-            depends on libgevent
-            depends on libthread
+            depends on LIBPOSIX_ENABLED
+            depends on LIBGEVENT_ENABLED
+            depends on LIBTHREAD_ENABLED
         config ENABLE_PTCP
             bool "Enable ptcp"
             default n
-            depends on libptcp
+            depends on LIBPTCP_ENABLED
     endif
 

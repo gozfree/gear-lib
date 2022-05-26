@@ -5,9 +5,9 @@ config LIBFILE_ENABLED
         config ENABLE_FILEWATCHER
             bool "Enable filewatcher"
             default n
-            depends on libdict
-            depends on libgevent
-            depends on libthread
-            depends on libdarray
+            depends on LIBDICT_ENABLED
+            depends on LIBGEVENT_ENABLED
+            depends on LIBTHREAD_ENABLED
+            depends on LIBDARRAY_ENABLED
     endif
 
