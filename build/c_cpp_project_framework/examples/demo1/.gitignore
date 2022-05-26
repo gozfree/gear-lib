@@ -3,4 +3,4 @@
 build
 .config.mk
 .flash.conf.json
-
+dist
