@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libfsm_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libfsm_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libfsm_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libfsm")
 if(CONFIG_LIBFSM_ENABLED)
 
     ################# Add include #################

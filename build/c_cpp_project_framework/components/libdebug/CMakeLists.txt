@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libdebug_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libdebug_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libdebug_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libdebug")
 if(CONFIG_LIBDEBUG_ENABLED)
 
     ################# Add include #################

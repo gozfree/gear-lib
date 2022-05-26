@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libbitmap_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libbitmap_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libbitmap_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libbitmap")
 if(CONFIG_LIBBITMAP_ENABLED)
 
     ################# Add include #################

@@ -1,3 +1,5 @@
+
+# set(CMAKE_VERBOSE_MAKEFILE 1)
 ############### Add include ###################
 list(APPEND ADD_INCLUDE "include"
     )

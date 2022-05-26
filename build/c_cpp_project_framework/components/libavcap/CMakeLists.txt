@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libavcap_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libavcap_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libavcap_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libavcap")
 if(CONFIG_LIBAVCAP_ENABLED)
 
     ################# Add include #################

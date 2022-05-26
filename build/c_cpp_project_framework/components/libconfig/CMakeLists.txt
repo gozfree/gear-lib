@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libconfig_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libconfig_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libconfig_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libconfig")
 if(CONFIG_LIBCONFIG_ENABLED)
 
     ################# Add include #################

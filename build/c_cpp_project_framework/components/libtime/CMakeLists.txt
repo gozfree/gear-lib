@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libtime_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libtime_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libtime_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libtime")
 if(CONFIG_LIBTIME_ENABLED)
 
     ################# Add include #################

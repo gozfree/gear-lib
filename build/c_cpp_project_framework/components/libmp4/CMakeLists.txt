@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libmp4_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libmp4_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libmp4_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libmp4")
 if(CONFIG_LIBMP4_ENABLED)
 
     ################# Add include #################

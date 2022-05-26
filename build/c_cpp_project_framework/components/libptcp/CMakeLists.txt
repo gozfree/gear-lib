@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libptcp_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libptcp_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libptcp_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libptcp")
 if(CONFIG_LIBPTCP_ENABLED)
 
     ################# Add include #################

@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libthread_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libthread_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libthread_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libthread")
 if(CONFIG_LIBTHREAD_ENABLED)
 
     ################# Add include #################

@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libjpeg-ex_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libjpeg-ex_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libjpeg-ex_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libjpeg-ex")
 if(CONFIG_LIBJPEG-EX_ENABLED)
 
     ################# Add include #################

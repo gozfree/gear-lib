@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libdict_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libdict_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libdict_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libdict")
 if(CONFIG_LIBDICT_ENABLED)
 
     ################# Add include #################

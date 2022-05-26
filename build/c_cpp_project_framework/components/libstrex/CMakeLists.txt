@@ -1,11 +1,5 @@
 # Config enable component3 or not in Kconfig
-if(WIN32)
-    set(MODULE_DIR_C "libstrex_win")
-elseif(APPLE)
-    set(MODULE_DIR_C "libstrex_apple")
-elseif(UNIX)
-    set(MODULE_DIR_C "libstrex_linux")
-endif()
+set(MODULE_DIR_C "../../../../gear-lib/libstrex")
 if(CONFIG_LIBSTREX_ENABLED)
 
     ################# Add include #################
