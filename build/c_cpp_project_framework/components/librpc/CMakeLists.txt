@@ -9,13 +9,8 @@ if(CONFIG_LIBRPC_ENABLED)
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/dshow.c"
-                            "${MODULE_DIR_C}/dummy.c"
-                            "${MODULE_DIR_C}/libavcap.c"
-                            "${MODULE_DIR_C}/uvc.c"
-                            "${MODULE_DIR_C}/v4l2.c"
-                            "${MODULE_DIR_C}/xcbgrab.c"
-                            "${MODULE_DIR_C}/pulseaudio.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/librpc.c"
+                            "${MODULE_DIR_C}/socket.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
@@ -29,13 +24,13 @@ if(CONFIG_LIBRPC_ENABLED)
 
 
     ###### Add required/dependent components ######
-    # list(APPEND ADD_REQUIREMENTS component1)
+    list(APPEND ADD_REQUIREMENTS libposix libdarray libgevent libworkq libhash libsock libthread libtime)
     ###############################################
 
     ###### Add link search path for requirements/libs ######
     # list(APPEND ADD_LINK_SEARCH_PATH "${CONFIG_TOOLCHAIN_PATH}/lib")
-    # list(APPEND ADD_REQUIREMENTS pthread m)  # add system libs, pthread and math lib for example here
-    list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
+    list(APPEND ADD_REQUIREMENTS pthread rt)  # add system libs, pthread and math lib for example here
+    # list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
     ###############################################
 
     ############ Add static libs ##################

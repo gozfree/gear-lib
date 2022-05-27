@@ -1,24 +1,16 @@
 # Config enable component3 or not in Kconfig
-set(MODULE_DIR_C "../../../../gear-lib/librtmpc")
-if(CONFIG_LIBRTMPC_ENABLED)
+set(MODULE_DIR_C "../../../../gear-lib/libhttpd")
+if(CONFIG_LIBHTTPD_ENABLED)
 
     ################# Add include #################
     # list(APPEND ADD_INCLUDE "include")
-    # list(APPEND ADD_INCLUDE "${MODULE_DIR_C}/../libposix")
     list(APPEND ADD_INCLUDE "${MODULE_DIR_C}")
     # list(APPEND ADD_PRIVATE_INCLUDE "include_private")
     ###############################################
 
     ############## Add source files ###############
-    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/librtmpc.c"
-                            "${MODULE_DIR_C}/amf.c"
-                            "${MODULE_DIR_C}/hashswf.c"
-                            "${MODULE_DIR_C}/log.c"
-                            "${MODULE_DIR_C}/parseurl.c"
-                            "${MODULE_DIR_C}/rtmp.c"
-                            "${MODULE_DIR_C}/md5.c"
-                            "${MODULE_DIR_C}/cencode.c"
-                            "${MODULE_DIR_C}/flv_mux.c"
+    list(APPEND ADD_SRCS    "${MODULE_DIR_C}/mongoose.c"
+                            "${MODULE_DIR_C}/libhttpd.c"
     )
 
     # aux_source_directory(src ADD_SRCS)  # collect all source file in src dir, will set var ADD_SRCS
@@ -32,12 +24,12 @@ if(CONFIG_LIBRTMPC_ENABLED)
 
 
     ###### Add required/dependent components ######
-    list(APPEND ADD_REQUIREMENTS libposix libqueue libthread)
+    # list(APPEND ADD_REQUIREMENTS component1)
     ###############################################
 
     ###### Add link search path for requirements/libs ######
     # list(APPEND ADD_LINK_SEARCH_PATH "${CONFIG_TOOLCHAIN_PATH}/lib")
-    list(APPEND ADD_REQUIREMENTS pthread dl)  # add system libs, pthread and math lib for example here
+    # list(APPEND ADD_REQUIREMENTS pthread m)  # add system libs, pthread and math lib for example here
     # list(APPEND ADD_REQUIREMENTS pthread media-io thread uvc pulse xcb xcb-shm xcb-randr xcb-xinerama)
     ###############################################
 
@@ -59,7 +51,8 @@ if(CONFIG_LIBRTMPC_ENABLED)
 
     #### Add compile option for this component
     #### and components denpend on this component
-    list(APPEND ADD_DEFINITIONS -DNO_CRYPTO)
+    # list(APPEND ADD_DEFINITIONS -DAAAAA222=1
+    #                             -DAAAAA333=1)
     ###############################################
 
     ############ Add static libs ##################
