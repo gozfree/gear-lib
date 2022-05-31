@@ -34,7 +34,7 @@ double epoch_double()
     return t.tv_sec + (t.tv_usec * 1.0) / 1000000.0;
 }
 
-int main(int argc, char * argv[])
+int test(int argc, char * argv[])
 {
     dict * d;
     double t1, t2;
@@ -108,5 +108,11 @@ int main(int argc, char * argv[])
     printf(ALIGN, "free", t2 - t1);
 
     free(buffer);
+    return 0;
+}
+
+int main(int argc, char * argv[])
+{
+    test(argc, argv);
     return 0;
 }

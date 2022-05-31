@@ -164,7 +164,7 @@ static keypair *dict_lookup(dict *d, char *key, uint32_t hash)
         }
         freeslot = NULL;
     }
-    for (perturb = hash; ; perturb >>= PERTURB_SHIFT) {
+    for (perturb = hash; perturb > 0; perturb >>= PERTURB_SHIFT) {
         i = (i<<2) + i + perturb + 1;
         i &= (d->size-1);
         ep = d->table + i;
@@ -318,6 +318,7 @@ dict *dict_new(void)
         free(d);
         return NULL;
     }
+    memset(d->table, -1, DICT_MIN_SZ*sizeof(keypair));
     return d;
 }
 
