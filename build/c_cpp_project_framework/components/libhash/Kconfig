@@ -1,0 +1,3 @@
+config LIBHASH_ENABLED
+    bool "Enable libhash"
+    default n

@@ -1,0 +1,3 @@
+config LIBIPC_ENABLED
+    bool "Enable libipc"
+    default n

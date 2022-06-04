@@ -1,0 +1,3 @@
+config LIBRBTREE_ENABLED
+    bool "Enable librbtree"
+    default n

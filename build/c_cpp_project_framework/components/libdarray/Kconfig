@@ -1,0 +1,4 @@
+config LIBDARRAY_ENABLED
+    bool "Enable libdarray"
+    depends on LIBPOSIX_ENABLED
+    default n

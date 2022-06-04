@@ -1,0 +1,3 @@
+config LIBBASE64_ENABLED
+    bool "Enable libbase64"
+    default n

@@ -1,0 +1,10 @@
+config LIBCONFIG_ENABLED
+    bool "Enable libconfig"
+    default n
+    depends on LIBFILE_ENABLED
+menu "libconfig"
+	visible if LIBCONFIG_ENABLED
+        config ENABLE_LUA
+            bool "Enable lua"
+            default n
+endmenu

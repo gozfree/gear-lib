@@ -1,0 +1,4 @@
+#define CONFIG_GEAR_LIB y
+#define CONFIG_LIBAVCAP y
+#define CONFIG_LIBBASE64 y
+#define CONFIG_LIBPOSIX y

@@ -1,0 +1,4 @@
+config LIBPTCP_ENABLED
+    bool "Enable libptcp"
+    default n
+

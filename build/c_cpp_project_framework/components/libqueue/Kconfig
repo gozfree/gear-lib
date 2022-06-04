@@ -1,0 +1,4 @@
+config LIBQUEUE_ENABLED
+    bool "Enable libqueue"
+    depends on LIBPOSIX_ENABLED
+    default n

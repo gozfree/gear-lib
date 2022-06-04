@@ -1,0 +1,3 @@
+config LIBRINGBUFFER_ENABLED
+    bool "Enable libringbuffer"
+    default n

@@ -1,0 +1,5 @@
+config LIBHAL_ENABLED
+    bool "Enable libhal"
+    default n
+    depends on LIBPOSIX_ENABLED
+    depends on LIBDARRAY_ENABLED
