@@ -1,0 +1,3 @@
+config LIBBITMAP_ENABLED
+    bool "Enable libbitmap"
+    default n

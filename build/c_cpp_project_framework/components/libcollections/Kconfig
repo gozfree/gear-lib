@@ -1,0 +1,3 @@
+config LIBCOLLECTIONS_ENABLED
+    bool "Enable libcollections"
+    default n

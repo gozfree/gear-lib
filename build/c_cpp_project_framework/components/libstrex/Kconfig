@@ -1,0 +1,3 @@
+config LIBSTREX_ENABLED
+    bool "Enable libstrex"
+    default n

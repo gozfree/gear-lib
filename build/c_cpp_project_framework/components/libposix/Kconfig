@@ -1,0 +1,3 @@
+config LIBPOSIX_ENABLED
+    bool "Enable libposix"
+    default y

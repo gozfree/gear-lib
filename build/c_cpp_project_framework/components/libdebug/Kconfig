@@ -1,0 +1,3 @@
+config LIBDEBUG_ENABLED
+    bool "Enable libdebug"
+    default n

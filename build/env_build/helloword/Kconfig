@@ -1,0 +1,241 @@
+mainmenu "Main Menu"
+
+comment "This is a comment to help to structure base  menu"
+
+
+config	GEAR_LIB
+	bool "chose gear-lib or not"
+    default y
+
+if 	GEAR_LIB
+
+config LIBAVCAP
+    bool "chose libavcap or not"
+    default n
+    help
+        libavcap
+
+config LIBBASE64
+    bool "chose libbase64 or not"
+    default n
+    help
+        libbase64
+
+config LIBBITMAP
+    bool "chose libbitmap or not"
+    default n
+    help
+        libbitmap
+
+config LIBCOLLECTIONS
+    bool "chose libcollections or not"
+    default n
+    help
+        libcollections
+
+config LIBCONFIG
+    bool "chose libconfig or not"
+    default n
+    help
+        libconfig
+
+config LIBDARRAY
+    bool "chose libdarray or not"
+    default n
+    help
+        libdarray
+
+config LIBDEBUG
+    bool "chose libdebug or not"
+    default n
+    help
+        libdebug
+
+config LIBDICT
+    bool "chose libdict or not"
+    default n
+    help
+        libdict
+
+config LIBFILE
+    bool "chose libfile or not"
+    default n
+    help
+        libfile
+
+config LIBFSM
+    bool "chose libfsm or not"
+    default n
+    help
+        libfsm
+
+config LIBGEVENT
+    bool "chose libgevent or not"
+    default n
+    help
+        libgevent
+
+config LIBHAL
+    bool "chose libhal or not"
+    default n
+    help
+        libhal
+
+config LIBHASH
+    bool "chose libhash or not"
+    default n
+    help
+        libhash
+
+config LIBHOMEKIT
+    bool "chose libhomekit or not"
+    default n
+    help
+        libhomekit
+
+config LIBIPC
+    bool "chose libipc or not"
+    default n
+    help
+        libipc
+
+config LIBJPEG-EX
+    bool "chose libjpeg-ex or not"
+    default n
+    help
+        libjpeg-ex
+
+config LIBLOG
+    bool "chose liblog or not"
+    default n
+    help
+        liblog
+
+config LIBMEDIA-IO
+    bool "chose libmedia-io or not"
+    default n
+    help
+        libmedia-io
+
+config LIBMP4
+    bool "chose libmp4 or not"
+    default n
+    help
+        libmp4
+
+config LIBMQTTC
+    bool "chose libmqttc or not"
+    default n
+    help
+        libmqttc
+
+config LIBP2P
+    bool "chose libp2p or not"
+    default n
+    help
+        libp2p
+
+config LIBPLUGIN
+    bool "chose libplugin or not"
+    default n
+    help
+        libplugin
+
+config LIBPOSIX
+    bool "chose libposix or not"
+    default n
+    help
+        libposix
+
+config LIBPTCP
+    bool "chose libptcp or not"
+    default n
+    help
+        libptcp
+
+config LIBQUEUE
+    bool "chose libqueue or not"
+    default n
+    help
+        libqueue
+
+config LIBRBTREE
+    bool "chose librbtree or not"
+    default n
+    help
+        librbtree
+
+config LIBRINGBUFFER
+    bool "chose libringbuffer or not"
+    default n
+    help
+        libringbuffer
+
+config LIBRPC
+    bool "chose librpc or not"
+    default n
+    help
+        librpc
+
+config LIBRTMPC
+    bool "chose librtmpc or not"
+    default n
+    help
+        librtmpc
+
+config LIBRTSP
+    bool "chose librtsp or not"
+    default n
+    help
+        librtsp
+
+config LIBSOCK
+    bool "chose libsock or not"
+    default n
+    help
+        libsock
+
+config LIBSORT
+    bool "chose libsort or not"
+    default n
+    help
+        libsort
+
+config LIBSTREX
+    bool "chose libstrex or not"
+    default n
+    help
+        libstrex
+
+config LIBSUBMASK
+    bool "chose libsubmask or not"
+    default n
+    help
+        libsubmask
+
+config LIBTHREAD
+    bool "chose libthread or not"
+    default n
+    help
+        libthread
+
+config LIBTIME
+    bool "chose libtime or not"
+    default n
+    help
+        libtime
+
+config LIBVECTOR
+    bool "chose libvector or not"
+    default n
+    help
+        libvector
+
+config LIBWORKQ
+    bool "chose libworkq or not"
+    default n
+    help
+        libworkq
+
+
+endif

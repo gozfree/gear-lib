@@ -1,0 +1,3 @@
+config LIBHTTPD_ENABLED
+    bool "Enable libhttpd"
+    default n

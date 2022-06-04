@@ -1,0 +1,3 @@
+config LIBFSM_ENABLED
+    bool "Enable libfsm"
+    default n
