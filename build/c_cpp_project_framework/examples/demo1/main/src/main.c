@@ -22,7 +22,6 @@
 int main()
 {
     foo();
-    test_test_libbase64();
     test_libcollections();
 
     test_liblog();
