@@ -33,12 +33,20 @@ void test(void *arg)
 
 int foo()
 {
+    int ret;
     int i = 0;
     int array[20] = {0};
     struct workq_pool *pool = workq_pool_create();
     for (i = 0; i < 20; i++) {
         array[i] = i;
-        workq_pool_task_push(pool, test, &array[i]);
+        ret = workq_pool_task_push(pool, test, &array[i]);
+        if (ret < 0) {
+            printf("workq_pool_task_push %d failed!\n", i);
+        } else {
+            printf("workq_pool_task_push %d success!\n", i);
+        }
+        if (i %10 == 0)
+            sleep(1);
     }
     sleep(4);
     workq_pool_destroy(pool);
@@ -47,13 +55,9 @@ int foo()
 
 int main()
 {
-    int i = 0;
     foo();
     while (1) {
         printf("main loop\n");
-        i++;
-        //wq_task_add(g_wq, test, (void *)&i, sizeof(int));
-        //wq_pool_task_add(test, (void *)&i, sizeof(int));
         sleep(1);
     }
     return 0;

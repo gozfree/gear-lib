@@ -32,9 +32,26 @@
 extern "C" {
 #endif
 
+/*
+ *   workq_pool:
+ *   +==========+---------+---------+-----+---------+
+ *   | workq[0] | task[0] | task[1] | ... | task[i] |
+ *   +==========+---------+---------+-----+---------+
+ *   | workq[1] | task[0] | task[1] | ... | task[j] |
+ *   +==========+---------+---------+-----+---------+
+ *   |  ...     |
+ *   +==========+---------+---------+-----+---------+
+ *   | workq[n] | task[0] | task[1] | ... | task[k] |
+ *   +==========+---------+---------+-----+---------+
+ *
+ *   n = cpu core numbers
+ *   suppose each task is not infinite loop
+ */
+
 struct workq {
     int run;
     int load;
+    int priority;
     struct thread *thread;
     struct list_head wq_list;
 };
@@ -46,13 +63,6 @@ typedef struct workq_pool {
 } workq_pool_t;
 
 typedef void (*task_func_t)(void *);
-
-struct task {
-    struct list_head entry;
-    task_func_t func;
-    void *data;
-    struct workq *wq;
-};
 
 GEAR_API struct workq_pool *workq_pool_create();
 GEAR_API int workq_pool_task_push(struct workq_pool *p, task_func_t f, void *d);

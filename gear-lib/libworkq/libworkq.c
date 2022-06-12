@@ -27,6 +27,24 @@
 #include <sys/sysinfo.h>
 #endif
 
+struct task {
+    struct list_head entry;
+    task_func_t func;
+    void *data;
+    struct workq *wq;
+};
+
+
+static bool is_workq_underload(struct workq_pool *pool, struct workq *wq)
+{
+    return (wq->load == 0 || wq->load < pool->threshold);
+}
+
+bool is_workq_overload(struct workq_pool *pool, struct workq *wq)
+{
+    return (wq->load == 1 || wq->load > pool->threshold);
+}
+
 static struct task *task_create(struct workq *wq, task_func_t func, void *data)
 {
     struct task *t = calloc(1, sizeof(struct task));
@@ -64,8 +82,10 @@ static void *_task_thread(struct thread *thread, void *arg)
         t = list_first_entry_or_null(&wq->wq_list, struct task, entry);
         thread_unlock(thread);
         if (t && t->func) {
+            wq->load = 1;
             t->func(t->data);
             task_destroy(t);
+            wq->load = 0;
         }
     }
     return NULL;
@@ -125,6 +145,7 @@ struct workq_pool *workq_pool_create()
         printf("cpu number is invalid!\n");
         goto failed;
     }
+    printf("cpu number is %d\n", cpus);
 
     pool->cpus = cpus;
     pool->threshold = 0;
@@ -154,14 +175,21 @@ failed:
     return NULL;
 }
 
-static struct workq *find_idle_workq(struct workq_pool *pool)
+static struct workq *find_underrun_workq(struct workq_pool *pool)
 {
     int i;
     struct workq *wq;
     for (i = 0; i < pool->wq_array.num; i++) {
-        wq = pool->wq_array.array[pool->wq_array.num-1];
-        if (wq->load == 0 || wq->load < pool->threshold)
+        wq = pool->wq_array.array[i];
+        if (is_workq_underload(pool, wq))
             break;
+    }
+    if (i == pool->wq_array.num) {
+        /*
+         * TODO: need do load blance
+         */
+        i = pool->wq_array.num - 1;
+        printf("all workq are overload, need expand, just force to last workq!\n");
     }
     return pool->wq_array.array[i];
 }
@@ -174,7 +202,7 @@ int workq_pool_task_push(struct workq_pool *pool, task_func_t func, void *data)
         printf("invalid paraments!\n");
         return -1;
     }
-    wq = find_idle_workq(pool);
+    wq = find_underrun_workq(pool);
     if (!wq) {
         printf("all workq are not idle, need expand\n");
         return -1;
