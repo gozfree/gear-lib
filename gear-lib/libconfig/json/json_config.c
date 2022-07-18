@@ -33,7 +33,7 @@ static int read_file(const char *name, void **buf, size_t *len)
     char *tmp = NULL;
     size_t ret = 0;
 
-    fp = fopen(name, "r+");
+    fp = fopen(name, "rb");
     if (fp == NULL) {
         goto cleanup;
     }
@@ -98,7 +98,7 @@ static int js_load(struct config *c, const char *name)
 {
     cJSON *json;
     size_t len;
-    void *buf;
+    void *buf = NULL;
     read_file(name, &buf, &len);
     if (!buf) {
         printf("read_file %s failed!\n", name);
