@@ -1,9 +1,9 @@
 
-## Supported
+## Supported (on-going)
 | Host OS    |      |                       |        |          |
 |------------|------|-----------------------|--------|----------|
 |PC linux    |cmake |x86_64-w64-mingw32-gcc |gcc     |ndk-build |
-|windows     |cmake |mingw                  |MSVC c1 |          |
+|windows     |cmake |mingw  (not passed)    |MSVC c1 |          |
 |mac         |cmake |gcc                    |        |          |
 |raspberrypi |cmake |arm-gcc                |        |          |
 |esp32       |cmake |xtensa-esp32-elf       |        |          |
