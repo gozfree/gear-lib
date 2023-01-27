@@ -79,15 +79,15 @@ struct plugin *plugin_load(struct plugin_manager *pm, const char *path, const ch
 {
     struct plugin *sym = NULL;
     struct plugin *p = NULL;
-    void *handle = dlopen(path, RTLD_LAZY);
-    if (!handle) {
-        printf("dlopen failed: %s\n", dlerror());
-        goto failed;
-    }
     p = plugin_lookup(pm, name);
     if (p) {
         printf("plugin %s has already loaded!\n", name);
         return p;
+    }
+    void *handle = dlopen(path, RTLD_LAZY);
+    if (!handle) {
+        printf("dlopen failed: %s\n", dlerror());
+        goto failed;
     }
     sym = dlsym(handle, name);
     if (!sym) {
