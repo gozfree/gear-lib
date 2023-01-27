@@ -33,7 +33,7 @@
  * [bucket2] -> item[1] -> item[2] -> ... -> item[m2]
  * ...
  * [bucketn] -> item[1] -> item[2] -> ... -> item[mn]
- * 
+ *
  */
 
 #define HASH_MAX_KEY_STRLEN 32
@@ -285,10 +285,11 @@ void *hash_get_and_del(struct hash *h, const char *key)
     uint32_t hash = 0;
     struct hash_item *hi = hash_lookup(h, key, &hash);
     if (hi) {
+        void *val = memdup(hi->val, sizeof(void *));
         hlist_del((struct hlist_node *)hi);
         free(hi->key);
         free(hi);
-        return NULL;
+        return val;
     }
     return NULL;
 }
