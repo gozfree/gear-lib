@@ -76,10 +76,10 @@ int test(int argc, char * argv[])
         }
 #if DEBUG>1
         printf("exp[%s] got[%s]\n", buffer+i*9, val);
+#endif
         if (val && strcmp(val, buffer+i*9)) {
             printf("-> WRONG got[%s] exp[%s]\n", val, buffer+i*9);
         }
-#endif
     }
     t2 = epoch_double();
     printf(ALIGN, "lookup", t2 - t1);

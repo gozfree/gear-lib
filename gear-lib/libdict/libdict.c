@@ -146,6 +146,7 @@ static keypair *dict_lookup(dict *d, char *key, uint32_t hash)
     uint32_t perturb;
 
     if (!d || !key) {
+        printf("%s:%d invalid paraments!\n", __func__, __LINE__);
         return NULL;
     }
 
@@ -164,7 +165,7 @@ static keypair *dict_lookup(dict *d, char *key, uint32_t hash)
         }
         freeslot = NULL;
     }
-    for (perturb = hash; perturb > 0; perturb >>= PERTURB_SHIFT) {
+    for (perturb = hash; ; perturb >>= PERTURB_SHIFT) {
         i = (i<<2) + i + perturb + 1;
         i &= (d->size-1);
         ep = d->table + i;
@@ -226,7 +227,7 @@ int dict_add(dict *d, char *key, char *val)
         return -1;
     }
 
-#if DEBUG>2
+#if DEBUG>1
     printf("dict_add[%s][%s]\n", key, val ? val : "UNDEF");
 #endif
     hash = dict_hash(key, strlen(key));
@@ -252,6 +253,9 @@ int dict_add(dict *d, char *key, char *val)
                 return -1;
             }
         }
+    } else {
+        printf("dict_lookup key:%s hash:0x%x empty!\n", key, hash);
+        return -1;
     }
     return 0;
 }
@@ -318,7 +322,6 @@ dict *dict_new(void)
         free(d);
         return NULL;
     }
-    memset(d->table, -1, DICT_MIN_SZ*sizeof(keypair));
     return d;
 }
 
