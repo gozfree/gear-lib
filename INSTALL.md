@@ -46,7 +46,7 @@
    
 ### Linux
   * install third-party libraries  
-   `$ sudo apt install liblua5.2-dev libjansson-dev libpulse-dev libx264-dev libavcodec-dev libavformat-dev libavutil-dev protobuf-compiler`
+   `$ sudo apt install liblua5.2-dev libjansson-dev libpulse-dev libx264-dev libavcodec-dev libavformat-dev libavutil-dev libuvc-dev protobuf-compiler`
 
   * linux platform (>= Ubuntu14.04 >= gcc-4.8.4 32/64 bit)  
    `$ ./build.sh`  
