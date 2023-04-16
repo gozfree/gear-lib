@@ -42,7 +42,10 @@ CFLAGS	:= -O0 -Wall -Werror -fPIC
 LTYPE   := release
 else
 CFLAGS	:= -g -Wall -Werror -fPIC
-# -fsanitize=address -fno-omit-frame-pointer -static-libasan 
+
+ifeq ($(ASAN), 1)
+CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
+endif
 LTYPE   := debug
 endif
 ifeq ($(OUTPUT),/usr/local)
@@ -58,7 +61,10 @@ SHARED	:= -shared
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix -ldarray -lthread
 LDFLAGS	+= -pthread
-# -fsanitize=address -static-libasan
+
+ifeq ($(ASAN), 1)
+LDFLAGS += -fsanitize=address -static-libasan
+endif
 
 ###############################################################################
 # target

@@ -60,6 +60,10 @@ ifeq ($(ENABLE_LIVEVIEW), 1)
 CFLAGS	+= -DENABLE_LIVEVIEW
 endif
 
+ifeq ($(ASAN), 1)
+CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
+endif
+
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
@@ -68,6 +72,10 @@ LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lfile -lsock -lgevent -llog -ldict \
 	   -lthread -ltime -lmedia-io -lqueue -ldarray -lposix
 ifeq ($(ENABLE_LIVEVIEW), 1)
 LDFLAGS	+= -lx264 -lavcap
+endif
+
+ifeq ($(ASAN), 1)
+LDFLAGS += -fsanitize=address -static-libasan
 endif
 
 ###############################################################################

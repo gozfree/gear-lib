@@ -51,11 +51,19 @@ endif
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
+ifeq ($(ASAN), 1)
+CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
+endif
+
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
 LDFLAGS += -lavcodec -lavformat -lavutil
+
+ifeq ($(ASAN), 1)
+LDFLAGS += -fsanitize=address -static-libasan
+endif
 
 ###############################################################################
 # target

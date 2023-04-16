@@ -58,12 +58,19 @@ endif
 EXTRA_CFLAGS	+= $($(ARCH)_CFLAGS)
 EXTRA_CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 
+ifeq ($(ASAN), 1)
+EXTRA_CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
+endif
+
 SHARED	:= -shared
 
 EXTRA_LDFLAGS	:= $($(ARCH)_LDFLAGS)
 EXTRA_LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lposix -ldict -lgevent -ldarray -lthread
 EXTRA_LDFLAGS	+= -pthread -lrt
 
+ifeq ($(ASAN), 1)
+EXTRA_LDFLAGS += -fsanitize=address -static-libasan
+endif
 
 ###############################################################################
 # target

@@ -219,6 +219,19 @@ typedef struct rational {
 #endif
 #endif
 
+#define RETURN_IF_FAIL(expr) \
+    do {                     \
+        if (UNLIKELY(expr))  \
+            return;	         \
+    } while(0)
+
+#define RETURN_VAL_IF_FAIL(expr, val) \
+    do {                              \
+        if (UNLIKELY(expr))           \
+            return (val);	          \
+    } while(0)
+
+
 GEAR_API void *memdup(const void *src, size_t len);
 GEAR_API struct iovec *iovec_create(size_t len);
 GEAR_API void iovec_destroy(struct iovec *);

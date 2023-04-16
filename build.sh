@@ -2,23 +2,10 @@
 set -e
 
 CMD=$0
-MODULE=$1
-ARCH=$2
-MODE=$3
-
-#default is linux
-case $# in
-0)
-	MODULE=all;
-	ARCH=linux;
-	MODE=debug;;
-1)
-	ARCH=linux;
-	MODE=debug;;
-2)
-	MODE=debug;;
-
-esac
+MODULE=all
+ARCH=linux
+MODE=debug
+ASAN=0
 
 
 #add supported platform to here
@@ -28,9 +15,11 @@ PLATFORM="[linux|pi|android|ios]"
 BASIC_LIBS="libposix libtime liblog libdarray libthread libgevent libworkq libdict libhash libsort \
 	    librbtree libringbuffer libvector libstrex libmedia-io \
             libdebug libfile libqueue libplugin libhal libsubmask"
-MEDIA_LIBS="libavcap"
+MEDIA_LIBS="libavcap libmp4"
 FRAMEWORK_LIBS="libipc"
 NETWORK_LIBS="libsock libptcp librpc librtsp librtmpc"
+
+
 
 usage()
 {
@@ -66,26 +55,51 @@ usage()
 	exit
 }
 
-config_linux()
-{
-	CROSS_PREFIX=
-}
+#-o或--options选项后面接可接受的短选项，如ab:c::，表示可接受的短选项为-a -b -c，其中-a选项不接参数，-b选项后必须接参数，-c选项的参数为可选的
+#-l或--long选项后面接可接受的长选项，用逗号分开，冒号的意义同短选项。
+#-n选项后接选项解析错误时提示的脚本名字
+ARGS=`getopt -o a:m:h --long arch:,module:,help,asan: -n 'build.sh' -- "$@"`
+if [ $? != 0 ]; then
+    echo "Terminating..."
+    exit 1
+fi
 
-config_pi()
-{
-	CROSS_PREFIX=arm-linux-gnueabihf-
-}
+#将规范化后的命令行参数分配至位置参数（$1,$2,...)
+eval set -- "${ARGS}"
 
-config_android()
-{
-	CROSS_PREFIX=arm-linux-androideabi-
-}
-
-config_ios()
-{
-	echo "need a mac computer, who can help me :-)"
-	exit 0;
-}
+while true
+do
+    case "$1" in
+        -h|--help)
+            usage;
+            shift
+            ;;
+        -a|--arch)
+            ARCH=$2
+            shift 2
+            ;;
+        -m|--mode)
+            MODE=$2
+            shift 2
+            ;;
+        --module)
+            MODULE=$2
+            shift 2
+            ;;
+        --asan)
+            ASAN=$2
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "invalid arguments: $@"
+            exit 1
+            ;;
+    esac
+done
 
 config_common()
 {
@@ -98,15 +112,21 @@ config_arch()
 {
 	case $ARCH in
 	"pi")
-		config_pi;;
+		CROSS_PREFIX=arm-linux-gnueabihf-
+		;;
 	"android")
-		config_android;;
+		CROSS_PREFIX=arm-linux-androideabi-
+		;;
 	"linux")
-		config_linux;;
+		CROSS_PREFIX=
+		;;
 	"ios")
-		config_ios;;
+		echo "not support cross compile, should compile native on Mac"
+		exit 0;
+		;;
 	*)
-		usage;;
+		echo "arch: $ARCH not supported"
+		;;
 	esac
 }
 
@@ -175,12 +195,8 @@ build_module()
 		;;
 	*)
 		echo "==== build ${ARCH} ${MODULE} start..."
-		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT} MODE=${MODE}"
-		if [[ ${ARCH} == "linux" || ${ARCH} == "pi" || ${ARCH} == "android" ]]; then
-			${MAKE}  > /dev/null
-		else
-			echo "${ARCH} not support now" #make -f Makefile.${ARCH} > /dev/null
-		fi
+		MAKE="make ARCH=${ARCH} OUTPUT=${OUTPUT} MODE=${MODE} ASAN=${ASAN}"
+		${MAKE}  > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "==== build ${ARCH} ${MODULE} failed"
 			return;

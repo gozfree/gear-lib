@@ -58,7 +58,6 @@ else
 OUTLIBPATH :=$(OUTPUT)/$(LTYPE)
 endif
 
-#CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
 CFLAGS	+= $($(ARCH)_CFLAGS)
 CFLAGS	+= -I$(OUTPUT)/include/gear-lib
 ifeq ($(ENABLE_SOCK_EXT), 1)
@@ -67,6 +66,11 @@ endif
 ifeq ($(ENABLE_PTCP), 1)
 CFLAGS	+= -DENABLE_PTCP
 endif
+
+ifeq ($(ASAN), 1)
+CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
+endif
+
 SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
@@ -78,7 +82,9 @@ ifeq ($(ENABLE_PTCP), 1)
 LDFLAGS	+= -L$(OUTLIBPATH)/lib/gear-lib -lptcp
 endif
 
-#LDFLAGS += -fsanitize=address -static-libasan
+ifeq ($(ASAN), 1)
+LDFLAGS += -fsanitize=address -static-libasan
+endif
 
 ###############################################################################
 # target

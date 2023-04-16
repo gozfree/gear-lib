@@ -54,6 +54,11 @@ else
 CFLAGS  := -g -Wall -Werror -fPIC
 LTYPE   := debug
 endif
+
+ifeq ($(ASAN), 1)
+CFLAGS  += -fsanitize=address -fno-omit-frame-pointer -static-libasan
+endif
+
 ifeq ($(OUTPUT),/usr/local)
 OUTLIBPATH := /usr/local
 else
@@ -66,6 +71,10 @@ SHARED	:= -shared
 
 LDFLAGS	:= $($(ARCH)_LDFLAGS)
 LDFLAGS	+= -pthread
+
+ifeq ($(ASAN), 1)
+LDFLAGS += -fsanitize=address -static-libasan
+endif
 
 ###############################################################################
 # target
