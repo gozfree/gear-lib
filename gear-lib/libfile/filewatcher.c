@@ -175,7 +175,7 @@ int fw_update_watch(struct fw *fw, struct inotify_event *iev)
         return -1;
     }
     memset(full_path, 0, sizeof(full_path));
-    sprintf(full_path, "%s/%s", path, iev->name);
+    snprintf(full_path, sizeof(full_path), "%s/%s", path, iev->name);
     if (iev->mask & IN_CREATE) {
         if (iev->mask & IN_ISDIR) {
             fw_add_watch_recursive(fw, full_path);

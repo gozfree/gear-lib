@@ -188,7 +188,7 @@ int main(int argc, char **argv)
         while (1) {
             memset(buf, 0, sizeof(buf));
             printf("input> ");
-            scanf("%s", buf);
+            scanf("%63s", buf);
             printf("%s:%d fd=%d\n", __func__, __LINE__, sc->fd);
             n = sock_send(sc->fd, buf, strlen(buf));
             if (n == -1) {
