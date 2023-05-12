@@ -81,6 +81,10 @@ static void rtsp_connect_create(struct rtsp_server *rtsp, int fd, uint32_t ip, u
 {
     char key[9];
     struct rtsp_request *req = calloc(1, sizeof(struct rtsp_request));
+    if (!req) {
+        loge("calloc failed!\n");
+        return;
+    }
     req->fd = fd;
     req->client.ip = ip;
     req->client.port = port;

@@ -452,6 +452,9 @@ void dict_get_key_list(dict *d, key_list **klist)
         if (rank<0)
             break ;
         knode = (key_list *)calloc(1, sizeof(key_list));
+        if (!knode) {
+            continue;
+        }
         knode->key = xstrdup(key);
         knode->next = NULL;
         if (*klist == NULL) {

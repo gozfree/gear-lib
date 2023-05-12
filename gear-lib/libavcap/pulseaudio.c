@@ -576,6 +576,10 @@ static int pulse_channel_map(pa_channel_map *pm, enum speaker_layout speakers)
 static void *_pa_open(struct avcap_ctx *avcap, const char *dev, struct avcap_config *conf)
 {
     struct pulse_ctx *c = calloc(1, sizeof(struct pulse_ctx));
+    if (!c) {
+        printf("calloc failed!\n");
+        return NULL;
+    }
 
     c->pa_mainloop = pa_threaded_mainloop_new();
     if (!c->pa_mainloop) {
