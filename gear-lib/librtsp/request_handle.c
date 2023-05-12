@@ -33,7 +33,7 @@
 #include <string.h>
 #include <time.h>
 
-#define RTSP_RESPONSE_LEN_MAX   (8192)
+#define RTSP_RESPONSE_LEN_MAX   (16384)
 
 #define ALLOWED_COMMAND                         \
         "OPTIONS,"                              \
@@ -144,7 +144,7 @@ static int on_describe(struct rtsp_request *req, char *url)
         return handle_rtsp_response(req, 404, NULL);
     }
     ms->sdp_generate(ms);
-    snprintf(buf, sizeof(buf)+sizeof(ms->sdp), RESP_DESCRIBE_FMT,
+    snprintf(buf, sizeof(buf), RESP_DESCRIBE_FMT,
                  req->url_origin,
                  (uint32_t)strlen(ms->sdp),
                  ms->sdp);//XXX: sdp line can't using "\r\n" as ending!!!
