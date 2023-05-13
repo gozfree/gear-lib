@@ -149,7 +149,7 @@ int thread_set_name(struct thread *t, const char *name)
         printf("pthread_setname_np %s failed: %d\n", name, errno);
         return -1;
     }
-    strncpy(t->name, name, strlen(name));
+    strncpy(t->name, name, sizeof(t->name));
     return 0;
 #else
     return 0;
