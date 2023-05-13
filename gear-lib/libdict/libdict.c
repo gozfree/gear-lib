@@ -398,8 +398,8 @@ int dict_enumerate(dict * d, int rank, char ** key, char ** val)
         return -1 ;
     }
 
-    while ((d->table[rank].key == NULL || d->table[rank].key == DUMMY_PTR)
-            && (rank < (int)d->size))
+    while ((rank < (int)d->size) &&
+           (d->table[rank].key == NULL || d->table[rank].key == DUMMY_PTR))
         rank++;
 
     if (rank >= (int)d->size) {
