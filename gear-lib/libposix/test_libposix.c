@@ -21,12 +21,30 @@
  ******************************************************************************/
 #include "libposix.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #include <sys/stat.h>
+
+typedef int (*add2_fn)(char* a, char* b);
+typedef int (*add3_fn)(char* a, char* b, char *c);
+
+int add2(char* a, char* b)
+{
+    printf("%d+%d=%d\n", atoi(a), atoi(b), atoi(a) + atoi(b));
+    return atoi(a) + atoi(b);
+}
+REFLECT_DEF(add2);
+
+int add3(char* a, char* b, char *c)
+{
+    printf("%d+%d+%d=%d\n", atoi(a), atoi(b), atoi(c), atoi(a) + atoi(b) + atoi(c));
+    return atoi(a) + atoi(b) + atoi(c);
+}
+REFLECT_DEF(add3);
 
 static void *thread_func(void *arg)
 {
@@ -69,5 +87,9 @@ void foo()
 int main(int argc, char **argv)
 {
     foo();
+
+    REFLECT_CALL(add2_fn, "add2", "4", "2");
+    REFLECT_CALL(add3_fn, "add3", "1", "4", "2");
+
     return 0;
 }

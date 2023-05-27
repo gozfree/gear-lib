@@ -260,6 +260,31 @@ GEAR_API size_t wcs_to_utf8_ptr(const wchar_t *str, size_t len, char **pstr);
 GEAR_API size_t utf8_to_mbs_ptr(const char *str, size_t len, char **pstr);
 GEAR_API size_t mbs_to_utf8_ptr(const char *str, size_t len, char **pstr);
 
+/*
+ * simple reflection c version realization
+ */
+typedef void (*void_fn)(void);
+struct reflect {
+    void_fn fn;
+    const char* name;
+};
+struct reflect __start_reflect;
+struct reflect __stop_reflect;
+
+#define REFLECT_DEF(x) __attribute__((section("reflect"), aligned(sizeof(void*)))) \
+            struct reflect __##x = {(void_fn)x, #x};
+
+#define REFLECT_CALL(type, x, ...)                                            \
+    do {                                                                      \
+        struct reflect *_r = NULL;                                            \
+        for (_r = &__start_reflect; _r < &__stop_reflect; _r++) {             \
+            if (strcmp(_r->name, x) == 0) {                                   \
+                type __fn = (type)_r->fn;                                     \
+                __fn(__VA_ARGS__);                                            \
+            }                                                                 \
+        }                                                                     \
+    } while (0)
+
 #ifdef __cplusplus
 }
 #endif
