@@ -261,7 +261,9 @@ void RTMP_ParsePlaypath(AVal *in, AVal *out)
         if (*p == '%')
         {
             unsigned int c;
-            sscanf(p+1, "%02x", &c);
+            if (sscanf(p+1, "%02x", &c) != 1) {
+                break;
+            }
             *destptr++ = c;
             pplen -= 3;
             p += 3;
