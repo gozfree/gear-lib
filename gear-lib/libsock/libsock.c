@@ -332,14 +332,16 @@ struct sock_connection *sock_accept_connect(int fd)
         port = ntohs(si.sin_port);
     }
     sc = (struct sock_connection* )calloc(1, sizeof(struct sock_connection));
-    sc->fd = afd;
-    sc->type = SOCK_STREAM;
-    if (-1 == sock_getaddr_by_fd(sc->fd, &sc->local)) {
-        printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
+    if (sc != NULL) {
+        sc->fd = afd;
+        sc->type = SOCK_STREAM;
+        if (-1 == sock_getaddr_by_fd(sc->fd, &sc->local)) {
+            printf("sock_getaddr_by_fd failed: %s\n", strerror(errno));
+        }
+        sc->remote.ip = ip;
+        sc->remote.port = port;
+        sock_addr_ntop(sc->remote.ip_str, ip);
     }
-    sc->remote.ip = ip;
-    sc->remote.port = port;
-    sock_addr_ntop(sc->remote.ip_str, ip);
     return sc;
 }
 
@@ -428,6 +430,9 @@ int sock_get_local_list(sock_addr_list_t **al, int loopback)
             continue;
 
         an = (sock_addr_list_t *)calloc(sizeof(sock_addr_list_t), 1);
+        if (an == NULL) {
+            continue;
+        }
         an->addr.ip = ((struct sockaddr_in *) ifa->ifa_addr)->sin_addr.s_addr;
         an->addr.port = 0;
         an->next = NULL;
@@ -534,6 +539,9 @@ int sock_getaddrinfo(sock_addr_list_t **al, const char *domain, const char *port
     *al = NULL;
     for (rp = ai_list; rp != NULL; rp = rp->ai_next ) {
         an = (sock_addr_list_t *)calloc(sizeof(sock_addr_list_t), 1);
+        if (an == NULL) {
+            continue;
+        }
         an->addr.ip = ((struct sockaddr_in *)rp->ai_addr)->sin_addr.s_addr;
         an->addr.port = ntohs(((struct sockaddr_in *)rp->ai_addr)->sin_port);
         an->next = NULL;
@@ -573,6 +581,9 @@ int sock_gethostbyname(sock_addr_list_t **al, const char *name)
     *al = NULL;
     for (p = host->h_addr_list; *p != NULL; p++) {
         an = (sock_addr_list_t *)calloc(sizeof(sock_addr_list_t), 1);
+        if (an == NULL) {
+            continue;
+        }
         an->addr.ip = ((struct in_addr*)(*p))->s_addr;
         an->addr.port = 0;
         an->next = NULL;

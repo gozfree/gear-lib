@@ -49,6 +49,9 @@ static void array_free(void *param)
 int serializer_array_init(struct serializer *s)
 {
     struct array_data *data = calloc(1, sizeof(struct array_data));
+    if (!data) {
+        return -1;
+    }
     memset(s, 0, sizeof(struct serializer));
     da_init(data->bytes);
     s->data   = data;

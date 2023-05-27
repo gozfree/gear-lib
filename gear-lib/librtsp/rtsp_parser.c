@@ -251,6 +251,10 @@ int parse_transport(struct transport_header *t, char *buf, int len)
     fields = buf + 10;
     while (*fields == ' ') ++fields;
     field = (char *)calloc(1, strlen(fields)+1);
+    if (!field) {
+        loge("calloc failed\n");
+        return -1;
+    }
     while (sscanf(fields, "%[^;\r\n]", field) == 1) {
         switch (*field) {
         case 'r':

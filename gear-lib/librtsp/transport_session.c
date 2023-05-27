@@ -67,6 +67,9 @@ struct transport_session *transport_session_create(void *pool, struct transport_
 {
     char key[9];
     struct transport_session *s = calloc(1, sizeof(struct transport_session));
+    if (!s) {
+        return NULL;
+    }
     s->session_id = get_random_number();
     snprintf(key, sizeof(key), "%08X", s->session_id);
     s->rtp = rtp_create(90000, 0);
