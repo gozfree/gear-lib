@@ -144,7 +144,7 @@ static struct hash_item *hash_lookup(struct hash *h, const char *key, uint32_t *
     i = *hash & (h->bucket-1);
     list = &((struct hlist_head *)h->opaque_list)[i];
 
-#if defined (OS_LINUX) || defined (OS_RTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (ENV_MINGW)
     hlist_for_each_entry_safe(hi, next, list, item) {
 #elif defined (OS_WINDOWS)
     hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
@@ -188,7 +188,7 @@ void hash_destroy(struct hash *h)
     }
     list = h->opaque_list;
     for (i = 0; i < h->bucket; i++) {
-#if defined (OS_LINUX) || defined (OS_RTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (ENV_MINGW)
         hlist_for_each_entry_safe(hi, next, &list[i], item) {
 #elif defined (OS_WINDOWS)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, &list[i], item) {
@@ -311,7 +311,7 @@ int hash_get_all_cnt(struct hash *h)
 
     for (i = 0; i < h->bucket - 1; i++) {
         list = &((struct hlist_head *)h->opaque_list)[i];
-#if defined (OS_LINUX) || defined (OS_RTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (ENV_MINGW)
         hlist_for_each_entry_safe(hi, next, list, item) {
 #elif defined (OS_WINDOWS)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {
@@ -332,7 +332,7 @@ void hash_dump_all(struct hash *h, int *num, char **key, void **val)
 
     for (i = 0; i < h->bucket - 1; i++) {
         list = &((struct hlist_head *)h->opaque_list)[i];
-#if defined (OS_LINUX) || defined (OS_RTOS)
+#if defined (OS_LINUX) || defined (OS_RTOS) || defined (ENV_MINGW)
         hlist_for_each_entry_safe(hi, next, list, item) {
 #elif defined (OS_WINDOWS)
         hlist_for_each_entry_safe(hi, struct hash_item, next, struct hlist_node, list, item) {

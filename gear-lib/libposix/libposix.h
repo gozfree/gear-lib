@@ -30,19 +30,18 @@ extern "C" {
 
 /******************************************************************************
  * OS_WINDOWS
- * support MSVC, msys2, mingw32/64 on Windows
+ * support MSVC on Windows
  ******************************************************************************/
-#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER) || defined (ENV_MINGW)
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
 #define OS_WINDOWS
 #define GEAR_API __declspec(dllexport)
 #include "libposix4win.h"
 
-
 /******************************************************************************
  * OS_LINUX
- * support UNIX on Linux
+ * support UNIX on Linux, and mingw on Windows
  ******************************************************************************/
-#elif defined (__linux__) /* || defined (__CYGWIN__) */
+#elif defined (__linux__) || defined (__CYGWIN__) || defined (ENV_MINGW)
 #define OS_LINUX
 #define GEAR_API __attribute__((visibility("default")))
 #include "libposix4nix.h"

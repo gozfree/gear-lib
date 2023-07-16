@@ -22,9 +22,11 @@
 #ifndef LIBPOSIX4WIN_H
 #define LIBPOSIX4WIN_H
 
-#ifndef ENV_MINGW
-#include "msvclibx.h"
+#ifdef ENV_MINGW
+#error the msvclibx should not be include in mingw env
 #endif
+
+#include "msvclibx.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +37,6 @@
 #include <ws2tcpip.h>
 #include <tlhelp32.h>
 #include <windows.h>
-#ifndef ENV_MINGW
 #include "pthreads4w/pthread.h"
 #include "pthreads4w/semaphore.h"
 #endif

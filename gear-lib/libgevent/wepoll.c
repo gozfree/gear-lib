@@ -34,6 +34,37 @@
 #endif
 
 #include <stdint.h>
+#include <assert.h>
+
+#include <stdlib.h>
+
+#define WEPOLL_INTERNAL static
+#define WEPOLL_INTERNAL_EXTERN static
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonportable-system-include-path"
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
+#elif defined(_MSC_VER)
+#pragma warning(push, 1)
+#endif
+
+#undef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+
 
 enum EPOLL_EVENTS {
   EPOLLIN      = (int) (1U <<  0),
@@ -70,7 +101,7 @@ enum EPOLL_EVENTS {
 #define EPOLL_CTL_DEL 3
 
 typedef void* HANDLE;
-typedef uintptr_t SOCKET;
+//typedef uintptr_t SOCKET;
 
 typedef union epoll_data {
   void* ptr;
@@ -107,37 +138,6 @@ WEPOLL_EXPORT int epoll_wait(HANDLE ephnd,
 
 #ifdef __cplusplus
 } /* extern "C" */
-#endif
-
-#include <assert.h>
-
-#include <stdlib.h>
-
-#define WEPOLL_INTERNAL static
-#define WEPOLL_INTERNAL_EXTERN static
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnonportable-system-include-path"
-#pragma clang diagnostic ignored "-Wreserved-id-macro"
-#elif defined(_MSC_VER)
-#pragma warning(push, 1)
-#endif
-
-#undef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-
-#undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(_MSC_VER)
-#pragma warning(pop)
 #endif
 
 WEPOLL_INTERNAL int nt_global_init(void);
@@ -482,7 +482,7 @@ WEPOLL_INTERNAL ts_tree_node_t* port_state_to_handle_tree_node(
  */
 
 typedef struct reflock {
-  volatile long state; /* 32-bit Interlocked APIs operate on `long` values. */
+  volatile int state; /* 32-bit Interlocked APIs operate on `long` values. */
 } reflock_t;
 
 WEPOLL_INTERNAL int reflock_global_init(void);
