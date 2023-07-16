@@ -29,20 +29,24 @@ extern "C" {
 #define LIBPOSIX_VERSION "0.1.1"
 
 /******************************************************************************
- * OS_LINUX
+ * OS_WINDOWS
+ * support MSVC, msys2, mingw32/64 on Windows
  ******************************************************************************/
-#if defined (__linux__) || defined (__CYGWIN__)
+#if defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER) || defined (ENV_MINGW)
+#define OS_WINDOWS
+#define GEAR_API __declspec(dllexport)
+#include "libposix4win.h"
+
+
+/******************************************************************************
+ * OS_LINUX
+ * support UNIX on Linux
+ ******************************************************************************/
+#elif defined (__linux__) /* || defined (__CYGWIN__) */
 #define OS_LINUX
 #define GEAR_API __attribute__((visibility("default")))
 #include "libposix4nix.h"
 
-/******************************************************************************
- * OS_WINDOWS
- ******************************************************************************/
-#elif defined (__WIN32__) || defined (WIN32) || defined (_MSC_VER)
-#define OS_WINDOWS
-#define GEAR_API __declspec(dllexport)
-#include "libposix4win.h"
 
 /******************************************************************************
  * OS_APPLE

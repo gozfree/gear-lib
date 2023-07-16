@@ -22,18 +22,23 @@
 #ifndef LIBPOSIX4WIN_H
 #define LIBPOSIX4WIN_H
 
+#ifndef ENV_MINGW
 #include "msvclibx.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <tlhelp32.h>
+#include <windows.h>
+#ifndef ENV_MINGW
 #include "pthreads4w/pthread.h"
 #include "pthreads4w/semaphore.h"
+#endif
 #include "kernel_list_win32.h"
 
 #ifdef __cplusplus
