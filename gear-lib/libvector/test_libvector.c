@@ -45,7 +45,7 @@ void mix_struct()
     c = _vector_create(sizeof(struct tmp_box));
 #endif
     vector_push_back(c, tb);
-    for (iter = vector_begin(c); iter != vector_end(c); iter = vector_next(c)) {
+    for (iter = vector_begin(c); iter != vector_end(c); iter = vector_next(c, iter)) {
         struct tmp_box *tt = vector_iter_valuep(c, iter, struct tmp_box);
         printf("vector member.c: %c\n", tt->c);
         printf("vector member.i: %d\n", tt->i);
@@ -79,7 +79,7 @@ void default_struct()
     vector_push_back(a, t1);
     vector_push_back(a, t2);
     vector_push_back(a, t3);
-    for (iter = vector_begin(a); iter != vector_end(a); iter = vector_next(a)) {
+    for (iter = vector_begin(a); iter != vector_end(a); iter = vector_next(a, iter)) {
         printf("vector member: %d\n", *vector_iter_valuep(a, iter, int));
     }
     for (i = 0; i < a->size; i++) {

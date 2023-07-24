@@ -73,7 +73,6 @@ int vector_empty(struct vector *v)
         printf("%s: paraments invalid!\n", __func__);
         return -1;
     }
-    v->tmp_cursor = 0;
     return (v->size == 0);
 }
 
@@ -104,28 +103,30 @@ vector_iter vector_last(struct vector *v)
     return (void *)((uint8_t *)v->buf.iov_base + (v->size-1) * v->type_size);
 }
 
-vector_iter vector_next(struct vector *v)
+vector_iter vector_next(struct vector *v, vector_iter iter)
 {
-    if (!v) {
+    if (!v || !iter) {
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
-    if (v->tmp_cursor < v->size) {
-        v->tmp_cursor++;
-    } else {
-        return NULL;
+    if (iter == vector_end(v)) {
+        printf("%s: vector reach the end!\n", __func__);
+        return iter;
     }
-    return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
+    return (void *)((uint8_t *)iter + v->type_size);
 }
 
-vector_iter vector_prev(struct vector *v)
+vector_iter vector_prev(struct vector *v, vector_iter iter)
 {
-    if (!v) {
+    if (!v || !iter) {
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
-    v->tmp_cursor--;
-    return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
+    if (iter == vector_begin(v)) {
+        printf("%s: vector reach the begin!\n", __func__);
+        return iter;
+    }
+    return (void *)((uint8_t *)iter - v->type_size);
 }
 
 void *_vector_iter_value(struct vector *v, vector_iter iter)
@@ -134,7 +135,11 @@ void *_vector_iter_value(struct vector *v, vector_iter iter)
         printf("%s: paraments invalid!\n", __func__);
         return NULL;
     }
-    return (void *)((uint8_t *)v->buf.iov_base + v->tmp_cursor * v->type_size);
+    if (iter > vector_end(v) || iter < vector_begin(v)) {
+        printf("%s: iter out of range!\n", __func__);
+        return NULL;
+    }
+    return (void *)((uint8_t *)iter);
 }
 
 void *_vector_at(struct vector *v, int pos)
@@ -154,7 +159,6 @@ struct vector *_vector_create(size_t size)
         return NULL;
     }
     v->size = 0;
-    v->tmp_cursor = 0;
     v->type_size = size;
     v->max_size = (size_t)(-1/size);
     v->capacity = VECTOR_DEFAULT_BUF_LEN;

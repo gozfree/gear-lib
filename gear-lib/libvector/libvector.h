@@ -39,7 +39,6 @@ typedef struct vector {
     size_t max_size; //max number of element
     size_t capacity; //size of allocated storage capacity
     size_t type_size;
-    size_t tmp_cursor;
     struct iovec buf;
     vector_iter iterator;
 } vector_t;
@@ -69,8 +68,8 @@ void _vector_push_back(struct vector *v, void *e, size_t type_size);
 vector_iter vector_begin(struct vector *v);
 vector_iter vector_end(struct vector *v);
 vector_iter vector_last(struct vector *v);//last=end-1
-vector_iter vector_next(struct vector *v);
-vector_iter vector_prev(struct vector *v);
+vector_iter vector_next(struct vector *v, vector_iter iter);
+vector_iter vector_prev(struct vector *v, vector_iter iter);
 void *_vector_iter_value(struct vector *v, vector_iter iter);
 void *_vector_at(struct vector *v, int pos);
 
