@@ -321,7 +321,7 @@ void gevent_destroy(struct gevent *e)
 int gevent_add(struct gevent_base *eb, struct gevent **e)
 {
     if (!e || !eb) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
+        printf("%s:%d parameters is NULL\n", __func__, __LINE__);
         return -1;
     }
     da_push_back(eb->ev_array, e);
@@ -332,7 +332,7 @@ int gevent_del(struct gevent_base *eb, struct gevent **e)
 {
     int ret;
     if (!e || !eb) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
+        printf("%s:%d parameters is NULL\n", __func__, __LINE__);
         return -1;
     }
     ret = eb->ops->del(eb, *e);
@@ -343,7 +343,7 @@ int gevent_del(struct gevent_base *eb, struct gevent **e)
 int gevent_mod(struct gevent_base *eb, struct gevent **e)
 {
     if (!e || !eb) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
+        printf("%s:%d parameters is NULL\n", __func__, __LINE__);
         return -1;
     }
     da_erase_item(eb->ev_array, e);

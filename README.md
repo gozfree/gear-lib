@@ -15,7 +15,7 @@ This is a collection of basic libraries.
 ## Data Struct
 |  |  |
 |--|--|
-| libdict: Hash key-value dictonary library | libhash: Hash key-value library based on hlist from kernel |
+| libdict: Hash key-value dictionary library | libhash: Hash key-value library based on hlist from kernel |
 | libringbuffer: | libqueue: queue library, support memory hook |
 | librbtree: comes from linux kernel rbtree. | libsort: |
 | libvector: | libdarray: Dynamic array |
