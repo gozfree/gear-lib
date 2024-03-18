@@ -357,7 +357,7 @@ void rtp_socket_destroy(struct rtp_socket *s)
 ssize_t rtp_sendto(struct rtp_socket *s, const char *ip, uint16_t port, const void *buf, size_t len)
 {
     uint8_t m_packet[4 + (1 << 16)];
-    int ret;
+    int ret = -1;
 
     switch (s->mode) {
     case RTP_TCP:
